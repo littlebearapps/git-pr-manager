@@ -65,6 +65,24 @@ function main() {
   console.log('   gwm auto              - Automated workflow (create PR, CI, merge)');
   console.log('   gwm --help            - Show all commands\n');
 
+  // ✨ Opt-in Features - Prominent but optional
+  console.log('✨ OPTIONAL: Enhance Your Workflow (100% Opt-In)');
+  console.log('┌────────────────────────────────────────────────────────────┐');
+  console.log('│ 🎯 Git Hooks - Never Miss gwm in Your Workflow            │');
+  console.log('│                                                            │');
+  console.log('│   gwm install-hooks       Install pre-push hook            │');
+  console.log('│                           (suggests gwm before push)       │');
+  console.log('│                                                            │');
+  console.log('│   Benefits:                                                │');
+  console.log('│   • Reminds you to run gwm ship before pushing             │');
+  console.log('│   • Prevents accidentally pushing without CI checks        │');
+  console.log('│   • 100% optional - you choose when to enable              │');
+  console.log('│                                                            │');
+  console.log('│ 📚 Learn More:                                             │');
+  console.log('│   gwm docs                View all documentation           │');
+  console.log('│   gwm docs --guide=AI-AGENT-INTEGRATION                    │');
+  console.log('└────────────────────────────────────────────────────────────┘\n');
+
   console.log('🔗 Documentation: https://github.com/littlebearapps/git-workflow-manager#readme\n');
 }
 

@@ -280,16 +280,15 @@ describe('Configuration Integration', () => {
     it('should initialize with standard template and validate', async () => {
       // Setup: No existing config
       mockedFsAccess.mockRejectedValue(new Error('not found'));
-      mockedYamlStringify.mockReturnValue('yaml content');
       mockedFsWriteFile.mockResolvedValue(undefined);
 
       // Act: Initialize with standard template
       await configService.init('standard');
 
-      // Act: Load and verify
-      const savedConfig = mockedYamlStringify.mock.calls[0][0];
-      expect(savedConfig.branchProtection.enabled).toBe(true);
-      expect(savedConfig.branchProtection.requireReviews).toBe(0);
+      // Act: Load and verify YAML content (second argument is content)
+      const savedYaml = mockedFsWriteFile.mock.calls[0][1];
+      expect(savedYaml).toContain('enabled: true'); // branchProtection.enabled
+      expect(savedYaml).toContain('requireReviews: 0'); // branchProtection.requireReviews
 
       // Act: Validate
       const validation = await configService.validate();
@@ -301,17 +300,16 @@ describe('Configuration Integration', () => {
     it('should initialize with strict template and validate', async () => {
       // Setup: No existing config
       mockedFsAccess.mockRejectedValue(new Error('not found'));
-      mockedYamlStringify.mockReturnValue('yaml content');
       mockedFsWriteFile.mockResolvedValue(undefined);
 
       // Act: Initialize with strict template
       await configService.init('strict');
 
-      // Act: Load and verify
-      const savedConfig = mockedYamlStringify.mock.calls[0][0];
-      expect(savedConfig.branchProtection.enabled).toBe(true);
-      expect(savedConfig.branchProtection.requireReviews).toBe(1);
-      expect(savedConfig.branchProtection.enforceAdmins).toBe(true);
+      // Act: Load and verify YAML content (second argument is content)
+      const savedYaml = mockedFsWriteFile.mock.calls[0][1];
+      expect(savedYaml).toContain('enabled: true'); // branchProtection.enabled
+      expect(savedYaml).toContain('requireReviews: 1'); // branchProtection.requireReviews
+      expect(savedYaml).toContain('enforceAdmins: true'); // branchProtection.enforceAdmins
 
       // Act: Validate
       const validation = await configService.validate();

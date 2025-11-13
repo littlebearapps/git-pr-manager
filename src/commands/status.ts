@@ -65,6 +65,43 @@ export async function statusCommand(): Promise<void> {
     }
 
     logger.blank();
+
+    // ✨ Next Steps - Context-aware suggestions for AI agents and developers
+    logger.section('💡 Next Steps');
+
+    if (!configExists) {
+      // No configuration - guide through setup
+      logger.info('📋 Get started with gwm:');
+      logger.info('   gwm init --interactive    # Initialize workflow configuration');
+      logger.info('   gwm docs                  # View documentation');
+      logger.blank();
+      logger.info('💡 Tip: Run \'gwm init --interactive\' for guided setup');
+    } else if (branchInfo.current === 'main' || branchInfo.current === 'master') {
+      // On main branch - suggest starting new work
+      logger.info('🚀 Start new work:');
+      logger.info('   gwm feature <name>        # Create feature branch and start work');
+      logger.info('   gwm status                # Check repository status');
+      logger.blank();
+      logger.info('💡 Tip: Always work on feature branches, not main');
+    } else if (!branchInfo.isClean) {
+      // Uncommitted changes - suggest committing
+      logger.info('📝 You have uncommitted changes:');
+      logger.info('   git add .                 # Stage changes');
+      logger.info('   git commit -m "..."       # Commit with message');
+      logger.info('   git push                  # Push to remote');
+      logger.blank();
+      logger.info('💡 Tip: Commit and push before using gwm ship or gwm auto');
+    } else {
+      // Clean feature branch - suggest PR workflow
+      logger.info('🚢 Ready to create PR:');
+      logger.info('   gwm ship                  # Create PR and wait for checks');
+      logger.info('   gwm auto --draft          # Create draft PR (faster)');
+      logger.info('   gwm security              # Run security scan before PR');
+      logger.blank();
+      logger.info('💡 Tip: Use \'gwm ship\' for full automated PR workflow');
+    }
+
+    logger.blank();
   } catch (error: any) {
     logger.error(`Failed to get status: ${error.message}`);
     if (process.env.DEBUG) {

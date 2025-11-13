@@ -187,41 +187,45 @@ describe('ConfigService', () => {
 
     it('should initialize with basic template by default', async () => {
       mockedFsAccess.mockRejectedValue(new Error('not found'));
-      mockedYamlStringify.mockReturnValue('yaml content');
       mockedFsWriteFile.mockResolvedValue(undefined);
 
       await configService.init('basic');
 
       expect(mockedFsWriteFile).toHaveBeenCalled();
-      const savedConfig = mockedYamlStringify.mock.calls[0][0];
-      expect(savedConfig.branchProtection.enabled).toBe(false);
+      // Verify YAML content contains expected values (second argument is content)
+      const savedYaml = mockedFsWriteFile.mock.calls[0][1];
+      expect(savedYaml).toContain('enabled: false'); // branchProtection.enabled
+      expect(savedYaml).toContain('💡 AI Agent Guidance'); // Contains AI guidance comments
+      expect(savedYaml).toContain('gwm ship'); // Contains workflow suggestions
     });
 
     it('should initialize with standard template', async () => {
       mockedFsAccess.mockRejectedValue(new Error('not found'));
-      mockedYamlStringify.mockReturnValue('yaml content');
       mockedFsWriteFile.mockResolvedValue(undefined);
 
       await configService.init('standard');
 
-      const savedConfig = mockedYamlStringify.mock.calls[0][0];
-      expect(savedConfig.branchProtection.enabled).toBe(true);
-      expect(savedConfig.branchProtection.requireReviews).toBe(0);
-      expect(savedConfig.branchProtection.requireStatusChecks).toContain('test');
+      // Verify YAML content contains expected values (second argument is content)
+      const savedYaml = mockedFsWriteFile.mock.calls[0][1];
+      expect(savedYaml).toContain('enabled: true'); // branchProtection.enabled
+      expect(savedYaml).toContain('requireReviews: 0'); // branchProtection.requireReviews
+      expect(savedYaml).toContain('- test'); // requireStatusChecks contains 'test'
+      expect(savedYaml).toContain('💡 AI Agent Guidance'); // Contains AI guidance comments
     });
 
     it('should initialize with strict template', async () => {
       mockedFsAccess.mockRejectedValue(new Error('not found'));
-      mockedYamlStringify.mockReturnValue('yaml content');
       mockedFsWriteFile.mockResolvedValue(undefined);
 
       await configService.init('strict');
 
-      const savedConfig = mockedYamlStringify.mock.calls[0][0];
-      expect(savedConfig.branchProtection.enabled).toBe(true);
-      expect(savedConfig.branchProtection.requireReviews).toBe(1);
-      expect(savedConfig.branchProtection.enforceAdmins).toBe(true);
-      expect(savedConfig.ci.retryFlaky).toBe(true);
+      // Verify YAML content contains expected values (second argument is content)
+      const savedYaml = mockedFsWriteFile.mock.calls[0][1];
+      expect(savedYaml).toContain('enabled: true'); // branchProtection.enabled
+      expect(savedYaml).toContain('requireReviews: 1'); // branchProtection.requireReviews
+      expect(savedYaml).toContain('enforceAdmins: true'); // branchProtection.enforceAdmins
+      expect(savedYaml).toContain('retryFlaky: true'); // ci.retryFlaky
+      expect(savedYaml).toContain('💡 AI Agent Guidance'); // Contains AI guidance comments
     });
   });
 
