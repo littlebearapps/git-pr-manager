@@ -1,0 +1,35 @@
+# Source files
+src/
+tests/
+*.test.ts
+*.spec.ts
+
+# Build configuration
+tsconfig.json
+jest.config.js
+.eslintrc.js
+
+# Development files
+.git/
+.github/
+.vscode/
+.idea/
+
+# Documentation (keep README.md only)
+docs/
+*.md
+!README.md
+
+# Logs and temp files
+*.log
+npm-debug.log*
+.DS_Store
+*.swp
+*.swo
+
+# Coverage reports
+coverage/
+.nyc_output/
+
+# Node modules
+node_modules/

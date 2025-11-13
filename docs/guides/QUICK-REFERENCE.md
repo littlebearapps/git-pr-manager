@@ -1,0 +1,340 @@
+# git-workflow-manager - Quick Reference
+
+**Version**: 0.2.0
+**Updated**: 2025-10-18
+
+---
+
+## Daily Workflow
+
+### 1. Start New Feature
+```bash
+cd ~/claude-code-tools/[project]/main/
+git checkout -b feature/my-feature-name
+
+# Make changes
+git add .
+git commit -m "feat: my feature description"
+```
+
+### 2. Ship Feature (Primary Command)
+```bash
+# Simple - Let gwm handle everything
+User: "Use git-workflow-manager to ship this feature"
+
+# What happens:
+# 1. Runs verify.sh (lint, typecheck, tests, build)
+# 2. Pushes feature branch to GitHub
+# 3. Creates PR (feature → main)
+# 4. Waits for CI checks to pass
+# 5. Merges PR with squash merge
+# 6. Deletes feature branch (local + remote)
+# 7. Updates main worktree
+```
+
+### 3. Check Status
+```bash
+User: "Use git-workflow-manager to check status"
+
+# Shows:
+# - Current branch
+# - Outstanding commits
+# - PR status (if exists)
+# - CI check status
+# - Worktree sync status
+```
+
+---
+
+## Command Reference
+
+| Command | When to Use | What It Does |
+|---------|-------------|--------------|
+| **gwm ship** | Ready to merge feature | Complete PR workflow |
+| **gwm feature start** | Starting new work | Creates feature branch from main |
+| **gwm status** | Check current state | Shows branch, PR, CI status |
+| **gwm abort** | Need to cancel feature | Deletes feature branch safely |
+
+---
+
+## Common Flags
+
+### gwm ship
+
+```bash
+# Force merge (skip CI wait)
+gwm ship --force-merge
+
+# Skip verify.sh checks
+gwm ship --no-verify
+
+# Keep feature branch after merge
+gwm ship --keep-branch
+
+# Auto-generate PR description from commits
+gwm ship --auto-description
+
+# Dry-run (show what would happen)
+gwm ship --dry-run
+```
+
+### gwm feature start
+
+```bash
+# Create feature branch with custom base
+gwm feature start --base=main feature/my-feature
+
+# Create and push immediately
+gwm feature start --push feature/my-feature
+```
+
+---
+
+## Branch Naming Conventions
+
+**REQUIRED**: All feature branches must use one of these prefixes:
+
+| Prefix | Use For | Example |
+|--------|---------|---------|
+| `feature/` | New features | `feature/add-dark-mode` |
+| `fix/` | Bug fixes | `fix/button-alignment` |
+| `chore/` | Maintenance tasks | `chore/update-deps` |
+
+**Invalid branch names will be rejected by pre-push hooks**
+
+---
+
+## Error Handling
+
+### "Must be on feature branch"
+```
+❌ Must be on feature/fix/chore branch
+
+Solution:
+1. Create feature branch: git checkout -b feature/my-feature
+2. Or switch to existing: git checkout feature/my-feature
+```
+
+### "CI checks failed"
+```
+❌ CI checks failed: [failing-check-name]
+
+Solution:
+1. Check GitHub Actions logs for details
+2. Fix issues in local branch
+3. Push updates: git push origin [branch-name]
+4. Re-run gwm ship
+```
+
+### "Merge conflict"
+```
+❌ Merge conflict detected
+
+Solution:
+1. Update main: git checkout main && git pull
+2. Switch to feature: git checkout feature/my-feature
+3. Rebase on main: git rebase main
+4. Resolve conflicts (if any)
+5. Force push: git push --force origin feature/my-feature
+6. Re-run gwm ship
+```
+
+### "verify.sh failed"
+```
+❌ verify.sh failed: [test/lint/typecheck/build]
+
+Solution:
+1. Run locally: bash scripts/phase-2/verify.sh
+2. Fix issues reported
+3. Commit fixes
+4. Re-run gwm ship
+```
+
+---
+
+## Time Savings
+
+| Task | Manual Time | gwm Time | Savings |
+|------|-------------|----------|---------|
+| Complete PR workflow | 10-15 min | <5 min | >60% |
+| Feature branch creation | 2-3 min | <1 min | 66% |
+| Status check | 5 min | <30 sec | 90% |
+
+---
+
+## Comparison: Old vs New
+
+### Old Workflow (dev/main worktrees)
+```bash
+cd ~/claude-code-tools/[project]/dev/
+# Make changes in dev
+git add . && git commit -m "feat: my feature"
+git push origin dev
+# Open browser, create PR on GitHub
+# Wait for CI
+# Merge PR on GitHub
+cd ../main/
+git pull origin main
+cd ../dev/
+git merge origin/main
+git push origin dev
+# Total: 10-15 minutes
+```
+
+### New Workflow (feature branches)
+```bash
+cd ~/claude-code-tools/[project]/main/
+git checkout -b feature/my-feature
+# Make changes
+git add . && git commit -m "feat: my feature"
+User: "Use git-workflow-manager to ship this feature"
+# Done! Total: <5 minutes
+```
+
+---
+
+## Tips & Best Practices
+
+### 1. Commit Often
+```bash
+# Make small, focused commits
+git commit -m "feat: add button component"
+git commit -m "test: add button tests"
+git commit -m "docs: update button usage"
+
+# gwm ship will squash all commits into one PR
+```
+
+### 2. Use Conventional Commits
+```bash
+# Good commit messages
+git commit -m "feat: add dark mode toggle"
+git commit -m "fix: button alignment on mobile"
+git commit -m "chore: update dependencies"
+git commit -m "docs: add API reference"
+
+# Auto-description uses these to generate PR title
+```
+
+### 3. Check Status Frequently
+```bash
+# Before starting work
+User: "Use git-workflow-manager to check status"
+
+# After making changes
+User: "Use git-workflow-manager to check status"
+
+# Before shipping
+User: "Use git-workflow-manager to check status"
+```
+
+### 4. Use Dry-Run for Complex Scenarios
+```bash
+# Preview what will happen
+User: "Use git-workflow-manager to ship this feature with --dry-run"
+
+# Review output, then run for real
+User: "Use git-workflow-manager to ship this feature"
+```
+
+---
+
+## Troubleshooting
+
+### Feature branch won't delete
+```
+⚠️  Could not delete feature branch
+
+Solution:
+1. Check if PR is still open: gh pr list
+2. Close/merge PR if needed
+3. Force delete: git branch -D feature/my-feature
+4. Delete remote: git push origin --delete feature/my-feature
+```
+
+### CI never completes
+```
+⚠️  CI checks timed out (10+ minutes)
+
+Solution:
+1. Check GitHub Actions logs
+2. Cancel stuck workflows if needed
+3. Re-run failed checks
+4. Use --force-merge if urgent (not recommended)
+```
+
+### Main worktree out of sync
+```
+⚠️  Main worktree behind origin/main
+
+Solution:
+1. cd ~/claude-code-tools/[project]/main/
+2. git pull origin main
+3. Re-run gwm ship
+```
+
+---
+
+## Integration with Phase 2
+
+### If verify.sh exists
+```bash
+# gwm ship automatically runs:
+bash scripts/phase-2/verify.sh
+
+# Checks:
+- Linting (eslint/ruff)
+- Type checking (tsc/mypy)
+- Tests (npm test/pytest)
+- Build (npm run build)
+
+# Skip with: gwm ship --no-verify
+```
+
+### If GitHub Actions configured
+```bash
+# gwm ship automatically:
+- Waits for all required checks
+- Polls status every 30 seconds
+- Fails if any check fails
+- Timeout after 10 minutes
+
+# Force merge: gwm ship --force-merge
+```
+
+---
+
+## Related Documentation
+
+- **Full Spec**: `SUBAGENT_PROMPT.md` (835 lines)
+- **Workflow Details**: `WORKFLOW-DOCUMENTATION.md`
+- **Subagents Overview**: `../README.md`
+- **Phase 2 Scripts**: `~/claude-code-tools/scripts/phase-2/`
+
+---
+
+## Quick Commands Cheatsheet
+
+```bash
+# Start new feature
+git checkout -b feature/my-feature
+
+# Ship feature (most common)
+User: "Use git-workflow-manager to ship"
+
+# Check status
+User: "Use git-workflow-manager to check status"
+
+# Abort feature
+User: "Use git-workflow-manager to abort this feature"
+
+# Emergency force merge (skip CI)
+User: "Use git-workflow-manager to ship with --force-merge"
+```
+
+---
+
+**Need Help?**
+- Read full spec: `SUBAGENT_PROMPT.md`
+- Check workflow docs: `WORKFLOW-DOCUMENTATION.md`
+- Review examples: `../README.md#quick-start-example`

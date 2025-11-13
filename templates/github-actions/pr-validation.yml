@@ -1,0 +1,168 @@
+# PR Validation Workflow
+# This workflow runs on pull requests to validate changes before merge
+#
+# Features:
+# - Branch protection validation
+# - Security scanning (secrets + dependencies)
+# - Verification checks (tests, lint, build)
+# - Automatic PR readiness assessment
+
+name: PR Validation
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches:
+      - main
+      - develop
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+
+jobs:
+  validate-branch-protection:
+    name: Validate Branch Protection
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install git-workflow-manager
+        run: npm install -g @your-org/git-workflow-manager
+
+      - name: Check branch protection
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gwm protection check \
+            --owner "${{ github.repository_owner }}" \
+            --repo "${{ github.event.repository.name }}" \
+            --branch "${{ github.base_ref }}"
+
+      - name: Validate PR readiness
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gwm pr validate \
+            --owner "${{ github.repository_owner }}" \
+            --repo "${{ github.event.repository.name }}" \
+            --pr-number "${{ github.event.pull_request.number }}"
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python (for detect-secrets)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install security tools
+        run: |
+          pip install detect-secrets pip-audit
+          npm install -g npm-audit
+
+      - name: Run security scan
+        run: |
+          gwm security scan --working-dir "${{ github.workspace }}"
+
+      - name: Upload security report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-report
+          path: security-report.json
+          retention-days: 30
+
+  verification:
+    name: Verification Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run verification checks
+        run: |
+          gwm verify run --working-dir "${{ github.workspace }}"
+
+      - name: Upload verification report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verification-report
+          path: verification-report.json
+          retention-days: 30
+
+  pr-readiness:
+    name: PR Readiness Assessment
+    runs-on: ubuntu-latest
+    needs: [validate-branch-protection, security-scan, verification]
+    if: always()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download reports
+        uses: actions/download-artifact@v4
+        with:
+          path: reports
+
+      - name: Assess PR readiness
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gwm pr assess \
+            --owner "${{ github.repository_owner }}" \
+            --repo "${{ github.event.repository.name }}" \
+            --pr-number "${{ github.event.pull_request.number }}" \
+            --reports-dir reports
+
+      - name: Comment on PR
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = JSON.parse(fs.readFileSync('reports/pr-readiness.json', 'utf8'));
+
+            const body = `## PR Readiness Assessment ❌
+
+            This PR is not ready to merge. Please address the following issues:
+
+            ${report.issues.map(i => `- ${i}`).join('\n')}
+
+            ${report.suggestions.length > 0 ? `
+            ### Suggestions
+            ${report.suggestions.map(s => `- ${s}`).join('\n')}
+            ` : ''}
+            `;
+
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: body
+            });

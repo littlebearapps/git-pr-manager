@@ -1,0 +1,43 @@
+# Strict Configuration Template
+# Maximum protection for production/critical projects
+#
+# Use this template when:
+# - Working on production systems
+# - Security and quality are paramount
+# - Compliance requirements demand strict controls
+
+# Branch protection settings
+branchProtection:
+  enabled: true
+  requireReviews: 1  # Minimum one approval required
+  requireStatusChecks:
+    - ci
+    - security
+    - test
+    - lint
+    - build
+    - coverage
+  enforceAdmins: true  # No exceptions, even for admins
+
+# CI/CD settings
+ci:
+  waitForChecks: true
+  failFast: false  # Always run all checks for complete visibility
+  retryFlaky: true
+  timeout: 60  # minutes
+
+# Security scanning settings
+security:
+  scanSecrets: true
+  scanDependencies: true
+  allowedVulnerabilities: []  # Zero tolerance for vulnerabilities
+
+# Pull request settings
+pr:
+  templatePath: '.github/PULL_REQUEST_TEMPLATE.md'
+  autoAssign:
+    - 'tech-lead'
+    - 'security-team'
+  autoLabel:
+    - 'needs-review'
+    - 'needs-security-review'

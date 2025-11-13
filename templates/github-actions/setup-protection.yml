@@ -1,0 +1,99 @@
+# Branch Protection Setup Workflow
+# Run this workflow manually to setup or update branch protection
+#
+# This workflow:
+# - Sets up branch protection based on preset (basic/standard/strict)
+# - Can be run manually with workflow_dispatch
+# - Supports dry-run mode for validation
+
+name: Setup Branch Protection
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to protect'
+        required: true
+        default: 'main'
+        type: string
+      preset:
+        description: 'Protection preset'
+        required: true
+        default: 'standard'
+        type: choice
+        options:
+          - basic
+          - standard
+          - strict
+      dry_run:
+        description: 'Dry run (show changes without applying)'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  administration: write
+
+jobs:
+  setup-protection:
+    name: Setup Branch Protection
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install git-workflow-manager
+        run: npm install -g @your-org/git-workflow-manager
+
+      - name: Show current protection
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Current protection settings for ${{ inputs.branch }}:"
+          gwm protection get \
+            --owner "${{ github.repository_owner }}" \
+            --repo "${{ github.event.repository.name }}" \
+            --branch "${{ inputs.branch }}"
+
+      - name: Apply protection (dry run)
+        if: inputs.dry_run == true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Dry run - showing changes that would be applied:"
+          gwm protection setup \
+            --owner "${{ github.repository_owner }}" \
+            --repo "${{ github.event.repository.name }}" \
+            --branch "${{ inputs.branch }}" \
+            --preset "${{ inputs.preset }}" \
+            --dry-run
+
+      - name: Apply protection (real)
+        if: inputs.dry_run == false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Applying ${{ inputs.preset }} protection to ${{ inputs.branch }}:"
+          gwm protection setup \
+            --owner "${{ github.repository_owner }}" \
+            --repo "${{ github.event.repository.name }}" \
+            --branch "${{ inputs.branch }}" \
+            --preset "${{ inputs.preset }}"
+
+      - name: Verify protection
+        if: inputs.dry_run == false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Verifying protection was applied:"
+          gwm protection get \
+            --owner "${{ github.repository_owner }}" \
+            --repo "${{ github.event.repository.name }}" \
+            --branch "${{ inputs.branch }}"

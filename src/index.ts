@@ -1,0 +1,125 @@
+#!/usr/bin/env node
+
+import { Command } from 'commander';
+import { checksCommand } from './commands/checks';
+import { initCommand } from './commands/init';
+import { statusCommand } from './commands/status';
+import { shipCommand } from './commands/ship';
+import { featureCommand } from './commands/feature';
+import { protectCommand } from './commands/protect';
+import { securityCommand } from './commands/security';
+import { autoCommand } from './commands/auto';
+import { logger, VerbosityLevel } from './utils/logger';
+
+const program = new Command();
+
+program
+  .name('gwm')
+  .description('Git Workflow Manager - Enhanced git workflow automation with CI integration')
+  .version('1.4.0-beta.1')
+  .option('--json', 'Output in JSON format (machine-readable)')
+  .option('--quiet', 'Quiet mode (errors/warnings only)')
+  .option('--silent', 'Silent mode (no output except exit codes)')
+  .option('--verbose', 'Verbose mode (detailed output)')
+  .hook('preAction', (thisCommand) => {
+    const opts = thisCommand.opts();
+
+    // Configure logger based on flags
+    if (opts.json) {
+      logger.setJsonMode(true);
+    }
+
+    if (opts.silent) {
+      logger.setLevel(VerbosityLevel.SILENT);
+    } else if (opts.quiet) {
+      logger.setLevel(VerbosityLevel.QUIET);
+    } else if (opts.verbose) {
+      logger.setLevel(VerbosityLevel.VERBOSE);
+    }
+  });
+
+// Register commands
+program
+  .command('feature')
+  .description('Start a new feature branch')
+  .argument('<name>', 'Feature name')
+  .option('--from <branch>', 'Base branch (defaults to main/master)')
+  .action(featureCommand);
+
+program
+  .command('ship')
+  .description('Ship feature - create PR, wait for CI, merge')
+  .option('--no-wait', 'Do not wait for CI checks')
+  .option('--no-fail-fast', 'Do not exit on first critical failure')
+  .option('--retry-flaky', 'Retry flaky tests')
+  .option('--skip-verify', 'Skip pre-commit verification')
+  .option('--skip-security', 'Skip security scan')
+  .option('--skip-ci', 'Skip CI checks entirely')
+  .option('--skip-auto-fix', 'Skip automated fixes for CI failures')
+  .option('--no-delete-branch', 'Keep branch after merge')
+  .option('--draft', 'Create as draft PR')
+  .option('--title <title>', 'PR title (auto-generated from branch if not provided)')
+  .option('--template <path>', 'PR template path or name')
+  .action(shipCommand);
+
+program
+  .command('checks')
+  .description('Show detailed CI check status for a PR')
+  .argument('<pr-number>', 'Pull request number')
+  .option('--details', 'Show full error details with annotations')
+  .option('--files', 'List affected files only')
+  .action(checksCommand);
+
+program
+  .command('init')
+  .description('Initialize .gwm.yml configuration')
+  .option('--template <type>', 'Configuration template (basic, standard, strict)', 'basic')
+  .option('--interactive', 'Interactive setup wizard')
+  .action(initCommand);
+
+program
+  .command('status')
+  .description('Show current git and workflow status')
+  .action(statusCommand);
+
+program
+  .command('protect')
+  .description('Configure branch protection')
+  .option('--branch <name>', 'Branch to protect (defaults to main/master)')
+  .option('--preset <type>', 'Protection preset (basic, standard, strict)', 'standard')
+  .option('--show', 'Show current protection settings')
+  .action(protectCommand);
+
+program
+  .command('security')
+  .description('Run security scans (secrets + vulnerabilities)')
+  .action(securityCommand);
+
+program
+  .command('auto')
+  .description('Auto workflow - create PR, wait for CI, merge automatically')
+  .option('--draft', 'Create as draft PR')
+  .option('--no-merge', 'Skip automatic merge (stop after CI passes)')
+  .option('--skip-security', 'Skip security scan')
+  .option('--skip-verify', 'Skip verification checks')
+  .action(autoCommand);
+
+// Global error handler
+process.on('uncaughtException', (error) => {
+  logger.error(`Uncaught exception: ${error.message}`);
+  if (process.env.DEBUG) {
+    console.error(error);
+  }
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason) => {
+  logger.error(`Unhandled rejection: ${reason}`);
+  if (process.env.DEBUG) {
+    console.error(reason);
+  }
+  process.exit(1);
+});
+
+// Parse arguments and execute
+program.parse();

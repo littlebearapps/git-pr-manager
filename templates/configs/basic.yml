@@ -1,0 +1,33 @@
+# Basic Configuration Template
+# Minimal protection for small projects or personal repos
+#
+# Use this template when:
+# - You're just starting out
+# - Working on personal/experimental projects
+# - Want minimal overhead
+
+# Branch protection settings
+branchProtection:
+  enabled: false
+  requireReviews: 0
+  requireStatusChecks: []
+  enforceAdmins: false
+
+# CI/CD settings
+ci:
+  waitForChecks: true
+  failFast: true
+  retryFlaky: false
+  timeout: 30  # minutes
+
+# Security scanning settings
+security:
+  scanSecrets: true
+  scanDependencies: true
+  allowedVulnerabilities: []
+
+# Pull request settings
+pr:
+  templatePath: null
+  autoAssign: []
+  autoLabel: []

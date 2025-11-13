@@ -1,0 +1,48 @@
+# git-workflow-manager Configuration
+# Place this file as .gwm.yml in your project root
+
+# Branch protection settings
+branchProtection:
+  enabled: true
+  requireReviews: 1
+  requireStatusChecks:
+    - ci
+    - security
+    - tests
+  enforceAdmins: false
+
+# CI/CD settings
+ci:
+  waitForChecks: true    # Wait for all checks to complete
+  failFast: true         # Stop on first failure
+  retryFlaky: false      # Retry flaky tests
+  timeout: 30            # Timeout in minutes (1-120)
+
+# Security settings
+security:
+  scanSecrets: true           # Scan for hardcoded secrets
+  scanDependencies: true      # Check for vulnerable dependencies
+  allowedVulnerabilities: []  # CVE IDs to allow (use with caution)
+
+# Pull request settings
+pr:
+  templatePath: .github/pull_request_template.md
+  autoAssign: []   # GitHub usernames to auto-assign
+  autoLabel: []    # Labels to auto-apply
+
+# Auto-fix settings (Phase 6)
+autoFix:
+  enabled: true              # Enable/disable auto-fix globally
+  maxAttempts: 2             # Max fix attempts per error type (1-5)
+  maxChangedLines: 1000      # Max lines that can be changed (1-10000)
+  requireTests: true         # Run tests after fix to verify
+  enableDryRun: false        # Enable dry-run mode by default
+  autoMerge: false           # Auto-merge fix PRs if checks pass
+  createPR: true             # Create PR for fixes (vs direct commit)
+
+# Configuration templates:
+# - basic: Minimal protection, fast feedback
+# - standard: Balanced protection and velocity
+# - strict: Maximum protection, slower but safer
+#
+# Initialize with: gwm init --template=standard

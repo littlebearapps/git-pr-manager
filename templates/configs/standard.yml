@@ -1,0 +1,37 @@
+# Standard Configuration Template
+# Balanced protection for most projects
+#
+# Use this template when:
+# - Working on team projects
+# - Need reasonable protection without excessive overhead
+# - Want to enforce basic quality standards
+
+# Branch protection settings
+branchProtection:
+  enabled: true
+  requireReviews: 0  # At least one approval recommended for teams
+  requireStatusChecks:
+    - ci
+    - security
+    - test
+  enforceAdmins: false
+
+# CI/CD settings
+ci:
+  waitForChecks: true
+  failFast: false  # Continue running all checks
+  retryFlaky: true
+  timeout: 45  # minutes
+
+# Security scanning settings
+security:
+  scanSecrets: true
+  scanDependencies: true
+  allowedVulnerabilities: []  # Block all critical vulnerabilities
+
+# Pull request settings
+pr:
+  templatePath: '.github/PULL_REQUEST_TEMPLATE.md'
+  autoAssign: []  # Add team members here
+  autoLabel:
+    - 'needs-review'
