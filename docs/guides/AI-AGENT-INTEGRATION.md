@@ -51,6 +51,249 @@ Claude: Let me create a PR using gwm:
 
 ---
 
+## Configuration for Different Team Sizes
+
+### Solo Developer Setup (Recommended Default)
+
+**Use case**: You're the only developer, reviewing code with AI before PRs
+
+**Configuration** (`.gwm.yml`):
+```yaml
+branchProtection:
+  enabled: false  # Or set requireReviews: 0
+  requireReviews: 0  # No human reviews needed
+  requireStatusChecks:
+    - quality-gate    # Still require CI to pass
+  enforceAdmins: false
+
+ci:
+  waitForChecks: true
+  failFast: true
+  timeout: 30
+
+security:
+  scanSecrets: true
+  scanDependencies: true
+
+autoFix:
+  enabled: true
+  maxAttempts: 2
+```
+
+**Why this setup**:
+- ✅ No review bottleneck (you review with AI before PR)
+- ✅ Still requires CI checks to pass
+- ✅ Security scanning enabled
+- ✅ Auto-fix for simple issues
+- ⚡ Fast merge workflow
+
+**AI Agent Guidance**:
+```
+When user is solo developer:
+- Recommend requireReviews: 0
+- Explain: "You review code with me before creating PRs, so no additional review needed"
+- Still enforce CI checks and security scanning
+```
+
+---
+
+### Small Team Setup (2-5 developers)
+
+**Use case**: Small team, occasional reviews, trust-based
+
+**Configuration**:
+```yaml
+branchProtection:
+  enabled: true
+  requireReviews: 1  # At least 1 review
+  requireStatusChecks:
+    - quality-gate
+    - gwm-security
+  enforceAdmins: false  # Allow admins to bypass
+
+ci:
+  waitForChecks: true
+  failFast: true
+  retryFlaky: true  # More forgiving for team
+
+security:
+  scanSecrets: true
+  scanDependencies: true
+```
+
+**Why this setup**:
+- ✅ Light review requirement (1 person)
+- ✅ Admins can bypass if needed
+- ✅ Flaky test retry enabled
+- 🤝 Balance between safety and speed
+
+**AI Agent Guidance**:
+```
+When team is small (2-5 people):
+- Recommend requireReviews: 1
+- Explain: "Lightweight review process, admins can bypass if urgent"
+- Enable retry for flaky tests
+```
+
+---
+
+### Enterprise/Large Team Setup (6+ developers)
+
+**Use case**: Multiple teams, strict compliance, regulated environments
+
+**Configuration**:
+```yaml
+branchProtection:
+  enabled: true
+  requireReviews: 2  # At least 2 reviews
+  requireStatusChecks:
+    - quality-gate
+    - gwm-security
+    - integration-tests
+    - e2e-tests
+  enforceAdmins: true  # Even admins follow rules
+
+ci:
+  waitForChecks: true
+  failFast: true
+  retryFlaky: false  # Strict - no retries
+  timeout: 45  # Longer timeout for complex builds
+
+security:
+  scanSecrets: true
+  scanDependencies: true
+  allowedVulnerabilities: []  # Block all vulnerabilities
+
+autoFix:
+  enabled: false  # Disable auto-fix for auditability
+```
+
+**Why this setup**:
+- ✅ Strict review requirements (2 people)
+- ✅ All checks must pass (no flaky retry)
+- ✅ Admin enforcement for compliance
+- ✅ Zero vulnerability tolerance
+- 🔒 Audit trail preserved
+
+**AI Agent Guidance**:
+```
+When team is large or enterprise:
+- Recommend requireReviews: 2
+- Enable enforceAdmins: true
+- Disable autoFix (manual fixes for audit trail)
+- Explain: "Stricter requirements for compliance"
+```
+
+---
+
+## Configuring Branch Protection
+
+### Understanding the Options
+
+**`branchProtection.enabled`**:
+- `true`: Validates protection rules match GitHub settings
+- `false`: Skips validation (useful for solo devs)
+
+**`branchProtection.requireReviews`**:
+- `0`: No reviews required (solo dev)
+- `1`: Light review requirement (small team)
+- `2+`: Strict review requirement (enterprise)
+
+**`branchProtection.requireStatusChecks`**:
+- List of CI check names that must pass
+- Leave empty `[]` for no required checks
+- Example: `["quality-gate", "gwm-security"]`
+
+**`branchProtection.enforceAdmins`**:
+- `false`: Admins can bypass rules (flexibility)
+- `true`: Even admins follow rules (compliance)
+
+### How to Apply Configuration
+
+**1. Edit `.gwm.yml`** (update requireReviews, etc.)
+
+**2. Apply to GitHub** (if using branch protection):
+```bash
+gwm protect  # Applies settings to GitHub
+```
+
+**3. Verify** (check GitHub settings match):
+```bash
+gwm protect --show  # Display current protection
+```
+
+### Changing Configuration Later
+
+**Remove review requirement**:
+```yaml
+branchProtection:
+  requireReviews: 0  # Change from 1 to 0
+```
+
+Then:
+```bash
+gwm protect  # Re-applies with 0 reviews
+```
+
+**Disable protection entirely**:
+```yaml
+branchProtection:
+  enabled: false  # Skip validation
+```
+
+---
+
+## AI Agent Setup Checklist
+
+When setting up gwm for a new repository, AI agents should:
+
+### 1. **Ask About Team Size** (if not obvious)
+```
+AI: "Are you working solo, or is this a team repository?"
+
+User: "Solo developer"
+AI: "I'll configure with requireReviews: 0 since you review code before PRs"
+
+User: "Team of 3"
+AI: "I'll configure with requireReviews: 1 for lightweight review"
+```
+
+### 2. **Show Configuration Before Applying**
+```yaml
+# Proposed .gwm.yml (show to user first)
+branchProtection:
+  enabled: true
+  requireReviews: 0  # ← Solo dev, no reviews
+  requireStatusChecks:
+    - quality-gate
+```
+
+### 3. **Explain the Impact**
+```
+AI: "This configuration will:
+✅ Require CI checks to pass
+✅ NOT require PR reviews (you're solo)
+✅ Enable security scanning
+✅ Enable auto-fix for simple issues
+
+To apply GitHub branch protection: gwm protect
+To skip protection: Leave requireReviews: 0 and don't run gwm protect"
+```
+
+### 4. **Don't Auto-Run `gwm protect`**
+```
+❌ Bad: Run gwm protect without asking
+✅ Good: Explain what it does, let user decide
+
+"If you want GitHub to enforce these rules, run:
+  gwm protect
+
+This will configure branch protection on GitHub.
+For solo dev, you may prefer to skip this and just use gwm locally."
+```
+
+---
+
 ## Supported AI Agents
 
 ### Claude Code (Anthropic)
