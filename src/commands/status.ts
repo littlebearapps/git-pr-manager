@@ -11,11 +11,55 @@ export async function statusCommand(): Promise<void> {
     const gitService = new GitService({ workingDir: process.cwd() });
     const configService = new ConfigService();
 
-    logger.section('Git Workflow Status');
-
-    // Git status
+    // Gather all status data
     const branchInfo = await gitService.getBranchInfo();
     const status = await gitService.getStatus();
+    const configExists = await configService.exists();
+    let config: any = null;
+    if (configExists) {
+      config = await configService.getConfig();
+    }
+
+    // Prepare JSON output data
+    const jsonData = {
+      branch: {
+        current: branchInfo.current,
+        isClean: branchInfo.isClean
+      },
+      files: {
+        modified: status.modified,
+        created: status.created,
+        deleted: status.deleted,
+        untracked: status.not_added
+      },
+      config: configExists ? {
+        exists: true,
+        settings: {
+          ciWait: config.ci?.waitForChecks ?? false,
+          failFast: config.ci?.failFast ?? false,
+          securityScan: config.security?.scanSecrets ?? false,
+          branchProtection: config.branchProtection?.enabled ?? false
+        },
+        hooks: {
+          prePush: {
+            enabled: config.hooks?.prePush?.enabled ?? false,
+            reminder: config.hooks?.prePush?.reminder ?? false
+          },
+          postCommit: {
+            enabled: config.hooks?.postCommit?.enabled ?? false,
+            reminder: config.hooks?.postCommit?.reminder ?? false
+          }
+        }
+      } : {
+        exists: false
+      }
+    };
+
+    // Output JSON if in JSON mode (will only output if jsonMode enabled)
+    logger.outputJsonResult(true, jsonData);
+
+    // Human-readable output below (will only output if jsonMode disabled)
+    logger.section('Git Workflow Status');
 
     logger.log(chalk.bold('Current Branch: ') + chalk.cyan(branchInfo.current));
     logger.log(chalk.bold('Working Directory: ') + (branchInfo.isClean ? chalk.green('Clean ✓') : chalk.yellow('Modified ✗')));
@@ -48,9 +92,7 @@ export async function statusCommand(): Promise<void> {
     logger.blank();
 
     // Workflow configuration
-    const configExists = await configService.exists();
     if (configExists) {
-      const config = await configService.getConfig();
       logger.log(chalk.bold('Workflow Configuration: ') + chalk.green('.gwm.yml ✓'));
 
       logger.blank();

@@ -11,6 +11,8 @@ import { securityCommand } from './commands/security';
 import { autoCommand } from './commands/auto';
 import { checkUpdateCommand } from './commands/check-update';
 import { docsCommand } from './commands/docs';
+import { installHooksCommand } from './commands/install-hooks';
+import { uninstallHooksCommand } from './commands/uninstall-hooks';
 import { logger, VerbosityLevel } from './utils/logger';
 import { maybeNotifyUpdate } from './utils/update-check';
 
@@ -25,7 +27,7 @@ const program = new Command();
 program
   .name('gwm')
   .description('Git Workflow Manager - Enhanced git workflow automation with CI integration')
-  .version('1.4.0-beta.1')
+  .version('1.4.0')
   .option('--json', 'Output in JSON format (machine-readable)')
   .option('--quiet', 'Quiet mode (errors/warnings only)')
   .option('--silent', 'Silent mode (no output except exit codes)')
@@ -125,6 +127,18 @@ program
   .description('Show documentation index or specific guide')
   .option('--guide <name>', 'Show specific guide (AI-AGENT-INTEGRATION, GITHUB-ACTIONS-INTEGRATION, etc.)')
   .action(docsCommand);
+
+program
+  .command('install-hooks')
+  .description('Install git hooks to remind about gwm workflow')
+  .option('--force', 'Overwrite existing hooks')
+  .option('--post-commit', 'Also install post-commit hook')
+  .action(installHooksCommand);
+
+program
+  .command('uninstall-hooks')
+  .description('Remove gwm git hooks')
+  .action(uninstallHooksCommand);
 
 // Global error handler
 process.on('uncaughtException', (error) => {

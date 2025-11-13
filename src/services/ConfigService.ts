@@ -35,6 +35,17 @@ const DEFAULT_CONFIG: WorkflowConfig = {
     enableDryRun: false,
     autoMerge: false,
     createPR: true
+  },
+  // Phase 2: Git hooks defaults
+  hooks: {
+    prePush: {
+      enabled: false,
+      reminder: true
+    },
+    postCommit: {
+      enabled: false,
+      reminder: true
+    }
   }
 };
 
@@ -196,6 +207,7 @@ export class ConfigService {
     const security = config.security || DEFAULT_CONFIG.security;
     const pr = config.pr || DEFAULT_CONFIG.pr;
     const autoFix = config.autoFix || DEFAULT_CONFIG.autoFix;
+    const hooks = config.hooks || DEFAULT_CONFIG.hooks;
 
     // Build YAML with inline comments that guide AI agents
     const yaml = `# .gwm.yml - Git Workflow Manager Configuration
@@ -261,6 +273,19 @@ autoFix:
   enableDryRun: ${autoFix!.enableDryRun}
   autoMerge: ${autoFix!.autoMerge}
   createPR: ${autoFix!.createPR}
+
+# Git Hooks (Optional - install with 'gwm install-hooks')
+# These track installation state - updated by gwm install-hooks/uninstall-hooks
+# enabled: false       = hook not installed
+# enabled: true        = hook installed in .git/hooks/
+# reminder: true       = show reminder message (can be disabled per hook)
+hooks:
+  prePush:
+    enabled: ${hooks!.prePush!.enabled}
+    reminder: ${hooks!.prePush!.reminder}
+  postCommit:
+    enabled: ${hooks!.postCommit!.enabled}
+    reminder: ${hooks!.postCommit!.reminder}
 
 # 📚 Documentation:
 #   gwm docs                                  - View all guides
@@ -349,6 +374,17 @@ autoFix:
       autoFix: {
         ...DEFAULT_CONFIG.autoFix,
         ...parsed.autoFix
+      },
+      // Phase 2: Merge hooks config
+      hooks: {
+        prePush: {
+          ...DEFAULT_CONFIG.hooks!.prePush,
+          ...parsed.hooks?.prePush
+        },
+        postCommit: {
+          ...DEFAULT_CONFIG.hooks!.postCommit,
+          ...parsed.hooks?.postCommit
+        }
       }
     };
   }
