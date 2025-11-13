@@ -30,7 +30,7 @@ You are about to implement a **complete transformation** of the `git-workflow-ma
 
 ## Key Documents
 
-**Location**: `~/claude-code-tools/subagents/git-workflow-manager/`
+**Location**: `~/claude-code-tools/lba/apps/subagents/git-workflow-manager/`
 
 ### Primary Document (Follow This)
 - **COMPREHENSIVE-ENHANCEMENT-PLAN.md** ⭐
@@ -137,7 +137,7 @@ Target (v1.0.0):
 **Your first task**: Project Setup (4 hours)
 
 ```bash
-cd ~/claude-code-tools/subagents/git-workflow-manager
+cd ~/claude-code-tools/lba/apps/subagents/git-workflow-manager
 ```
 
 ### Step 1: Initialize TypeScript Project
@@ -325,7 +325,7 @@ npm run dev checks 123  # Replace 123 with real PR number
 
 **Current location**:
 ```bash
-cd ~/claude-code-tools/subagents/git-workflow-manager
+cd ~/claude-code-tools/lba/apps/subagents/git-workflow-manager
 ```
 
 **View plan**:
@@ -390,7 +390,7 @@ cat SUBAGENT_PROMPT.md  # Current bash version
 
 **Your first command**:
 ```bash
-cd ~/claude-code-tools/subagents/git-workflow-manager
+cd ~/claude-code-tools/lba/apps/subagents/git-workflow-manager
 npm init -y  # Then edit package.json as shown above
 ```
 

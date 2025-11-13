@@ -1238,7 +1238,7 @@ git checkout v0.3.0 -- scripts/
 git checkout v0.3.0 -- gwm
 
 # Update PATH
-export PATH="$PATH:~/claude-code-tools/subagents/git-workflow-manager/v0.3.0"
+export PATH="$PATH:~/claude-code-tools/lba/apps/subagents/git-workflow-manager/v0.3.0"
 ```
 
 ### Gradual Migration Strategy

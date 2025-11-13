@@ -186,7 +186,7 @@ dev:   27a51fd ──→ fe77a14 (needs sync)
 
 **Commands Executed**:
 ```bash
-cd ~/claude-code-tools/subagents/integration-tests/env-validator/main
+cd ~/claude-code-tools/lba/apps/subagents/integration-tests/env-validator/main
 git pull origin main
 ```
 
@@ -222,7 +222,7 @@ Fast-forward
 
 **Commands Executed**:
 ```bash
-cd ~/claude-code-tools/subagents/integration-tests/env-validator/dev
+cd ~/claude-code-tools/lba/apps/subagents/integration-tests/env-validator/dev
 git pull origin main
 ```
 
@@ -304,12 +304,12 @@ git status --short
 ✅ Verifying sync...
 
 Main worktree:
-  Path: ~/claude-code-tools/subagents/integration-tests/env-validator/main
+  Path: ~/claude-code-tools/lba/apps/subagents/integration-tests/env-validator/main
   HEAD: 885b7f8
   Status: Clean
 
 Dev worktree:
-  Path: ~/claude-code-tools/subagents/integration-tests/env-validator/dev
+  Path: ~/claude-code-tools/lba/apps/subagents/integration-tests/env-validator/dev
   HEAD: 7527512
   Base: 885b7f8 (common with main)
   Status: Clean
@@ -387,7 +387,7 @@ You can immediately start your next feature!
 
 **Before**:
 ```bash
-~/claude-code-tools/subagents/integration-tests/env-validator/main/
+~/claude-code-tools/lba/apps/subagents/integration-tests/env-validator/main/
 ├── README.md (341 lines - old seo-ads-expert content)
 ├── src/
 ├── tests/
@@ -396,7 +396,7 @@ You can immediately start your next feature!
 
 **After**:
 ```bash
-~/claude-code-tools/subagents/integration-tests/env-validator/main/
+~/claude-code-tools/lba/apps/subagents/integration-tests/env-validator/main/
 ├── README.md (26 lines - new env-validator content)
 ├── src/
 ├── tests/
@@ -407,7 +407,7 @@ You can immediately start your next feature!
 
 **Before**:
 ```bash
-~/claude-code-tools/subagents/integration-tests/env-validator/dev/
+~/claude-code-tools/lba/apps/subagents/integration-tests/env-validator/dev/
 ├── README.md (26 lines - new env-validator content)
 ├── src/
 ├── tests/
@@ -416,7 +416,7 @@ You can immediately start your next feature!
 
 **After**:
 ```bash
-~/claude-code-tools/subagents/integration-tests/env-validator/dev/
+~/claude-code-tools/lba/apps/subagents/integration-tests/env-validator/dev/
 ├── README.md (26 lines - synced with main)
 ├── src/
 ├── tests/
@@ -460,12 +460,12 @@ gh pr merge --squash --delete-branch=false
 # Output: ✓ Merged PR #2
 
 # Step 6: Sync main worktree
-cd ~/claude-code-tools/subagents/integration-tests/env-validator/main
+cd ~/claude-code-tools/lba/apps/subagents/integration-tests/env-validator/main
 git pull origin main
 # Output: Updating 27a51fd..885b7f8
 
 # Step 7: Sync dev worktree
-cd ~/claude-code-tools/subagents/integration-tests/env-validator/dev
+cd ~/claude-code-tools/lba/apps/subagents/integration-tests/env-validator/dev
 git pull origin main
 # Output: Merge made by the 'ort' strategy.
 

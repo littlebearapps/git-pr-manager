@@ -390,7 +390,7 @@ node dist/index.js status
 ## Quick Start for Next Session
 
 ```bash
-cd ~/claude-code-tools/subagents/git-workflow-manager
+cd ~/claude-code-tools/lba/apps/subagents/git-workflow-manager
 
 # Verify build works
 npm run build
