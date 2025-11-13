@@ -405,6 +405,65 @@ if (checks.overallStatus === 'success' &&
 }
 ```
 
+### Workflow 6: Update Management
+
+**User Request**: "Is gwm up to date?"
+
+**AI Agent Execution**:
+```bash
+# Check for updates (machine-readable)
+gwm check-update --json
+```
+
+**AI Response**:
+```javascript
+const updateCheck = runGwm('check-update');
+
+if (updateCheck.success && updateCheck.updateAvailable) {
+  return `Update available: ${updateCheck.currentVersion} → ${updateCheck.latestVersion}
+Run: npm install -g @littlebearapps/git-workflow-manager`;
+} else if (updateCheck.success) {
+  return `gwm is up to date (${updateCheck.currentVersion})`;
+} else {
+  return `Failed to check for updates: ${updateCheck.error}`;
+}
+```
+
+**Exit Codes**:
+- `0` - No update available (already latest)
+- `1` - Update available
+- `2` - Error during check
+
+**JSON Output**:
+```json
+{
+  "success": true,
+  "updateAvailable": true,
+  "currentVersion": "1.4.0-beta.1",
+  "latestVersion": "1.5.0",
+  "channel": "latest",
+  "cached": false
+}
+```
+
+**AI Agent Integration**:
+```javascript
+// Check for updates periodically
+async function checkGwmUpdates() {
+  const result = runGwm('check-update');
+
+  if (result.updateAvailable) {
+    // Option 1: Notify user
+    console.log(`📦 gwm update available: ${result.latestVersion}`);
+
+    // Option 2: Auto-update (optional, ask user first)
+    if (await askUser('Update gwm?')) {
+      execSync('npm install -g @littlebearapps/git-workflow-manager');
+    }
+  }
+}
+```
+
 ---
 
 ## Error Handling for AI Agents

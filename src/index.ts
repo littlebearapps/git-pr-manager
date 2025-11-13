@@ -9,7 +9,15 @@ import { featureCommand } from './commands/feature';
 import { protectCommand } from './commands/protect';
 import { securityCommand } from './commands/security';
 import { autoCommand } from './commands/auto';
+import { checkUpdateCommand } from './commands/check-update';
 import { logger, VerbosityLevel } from './utils/logger';
+import { maybeNotifyUpdate } from './utils/update-check';
+
+// Fire-and-forget update check (non-blocking)
+const pkg = require('../package.json');
+maybeNotifyUpdate({ pkg, argv: process.argv }).catch(() => {
+  // Silently fail - update check is non-critical
+});
 
 const program = new Command();
 
@@ -103,6 +111,13 @@ program
   .option('--skip-security', 'Skip security scan')
   .option('--skip-verify', 'Skip verification checks')
   .action(autoCommand);
+
+program
+  .command('check-update')
+  .description('Check for available updates')
+  .option('--clear-cache', 'Clear update cache and force fresh check')
+  .option('--channel <type>', 'Update channel (latest or next)', 'latest')
+  .action(checkUpdateCommand);
 
 // Global error handler
 process.on('uncaughtException', (error) => {

@@ -15,6 +15,7 @@ Production-ready git workflow automation for GitHub with Claude Code integration
 - **98% reduction in config load time** with TTL-based file caching
 
 ### Enhanced UX
+- **Auto-update notifications** - Automatic update checks with smart suppression (CI-aware, 7-day cache)
 - **`gwm auto`** - One-command automated workflow (detect → verify → security → PR → CI → merge)
 - **Interactive mode** - `gwm init --interactive` with preset selection and preview
 - **Machine-readable output** - `--json` flag for all commands (CI/automation-friendly)
@@ -119,6 +120,12 @@ gwm protect --branch main --preset strict
 
 # Security scanning
 gwm security                    # Run security scan
+
+# Check for updates
+gwm check-update                # Check for available updates
+gwm check-update --json         # Machine-readable output
+gwm check-update --clear-cache  # Force fresh check
+gwm check-update --channel next # Check prerelease channel
 ```
 
 ### Output Control

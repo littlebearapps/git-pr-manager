@@ -243,6 +243,63 @@ jobs:
           path: protection-report.json
 ```
 
+### Pattern 5: Dependency Update Checks
+
+```yaml
+name: Check Tool Updates
+on:
+  schedule:
+    - cron: '0 9 * * 1'  # Weekly on Monday at 9am
+  workflow_dispatch:
+
+jobs:
+  check-updates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install gwm
+        run: npm install -g @littlebearapps/git-workflow-manager
+
+      - name: Check for gwm updates
+        id: update-check
+        run: |
+          gwm check-update --json > update-check.json
+          cat update-check.json
+        continue-on-error: true
+
+      - name: Create issue if update available
+        if: steps.update-check.outputs.exit-code == '1'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const updateData = JSON.parse(fs.readFileSync('update-check.json', 'utf8'));
+
+            if (updateData.updateAvailable) {
+              github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `gwm update available: ${updateData.latestVersion}`,
+                body: `A new version of git-workflow-manager is available.
+
+Current version: ${updateData.currentVersion}
+Latest version: ${updateData.latestVersion}
+Channel: ${updateData.channel}
+
+To update:
+\`\`\`bash
+npm install -g @littlebearapps/git-workflow-manager
+\`\`\`
+
+See the [changelog](https://github.com/littlebearapps/git-workflow-manager/releases) for details.`,
+                labels: ['dependencies', 'enhancement']
+              });
+            }
+```
+
+**Note**: Update check respects CI environment automatically - notifications are suppressed in GitHub Actions. Use `--json` mode for programmatic access.
+
 ---
 
 ## Advanced Workflows
