@@ -38,3 +38,13 @@ yarn-error.log*
 # Temporary files
 *.tmp
 .cache/
+
+# Claude Code & MCP
+CLAUDE.local.md
+.mcp.*.json.bak
+.claude-settings.local.json
+
+# Secrets (extra safety)
+*.key
+*.pem
+.env.production
