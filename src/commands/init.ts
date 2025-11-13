@@ -121,7 +121,17 @@ export async function initCommand(options: InitOptions): Promise<void> {
 
     logger.blank();
     logger.success('Workflow configuration initialized successfully!');
-    logger.info('Edit .gwm.yml to customize settings');
+    logger.blank();
+    logger.section('Next Steps');
+    logger.info('1. Review configuration: cat .gwm.yml');
+    logger.info('2. Set up GitHub Actions: gwm docs --guide=GITHUB-ACTIONS-INTEGRATION');
+    logger.info('3. Configure branch protection: gwm protect');
+    logger.blank();
+    logger.section('Documentation');
+    logger.info('• AI Agent Integration: gwm docs --guide=AI-AGENT-INTEGRATION');
+    logger.info('• Full documentation: gwm docs');
+    logger.blank();
+    logger.info('💡 Tip: Run \'gwm docs\' anytime to see available guides');
   } catch (error: any) {
     spinner.fail('Failed to initialize configuration');
     logger.error(error.message);

@@ -8,7 +8,10 @@
   },
   "files": [
     "dist/",
+    "docs/",
+    "quickrefs/",
     "README.md",
+    "CLAUDE.md",
     "LICENSE"
   ],
   "scripts": {
@@ -30,10 +33,18 @@
     "ci",
     "pr",
     "claude-code",
+    "ai-agent",
     "cli",
     "devops",
     "developer-tools"
   ],
+  "documentation": {
+    "guides": "docs/guides/",
+    "aiAgent": "docs/guides/AI-AGENT-INTEGRATION.md",
+    "githubActions": "docs/guides/GITHUB-ACTIONS-INTEGRATION.md",
+    "claudeCode": "CLAUDE.md",
+    "quickrefs": "quickrefs/"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/littlebearapps/git-workflow-manager"

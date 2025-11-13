@@ -10,6 +10,7 @@ import { protectCommand } from './commands/protect';
 import { securityCommand } from './commands/security';
 import { autoCommand } from './commands/auto';
 import { checkUpdateCommand } from './commands/check-update';
+import { docsCommand } from './commands/docs';
 import { logger, VerbosityLevel } from './utils/logger';
 import { maybeNotifyUpdate } from './utils/update-check';
 
@@ -118,6 +119,12 @@ program
   .option('--clear-cache', 'Clear update cache and force fresh check')
   .option('--channel <type>', 'Update channel (latest or next)', 'latest')
   .action(checkUpdateCommand);
+
+program
+  .command('docs')
+  .description('Show documentation index or specific guide')
+  .option('--guide <name>', 'Show specific guide (AI-AGENT-INTEGRATION, GITHUB-ACTIONS-INTEGRATION, etc.)')
+  .action(docsCommand);
 
 // Global error handler
 process.on('uncaughtException', (error) => {
