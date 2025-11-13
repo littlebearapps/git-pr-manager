@@ -871,11 +871,146 @@ console.log(response);
 
 ---
 
+## Best Practices for AI Agents
+
+### ✅ Use gwm for Local Automation, Not CI Orchestration
+
+**gwm is designed for**:
+- ✅ Local developer workflows (`gwm ship`, `gwm auto`)
+- ✅ Security scanning in CI (`gwm security`)
+- ✅ Status checking during development
+- ✅ Automated PR management from developer machines
+
+**gwm is NOT designed for**:
+- ❌ Orchestrating GitHub Actions workflows
+- ❌ Creating workflows to monitor other workflows
+- ❌ Replacing GitHub's built-in PR status checks
+
+**Example - Good AI agent integration**:
+```
+User: "Create a PR for my changes"
+
+AI Agent:
+1. Check status: gwm status --json
+2. Create PR: gwm auto --draft
+3. Monitor checks: gwm checks <pr-number> (optional, locally)
+4. Provide feedback to user
+
+✅ This is good - AI uses gwm locally for automation
+```
+
+**Example - Bad AI agent integration**:
+```
+User: "Set up gwm in GitHub Actions"
+
+AI Agent:
+1. Creates workflow to run gwm checks
+2. gwm checks monitors other workflows
+3. Workflow waits for other workflows
+
+❌ This is bad - creates circular dependencies
+```
+
+---
+
+### ✅ Propose gwm as Validation, Not Meta-Monitoring
+
+When proposing GitHub Actions integration:
+
+**✅ Good proposal**:
+```yaml
+# Add gwm as validation step in existing workflow
+jobs:
+  security:
+    steps:
+      - name: Security scan
+        run: gwm security  # Adds value
+```
+
+**❌ Bad proposal**:
+```yaml
+# Create separate workflow to check other workflows
+jobs:
+  check-status:
+    steps:
+      - name: Monitor CI
+        run: gwm checks $PR_NUMBER  # Redundant
+```
+
+**Why the second is bad**:
+- GitHub already provides PR check status
+- Creates workflow to monitor workflows (circular)
+- Adds complexity without value
+- Delays feedback (waits for other workflows)
+
+**Better alternative**: Tell user to run `gwm checks` locally when they need status updates.
+
+---
+
+### ✅ Recommend Local Usage for Monitoring
+
+When users ask about CI monitoring:
+
+**✅ Good response**:
+```
+"You can monitor PR checks locally:
+  gwm checks 47          # Check PR #47 status
+  gwm status             # Check current branch
+  gwm ship               # Automated workflow
+
+GitHub's PR UI already shows check status in CI."
+```
+
+**❌ Bad response**:
+```
+"Let's create a workflow to monitor checks:
+  [proposes separate workflow file]
+
+This will run gwm checks on every PR."
+```
+
+---
+
+### ✅ Understand gwm's Design Philosophy
+
+**Core principle**: gwm enhances **developer workflows**, not CI orchestration.
+
+**When to recommend gwm**:
+- ✅ User wants to automate PR creation locally
+- ✅ User needs security scanning in CI
+- ✅ User wants structured JSON output
+- ✅ User needs to monitor checks during development
+
+**When NOT to recommend gwm**:
+- ❌ GitHub's built-in features already cover the need
+- ❌ Would create meta-workflows (workflows checking workflows)
+- ❌ Would duplicate existing CI checks
+- ❌ Would add complexity without clear benefit
+
+---
+
+### ✅ Suggest Appropriate Integration Points
+
+**Good integration points**:
+1. **Local development**: `gwm ship`, `gwm auto`, `gwm checks`
+2. **CI validation**: `gwm security` as additional scanning
+3. **Pre-commit hooks**: `gwm security` for local validation
+4. **Documentation**: `gwm docs` for discovery
+
+**Poor integration points**:
+1. ❌ Separate workflow to check other workflows
+2. ❌ Monitoring GitHub's built-in PR checks
+3. ❌ Orchestrating existing CI pipelines
+4. ❌ Duplicating functionality GitHub provides
+
+---
+
 ## Resources
 
 - **gwm CLI Reference**: `gwm --help`
 - **JSON Schema**: All JSON outputs follow consistent schema (see examples above)
 - **GitHub Actions Integration**: See [GITHUB-ACTIONS-INTEGRATION.md](GITHUB-ACTIONS-INTEGRATION.md)
+- **Anti-Patterns**: See GITHUB-ACTIONS-INTEGRATION.md for anti-patterns to avoid
 - **API Rate Limits**: https://docs.github.com/en/rest/overview/resources-in-the-rest-api#rate-limiting
 
 ---

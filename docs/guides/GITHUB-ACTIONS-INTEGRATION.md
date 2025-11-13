@@ -776,6 +776,127 @@ jobs:
 
 ---
 
+## Anti-Patterns & Best Practices
+
+### ❌ Anti-Pattern: Workflow to Check Workflows
+
+**Don't create workflows that only check the status of other workflows**:
+
+```yaml
+# ❌ BAD: Redundant workflow
+name: Check PR Status
+on: pull_request
+
+jobs:
+  check-status:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install gwm
+        run: npm install -g @littlebearapps/git-workflow-manager
+
+      - name: Check other workflows
+        run: gwm checks ${{ github.event.pull_request.number }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
+
+**Why this is bad**:
+- Creates circular dependency (workflow checking workflows)
+- Duplicates GitHub's built-in PR status checks
+- Adds maintenance overhead without value
+- Delays PR feedback (waits for other workflows first)
+
+**✅ Better alternatives**:
+
+1. **Use gwm locally** for PR monitoring:
+   ```bash
+   # Developer workflow
+   gwm status              # Check current branch status
+   gwm checks 47          # Monitor PR #47 checks locally
+   gwm ship               # Full automated workflow
+   ```
+
+2. **Add gwm to existing workflows** as validation steps:
+   ```yaml
+   # ✅ GOOD: Part of existing workflow
+   jobs:
+     security:
+       runs-on: ubuntu-latest
+       steps:
+         - name: Run security scan
+           run: gwm security  # Adds value, doesn't duplicate
+   ```
+
+3. **Use GitHub's built-in features**:
+   - Branch protection rules for required checks
+   - PR status checks UI for monitoring
+   - Required reviewers for approvals
+
+---
+
+### ✅ Best Practice: gwm as Validation, Not Orchestration
+
+**gwm is designed for**:
+- ✅ Security scanning (`gwm security`)
+- ✅ Local PR workflows (`gwm ship`, `gwm auto`)
+- ✅ CLI automation for developers
+- ✅ Validation steps in existing workflows
+
+**gwm is NOT designed for**:
+- ❌ Orchestrating other GitHub Actions workflows
+- ❌ Replacing GitHub's workflow engine
+- ❌ Creating meta-workflows that monitor workflows
+
+**Key principle**: Let GitHub Actions handle workflow execution. Use gwm for:
+- **Security**: Scanning secrets and vulnerabilities
+- **Developer UX**: Local CLI automation
+- **Validation**: Checking requirements in CI steps
+
+---
+
+### ✅ Best Practice: Keep Workflows Simple
+
+**Good workflow structure**:
+```yaml
+jobs:
+  # 1. Run your tests/builds
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run tests
+        run: npm test
+
+  # 2. Add gwm as additional validation
+  security:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Security scan
+        run: gwm security  # Complements existing checks
+```
+
+**Avoid**:
+- Multiple layers of workflow dependencies
+- Workflows that only call other tools without adding value
+- Duplicating checks that GitHub already provides
+
+---
+
+### ✅ Best Practice: Use gwm Where It Adds Value
+
+**Add gwm when**:
+- ✅ You need security scanning beyond existing tools
+- ✅ You want standardized git workflows for developers
+- ✅ You need structured JSON output for reporting
+- ✅ You want automated PR workflows locally
+
+**Skip gwm when**:
+- ❌ GitHub's built-in features already cover the need
+- ❌ It would duplicate existing CI checks
+- ❌ It adds complexity without clear benefit
+
+---
+
 ## Resources
 
 - **CLI Reference**: Run `gwm --help` for all commands

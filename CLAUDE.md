@@ -218,6 +218,29 @@ const pr = await github.createPullRequest({
 
 ---
 
+## Architectural Principles
+
+### Design Philosophy
+**gwm is designed for local developer workflows, not CI orchestration**
+
+**✅ Use gwm for**:
+- Local PR automation (`gwm ship`, `gwm auto`)
+- Security validation in CI (`gwm security`)
+- Developer status checking
+- Structured JSON output for scripts
+
+**❌ Don't use gwm for**:
+- Orchestrating GitHub Actions workflows
+- Creating workflows to monitor other workflows
+- Replacing GitHub's built-in PR status checks
+- Meta-monitoring (workflows checking workflows)
+
+**Key principle**: Let GitHub Actions handle workflow execution. Use gwm to **enhance developer workflows** and **add validation**, not to orchestrate CI.
+
+**See**: @docs/guides/GITHUB-ACTIONS-INTEGRATION.md - "Anti-Patterns & Best Practices" section for detailed examples.
+
+---
+
 ## Environment Variables
 
 ### Required
