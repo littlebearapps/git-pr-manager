@@ -46,7 +46,14 @@ Production-ready git workflow automation for GitHub with Claude Code integration
 #### ℹ️ Enhancement Opportunities
 - Add `--force` flag to `gwm init` for intentional config overwrites
 - Improve GitHub token error messages with setup guidance
-- Add `gwm doctor` health check command
+
+#### 💡 Future Ideas
+- **GitHub Audit Tool** - Comprehensive repository health check (see @docs/ideas/GITHUB-AUDIT-TOOL.md)
+  - Security posture assessment (branch protection, secret scanning, vulnerabilities)
+  - CI/CD workflow analysis (test coverage, security scans, best practices)
+  - Code quality tooling detection (linting, formatting across languages)
+  - Actionable recommendations with priority scoring
+  - Status: Planning phase, 28-38 hour estimate for full implementation
 
 ---
 
