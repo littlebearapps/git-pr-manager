@@ -129,7 +129,7 @@ export async function autoCommand(options: AutoOptions = {}): Promise<void> {
     // Step 5: Create or find PR
     spinner.start('Checking for existing PR...');
     const existingPRs = await githubService.listPRs('open');
-    let pr = existingPRs.find(p => p.head.ref === currentBranch);
+    const pr = existingPRs.find(p => p.head.ref === currentBranch);
     let prNumber: number;
 
     if (!pr) {

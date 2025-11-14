@@ -30,7 +30,8 @@ class MockOctokit {
   constructor(_options?: any) {}
 }
 
-(Octokit as any) = MockOctokit;
+// Mock Octokit class for testing
+(Octokit as any) = MockOctokit; // eslint-disable-line @typescript-eslint/no-unused-vars
 
 describe('EnhancedCIPoller', () => {
   let poller: EnhancedCIPoller;
