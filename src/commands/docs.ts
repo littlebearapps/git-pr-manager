@@ -51,6 +51,7 @@ async function showGuide(guideName: string, basePath: string): Promise<void> {
 
   if (!guidePath) {
     const availableGuides = [
+      'REPOSITORY-SECURITY-GUIDE',
       'AI-AGENT-INTEGRATION',
       'GITHUB-ACTIONS-INTEGRATION',
       'JSON-OUTPUT-SCHEMAS',
@@ -99,6 +100,11 @@ function showIndex(basePath: string): void {
   const pkg = require(join(basePath, 'package.json'));
 
   const availableGuides = [
+    {
+      name: 'REPOSITORY-SECURITY-GUIDE',
+      description: 'Repository Security & Setup Guide ⭐',
+      command: 'gwm docs --guide=REPOSITORY-SECURITY-GUIDE'
+    },
     {
       name: 'AI-AGENT-INTEGRATION',
       description: 'AI Agent Setup Guide',
@@ -153,6 +159,7 @@ function showIndex(basePath: string): void {
 📍 Installation Location: ${basePath}
 
 📖 Available Guides:
+  • Security Guide ⭐: gwm docs --guide=REPOSITORY-SECURITY-GUIDE
   • AI Agent Setup:    gwm docs --guide=AI-AGENT-INTEGRATION
   • GitHub Actions:    gwm docs --guide=GITHUB-ACTIONS-INTEGRATION
   • JSON Schemas:      gwm docs --guide=JSON-OUTPUT-SCHEMAS
