@@ -162,6 +162,9 @@ gwm protect --branch main --preset strict
 # Security scanning
 gwm security                    # Run security scan
 
+# System health check
+gwm doctor                      # Check requirements & dependencies
+
 # Check for updates
 gwm check-update                # Check for available updates
 gwm check-update --json         # Machine-readable output
@@ -380,6 +383,66 @@ autoFix:
 - Enforce on admins
 - Staleness detection
 
+### System Health Check
+
+Use `gwm doctor` to verify your setup and identify missing dependencies:
+
+```bash
+gwm doctor
+```
+
+**What it checks**:
+- ✅ **GitHub Token**: Verifies `GITHUB_TOKEN` or `GH_TOKEN` is set
+- ✅ **Required Tools**: `git`, `node` (needed for gwm to run)
+- ✅ **Optional Tools**: `gh` (GitHub CLI), `detect-secrets`, `pip-audit`, `npm`
+
+**Example output**:
+```
+▸ System Health Check
+────────────────────────────────────────────────────────────────────────────────
+✅ GitHub token: GITHUB_TOKEN
+
+Required Tools:
+────────────────────────────────────────────────────────────────────────────────
+✅ git                  git version 2.51.0
+✅ node                 v20.10.0
+
+Optional Tools:
+────────────────────────────────────────────────────────────────────────────────
+✅ gh                   gh version 2.78.0 (2025-08-21)
+⚠️  detect-secrets       NOT FOUND (optional)
+    Secret scanning in code
+    Install: pip install detect-secrets
+⚠️  pip-audit            NOT FOUND (optional)
+    Python dependency vulnerability scanning
+    Install: pip install pip-audit
+✅ npm                  11.6.0
+
+────────────────────────────────────────────────────────────────────────────────
+ℹ️  Some optional tools are missing
+   gwm will work but some features may be limited:
+   • Secret scanning requires detect-secrets
+   • Python security scans require pip-audit
+   • Enhanced GitHub features require gh CLI
+
+Next Steps:
+  gwm init              - Initialize .gwm.yml configuration
+  gwm docs              - View documentation
+  gwm --help            - Show all commands
+```
+
+**When to use**:
+- After first installation to verify setup
+- When encountering "tool not found" warnings
+- Before installing optional security tools
+- To verify environment configuration in CI/CD
+
+**Optional dependencies explained**:
+- **detect-secrets** (Python): Scans code for hardcoded secrets (API keys, tokens, passwords). Required for `gwm security` secret scanning.
+- **pip-audit** (Python): Scans Python dependencies for known vulnerabilities. Used by `gwm security` for Python projects.
+- **gh** (GitHub CLI): Enhances PR operations with additional GitHub features. Not required but recommended.
+- **npm**: Used for JavaScript dependency scanning in `gwm security`. Already installed if you're using gwm.
+
 ### Environment Variables
 
 #### Required for GitHub API Operations
@@ -407,6 +470,7 @@ export GH_TOKEN="ghp_your_token_here"  # Alternative variable name
 - `gwm status` - Local git status
 - `gwm security` - Local security scan
 - `gwm init` - Initialize configuration
+- `gwm doctor` - Check system requirements and dependencies
 - `gwm install-hooks` / `gwm uninstall-hooks` - Manage git hooks
 - `gwm docs` - View documentation
 

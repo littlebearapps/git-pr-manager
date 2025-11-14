@@ -200,6 +200,54 @@ node dist/index.js feature my-feature
 
 ---
 
+## System Health Check
+
+### Verify Setup with gwm doctor
+
+```bash
+# Check all requirements and dependencies
+gwm doctor
+npm run dev -- doctor  # Development mode
+
+# What it checks:
+# - GitHub token (GITHUB_TOKEN or GH_TOKEN)
+# - Required tools (git, node)
+# - Optional tools (gh, detect-secrets, pip-audit, npm)
+# - Shows versions for installed tools
+# - Provides install commands for missing tools
+```
+
+**Example output**:
+```
+▸ System Health Check
+────────────────────────────────────────────────────────────────────────────────
+✅ GitHub token: GITHUB_TOKEN
+
+Required Tools:
+────────────────────────────────────────────────────────────────────────────────
+✅ git                  git version 2.51.0
+✅ node                 v20.10.0
+
+Optional Tools:
+────────────────────────────────────────────────────────────────────────────────
+✅ gh                   gh version 2.78.0 (2025-08-21)
+⚠️  detect-secrets       NOT FOUND (optional)
+    Secret scanning in code
+    Install: pip install detect-secrets
+⚠️  pip-audit            NOT FOUND (optional)
+    Python dependency vulnerability scanning
+    Install: pip install pip-audit
+✅ npm                  11.6.0
+```
+
+**When to use**:
+- After first installation
+- Before running security scans
+- When debugging "tool not found" errors
+- To verify CI/CD environment setup
+
+---
+
 ## Debugging
 
 ### TypeScript Compilation

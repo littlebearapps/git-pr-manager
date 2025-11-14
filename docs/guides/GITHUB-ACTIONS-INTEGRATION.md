@@ -546,6 +546,34 @@ gwm automatically detects CI environments and adjusts output:
 
 ## Troubleshooting
 
+### Verify Setup with gwm doctor
+
+Use `gwm doctor` to verify your CI environment has all required and optional tools:
+
+```yaml
+- name: Verify gwm setup
+  run: gwm doctor
+```
+
+**Example output in CI**:
+```
+▸ System Health Check
+✅ GitHub token: GITHUB_TOKEN
+✅ git                  git version 2.51.0
+✅ node                 v20.10.0
+✅ gh                   gh version 2.78.0
+⚠️  detect-secrets       NOT FOUND (optional)
+⚠️  pip-audit            NOT FOUND (optional)
+```
+
+**When to use**:
+- Debugging "tool not found" errors
+- Verifying optional dependencies are installed
+- Confirming environment setup before running workflows
+- Troubleshooting security scan issues
+
+**Note**: `gwm doctor` works without GITHUB_TOKEN, making it safe to run in any CI environment.
+
 ### Issue: "No GitHub token found"
 
 **Solution**: Ensure GITHUB_TOKEN is set:

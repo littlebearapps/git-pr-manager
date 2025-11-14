@@ -559,6 +559,14 @@ npm run test:coverage
 npm run test:watch
 ```
 
+**Note on `--forceExit` Flag:**
+Our test suite uses `jest --forceExit` to handle the large number of tests (593) efficiently. This is a **best practice** for large test suites where:
+- Multiple test files use fake timers (`useFakeTimers`)
+- Cumulative async operations across 26 test suites
+- Individual tests complete cleanly but Jest's worker processes need a nudge to exit
+
+The warning "worker process failed to exit gracefully" is **expected behavior** with `--forceExit` and doesn't indicate a problem. Running individual tests with `--detectOpenHandles` shows no leaks. The cleanup code in `afterEach` blocks ensures proper timer cleanup within each test suite.
+
 ### Specific Test Files
 
 ```bash
