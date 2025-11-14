@@ -11,11 +11,55 @@ export async function statusCommand(): Promise<void> {
     const gitService = new GitService({ workingDir: process.cwd() });
     const configService = new ConfigService();
 
-    logger.section('Git Workflow Status');
-
-    // Git status
+    // Gather all status data
     const branchInfo = await gitService.getBranchInfo();
     const status = await gitService.getStatus();
+    const configExists = await configService.exists();
+    let config: any = null;
+    if (configExists) {
+      config = await configService.getConfig();
+    }
+
+    // Prepare JSON output data
+    const jsonData = {
+      branch: {
+        current: branchInfo.current,
+        isClean: branchInfo.isClean
+      },
+      files: {
+        modified: status.modified,
+        created: status.created,
+        deleted: status.deleted,
+        untracked: status.not_added
+      },
+      config: configExists ? {
+        exists: true,
+        settings: {
+          ciWait: config.ci?.waitForChecks ?? false,
+          failFast: config.ci?.failFast ?? false,
+          securityScan: config.security?.scanSecrets ?? false,
+          branchProtection: config.branchProtection?.enabled ?? false
+        },
+        hooks: {
+          prePush: {
+            enabled: config.hooks?.prePush?.enabled ?? false,
+            reminder: config.hooks?.prePush?.reminder ?? false
+          },
+          postCommit: {
+            enabled: config.hooks?.postCommit?.enabled ?? false,
+            reminder: config.hooks?.postCommit?.reminder ?? false
+          }
+        }
+      } : {
+        exists: false
+      }
+    };
+
+    // Output JSON if in JSON mode (will only output if jsonMode enabled)
+    logger.outputJsonResult(true, jsonData);
+
+    // Human-readable output below (will only output if jsonMode disabled)
+    logger.section('Git Workflow Status');
 
     logger.log(chalk.bold('Current Branch: ') + chalk.cyan(branchInfo.current));
     logger.log(chalk.bold('Working Directory: ') + (branchInfo.isClean ? chalk.green('Clean ✓') : chalk.yellow('Modified ✗')));
@@ -48,9 +92,7 @@ export async function statusCommand(): Promise<void> {
     logger.blank();
 
     // Workflow configuration
-    const configExists = await configService.exists();
     if (configExists) {
-      const config = await configService.getConfig();
       logger.log(chalk.bold('Workflow Configuration: ') + chalk.green('.gwm.yml ✓'));
 
       logger.blank();
@@ -62,6 +104,43 @@ export async function statusCommand(): Promise<void> {
     } else {
       logger.log(chalk.bold('Workflow Configuration: ') + chalk.gray('Not initialized'));
       logger.info('Run `gwm init` to create .gwm.yml');
+    }
+
+    logger.blank();
+
+    // ✨ Next Steps - Context-aware suggestions for AI agents and developers
+    logger.section('💡 Next Steps');
+
+    if (!configExists) {
+      // No configuration - guide through setup
+      logger.info('📋 Get started with gwm:');
+      logger.info('   gwm init --interactive    # Initialize workflow configuration');
+      logger.info('   gwm docs                  # View documentation');
+      logger.blank();
+      logger.info('💡 Tip: Run \'gwm init --interactive\' for guided setup');
+    } else if (branchInfo.current === 'main' || branchInfo.current === 'master') {
+      // On main branch - suggest starting new work
+      logger.info('🚀 Start new work:');
+      logger.info('   gwm feature <name>        # Create feature branch and start work');
+      logger.info('   gwm status                # Check repository status');
+      logger.blank();
+      logger.info('💡 Tip: Always work on feature branches, not main');
+    } else if (!branchInfo.isClean) {
+      // Uncommitted changes - suggest committing
+      logger.info('📝 You have uncommitted changes:');
+      logger.info('   git add .                 # Stage changes');
+      logger.info('   git commit -m "..."       # Commit with message');
+      logger.info('   git push                  # Push to remote');
+      logger.blank();
+      logger.info('💡 Tip: Commit and push before using gwm ship or gwm auto');
+    } else {
+      // Clean feature branch - suggest PR workflow
+      logger.info('🚢 Ready to create PR:');
+      logger.info('   gwm ship                  # Create PR and wait for checks');
+      logger.info('   gwm auto --draft          # Create draft PR (faster)');
+      logger.info('   gwm security              # Run security scan before PR');
+      logger.blank();
+      logger.info('💡 Tip: Use \'gwm ship\' for full automated PR workflow');
     }
 
     logger.blank();

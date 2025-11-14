@@ -1,4 +1,4 @@
-# Git Workflow Manager v1.4.0-beta.1
+# Git Workflow Manager v1.4.0
 
 Production-ready git workflow automation for GitHub with Claude Code integration. Streamlines feature development with intelligent CI polling, comprehensive error reporting, and automated PR workflows.
 
@@ -38,15 +38,56 @@ npm install -g @littlebearapps/git-workflow-manager
 
 ### Setup
 
+#### 1. GitHub Token (Required for PR operations)
+
+Create a GitHub Personal Access Token with `repo` scope:
+
+1. Go to https://github.com/settings/tokens/new
+2. Give it a name (e.g., "gwm")
+3. Select scopes: `repo` (full control)
+4. Click "Generate token"
+5. Copy the token (starts with `ghp_`)
+
+**Set the token** (choose one method):
+
 ```bash
-# Set GitHub token
+# Option 1: Export in shell (temporary - current session only)
 export GITHUB_TOKEN="ghp_your_token_here"
 
-# Initialize configuration (interactive mode)
+# Option 2: Add to ~/.zshrc or ~/.bashrc (persistent)
+echo 'export GITHUB_TOKEN="ghp_your_token_here"' >> ~/.zshrc
+source ~/.zshrc
+
+# Option 3: Project-specific .env file
+echo 'GITHUB_TOKEN=ghp_your_token_here' >> .env
+# Add .env to .gitignore if not already there
+
+# Verify token is set
+echo $GITHUB_TOKEN  # Should show your token
+```
+
+**Note**: Commands that require GitHub token: `ship`, `auto`, `checks`, `feature` (when pushing). Local commands like `status`, `security`, `init` work without a token.
+
+#### 2. Initialize Configuration
+
+```bash
+# Interactive setup wizard (recommended for first time)
 gwm init --interactive
 
-# Or use a preset
-gwm init --template standard
+# Or use a preset template
+gwm init --template standard  # Balanced settings
+gwm init --template strict    # Maximum protection
+gwm init --template basic     # Minimal configuration
+```
+
+#### 3. Optional: Install Git Hooks
+
+```bash
+# Install reminder hooks (non-blocking, helpful)
+gwm install-hooks
+
+# Or install both pre-push and post-commit hooks
+gwm install-hooks --post-commit
 ```
 
 ### Basic Usage
@@ -127,6 +168,40 @@ gwm check-update --json         # Machine-readable output
 gwm check-update --clear-cache  # Force fresh check
 gwm check-update --channel next # Check prerelease channel
 ```
+
+### Git Hooks
+
+```bash
+# Install pre-push hook (default)
+gwm install-hooks               # Reminder-only, non-blocking
+
+# Install both pre-push and post-commit hooks
+gwm install-hooks --post-commit # Additional post-commit reminders
+
+# Force overwrite existing hooks
+gwm install-hooks --force       # Overwrite non-gwm hooks
+
+# Uninstall gwm hooks
+gwm uninstall-hooks            # Remove all gwm hooks
+
+# Check hook status
+gwm status --json              # Shows hooks.prePush and hooks.postCommit
+```
+
+**Hook Behavior**:
+- **Non-blocking**: Never prevent commits or pushes
+- **Reminder-only**: Display helpful workflow suggestions
+- **Optional**: Can be disabled/uninstalled anytime
+- **CI-aware**: Automatically skipped in CI environments
+
+**Pre-push hook** reminds you to:
+- Run `gwm ship` for automated PR creation
+- Run `gwm security` to scan for secrets
+- Consider `gwm auto` for full workflow
+
+**Post-commit hook** (optional) reminds you to:
+- Create PR if on feature branch
+- Run security scans before pushing
 
 ### Output Control
 
@@ -307,14 +382,48 @@ autoFix:
 
 ### Environment Variables
 
+#### Required for GitHub API Operations
+
 ```bash
-# GitHub authentication (required)
+# GitHub authentication (required for PR/merge operations)
 export GITHUB_TOKEN="ghp_your_token_here"
 # or
-export GH_TOKEN="ghp_your_token_here"
+export GH_TOKEN="ghp_your_token_here"  # Alternative variable name
+```
 
-# Enable debug mode (optional)
+**Token Permissions Needed**:
+- `repo` - Full control of private repositories
+  - Includes: `repo:status`, `repo_deployment`, `public_repo`, `repo:invite`
+
+**Where to get token**: https://github.com/settings/tokens/new
+
+**Commands that require token**:
+- `gwm ship` - Create PR and merge
+- `gwm auto` - Automated PR workflow
+- `gwm checks <pr>` - Check CI status
+- `gwm feature <name>` - Create feature branch (if pushing to remote)
+
+**Commands that work without token**:
+- `gwm status` - Local git status
+- `gwm security` - Local security scan
+- `gwm init` - Initialize configuration
+- `gwm install-hooks` / `gwm uninstall-hooks` - Manage git hooks
+- `gwm docs` - View documentation
+
+#### Optional Environment Variables
+
+```bash
+# Enable debug mode (verbose logging)
 export DEBUG=1
+
+# Disable update notifications
+export NO_UPDATE_NOTIFIER=1
+
+# CI environment detection (auto-detected)
+export CI=true              # Generic CI indicator
+export GITHUB_ACTIONS=true  # GitHub Actions
+export GITLAB_CI=true       # GitLab CI
+export JENKINS_HOME=/var/jenkins  # Jenkins
 ```
 
 ## 🏗️ Architecture
@@ -442,9 +551,19 @@ npm run dev -- auto
 
 See [CHANGELOG.md](CHANGELOG.md) for detailed version history.
 
-### v1.4.0-beta.1 Highlights
+### v1.4.0 Highlights
 
-**Added**:
+**Phase 2: Git Hooks Integration**
+- `gwm install-hooks` - Install non-blocking git hooks (pre-push, post-commit)
+- `gwm uninstall-hooks` - Remove gwm git hooks
+- CI-aware hooks (auto-skip in GitHub Actions)
+- Config synchronization (.gwm.yml hooks section)
+
+**Bug Fixes**:
+- Fixed `gwm status --json` producing no output
+- Enhanced GitHub token setup documentation
+
+**Previous Features**:
 - `gwm auto` - Automated workflow command
 - Interactive mode for `gwm init`
 - Machine-readable JSON output (`--json` flag)

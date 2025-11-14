@@ -1,6 +1,6 @@
 {
   "name": "@littlebearapps/git-workflow-manager",
-  "version": "1.4.0-beta.1",
+  "version": "1.4.0",
   "description": "Production-ready git workflow automation for GitHub with Claude Code integration",
   "main": "dist/index.js",
   "bin": {
@@ -16,7 +16,7 @@
   ],
   "scripts": {
     "build": "tsc",
-    "test": "jest",
+    "test": "jest --forceExit",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "dev": "ts-node src/index.ts",

@@ -130,6 +130,18 @@ export interface WorkflowConfig {
     autoMerge?: boolean;         // Auto-merge fix PRs if checks pass (default: false)
     createPR?: boolean;          // Create PR for fixes (default: true)
   };
+
+  // Phase 2: Git Hooks settings
+  hooks?: {
+    prePush?: {
+      enabled?: boolean;         // Pre-push hook installed (default: false)
+      reminder?: boolean;        // Show reminder message (default: true)
+    };
+    postCommit?: {
+      enabled?: boolean;         // Post-commit hook installed (default: false)
+      reminder?: boolean;        // Show reminder message (default: true)
+    };
+  };
 }
 
 export interface GitServiceOptions {

@@ -84,6 +84,52 @@ npm run lint      # ✅ No lint errors
 npm run test:coverage  # ✅ Coverage >80%
 ```
 
+### Git Hooks Management
+
+```bash
+# Install pre-push hook (default - reminder only)
+gwm install-hooks
+npm run dev -- install-hooks  # Development mode
+
+# Install both pre-push and post-commit hooks
+gwm install-hooks --post-commit
+npm run dev -- install-hooks --post-commit
+
+# Force overwrite existing hooks
+gwm install-hooks --force
+
+# Uninstall all gwm hooks
+gwm uninstall-hooks
+npm run dev -- uninstall-hooks
+
+# Check hook status (shows in .gwm.yml)
+cat .gwm.yml | grep -A 6 "^hooks:"
+gwm status  # Shows hooks in workflow status
+```
+
+**Hook Behavior**:
+- Non-blocking (never prevents commits/pushes)
+- Displays helpful workflow reminders
+- Auto-skips in CI environments
+- Config syncs automatically
+
+**Common Issues**:
+```bash
+# Issue: Hook not executable
+chmod +x .git/hooks/pre-push
+
+# Issue: Hook exists but not gwm hook
+gwm install-hooks --force  # Overwrites
+
+# Issue: Want to disable temporarily
+gwm uninstall-hooks  # Can reinstall anytime
+
+# Issue: Hook not triggering
+# Check if it exists and is executable
+ls -l .git/hooks/pre-push
+cat .git/hooks/pre-push | head -3  # Should show gwm signature
+```
+
 ---
 
 ## Package Publishing

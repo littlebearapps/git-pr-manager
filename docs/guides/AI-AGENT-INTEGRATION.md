@@ -709,6 +709,185 @@ async function checkGwmUpdates() {
 
 ---
 
+### Workflow 7: Git Hooks Management
+
+**User Request**: "Set up git hooks for this project" or "I want reminders before pushing"
+
+**AI Agent Execution**:
+```bash
+# Install pre-push hook (default)
+gwm install-hooks
+
+# Install both pre-push and post-commit hooks
+gwm install-hooks --post-commit
+
+# Check installation status
+gwm status --json
+```
+
+**Recommendation Logic**:
+```javascript
+// When to recommend hooks
+function shouldRecommendHooks(context) {
+  // Recommend for solo developers or small teams
+  if (context.teamSize <= 3) {
+    return {
+      recommend: true,
+      reason: 'Hooks provide helpful reminders without blocking workflow'
+    };
+  }
+
+  // Recommend for teams with existing CI
+  if (context.hasCIChecks) {
+    return {
+      recommend: true,
+      reason: 'Pre-push hook reminds developers to run gwm ship for automated PR workflow'
+    };
+  }
+
+  // Not recommended for large teams (use CI enforcement instead)
+  if (context.teamSize > 10) {
+    return {
+      recommend: false,
+      reason: 'Large teams should use branch protection and CI for enforcement'
+    };
+  }
+
+  return { recommend: true, reason: 'Default recommendation' };
+}
+```
+
+**AI Response** (when recommending installation):
+```
+I can set up git hooks to provide helpful workflow reminders. These hooks are:
+
+✅ Non-blocking: Never prevent commits or pushes
+✅ Optional: Can be disabled or uninstalled anytime
+✅ Helpful: Remind you to run gwm commands for better workflows
+
+Two types of hooks available:
+1. **pre-push** (default): Reminds you before pushing to run:
+   - `gwm ship` - Create PR with CI checks
+   - `gwm auto` - Full automated workflow
+   - `gwm security` - Scan for secrets/vulnerabilities
+
+2. **post-commit** (optional): Reminds you after committing to:
+   - Consider creating a PR if on feature branch
+   - Run security scans before pushing
+
+Would you like me to install:
+1. Just pre-push hook (recommended)
+2. Both pre-push and post-commit hooks
+3. Skip hooks (you can install later with `gwm install-hooks`)
+```
+
+**Installation Flow**:
+```javascript
+async function installHooks(options) {
+  // Default: just pre-push
+  if (!options.postCommit) {
+    execSync('gwm install-hooks');
+    return `✅ Installed pre-push hook. You'll see helpful reminders before pushing.`;
+  }
+
+  // Both hooks
+  execSync('gwm install-hooks --post-commit');
+  return `✅ Installed pre-push and post-commit hooks. You'll see reminders at both stages.`;
+}
+```
+
+**Explaining Hook Behavior**:
+```
+The hooks I installed are "reminder-only" hooks:
+
+**What they do**:
+- Display helpful messages about available gwm commands
+- Remind you to run security scans or create PRs
+- Show relevant workflow options
+
+**What they DON'T do**:
+- Never block your commits or pushes
+- Never fail or cause errors
+- Never modify your code or git history
+- Never slow down your workflow
+
+You can uninstall anytime with: `gwm uninstall-hooks`
+```
+
+**Uninstall Workflow**:
+
+**User Request**: "Remove the git hooks" or "Disable the reminders"
+
+**AI Agent Execution**:
+```bash
+# Uninstall all gwm hooks
+gwm uninstall-hooks
+
+# Verify removal
+gwm status --json
+```
+
+**AI Response**:
+```
+✅ Removed all gwm git hooks.
+
+Your git workflow is back to default behavior (no reminders).
+
+You can reinstall anytime with:
+- `gwm install-hooks` - Pre-push hook only
+- `gwm install-hooks --post-commit` - Both hooks
+```
+
+**Safety Checks**:
+```javascript
+// AI should verify before uninstalling
+async function uninstallHooks() {
+  // Check if hooks are gwm-managed
+  const hooksStatus = runGwm('status --json');
+
+  if (!hooksStatus.hooks || !hooksStatus.hooks.prePush.enabled) {
+    return '⚠️  No gwm hooks are currently installed.';
+  }
+
+  // Uninstall
+  execSync('gwm uninstall-hooks');
+
+  return `✅ Uninstalled gwm hooks:
+- Pre-push: ${hooksStatus.hooks.prePush.enabled ? 'Removed' : 'Not installed'}
+- Post-commit: ${hooksStatus.hooks.postCommit.enabled ? 'Removed' : 'Not installed'}`;
+}
+```
+
+**Advanced: Force Reinstall**:
+```bash
+# Overwrite existing hooks (if user has custom hooks)
+gwm install-hooks --force
+
+# This will:
+# 1. Warn if non-gwm hooks exist
+# 2. Ask for confirmation (unless --force)
+# 3. Backup existing hooks (future enhancement)
+# 4. Install gwm hooks
+```
+
+**JSON Output** (for status checking):
+```json
+{
+  "hooks": {
+    "prePush": {
+      "enabled": true,
+      "reminder": true
+    },
+    "postCommit": {
+      "enabled": true,
+      "reminder": true
+    }
+  }
+}
+```
+
+---
+
 ## Error Handling for AI Agents
 
 ### Exit Codes

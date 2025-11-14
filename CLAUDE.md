@@ -1,18 +1,52 @@
 # Git Workflow Manager - Claude Code Context
 
 **Last Updated**: 2025-11-13
-**Version**: 1.4.0-beta.1
-**Status**: Production-ready npm package
+**Version**: 1.4.0
+**Status**: Production-ready npm package (ready for publishing)
 
 ---
 
 ## Project Overview
 
-Production-ready git workflow automation for GitHub with Claude Code integration. Streamlines feature development with intelligent CI polling, comprehensive error reporting, and automated PR workflows.
+Production-ready git workflow automation for GitHub with Claude Code integration. Streamlines feature development with intelligent CI polling, comprehensive error reporting, automated PR workflows, and git hooks integration.
 
 **Repository**: https://github.com/littlebearapps/git-workflow-manager
-**npm Package**: @littlebearapps/git-workflow-manager
+**npm Package**: @littlebearapps/git-workflow-manager (⚠️ Not yet published to npm)
 **License**: MIT
+**Status**: v1.4.0 - Release Ready 🎉
+
+### Release 1.4.0 - ✅ COMPLETE (2025-11-13)
+
+**Phase 2: Git Hooks Integration**
+- ✅ Non-blocking reminder hooks (pre-push, post-commit)
+- ✅ CI-aware (auto-skip in GitHub Actions, etc.)
+- ✅ Config synchronization (.gwm.yml hooks section)
+- ✅ Safe install/uninstall with signature detection
+- ✅ Full documentation and AI agent integration
+- ✅ Rollout testing complete
+
+**Bug Fixes**
+- ✅ Status command JSON output (was producing no output)
+- ✅ All 573 tests passing
+- ✅ GitHub token setup documentation enhanced
+
+**Documentation Updates**
+- ✅ Comprehensive rollout findings
+- ✅ Setup guides for new users
+- ✅ Enhanced GitHub token configuration
+- ✅ Hooks management reference
+
+### Known Issues
+
+#### 🔴 Critical
+- **Package Not Published**: Cannot `npm install -g` yet (using `npm link` for development)
+  - **Action**: Publish to npm registry when ready
+  - **Status**: v1.4.0 release finalized, awaiting publish decision
+
+#### ℹ️ Enhancement Opportunities
+- Add `--force` flag to `gwm init` for intentional config overwrites
+- Improve GitHub token error messages with setup guidance
+- Add `gwm doctor` health check command
 
 ---
 
@@ -50,6 +84,9 @@ npm test -- tests/commands/                          # Test all commands
 npm run dev -- feature my-feature    # Test feature command
 npm run dev -- auto --json           # Test auto workflow with JSON
 npm run dev -- check-update          # Test update checker
+npm run dev -- install-hooks         # Test hooks installation
+npm run dev -- install-hooks --post-commit  # Test both hooks
+npm run dev -- uninstall-hooks       # Test hooks removal
 ```
 
 ---

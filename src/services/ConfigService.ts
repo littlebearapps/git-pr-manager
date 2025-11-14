@@ -35,6 +35,17 @@ const DEFAULT_CONFIG: WorkflowConfig = {
     enableDryRun: false,
     autoMerge: false,
     createPR: true
+  },
+  // Phase 2: Git hooks defaults
+  hooks: {
+    prePush: {
+      enabled: false,
+      reminder: true
+    },
+    postCommit: {
+      enabled: false,
+      reminder: true
+    }
   }
 };
 
@@ -183,14 +194,133 @@ export class ConfigService {
     return config;
   }
 
+  /**
+   * Generate YAML with AI-readable comments
+   * Makes it easy for AI agents to understand preferred workflows
+   */
+  private generateYamlWithComments(template: 'basic' | 'standard' | 'strict'): string {
+    const config = this.getTemplateConfig(template);
+
+    // Extract values with defaults to satisfy TypeScript strict null checks
+    const bp = config.branchProtection || DEFAULT_CONFIG.branchProtection;
+    const ci = config.ci || DEFAULT_CONFIG.ci;
+    const security = config.security || DEFAULT_CONFIG.security;
+    const pr = config.pr || DEFAULT_CONFIG.pr;
+    const autoFix = config.autoFix || DEFAULT_CONFIG.autoFix;
+    const hooks = config.hooks || DEFAULT_CONFIG.hooks;
+
+    // Build YAML with inline comments that guide AI agents
+    const yaml = `# .gwm.yml - Git Workflow Manager Configuration
+# Generated: ${new Date().toISOString()}
+# Template: ${template}
+#
+# 💡 AI Agent Guidance:
+#   - Use 'gwm ship' for full PR workflow (create, wait, merge)
+#   - Use 'gwm auto' for quick PR creation
+#   - Use 'gwm security' before creating PRs
+#   - Use 'gwm checks <pr-number>' to monitor CI status
+#
+# 🎯 Optional Features:
+#   - Run 'gwm install-hooks' to get reminders before push
+#   - Run 'gwm docs' for full documentation
+
+# Branch Protection
+# Solo developer? Set requireReviews: 0
+# Small team (2-5)? Set requireReviews: 1
+# Enterprise? Set requireReviews: 2+
+branchProtection:
+  enabled: ${bp!.enabled}
+  requireReviews: ${bp!.requireReviews}  # 0 = no reviews (solo dev), 1+ = team
+  requireStatusChecks:
+${(bp!.requireStatusChecks || []).map(check => `    - ${check}`).join('\n') || '    []'}
+  enforceAdmins: ${bp!.enforceAdmins}
+
+# CI Configuration
+# waitForChecks: true  = gwm waits for all CI checks to pass
+# failFast: true       = stop on first critical failure
+# retryFlaky: true     = retry flaky tests automatically
+ci:
+  waitForChecks: ${ci!.waitForChecks}
+  failFast: ${ci!.failFast}
+  retryFlaky: ${ci!.retryFlaky}
+  timeout: ${ci!.timeout}  # minutes
+
+# Security Scanning
+# scanSecrets: true     = check for hardcoded secrets/tokens
+# scanDependencies: true = check for vulnerable packages
+security:
+  scanSecrets: ${security!.scanSecrets}
+  scanDependencies: ${security!.scanDependencies}
+  allowedVulnerabilities: []
+
+# Pull Request Settings
+# autoAssign: []  = list of GitHub usernames to auto-assign
+# autoLabel: []   = list of labels to auto-add
+pr:
+  templatePath: ${pr!.templatePath || 'null'}
+  autoAssign: []
+  autoLabel: []
+
+# Auto-Fix Configuration
+# enabled: true        = attempt to auto-fix linting/formatting errors
+# maxAttempts: 2       = max fix attempts per failure
+# createPR: true       = create separate PR for fixes
+autoFix:
+  enabled: ${autoFix!.enabled}
+  maxAttempts: ${autoFix!.maxAttempts}
+  maxChangedLines: ${autoFix!.maxChangedLines}
+  requireTests: ${autoFix!.requireTests}
+  enableDryRun: ${autoFix!.enableDryRun}
+  autoMerge: ${autoFix!.autoMerge}
+  createPR: ${autoFix!.createPR}
+
+# Git Hooks (Optional - install with 'gwm install-hooks')
+# These track installation state - updated by gwm install-hooks/uninstall-hooks
+# enabled: false       = hook not installed
+# enabled: true        = hook installed in .git/hooks/
+# reminder: true       = show reminder message (can be disabled per hook)
+hooks:
+  prePush:
+    enabled: ${hooks!.prePush!.enabled}
+    reminder: ${hooks!.prePush!.reminder}
+  postCommit:
+    enabled: ${hooks!.postCommit!.enabled}
+    reminder: ${hooks!.postCommit!.reminder}
+
+# 📚 Documentation:
+#   gwm docs                                  - View all guides
+#   gwm docs --guide=AI-AGENT-INTEGRATION     - AI agent setup
+#   gwm docs --guide=GITHUB-ACTIONS-INTEGRATION - CI/CD setup
+#
+# 🎯 Next Steps:
+#   1. Review this configuration
+#   2. Run 'gwm install-hooks' for workflow reminders (optional)
+#   3. Run 'gwm feature <name>' to start your first feature branch
+#   4. Run 'gwm ship' to create PR and merge
+`;
+
+    return yaml;
+  }
+
   async init(template?: 'basic' | 'standard' | 'strict'): Promise<void> {
     const exists = await this.exists();
     if (exists) {
       throw new Error(`Config file already exists at ${this.configPath}`);
     }
 
-    const config = this.getTemplateConfig(template || 'basic');
-    await this.save(config);
+    // Generate YAML with AI-readable comments
+    const yamlContent = this.generateYamlWithComments(template || 'basic');
+
+    try {
+      await fs.writeFile(this.configPath, yamlContent, 'utf-8');
+
+      // Update cache
+      const config = this.getTemplateConfig(template || 'basic');
+      this.config = config;
+      this.cacheTime = Date.now();
+    } catch (error) {
+      throw new Error(`Failed to create config at ${this.configPath}: ${error}`);
+    }
   }
 
   /**
@@ -244,6 +374,17 @@ export class ConfigService {
       autoFix: {
         ...DEFAULT_CONFIG.autoFix,
         ...parsed.autoFix
+      },
+      // Phase 2: Merge hooks config
+      hooks: {
+        prePush: {
+          ...DEFAULT_CONFIG.hooks!.prePush,
+          ...parsed.hooks?.prePush
+        },
+        postCommit: {
+          ...DEFAULT_CONFIG.hooks!.postCommit,
+          ...parsed.hooks?.postCommit
+        }
       }
     };
   }
