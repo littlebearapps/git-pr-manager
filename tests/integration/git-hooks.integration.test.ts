@@ -2,10 +2,12 @@ import { installHooksCommand } from '../../src/commands/install-hooks';
 import { uninstallHooksCommand } from '../../src/commands/uninstall-hooks';
 import * as fs from 'fs/promises';
 import { ConfigService } from '../../src/services/ConfigService';
+import * as gitHooks from '../../src/utils/git-hooks';
 
 // Mock dependencies for integration testing
 jest.mock('fs/promises');
 jest.mock('../../src/services/ConfigService');
+jest.mock('../../src/utils/git-hooks');
 jest.mock('../../src/utils/logger', () => ({
   logger: {
     success: jest.fn(),
@@ -57,12 +59,13 @@ describe('Git Hooks Integration', () => {
 
   describe('install and uninstall workflow', () => {
     it('should install hooks, then uninstall them successfully', async () => {
-      // Setup: Mock git repository exists
-      mockedFs.access.mockResolvedValue(undefined);
+      // Setup: Mock git hooks directory
+      jest.spyOn(gitHooks, 'getGitHooksDir').mockResolvedValue('/test/repo/.git/hooks');
+      jest.spyOn(gitHooks, 'fileExists').mockResolvedValue(false); // For install
+      jest.spyOn(gitHooks, 'isGwmHook').mockResolvedValue(true); // For uninstall
       mockedFs.mkdir.mockResolvedValue(undefined);
       mockedFs.writeFile.mockResolvedValue(undefined);
       mockedFs.chmod.mockResolvedValue(undefined);
-      mockedFs.readFile.mockResolvedValue('#!/bin/sh\n# gwm pre-push hook\n# content');
       mockedFs.unlink.mockResolvedValue(undefined);
 
       // Mock config operations via mockConfigInstance
@@ -94,6 +97,9 @@ describe('Git Hooks Integration', () => {
         0o755
       );
 
+      // Update mocks for uninstall (hooks now exist)
+      jest.spyOn(gitHooks, 'fileExists').mockResolvedValue(true);
+
       // Uninstall hooks
       await uninstallHooksCommand({});
 
@@ -103,17 +109,13 @@ describe('Git Hooks Integration', () => {
     });
 
     it('should handle both hooks in full workflow', async () => {
-      // Setup
-      mockedFs.access.mockResolvedValue(undefined);
+      // Setup: Mock git hooks directory
+      jest.spyOn(gitHooks, 'getGitHooksDir').mockResolvedValue('/test/repo/.git/hooks');
+      jest.spyOn(gitHooks, 'fileExists').mockResolvedValue(false); // For install
+      jest.spyOn(gitHooks, 'isGwmHook').mockResolvedValue(true); // For uninstall
       mockedFs.mkdir.mockResolvedValue(undefined);
       mockedFs.writeFile.mockResolvedValue(undefined);
       mockedFs.chmod.mockResolvedValue(undefined);
-      mockedFs.readFile.mockImplementation(async (path) => {
-        if (path.toString().includes('pre-push')) {
-          return '#!/bin/sh\n# gwm pre-push hook\n# content';
-        }
-        return '#!/bin/sh\n# gwm post-commit hook\n# content';
-      });
       mockedFs.unlink.mockResolvedValue(undefined);
 
       mockConfigInstance.load.mockResolvedValue({
@@ -136,6 +138,9 @@ describe('Git Hooks Integration', () => {
       expect(mockedFs.writeFile).toHaveBeenCalledTimes(2);
       expect(mockedFs.chmod).toHaveBeenCalledTimes(2);
 
+      // Update mocks for uninstall (hooks now exist)
+      jest.spyOn(gitHooks, 'fileExists').mockResolvedValue(true);
+
       // Uninstall both hooks
       await uninstallHooksCommand({});
 
@@ -145,11 +150,12 @@ describe('Git Hooks Integration', () => {
 
   describe('hook persistence across reinstall', () => {
     it('should overwrite hook with --force flag', async () => {
-      // Setup
-      mockedFs.access.mockResolvedValue(undefined);
+      // Setup: Mock git hooks directory and existing gwm hook
+      jest.spyOn(gitHooks, 'getGitHooksDir').mockResolvedValue('/test/repo/.git/hooks');
+      jest.spyOn(gitHooks, 'fileExists').mockResolvedValue(true); // Hook exists
+      jest.spyOn(gitHooks, 'isGwmHook').mockResolvedValue(true); // Is a gwm hook
       mockedFs.mkdir.mockResolvedValue(undefined);
       mockedFs.chmod.mockResolvedValue(undefined);
-      mockedFs.readFile.mockResolvedValue('#!/bin/sh\n# gwm pre-push hook\n# old version');
       mockedFs.writeFile.mockResolvedValue(undefined);
 
       mockConfigInstance.load.mockResolvedValue({
@@ -181,17 +187,10 @@ describe('Git Hooks Integration', () => {
     it('should keep config in sync with hook installation state', async () => {
       const configSaveSpy = jest.spyOn(mockConfigInstance, 'save');
 
-      // Setup - Mock .git directory exists, but hook files don't
-      let accessCallCount = 0;
-      mockedFs.access.mockImplementation(async () => {
-        accessCallCount++;
-        if (accessCallCount === 1) {
-          return Promise.resolve(); // .git directory exists
-        }
-        throw Object.assign(new Error('ENOENT'), { code: 'ENOENT' }); // Hook files don't exist
-      });
+      // Setup - Mock git hooks directory and no existing hooks
+      jest.spyOn(gitHooks, 'getGitHooksDir').mockResolvedValue('/test/repo/.git/hooks');
+      jest.spyOn(gitHooks, 'fileExists').mockResolvedValue(false); // Hook files don't exist initially
       mockedFs.mkdir.mockResolvedValue(undefined);
-      mockedFs.readFile.mockRejectedValue(Object.assign(new Error('ENOENT'), { code: 'ENOENT' }));
       mockedFs.writeFile.mockResolvedValue(undefined);
       mockedFs.chmod.mockResolvedValue(undefined);
 
@@ -221,14 +220,9 @@ describe('Git Hooks Integration', () => {
         })
       );
 
-      // Setup for uninstall - Reset access mock to allow hook files to exist
-      mockedFs.access.mockResolvedValue(undefined); // All files exist for uninstall
-      mockedFs.readFile.mockImplementation(async (path) => {
-        if (path.toString().includes('pre-push')) {
-          return '#!/bin/sh\n# gwm pre-push hook\n# content';
-        }
-        return '#!/bin/sh\n# gwm post-commit hook\n# content';
-      });
+      // Setup for uninstall - Update mocks so hooks now exist
+      jest.spyOn(gitHooks, 'fileExists').mockResolvedValue(true); // Hooks now exist
+      jest.spyOn(gitHooks, 'isGwmHook').mockResolvedValue(true); // And are gwm hooks
       mockedFs.unlink.mockResolvedValue(undefined);
 
       mockConfigInstance.load.mockResolvedValue({

@@ -2,6 +2,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import { logger } from '../utils/logger';
 import { ConfigService } from '../services/ConfigService';
+import { getGitHooksDir, fileExists, isGwmHook } from '../utils/git-hooks';
 
 export interface UninstallHooksOptions {
   json?: boolean;  // JSON output mode
@@ -13,24 +14,23 @@ export interface UninstallHooksOptions {
  */
 export async function uninstallHooksCommand(options: UninstallHooksOptions = {}): Promise<void> {
   try {
-    // Check if .git directory exists
-    const gitDir = path.join(process.cwd(), '.git');
+    // Get hooks directory (works for both standard repos and worktrees)
+    let hooksDir: string;
     try {
-      await fs.access(gitDir);
-    } catch {
-      const error = 'Not a git repository. No hooks to uninstall.';
+      hooksDir = await getGitHooksDir();
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Not a git repository';
       if (options.json) {
         console.log(JSON.stringify({
           success: false,
-          error: error
+          error: errorMsg + '. No hooks to uninstall.'
         }));
       } else {
-        logger.error(error);
+        logger.error(errorMsg + '. No hooks to uninstall.');
       }
       process.exit(1);
     }
 
-    const hooksDir = path.join(gitDir, 'hooks');
     const removedHooks: string[] = [];
     const skippedHooks: string[] = [];
 
@@ -120,35 +120,5 @@ export async function uninstallHooksCommand(options: UninstallHooksOptions = {})
       logger.error(`Failed to uninstall hooks: ${errorMessage}`);
     }
     process.exit(1);
-  }
-}
-
-/**
- * Check if a file exists
- */
-async function fileExists(filePath: string): Promise<boolean> {
-  try {
-    await fs.access(filePath);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Check if a hook was created by gwm
- * Checks for gwm signature on line 2
- */
-async function isGwmHook(hookPath: string): Promise<boolean> {
-  try {
-    const content = await fs.readFile(hookPath, { encoding: 'utf-8' });
-    const lines = content.split('\n');
-    // Check for gwm signature on line 2 (0-indexed line 1)
-    return !!(lines[1] && (
-      lines[1].includes('gwm pre-push hook') ||
-      lines[1].includes('gwm post-commit hook')
-    ));
-  } catch {
-    return false;
   }
 }

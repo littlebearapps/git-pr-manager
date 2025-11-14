@@ -196,6 +196,7 @@ gwm status --json              # Shows hooks.prePush and hooks.postCommit
 - **Reminder-only**: Display helpful workflow suggestions
 - **Optional**: Can be disabled/uninstalled anytime
 - **CI-aware**: Automatically skipped in CI environments
+- **Worktree-compatible**: Works with both standard repos and git worktrees
 
 **Pre-push hook** reminds you to:
 - Run `gwm ship` for automated PR creation

@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Git Worktree Support**: Hook installation/uninstall now works in git worktree setups
+  - Created `src/utils/git-hooks.ts` utility for worktree-aware hooks directory detection
+  - Primary method: Uses `git rev-parse --git-common-dir` (universal support)
+  - Fallback: Manual `.git` detection (handles both directory and file cases)
+  - Hooks correctly installed to shared location (`.bare/hooks/`) in worktrees
+  - Added 15 new tests for git-hooks utility
+  - Updated 38 existing tests to use new utility
+  - All 622 tests passing
+
 ### Added - Phase 7: JSON Output Implementation & Command Tests
 
 #### JSON Output Support (Session 3)

@@ -1,0 +1,32 @@
+branchProtection:
+  enabled: false
+  requireReviews: 0
+  requireStatusChecks: []
+  enforceAdmins: false
+ci:
+  waitForChecks: true
+  failFast: true
+  retryFlaky: false
+  timeout: 30
+security:
+  scanSecrets: true
+  scanDependencies: true
+  allowedVulnerabilities: []
+pr:
+  autoAssign: []
+  autoLabel: []
+autoFix:
+  enabled: true
+  maxAttempts: 2
+  maxChangedLines: 1000
+  requireTests: true
+  enableDryRun: false
+  autoMerge: false
+  createPR: true
+hooks:
+  prePush:
+    enabled: false
+    reminder: true
+  postCommit:
+    enabled: false
+    reminder: true
