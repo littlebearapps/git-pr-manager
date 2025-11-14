@@ -61,6 +61,28 @@ Practical guides for using git-workflow-manager:
   - Integration with Claude Code
   - Development workflow
 
+- **[REPOSITORY-SECURITY-GUIDE.md](guides/REPOSITORY-SECURITY-GUIDE.md)** - Comprehensive security guide ⭐
+  - Repository types & recommended settings
+  - GitHub Actions security best practices
+  - Secrets management (direnv + keychain)
+  - Branch protection presets
+  - Security audit checklists
+
+- **[GITHUB-ACTIONS-INTEGRATION.md](guides/GITHUB-ACTIONS-INTEGRATION.md)** - GitHub Actions integration
+  - CI/CD workflow patterns
+  - Permissions and secrets
+  - Common use cases
+
+- **[AI-AGENT-INTEGRATION.md](guides/AI-AGENT-INTEGRATION.md)** - AI agent integration
+  - Claude Code integration
+  - Machine-readable output
+  - Automation patterns
+
+- **[JSON-OUTPUT-SCHEMAS.md](guides/JSON-OUTPUT-SCHEMAS.md)** - JSON output schemas
+  - Complete schema reference
+  - Example outputs
+  - Parsing guidelines
+
 ### `/architecture` - Architecture & Design
 
 Technical architecture documentation:
@@ -93,8 +115,9 @@ Future enhancements and planning documents:
 
 ### For New Users
 1. Start with [main README.md](../README.md) for installation and quick start
-2. Review [QUICK-REFERENCE.md](guides/QUICK-REFERENCE.md) for common commands
-3. Check [WORKFLOW-DOCUMENTATION.md](guides/WORKFLOW-DOCUMENTATION.md) for detailed workflows
+2. Review [REPOSITORY-SECURITY-GUIDE.md](guides/REPOSITORY-SECURITY-GUIDE.md) for security setup ⭐
+3. Check [QUICK-REFERENCE.md](guides/QUICK-REFERENCE.md) for common commands
+4. Read [WORKFLOW-DOCUMENTATION.md](guides/WORKFLOW-DOCUMENTATION.md) for detailed workflows
 
 ### For Developers
 1. Read [PHASE-5-PROGRESS.md](implementation/PHASE-5-PROGRESS.md) for latest implementation

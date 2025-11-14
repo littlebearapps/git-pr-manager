@@ -2,6 +2,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import { logger } from '../utils/logger';
 import { ConfigService } from '../services/ConfigService';
+import { getGitHooksDir, fileExists, isGwmHook } from '../utils/git-hooks';
 
 export interface InstallHooksOptions {
   force?: boolean;       // Overwrite existing hooks
@@ -76,24 +77,23 @@ export async function installHooksCommand(options: InstallHooksOptions = {}): Pr
     const installPrePush = options.prePush !== false; // true by default
     const installPostCommit = options.postCommit === true; // false by default
 
-    // Check if .git directory exists
-    const gitDir = path.join(process.cwd(), '.git');
+    // Get hooks directory (works for both standard repos and worktrees)
+    let hooksDir: string;
     try {
-      await fs.access(gitDir);
-    } catch {
-      const error = 'Not a git repository. Cannot install hooks.';
+      hooksDir = await getGitHooksDir();
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Not a git repository';
       if (options.json) {
         console.log(JSON.stringify({
           success: false,
-          error: error
+          error: errorMsg + '. Cannot install hooks.'
         }));
       } else {
-        logger.error(error);
+        logger.error(errorMsg + '. Cannot install hooks.');
       }
       process.exit(1);
     }
 
-    const hooksDir = path.join(gitDir, 'hooks');
     const installedHooks: string[] = [];
 
     // Ensure hooks directory exists
@@ -186,12 +186,12 @@ export async function installHooksCommand(options: InstallHooksOptions = {}): Pr
         success: true,
         message: 'Git hooks installed successfully',
         hooks: installedHooks,
-        location: '.git/hooks/'
+        location: hooksDir
       }));
     } else {
       logger.success('Git hooks installed successfully!');
       installedHooks.forEach(hook => {
-        logger.info(`  • ${hook} hook: .git/hooks/${hook}`);
+        logger.info(`  • ${hook} hook: ${path.join(hooksDir, hook)}`);
       });
       logger.blank();
       logger.info('💡 The hook(s) will remind you about gwm before pushes/commits');
@@ -208,35 +208,5 @@ export async function installHooksCommand(options: InstallHooksOptions = {}): Pr
       logger.error(`Failed to install hooks: ${errorMessage}`);
     }
     process.exit(1);
-  }
-}
-
-/**
- * Check if a file exists
- */
-async function fileExists(filePath: string): Promise<boolean> {
-  try {
-    await fs.access(filePath);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Check if a hook was created by gwm
- * Checks for gwm signature on line 2
- */
-async function isGwmHook(hookPath: string): Promise<boolean> {
-  try {
-    const content = await fs.readFile(hookPath, { encoding: 'utf-8' });
-    const lines = content.split('\n');
-    // Check for gwm signature on line 2 (0-indexed line 1)
-    return !!(lines[1] && (
-      lines[1].includes('gwm pre-push hook') ||
-      lines[1].includes('gwm post-commit hook')
-    ));
-  } catch {
-    return false;
   }
 }

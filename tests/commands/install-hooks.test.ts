@@ -1,10 +1,12 @@
 import { installHooksCommand } from '../../src/commands/install-hooks';
 import * as fs from 'fs/promises';
 import { ConfigService } from '../../src/services/ConfigService';
+import * as gitHooks from '../../src/utils/git-hooks';
 
 // Mock dependencies
 jest.mock('fs/promises');
 jest.mock('../../src/services/ConfigService');
+jest.mock('../../src/utils/git-hooks');
 jest.mock('../../src/utils/logger', () => ({
   logger: {
     success: jest.fn(),
@@ -61,21 +63,14 @@ describe('install-hooks', () => {
 
   describe('success cases', () => {
     beforeEach(() => {
-      // Mock .git directory exists
-      let accessCallCount = 0;
-      mockedFs.access.mockImplementation(async () => {
-        accessCallCount++;
-        // First call: .git directory exists
-        if (accessCallCount === 1) {
-          return Promise.resolve();
-        }
-        // Subsequent calls: hook files don't exist
-        throw Object.assign(new Error('ENOENT'), { code: 'ENOENT' });
-      });
+      // Mock getGitHooksDir returns standard .git/hooks path
+      jest.spyOn(gitHooks, 'getGitHooksDir').mockResolvedValue('/test/repo/.git/hooks');
+
+      // Mock fileExists returns false (hooks don't exist yet)
+      jest.spyOn(gitHooks, 'fileExists').mockResolvedValue(false);
+
       // Mock hooks directory creation
       mockedFs.mkdir.mockResolvedValue(undefined);
-      // Mock hook files don't exist initially (readFile should not be called)
-      mockedFs.readFile.mockRejectedValue(Object.assign(new Error('ENOENT'), { code: 'ENOENT' }));
       mockedFs.writeFile.mockResolvedValue(undefined);
       mockedFs.chmod.mockResolvedValue(undefined);
     });
@@ -161,7 +156,7 @@ describe('install-hooks', () => {
 
   describe('error cases', () => {
     it('should error when not in a git repository', async () => {
-      mockedFs.access.mockRejectedValue(new Error('ENOENT'));
+      jest.spyOn(gitHooks, 'getGitHooksDir').mockRejectedValue(new Error('Not a git repository'));
 
       await expect(installHooksCommand({})).rejects.toThrow('Process.exit called with code 1');
 
@@ -169,10 +164,10 @@ describe('install-hooks', () => {
     });
 
     it('should error when hook exists and is not gwm hook without --force', async () => {
-      mockedFs.access.mockResolvedValue(undefined);
+      jest.spyOn(gitHooks, 'getGitHooksDir').mockResolvedValue('/test/repo/.git/hooks');
+      jest.spyOn(gitHooks, 'fileExists').mockResolvedValue(true);
+      jest.spyOn(gitHooks, 'isGwmHook').mockResolvedValue(false);
       mockedFs.mkdir.mockResolvedValue(undefined);
-      // Mock hook exists but is not gwm
-      mockedFs.readFile.mockResolvedValue('#!/bin/sh\n# some other hook\n');
 
       await expect(installHooksCommand({})).rejects.toThrow('Process.exit called with code 1');
 
@@ -180,7 +175,7 @@ describe('install-hooks', () => {
     });
 
     it('should output JSON error when not in git repo with --json', async () => {
-      mockedFs.access.mockRejectedValue(new Error('ENOENT'));
+      jest.spyOn(gitHooks, 'getGitHooksDir').mockRejectedValue(new Error('Not a git repository'));
 
       await expect(installHooksCommand({ json: true })).rejects.toThrow();
 
@@ -192,14 +187,15 @@ describe('install-hooks', () => {
 
   describe('hook detection', () => {
     beforeEach(() => {
-      mockedFs.access.mockResolvedValue(undefined);
+      jest.spyOn(gitHooks, 'getGitHooksDir').mockResolvedValue('/test/repo/.git/hooks');
       mockedFs.mkdir.mockResolvedValue(undefined);
       mockedFs.chmod.mockResolvedValue(undefined);
       mockedFs.writeFile.mockResolvedValue(undefined);
     });
 
     it('should detect gwm pre-push hook', async () => {
-      mockedFs.readFile.mockResolvedValue('#!/bin/sh\n# gwm pre-push hook\n# content');
+      jest.spyOn(gitHooks, 'fileExists').mockResolvedValue(true);
+      jest.spyOn(gitHooks, 'isGwmHook').mockResolvedValue(true);
 
       // Should not error without --force (hook is already gwm hook)
       await installHooksCommand({ force: true });
@@ -208,7 +204,8 @@ describe('install-hooks', () => {
     });
 
     it('should detect gwm post-commit hook', async () => {
-      mockedFs.readFile.mockResolvedValue('#!/bin/sh\n# gwm post-commit hook\n# content');
+      jest.spyOn(gitHooks, 'fileExists').mockResolvedValue(true);
+      jest.spyOn(gitHooks, 'isGwmHook').mockResolvedValue(true);
 
       await installHooksCommand({ postCommit: true, force: true });
 
@@ -218,17 +215,9 @@ describe('install-hooks', () => {
 
   describe('config updates', () => {
     beforeEach(() => {
-      // Mock .git directory exists, but hook files don't
-      let accessCallCount = 0;
-      mockedFs.access.mockImplementation(async () => {
-        accessCallCount++;
-        if (accessCallCount === 1) {
-          return Promise.resolve();
-        }
-        throw Object.assign(new Error('ENOENT'), { code: 'ENOENT' });
-      });
+      jest.spyOn(gitHooks, 'getGitHooksDir').mockResolvedValue('/test/repo/.git/hooks');
+      jest.spyOn(gitHooks, 'fileExists').mockResolvedValue(false);
       mockedFs.mkdir.mockResolvedValue(undefined);
-      mockedFs.readFile.mockRejectedValue(Object.assign(new Error('ENOENT'), { code: 'ENOENT' }));
       mockedFs.writeFile.mockResolvedValue(undefined);
       mockedFs.chmod.mockResolvedValue(undefined);
     });
@@ -281,17 +270,10 @@ describe('install-hooks', () => {
 
   describe('hook templates', () => {
     beforeEach(() => {
-      // Mock .git directory exists, but hook files don't
-      let accessCallCount = 0;
-      mockedFs.access.mockImplementation(async () => {
-        accessCallCount++;
-        if (accessCallCount === 1) {
-          return Promise.resolve();
-        }
-        throw Object.assign(new Error('ENOENT'), { code: 'ENOENT' });
-      });
+      jest.spyOn(gitHooks, 'getGitHooksDir').mockResolvedValue('/test/repo/.git/hooks');
+      jest.spyOn(gitHooks, 'fileExists').mockResolvedValue(false);
       mockedFs.mkdir.mockResolvedValue(undefined);
-      mockedFs.readFile.mockRejectedValue(Object.assign(new Error('ENOENT'), { code: 'ENOENT' }));
+      mockedFs.writeFile.mockResolvedValue(undefined);
       mockedFs.chmod.mockResolvedValue(undefined);
     });
 
