@@ -211,13 +211,15 @@ npm run dev -- doctor  # Development mode
 
 # What it checks:
 # - GitHub token (GITHUB_TOKEN or GH_TOKEN)
+#   - Detects available setup tools (direnv, keychain)
+#   - Provides ranked setup suggestions when token not found
 # - Required tools (git, node)
 # - Optional tools (gh, detect-secrets, pip-audit, npm)
 # - Shows versions for installed tools
 # - Provides install commands for missing tools
 ```
 
-**Example output**:
+**Example output (token found)**:
 ```
 ▸ System Health Check
 ────────────────────────────────────────────────────────────────────────────────
@@ -239,6 +241,46 @@ Optional Tools:
     Install: pip install pip-audit
 ✅ npm                  11.6.0
 ```
+
+**Example output (token not found, with smart setup suggestions)**:
+```
+▸ System Health Check
+────────────────────────────────────────────────────────────────────────────────
+⚠️  GitHub token: Not found
+
+Setup Options (ranked by security & your system):
+
+✨ Recommended: direnv + keychain (high security)
+   Create .envrc with keychain integration:
+     echo 'source ~/bin/kc.sh && export GITHUB_TOKEN=$(kc_get GITHUB_PAT)' >> .envrc
+     direnv allow
+     echo '.envrc' >> .gitignore  # Prevent accidental commit
+
+Alternative 1: shell profile (medium security)
+   Add to ~/.zshrc or ~/.bashrc:
+     echo 'export GITHUB_TOKEN="ghp_your_token_here"' >> ~/.zshrc
+     source ~/.zshrc
+
+Alternative 2: .env file (low security)
+   Create .env file:
+     echo 'GITHUB_TOKEN=ghp_your_token_here' >> .env
+     echo '.env' >> .gitignore  # CRITICAL: Prevent token leak!
+
+Alternative 3: current session (low security)
+   Export in current shell (temporary):
+     export GITHUB_TOKEN="ghp_your_token_here"
+
+   Note: Token will be lost when you close the terminal
+
+Generate token at: https://github.com/settings/tokens
+Required scopes: repo (full control of private repositories)
+```
+
+**Smart Setup Detection**:
+- Detects available tools (direnv, keychain helper at ~/bin/kc.sh)
+- Ranks suggestions by security: High (keychain) > Medium (direnv, shell) > Low (.env, session)
+- Provides copy-paste commands for immediate setup
+- Always shows all alternatives so you have choices
 
 **When to use**:
 - After first installation

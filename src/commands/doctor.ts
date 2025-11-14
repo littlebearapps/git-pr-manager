@@ -6,6 +6,8 @@
  */
 
 import { execSync } from 'child_process';
+import { existsSync } from 'fs';
+import { join } from 'path';
 import { logger } from '../utils/logger';
 
 interface Tool {
@@ -14,6 +16,26 @@ interface Tool {
   purpose: string;
   installCommand?: string;
   checkCommand?: string;
+}
+
+interface SetupOption {
+  priority: 'recommended' | 'alternative';
+  method: string;
+  security: 'high' | 'medium' | 'low';
+  steps: string[];
+}
+
+interface TokenCheckResult {
+  found: boolean;
+  source?: string;
+  setupOptions?: SetupOption[];
+}
+
+interface AvailableTools {
+  direnv: boolean;
+  keychain: boolean;
+  hasEnvrc: boolean;
+  hasEnv: boolean;
 }
 
 const TOOLS: Tool[] = [
@@ -84,16 +106,115 @@ function getVersion(checkCommand: string): string | null {
 }
 
 /**
- * Check GitHub token
+ * Detect available token setup tools
  */
-function checkGitHubToken(): { found: boolean; source?: string } {
+function detectAvailableTools(): AvailableTools {
+  const homeDir = process.env.HOME || process.env.USERPROFILE || '';
+
+  return {
+    direnv: commandExists('direnv'),
+    keychain: existsSync(join(homeDir, 'bin', 'kc.sh')),
+    hasEnvrc: existsSync('.envrc'),
+    hasEnv: existsSync('.env')
+  };
+}
+
+/**
+ * Build ranked setup options based on available tools
+ */
+function buildSetupOptions(tools: AvailableTools): SetupOption[] {
+  const options: SetupOption[] = [];
+
+  // Option 1: direnv + keychain (most secure)
+  if (tools.direnv && tools.keychain) {
+    options.push({
+      priority: 'recommended',
+      method: 'direnv + keychain',
+      security: 'high',
+      steps: [
+        'Create .envrc with keychain integration:',
+        '  echo \'source ~/bin/kc.sh && export GITHUB_TOKEN=$(kc_get GITHUB_PAT)\' >> .envrc',
+        '  direnv allow',
+        '  echo \'.envrc\' >> .gitignore  # Prevent accidental commit'
+      ]
+    });
+  }
+
+  // Option 2: direnv with plaintext
+  if (tools.direnv && !tools.keychain) {
+    options.push({
+      priority: options.length === 0 ? 'recommended' : 'alternative',
+      method: 'direnv with .envrc',
+      security: 'medium',
+      steps: [
+        'Create .envrc file:',
+        '  echo \'export GITHUB_TOKEN="ghp_your_token_here"\' >> .envrc',
+        '  direnv allow',
+        '  echo \'.envrc\' >> .gitignore  # IMPORTANT: Prevent token leak!'
+      ]
+    });
+  }
+
+  // Option 3: Shell profile (persistent)
+  options.push({
+    priority: 'alternative',
+    method: 'shell profile',
+    security: 'medium',
+    steps: [
+      'Add to ~/.zshrc or ~/.bashrc:',
+      '  echo \'export GITHUB_TOKEN="ghp_your_token_here"\' >> ~/.zshrc',
+      '  source ~/.zshrc'
+    ]
+  });
+
+  // Option 4: .env file
+  options.push({
+    priority: 'alternative',
+    method: '.env file',
+    security: 'low',
+    steps: [
+      'Create .env file:',
+      '  echo \'GITHUB_TOKEN=ghp_your_token_here\' >> .env',
+      '  echo \'.env\' >> .gitignore  # CRITICAL: Prevent token leak!'
+    ]
+  });
+
+  // Option 5: Current session only
+  options.push({
+    priority: 'alternative',
+    method: 'current session',
+    security: 'low',
+    steps: [
+      'Export in current shell (temporary):',
+      '  export GITHUB_TOKEN="ghp_your_token_here"',
+      '',
+      'Note: Token will be lost when you close the terminal'
+    ]
+  });
+
+  return options;
+}
+
+/**
+ * Check GitHub token with smart detection
+ */
+function checkGitHubToken(): TokenCheckResult {
+  // Check if token is already set (any method works!)
   if (process.env.GITHUB_TOKEN) {
     return { found: true, source: 'GITHUB_TOKEN' };
   }
   if (process.env.GH_TOKEN) {
     return { found: true, source: 'GH_TOKEN' };
   }
-  return { found: false };
+
+  // Token not found - detect available tools and provide suggestions
+  const tools = detectAvailableTools();
+  const setupOptions = buildSetupOptions(tools);
+
+  return {
+    found: false,
+    setupOptions
+  };
 }
 
 /**
@@ -111,8 +232,46 @@ export async function doctorCommand(): Promise<void> {
     logger.success(`GitHub token: ${tokenStatus.source}`);
   } else {
     logger.warn('GitHub token: Not found');
-    logger.info('  Set GITHUB_TOKEN or GH_TOKEN environment variable');
-    logger.info('  Generate token at: https://github.com/settings/tokens');
+    logger.blank();
+
+    // Show ranked setup options
+    if (tokenStatus.setupOptions && tokenStatus.setupOptions.length > 0) {
+      logger.log('Setup Options (ranked by security & your system):');
+      logger.blank();
+
+      // Show recommended option first
+      const recommended = tokenStatus.setupOptions.filter(opt => opt.priority === 'recommended');
+      const alternatives = tokenStatus.setupOptions.filter(opt => opt.priority === 'alternative');
+
+      if (recommended.length > 0) {
+        for (const option of recommended) {
+          logger.success(`✨ Recommended: ${option.method} (${option.security} security)`);
+          for (const step of option.steps) {
+            logger.log(`   ${step}`);
+          }
+          logger.blank();
+        }
+      }
+
+      // Show alternatives
+      if (alternatives.length > 0) {
+        for (let i = 0; i < alternatives.length; i++) {
+          const option = alternatives[i];
+          logger.log(`Alternative ${i + 1}: ${option.method} (${option.security} security)`);
+          for (const step of option.steps) {
+            logger.log(`   ${step}`);
+          }
+          if (i < alternatives.length - 1) {
+            logger.blank();
+          }
+        }
+      }
+
+      logger.blank();
+      logger.log('Generate token at: https://github.com/settings/tokens');
+      logger.log('Required scopes: repo (full control of private repositories)');
+    }
+
     hasWarnings = true;
   }
 
