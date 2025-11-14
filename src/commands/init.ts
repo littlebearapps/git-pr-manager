@@ -101,6 +101,14 @@ export async function initCommand(options: InitOptions): Promise<void> {
     // Check if config already exists
     const exists = await configService.exists();
     if (exists) {
+      // Output JSON error if in JSON mode
+      logger.outputJsonResult(false, null, {
+        code: 'ERROR',
+        message: '.gwm.yml already exists',
+        suggestions: ['Delete the existing file or use --force flag to overwrite']
+      });
+
+      // Human-readable error (only displays if not in JSON mode)
       logger.warn('.gwm.yml already exists');
       logger.info('Delete the existing file or use a different template');
       process.exit(1);
@@ -111,11 +119,23 @@ export async function initCommand(options: InitOptions): Promise<void> {
     await configService.init(template as 'basic' | 'standard' | 'strict');
 
     spinner.succeed(`Created .gwm.yml with ${template} template`);
-    logger.blank();
 
     // Show what was created
     const config = await configService.getConfig();
 
+    // Build JSON data for structured output
+    const jsonData = {
+      created: true,
+      template,
+      filePath: '.gwm.yml',
+      config
+    };
+
+    // Output JSON if in JSON mode (will only output if jsonMode enabled)
+    logger.outputJsonResult(true, jsonData);
+
+    // Human-readable output below (will only output if jsonMode disabled)
+    logger.blank();
     logger.section('Configuration');
     logger.log(JSON.stringify(config, null, 2));
 

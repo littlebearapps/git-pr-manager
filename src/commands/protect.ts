@@ -43,6 +43,26 @@ export async function protectCommand(options: ProtectOptions = {}): Promise<void
       const protection = await protectionChecker.getProtection(branch);
       spinner.succeed();
 
+      // Build JSON data for structured output
+      const jsonData = {
+        branch,
+        enabled: protection.enabled,
+        requiredStatusChecks: protection.requiredStatusChecks || [],
+        strictChecks: protection.strictChecks || false,
+        requiredReviews: protection.requiredReviews || 0,
+        dismissStaleReviews: protection.dismissStaleReviews || false,
+        requireCodeOwnerReviews: protection.requireCodeOwnerReviews || false,
+        requireConversationResolution: protection.requireConversationResolution || false,
+        requireLinearHistory: protection.requireLinearHistory || false,
+        enforceAdmins: protection.enforceAdmins || false,
+        allowForcePushes: protection.allowForcePushes || false,
+        allowDeletions: protection.allowDeletions || false
+      };
+
+      // Output JSON if in JSON mode (will only output if jsonMode enabled)
+      logger.outputJsonResult(true, jsonData);
+
+      // Human-readable output below (will only output if jsonMode disabled)
       logger.blank();
 
       if (!protection.enabled) {

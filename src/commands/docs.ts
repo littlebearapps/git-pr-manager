@@ -50,17 +50,45 @@ async function showGuide(guideName: string, basePath: string): Promise<void> {
   }
 
   if (!guidePath) {
+    const availableGuides = [
+      'AI-AGENT-INTEGRATION',
+      'GITHUB-ACTIONS-INTEGRATION',
+      'JSON-OUTPUT-SCHEMAS',
+      'CONFIGURATION',
+      'README'
+    ];
+
+    // Output JSON error if in JSON mode
+    logger.outputJsonResult(false, null, {
+      code: 'ERROR',
+      message: `Guide not found: ${guideName}`,
+      suggestions: [`Available guides: ${availableGuides.join(', ')}`]
+    });
+
+    // Human-readable error (only displays if not in JSON mode)
     logger.error(`Guide not found: ${guideName}`);
     logger.info('Available guides:');
-    logger.info('  • AI-AGENT-INTEGRATION');
-    logger.info('  • GITHUB-ACTIONS-INTEGRATION');
-    logger.info('  • CONFIGURATION');
-    logger.info('  • README');
+    availableGuides.forEach(guide => logger.info(`  • ${guide}`));
     process.exit(1);
   }
 
   // Read and display guide
   const content = readFileSync(guidePath, 'utf-8');
+
+  // Build JSON data for structured output
+  const jsonData = {
+    guide: guideName,
+    path: guidePath,
+    found: true,
+    contentLength: content.length,
+    // Only include full content if explicitly requested (would be huge)
+    contentPreview: content.substring(0, 500) + (content.length > 500 ? '...' : '')
+  };
+
+  // Output JSON if in JSON mode (will only output if jsonMode enabled)
+  logger.outputJsonResult(true, jsonData);
+
+  // Human-readable output below (will only output if jsonMode disabled)
   console.log(content);
 }
 
@@ -70,6 +98,55 @@ async function showGuide(guideName: string, basePath: string): Promise<void> {
 function showIndex(basePath: string): void {
   const pkg = require(join(basePath, 'package.json'));
 
+  const availableGuides = [
+    {
+      name: 'AI-AGENT-INTEGRATION',
+      description: 'AI Agent Setup Guide',
+      command: 'gwm docs --guide=AI-AGENT-INTEGRATION'
+    },
+    {
+      name: 'GITHUB-ACTIONS-INTEGRATION',
+      description: 'GitHub Actions Integration Guide',
+      command: 'gwm docs --guide=GITHUB-ACTIONS-INTEGRATION'
+    },
+    {
+      name: 'JSON-OUTPUT-SCHEMAS',
+      description: 'JSON Output Schemas Reference',
+      command: 'gwm docs --guide=JSON-OUTPUT-SCHEMAS'
+    },
+    {
+      name: 'CONFIGURATION',
+      description: 'Configuration Guide',
+      command: 'gwm docs --guide=CONFIGURATION'
+    },
+    {
+      name: 'README',
+      description: 'Full README',
+      command: 'gwm docs --guide=README'
+    }
+  ];
+
+  // Build JSON data for structured output
+  const jsonData = {
+    version: pkg.version,
+    installationPath: basePath,
+    availableGuides,
+    paths: {
+      guides: join(basePath, 'docs', 'guides'),
+      quickrefs: join(basePath, 'quickrefs'),
+      docs: join(basePath, 'docs')
+    },
+    links: {
+      npm: 'https://www.npmjs.com/package/@littlebearapps/git-workflow-manager',
+      github: 'https://github.com/littlebearapps/git-workflow-manager',
+      issues: 'https://github.com/littlebearapps/git-workflow-manager/issues'
+    }
+  };
+
+  // Output JSON if in JSON mode (will only output if jsonMode enabled)
+  logger.outputJsonResult(true, jsonData);
+
+  // Human-readable output below (will only output if jsonMode disabled)
   console.log(`
 📚 Git Workflow Manager Documentation (v${pkg.version})
 
@@ -78,6 +155,7 @@ function showIndex(basePath: string): void {
 📖 Available Guides:
   • AI Agent Setup:    gwm docs --guide=AI-AGENT-INTEGRATION
   • GitHub Actions:    gwm docs --guide=GITHUB-ACTIONS-INTEGRATION
+  • JSON Schemas:      gwm docs --guide=JSON-OUTPUT-SCHEMAS
   • Configuration:     gwm docs --guide=CONFIGURATION
   • Full README:       gwm docs --guide=README
 

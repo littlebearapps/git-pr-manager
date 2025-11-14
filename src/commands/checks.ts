@@ -42,6 +42,23 @@ export async function checksCommand(prNumberStr: string, options: ChecksOptions)
     const summary = await poller.getDetailedCheckStatus(prNumber);
     spinner.stop();
 
+    // Build JSON data for structured output
+    const jsonData = {
+      prNumber,
+      total: summary.total,
+      passed: summary.passed,
+      failed: summary.failed,
+      pending: summary.pending,
+      skipped: summary.skipped,
+      overallStatus: summary.overallStatus,
+      failureDetails: summary.failureDetails,
+      startedAt: summary.startedAt
+    };
+
+    // Output JSON if in JSON mode (will only output if jsonMode enabled)
+    logger.outputJsonResult(summary.overallStatus === 'success', jsonData);
+
+    // Human-readable output below (will only output if jsonMode disabled)
     logger.blank();
     logger.section(`CI Check Status - PR #${prNumber}`);
 

@@ -423,7 +423,7 @@ print(f"Passed: {status['passed']}, Failed: {status['failed']}")
 
 ### JSON Mode
 
-All gwm commands support `--json` flag:
+All gwm commands support `--json` flag for machine-readable output:
 
 ```bash
 gwm status --json
@@ -431,6 +431,14 @@ gwm checks 123 --json
 gwm security --json
 gwm auto --json
 ```
+
+**For complete JSON schema documentation**, see [JSON-OUTPUT-SCHEMAS.md](JSON-OUTPUT-SCHEMAS.md) which includes:
+- Standard response format
+- Per-command JSON schemas
+- Example outputs for all commands
+- TypeScript type definitions
+- Error response formats
+- Best practices for parsing JSON
 
 ### Parsing JSON in Different Languages
 
@@ -1430,7 +1438,7 @@ This will run gwm checks on every PR."
 ## Resources
 
 - **gwm CLI Reference**: `gwm --help`
-- **JSON Schema**: All JSON outputs follow consistent schema (see examples above)
+- **JSON Schema Documentation**: [JSON-OUTPUT-SCHEMAS.md](JSON-OUTPUT-SCHEMAS.md) - Complete schemas for all commands
 - **GitHub Actions Integration**: See [GITHUB-ACTIONS-INTEGRATION.md](GITHUB-ACTIONS-INTEGRATION.md)
 - **Anti-Patterns**: See GITHUB-ACTIONS-INTEGRATION.md for anti-patterns to avoid
 - **API Rate Limits**: https://docs.github.com/en/rest/overview/resources-in-the-rest-api#rate-limiting
