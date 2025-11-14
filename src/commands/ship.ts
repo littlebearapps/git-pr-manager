@@ -303,6 +303,17 @@ export async function shipCommand(options: ShipOptions = {}): Promise<void> {
       logger.success('Local branch deleted');
     }
 
+    // Output JSON for successful ship
+    logger.outputJsonResult(true, {
+      success: true,
+      merged: true,
+      prNumber,
+      prUrl,
+      branch: currentBranch,
+      defaultBranch,
+      branchDeleted: deleteBranch
+    });
+
     // Final success message
     logger.blank();
     logger.section('✨ Feature Shipped Successfully!');

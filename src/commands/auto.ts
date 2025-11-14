@@ -251,11 +251,32 @@ export async function autoCommand(options: AutoOptions = {}): Promise<void> {
       logger.blank();
       logger.success(`🎉 Feature shipped! Merged PR #${prNumber}`);
       logger.success(`Switched back to ${defaultBranch} branch`);
+
+      // Output JSON for successful merge
+      const prDetails = await githubService.getPR(prNumber);
+      logger.outputJsonResult(true, {
+        success: true,
+        merged: true,
+        prNumber,
+        prUrl: prDetails.html_url,
+        branch: currentBranch,
+        defaultBranch
+      });
     } else {
       logger.blank();
       logger.success(`✅ Workflow complete (--no-merge flag set)`);
       const prDetails = await githubService.getPR(prNumber);
       logger.info(`PR is ready to merge: ${prDetails.html_url}`);
+
+      // Output JSON for no-merge completion
+      logger.outputJsonResult(true, {
+        success: true,
+        merged: false,
+        prNumber,
+        prUrl: prDetails.html_url,
+        branch: currentBranch,
+        defaultBranch
+      });
     }
   } catch (error: any) {
     logger.blank();

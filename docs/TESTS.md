@@ -1,9 +1,9 @@
 # Test Documentation - git-workflow-manager
 
-**Last Updated**: 2025-11-13
+**Last Updated**: 2025-11-14
 **Current Coverage**: 89.67% statements, 82.82% branches, 95.11% functions, 89.61% lines
 **Target Coverage**: 80% (all metrics) - ✅ **EXCEEDED!** 🎉
-**Total Tests**: 512 (484 unit + 28 integration)
+**Total Tests**: 593 (565 unit + 28 integration)
 
 ---
 
@@ -21,12 +21,12 @@
 ### Test Suite Summary
 
 ```
-✅ All 512 tests passing
+✅ All 593 tests passing
 ✅ Zero failures
-✅ 484 unit tests
+✅ 565 unit tests
 ✅ 28 integration tests
 ✅ Coverage target exceeded (80% → 89.67%)
-✅ All priorities complete (+310 tests, +19.35% total coverage improvement)
+✅ All priorities complete (+330 tests, +19.35% total coverage improvement)
 ```
 
 ---
@@ -1066,6 +1066,96 @@ jest.mock('ora', () => {
 ```
 
 **Coverage Limitation**: Deep integration testing with ora was not feasible due to ESM module mocking complexity in Jest. Tests verify the Spinner wrapper class structure and method signatures.
+
+---
+
+### Priority 4: Command Tests - **COMPLETE** ✅
+
+Added **20 tests** for init and docs commands to ensure JSON output implementations are regression-proof.
+**Coverage Impact**: 89.67% maintained
+
+#### 10. init.test.ts (Priority 4) - **9 tests** ✅
+
+**Coverage**: TBD (newly tested)
+**File**: `tests/commands/init.test.ts`
+
+**Test Coverage**:
+- ✅ Successful initialization (2 tests)
+  - Initialize config with basic template
+  - Output JSON when --json flag is set
+
+- ✅ Error cases (3 tests)
+  - Error when config already exists
+  - Error with invalid template
+  - Output JSON error when config exists and --json is set
+
+- ✅ Template validation (4 tests)
+  - Accept basic template
+  - Accept standard template
+  - Accept strict template
+  - Default to basic template when not specified
+
+**Key Testing Patterns**:
+```typescript
+// Mock ConfigService
+jest.mock('../../src/services/ConfigService');
+const mockedConfigService = ConfigService as jest.MockedClass<typeof ConfigService>;
+
+mockConfigInstance = {
+  exists: jest.fn(),
+  init: jest.fn(),
+  getConfig: jest.fn(),
+} as any;
+
+mockedConfigService.mockImplementation(() => mockConfigInstance);
+```
+
+---
+
+#### 11. docs.test.ts (Priority 4) - **11 tests** ✅
+
+**Coverage**: TBD (newly tested)
+**File**: `tests/commands/docs.test.ts`
+
+**Test Coverage**:
+- ✅ Index mode (2 tests)
+  - Display documentation index
+  - Include all available guides in index
+
+- ✅ Guide mode (5 tests)
+  - Display specific guide when found
+  - Include content preview for large guides
+  - Not truncate short content
+  - Error when guide not found
+  - Output JSON error with available guides list
+
+- ✅ Path resolution (2 tests)
+  - Try multiple possible paths for guides
+  - Check docs/guides directory first
+
+- ✅ JSON output format (2 tests)
+  - Include all required fields in guide response
+  - Include all required fields in index response
+
+**Key Testing Patterns**:
+```typescript
+// Mock file system operations
+jest.mock('fs');
+(existsSync as jest.Mock).mockReturnValue(true);
+(readFileSync as jest.Mock).mockReturnValue('Content');
+
+// Verify JSON output structure
+expect(logger.outputJsonResult).toHaveBeenCalledWith(
+  true,
+  expect.objectContaining({
+    guide: expect.any(String),
+    path: expect.any(String),
+    found: expect.any(Boolean),
+    contentLength: expect.any(Number),
+    contentPreview: expect.any(String),
+  })
+);
+```
 
 ---
 

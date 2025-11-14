@@ -61,6 +61,15 @@ export async function featureCommand(
     await gitService.createBranch(branchName, baseBranch);
     spinner.succeed();
 
+    // Output JSON for successful branch creation
+    logger.outputJsonResult(true, {
+      success: true,
+      branch: branchName,
+      baseBranch,
+      created: true
+    });
+
+    // Human-readable output
     logger.blank();
     logger.success('Feature branch created!');
     logger.log(`Branch: ${chalk.cyan(branchName)}`);

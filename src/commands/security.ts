@@ -20,6 +20,34 @@ export async function securityCommand(_options: SecurityOptions = {}): Promise<v
     const result = await scanner.scan();
     spinner.succeed();
 
+    // Build JSON data for structured output
+    const jsonData = {
+      passed: result.passed,
+      secrets: {
+        scanned: !result.secrets.skipped,
+        found: result.secrets.found,
+        count: result.secrets.secrets.length,
+        secrets: result.secrets.secrets,
+        reason: result.secrets.reason || null
+      },
+      vulnerabilities: {
+        scanned: !result.vulnerabilities.skipped,
+        total: result.vulnerabilities.total || 0,
+        critical: result.vulnerabilities.critical || 0,
+        high: result.vulnerabilities.high || 0,
+        medium: result.vulnerabilities.medium || 0,
+        low: result.vulnerabilities.low || 0,
+        vulnerabilities: result.vulnerabilities.vulnerabilities || [],
+        reason: result.vulnerabilities.reason || null
+      },
+      warnings: result.warnings,
+      blockers: result.blockers
+    };
+
+    // Output JSON if in JSON mode (will only output if jsonMode enabled)
+    logger.outputJsonResult(result.passed, jsonData);
+
+    // Human-readable output below (will only output if jsonMode disabled)
     logger.blank();
 
     // Display secrets scan results
