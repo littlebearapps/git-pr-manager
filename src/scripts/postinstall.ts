@@ -37,8 +37,11 @@ function main() {
 
   // Check for required/optional tools
   const tools = [
-    { name: 'git', required: true },
-    { name: 'gh', required: false }
+    { name: 'git', required: true, purpose: 'Version control' },
+    { name: 'gh', required: false, purpose: 'GitHub CLI (enhanced PR features)' },
+    { name: 'detect-secrets', required: false, purpose: 'Secret scanning (pip install detect-secrets)' },
+    { name: 'pip-audit', required: false, purpose: 'Python dependency scanning' },
+    { name: 'npm', required: false, purpose: 'JavaScript dependency scanning' }
   ];
 
   const missing = tools.filter(tool => !commandExists(tool.name));
@@ -53,8 +56,11 @@ function main() {
     }
 
     if (optionalMissing.length > 0) {
-      console.log(`ℹ️  Optional tools not found: ${optionalMissing.map(t => t.name).join(', ')}`);
-      console.log('   Some features may be limited\n');
+      console.log('ℹ️  Optional Security Tools Not Found:');
+      optionalMissing.forEach(tool => {
+        console.log(`   • ${tool.name.padEnd(16)} - ${tool.purpose}`);
+      });
+      console.log('   gwm will skip these scans gracefully when tools are unavailable\n');
     }
   }
 

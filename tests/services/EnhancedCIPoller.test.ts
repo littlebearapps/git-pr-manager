@@ -60,6 +60,12 @@ describe('EnhancedCIPoller', () => {
     });
   });
 
+  afterEach(() => {
+    // Ensure timers are always cleaned up to prevent leaks
+    jest.clearAllTimers();
+    jest.useRealTimers();
+  });
+
   describe('Constructor', () => {
     it('should initialize with provided options', () => {
       expect(poller).toBeDefined();

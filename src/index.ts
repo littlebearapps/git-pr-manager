@@ -11,6 +11,7 @@ import { securityCommand } from './commands/security';
 import { autoCommand } from './commands/auto';
 import { checkUpdateCommand } from './commands/check-update';
 import { docsCommand } from './commands/docs';
+import { doctorCommand } from './commands/doctor';
 import { installHooksCommand } from './commands/install-hooks';
 import { uninstallHooksCommand } from './commands/uninstall-hooks';
 import { logger, VerbosityLevel } from './utils/logger';
@@ -127,6 +128,11 @@ program
   .description('Show documentation index or specific guide')
   .option('--guide <name>', 'Show specific guide (AI-AGENT-INTEGRATION, GITHUB-ACTIONS-INTEGRATION, etc.)')
   .action(docsCommand);
+
+program
+  .command('doctor')
+  .description('Check system requirements and optional dependencies')
+  .action(doctorCommand);
 
 program
   .command('install-hooks')
