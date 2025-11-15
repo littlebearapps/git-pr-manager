@@ -85,6 +85,7 @@ describe('doctor command', () => {
     });
 
     it('should detect GH_TOKEN when set', async () => {
+      delete process.env.GITHUB_TOKEN;  // Ensure GITHUB_TOKEN is not set
       process.env.GH_TOKEN = 'ghp_test_token';
 
       await doctorCommand();

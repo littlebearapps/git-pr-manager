@@ -222,7 +222,8 @@ describe('VerifyService', () => {
       const result = await verifyService.runChecks();
 
       expect(result.success).toBe(false);
-      expect(result.errors).toContain('Command failed');
+      expect(result.errors.some(e => e.includes('Failed to execute verification'))).toBe(true);
+      expect(result.errors.some(e => e.includes('Command failed'))).toBe(true);
     });
   });
 
@@ -336,8 +337,9 @@ Error: Branch protected
       expect(result.errors.every(e => !e.includes('AutoFix'))).toBe(true);
       expect(result.errors.every(e => !e.trim().startsWith('at '))).toBe(true);
 
-      // Should still include the generic error message since no actual errors found
-      expect(result.errors.some(e => e.includes('exit code'))).toBe(true);
+      // Should still include the command and exit code in new format
+      expect(result.errors.some(e => e.includes('Command failed'))).toBe(true);
+      expect(result.errors.some(e => e.includes('Exit code:'))).toBe(true);
     });
 
     it('should include real linting errors but filter test console output', async () => {

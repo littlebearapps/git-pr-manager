@@ -38,13 +38,16 @@ export async function verifyCommand(options: VerifyOptions = {}): Promise<void> 
   const results: VerifyStepResult[] = [];
   const failedSteps: string[] = [];
 
-  if (!options.json) {
+  // Check logger's JSON mode (set by global --json flag)
+  const jsonMode = logger.isJsonMode();
+
+  if (!jsonMode) {
     logger.section('Running Verification Checks');
   }
 
   // Step 1: ESLint
   if (!options.skipLint) {
-    const lintResult = await runStep('Lint (ESLint)', 'npm run lint', options.json);
+    const lintResult = await runStep('Lint (ESLint)', 'npm run lint', jsonMode);
     results.push(lintResult);
     if (!lintResult.passed) {
       failedSteps.push('lint');
@@ -56,7 +59,7 @@ export async function verifyCommand(options: VerifyOptions = {}): Promise<void> 
     const typecheckResult = await runStep(
       'Type Check (TypeScript)',
       'npx tsc --noEmit',
-      options.json
+      jsonMode
     );
     results.push(typecheckResult);
     if (!typecheckResult.passed) {
@@ -66,7 +69,7 @@ export async function verifyCommand(options: VerifyOptions = {}): Promise<void> 
 
   // Step 3: Tests
   if (!options.skipTest) {
-    const testResult = await runStep('Tests (Jest)', 'npm test', options.json);
+    const testResult = await runStep('Tests (Jest)', 'npm test', jsonMode);
     results.push(testResult);
     if (!testResult.passed) {
       failedSteps.push('test');
@@ -75,7 +78,7 @@ export async function verifyCommand(options: VerifyOptions = {}): Promise<void> 
 
   // Step 4: Build
   if (!options.skipBuild) {
-    const buildResult = await runStep('Build (TypeScript)', 'npm run build', options.json);
+    const buildResult = await runStep('Build (TypeScript)', 'npm run build', jsonMode);
     results.push(buildResult);
     if (!buildResult.passed) {
       failedSteps.push('build');
@@ -86,7 +89,7 @@ export async function verifyCommand(options: VerifyOptions = {}): Promise<void> 
   const success = failedSteps.length === 0;
 
   // Output results
-  if (options.json) {
+  if (jsonMode) {
     const result: VerifyResult = {
       success,
       steps: results,
