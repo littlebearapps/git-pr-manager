@@ -52,7 +52,7 @@ export class VerifyService {
       return {
         success: result.exitCode === 0,
         output: result.stdout + result.stderr,
-        errors: this.parseErrors(result.stdout, result.stderr, result.exitCode),
+        errors: this.parseErrors(result.stdout, result.stderr, result.exitCode, script),
         duration
       };
     } catch (error: any) {
@@ -61,7 +61,7 @@ export class VerifyService {
       return {
         success: false,
         output: error.message,
-        errors: [error.message],
+        errors: [`Failed to execute verification: ${error.message}`],
         duration
       };
     }
@@ -196,11 +196,16 @@ export class VerifyService {
   private parseErrors(
     stdout: string,
     stderr: string,
-    exitCode: number
+    exitCode: number,
+    command: string
   ): string[] {
     const errors: string[] = [];
 
     if (exitCode !== 0) {
+      // Add command context
+      errors.push(`Command failed: ${command}`);
+      errors.push(`Exit code: ${exitCode}`);
+
       // Look for common error patterns
       const combined = stdout + '\n' + stderr;
 
@@ -223,7 +228,11 @@ export class VerifyService {
       if (testFailures) {
         // Only include lines that look like actual test failures (not console output)
         const realFailures = testFailures.filter(line => !isTestOutput(line));
-        errors.push(...realFailures);
+        if (realFailures.length > 0) {
+          errors.push('');
+          errors.push('Test failures:');
+          errors.push(...realFailures.slice(0, 10));
+        }
       }
 
       // Linting errors (exclude test console output)
@@ -232,18 +241,43 @@ export class VerifyService {
         .filter(line => /error\s+/.test(line) && !isTestOutput(line))
         .slice(0, 10); // Limit to 10
       if (lintErrors.length > 0) {
+        errors.push('');
+        errors.push('Linting errors:');
         errors.push(...lintErrors);
       }
 
       // Type errors
       const typeErrors = combined.match(/TS\d+:.*$/gm);
       if (typeErrors) {
+        errors.push('');
+        errors.push('Type errors:');
         errors.push(...typeErrors.slice(0, 10));
       }
 
-      // If no specific errors found, use generic message
-      if (errors.length === 0) {
-        errors.push(`Verification failed with exit code ${exitCode}`);
+      // If no specific errors found, include raw output for debugging
+      if (errors.length === 2) { // Only command and exit code
+        errors.push('');
+        errors.push('Unable to parse specific errors. Raw output:');
+
+        // Show last 20 lines of combined output (filtered)
+        const lines = combined.split('\n')
+          .filter(l => l.trim())
+          .filter(line => !isTestOutput(line)); // Apply same filtering
+
+        const relevantLines = lines.slice(-20);
+
+        if (relevantLines.length > 0) {
+          errors.push(...relevantLines.map(line => `  ${line}`));
+        } else {
+          errors.push('  (no output captured)');
+          errors.push('');
+          errors.push('Debug info:');
+          errors.push(`  stdout length: ${stdout.length} chars`);
+          errors.push(`  stderr length: ${stderr.length} chars`);
+          errors.push('');
+          errors.push('This may indicate a subprocess stdio conflict.');
+          errors.push('Try running the command directly: ' + command);
+        }
       }
     }
 
