@@ -120,6 +120,13 @@ export class Logger {
   }
 
   /**
+   * Check if JSON mode is enabled
+   */
+  isJsonMode(): boolean {
+    return this.jsonMode;
+  }
+
+  /**
    * Log info message
    */
   info(message: string): void {

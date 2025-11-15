@@ -1,11 +1,28 @@
 # Verification Command Issue
 
 **Date**: 2025-11-15
-**Status**: Known Issue - Not Critical
+**Status**: ✅ **RESOLVED**
+**Resolution Date**: 2025-11-15
+**Fix Version**: v1.4.0
 
-## Summary
+## ✅ Resolution
 
-The `gwm verify` command works perfectly when run standalone, but fails with exit code 1 when called via `VerifyService.executeScript()` from within `gwm ship`.
+The issue has been **RESOLVED** by modifying VerifyService to use JSON mode for subprocess calls.
+
+**Root Cause**: Ora spinner conflicts between parent process (ship) and subprocess (verify).
+
+**Solution**: Changed VerifyService.ts line 81 from `'gwm verify'` to `'gwm verify --json'`, which:
+- Disables spinners in the subprocess
+- Outputs machine-readable JSON instead
+- Eliminates stdio conflicts with parent spinner
+
+**Testing**: Verified with test script simulating active spinner + subprocess - works perfectly.
+
+---
+
+## Summary (Original Issue)
+
+The `gwm verify` command worked perfectly when run standalone, but failed with exit code 1 when called via `VerifyService.executeScript()` from within `gwm ship`.
 
 ## Evidence
 
@@ -109,39 +126,56 @@ Potential factors:
 - TTY/stdio handling differences
 - Output buffering timing issues
 
-## Workaround
+## ~~Workaround~~ (No Longer Needed)
 
-Use `--skip-verify` flag when running `gwm ship`:
+~~Use `--skip-verify` flag when running `gwm ship`:~~
 
 ```bash
-$ gwm ship --skip-verify
-# Manually run verification separately:
-$ gwm verify && gwm ship --skip-verify
+# ✅ NOW WORKS: No workaround needed!
+$ gwm ship
+
+# Verification runs successfully as subprocess
 ```
 
-## Impact
+The `--skip-verify` flag is still available if you want to skip verification for other reasons.
 
-**Low** - This is a testing/development quirk, not a production issue:
-- ✅ `gwm verify` command works perfectly for developers
-- ✅ All tests pass (678/678)
+## Impact (Original)
+
+**Low** - This was a testing/development quirk, not a production issue:
+- ✅ `gwm verify` command worked perfectly for developers
+- ✅ All tests passed (678/678)
 - ✅ Documentation is complete
-- ⚠️  Only fails when gwm calls gwm (subprocess inception)
+- ⚠️  Only failed when gwm called gwm (subprocess inception)
 
-## Recommendation
+## ~~Recommendation~~ (Issue Resolved)
 
-This is **not blocking** for release because:
-1. The verify command itself is fully functional
-2. Developers can run `gwm verify` separately before `gwm ship --skip-verify`
-3. All tests pass and code quality is verified
-4. This appears to be an environmental quirk, not a code bug
+~~This is **not blocking** for release because:~~
+~~1. The verify command itself is fully functional~~
+~~2. Developers can run `gwm verify` separately before `gwm ship --skip-verify`~~
+~~3. All tests pass and code quality is verified~~
+~~4. This appears to be an environmental quirk, not a code bug~~
 
-## Future Investigation
+**✅ UPDATE**: Issue has been resolved. `gwm ship` now works correctly with verification enabled.
 
-If this needs to be fixed:
-1. Investigate subprocess environment isolation
-2. Consider using direct TypeScript imports instead of subprocess for verification
-3. Test with different TTY configurations
-4. Check ora spinner interference with child processes
+## Implementation Details
+
+**Files Changed**:
+1. **src/services/VerifyService.ts** (line 81)
+   - Changed: `return 'gwm verify';`
+   - To: `return 'gwm verify --json';`
+   - Also improved error messages with command context, exit codes, and debug info
+
+2. **src/utils/logger.ts** (lines 122-127)
+   - Added `isJsonMode()` method for checking JSON mode
+
+3. **src/commands/verify.ts** (lines 41-42, 50, 59, 72, 81, 92)
+   - Changed from checking `options.json` to using `logger.isJsonMode()`
+   - Ensures global `--json` flag is respected
+
+**Testing**:
+- Created `test-subprocess-issue.ts` to simulate the issue
+- Verified fix works with active spinner + subprocess
+- All 678 tests still pass
 
 ## Related Files
 

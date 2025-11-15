@@ -77,7 +77,8 @@ export class VerifyService {
     try {
       const { execSync } = require('child_process');
       execSync('command -v gwm', { stdio: 'ignore' });
-      return 'gwm verify';
+      // Use --json flag to avoid spinner conflicts when running as subprocess
+      return 'gwm verify --json';
     } catch {
       // gwm not in PATH, continue to other methods
     }
