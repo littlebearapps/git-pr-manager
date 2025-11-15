@@ -167,11 +167,6 @@ export class VerifyService {
       });
 
       child.on('close', (code) => {
-        // DEBUG
-        console.error(`[DEBUG] verify.sh exit code: ${code}`);
-        console.error(`[DEBUG] stdout length: ${stdout.length}`);
-        console.error(`[DEBUG] stderr length: ${stderr.length}`);
-
         resolve({
           stdout,
           stderr,
