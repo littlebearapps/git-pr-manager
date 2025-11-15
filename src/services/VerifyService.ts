@@ -194,28 +194,41 @@ export class VerifyService {
       // Look for common error patterns
       const combined = stdout + '\n' + stderr;
 
-      // Test failures
-      const testFailures = combined.match(/FAILED.*$/gm);
+      // Filter out test console output to avoid false positives
+      const isTestOutput = (line: string): boolean => {
+        return (
+          line.includes('console.log') ||
+          line.includes('console.warn') ||
+          line.includes('console.error') ||
+          line.trim().startsWith('at ') || // Stack traces
+          /^\s+\d+\s+\|/.test(line) || // Line number markers
+          /^\s*>?\s*\d+\s*\|/.test(line) || // Code line markers (e.g., "> 691 |")
+          line.includes('AutoFix') || // AutoFix log messages
+          /^error\s*\{/.test(line.trim()) // Object dumps starting with "error {"
+        );
+      };
+
+      // Test failures - support both Jest (FAIL) and pytest (FAILED) formats
+      const testFailures = combined.match(/FAILED?\s+.*$/gm);
       if (testFailures) {
-        errors.push(...testFailures);
+        // Only include lines that look like actual test failures (not console output)
+        const realFailures = testFailures.filter(line => !isTestOutput(line));
+        errors.push(...realFailures);
       }
 
-      // Linting errors
-      const lintErrors = combined.match(/error\s+.*$/gim);
-      if (lintErrors) {
-        errors.push(...lintErrors.slice(0, 10)); // Limit to 10
+      // Linting errors (exclude test console output)
+      const lintErrors = combined
+        .split('\n')
+        .filter(line => /error\s+/.test(line) && !isTestOutput(line))
+        .slice(0, 10); // Limit to 10
+      if (lintErrors.length > 0) {
+        errors.push(...lintErrors);
       }
 
       // Type errors
       const typeErrors = combined.match(/TS\d+:.*$/gm);
       if (typeErrors) {
         errors.push(...typeErrors.slice(0, 10));
-      }
-
-      // Python errors
-      const pythonErrors = combined.match(/Error:.*$/gm);
-      if (pythonErrors) {
-        errors.push(...pythonErrors.slice(0, 10));
       }
 
       // If no specific errors found, use generic message
