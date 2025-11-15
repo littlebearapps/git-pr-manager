@@ -7,6 +7,7 @@ jest.mock('child_process');
 jest.mock('fs/promises');
 
 const mockedExec = child_process.exec as jest.MockedFunction<typeof child_process.exec>;
+const mockedExecSync = child_process.execSync as jest.MockedFunction<typeof child_process.execSync>;
 const mockedFsAccess = fs.access as jest.MockedFunction<typeof fs.access>;
 const mockedFsReadFile = fs.readFile as jest.MockedFunction<typeof fs.readFile>;
 
@@ -15,6 +16,13 @@ describe('VerifyService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // Mock execSync to simulate gwm not being available
+    // Tests can override this if they need to test gwm verify behavior
+    mockedExecSync.mockImplementation(() => {
+      throw new Error('command not found');
+    });
+
     verifyService = new VerifyService('/test/dir');
   });
 

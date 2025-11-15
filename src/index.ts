@@ -8,6 +8,7 @@ import { shipCommand } from './commands/ship';
 import { featureCommand } from './commands/feature';
 import { protectCommand } from './commands/protect';
 import { securityCommand } from './commands/security';
+import { verifyCommand } from './commands/verify';
 import { autoCommand } from './commands/auto';
 import { checkUpdateCommand } from './commands/check-update';
 import { docsCommand } from './commands/docs';
@@ -107,6 +108,15 @@ program
   .command('security')
   .description('Run security scans (secrets + vulnerabilities)')
   .action(securityCommand);
+
+program
+  .command('verify')
+  .description('Run pre-commit verification (lint, typecheck, test, build)')
+  .option('--skip-lint', 'Skip ESLint check')
+  .option('--skip-typecheck', 'Skip TypeScript type check')
+  .option('--skip-test', 'Skip test suite')
+  .option('--skip-build', 'Skip build step')
+  .action(verifyCommand);
 
 program
   .command('auto')

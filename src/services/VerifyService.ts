@@ -72,7 +72,17 @@ export class VerifyService {
    * Returns command to execute
    */
   private async discoverVerifyScript(): Promise<string | null> {
-    // 1. Check for verify.sh
+    // 1. Check for built-in gwm verify command
+    // This works when gwm is installed or we're in the built dist/
+    try {
+      const { execSync } = require('child_process');
+      execSync('command -v gwm', { stdio: 'ignore' });
+      return 'gwm verify';
+    } catch {
+      // gwm not in PATH, continue to other methods
+    }
+
+    // 2. Check for verify.sh
     const verifyShPath = path.join(this.workingDir, 'verify.sh');
     try {
       await fs.access(verifyShPath);
@@ -81,7 +91,7 @@ export class VerifyService {
       // Not found
     }
 
-    // 2. Check for package.json with verify script
+    // 3. Check for package.json with verify script
     const packageJsonPath = path.join(this.workingDir, 'package.json');
     try {
       const packageJson = JSON.parse(
@@ -107,7 +117,7 @@ export class VerifyService {
       // package.json not found or invalid
     }
 
-    // 3. Check for Python tox.ini
+    // 4. Check for Python tox.ini
     const toxIniPath = path.join(this.workingDir, 'tox.ini');
     try {
       await fs.access(toxIniPath);
@@ -116,7 +126,7 @@ export class VerifyService {
       // Not found
     }
 
-    // 4. Check for Makefile with verify target
+    // 5. Check for Makefile with verify target
     const makefilePath = path.join(this.workingDir, 'Makefile');
     try {
       const makefile = await fs.readFile(makefilePath, 'utf-8');
