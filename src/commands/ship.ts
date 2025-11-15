@@ -85,6 +85,13 @@ export async function shipCommand(options: ShipOptions = {}): Promise<void> {
           onProgress: (msg) => spinner.update(msg)
         });
 
+        // DEBUG
+        console.error('\n=== DEBUG VERIFY RESULT ===');
+        console.error('Success:', verifyResult.success);
+        console.error('Errors count:', verifyResult.errors.length);
+        console.error('Errors:', JSON.stringify(verifyResult.errors.slice(0, 5), null, 2));
+        console.error('===========================\n');
+
         if (!verifyResult.success) {
           spinner.fail('Verification checks failed');
           logger.blank();
