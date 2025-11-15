@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **Verification Subprocess Issue**: `gwm verify` now works correctly when called from `gwm ship`
+  - Root cause: Ora spinner conflicts between parent and subprocess processes
+  - Solution: Modified VerifyService to call `gwm verify --json` instead of `gwm verify`
+  - JSON mode disables spinners and eliminates stdio conflicts
+  - Enhanced error messages with command context, exit codes, and debug info
+  - Added `Logger.isJsonMode()` method for JSON mode detection
+  - Updated verify command to use global `--json` flag detection
+  - Test script included (`test-subprocess-issue.ts`) for regression testing
+  - All 678 tests passing
+
 - **Git Worktree Support**: Hook installation/uninstall now works in git worktree setups
   - Created `src/utils/git-hooks.ts` utility for worktree-aware hooks directory detection
   - Primary method: Uses `git rev-parse --git-common-dir` (universal support)
