@@ -162,6 +162,13 @@ gwm protect --branch main --preset strict
 # Security scanning
 gwm security                    # Run security scan
 
+# Pre-commit verification
+gwm verify                      # Run all checks (lint, typecheck, test, build)
+gwm verify --skip-lint          # Skip ESLint
+gwm verify --skip-typecheck     # Skip TypeScript type check
+gwm verify --skip-test          # Skip tests
+gwm verify --skip-build         # Skip build
+
 # System health check
 gwm doctor                      # Check requirements & dependencies
 
