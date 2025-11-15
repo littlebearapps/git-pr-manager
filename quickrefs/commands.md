@@ -1,6 +1,6 @@
 # Common Commands Reference
 
-**Last Updated**: 2025-11-13
+**Last Updated**: 2025-11-15
 
 ---
 
@@ -197,6 +197,39 @@ npm run dev -- auto --draft
 # Using built dist/
 node dist/index.js feature my-feature
 ```
+
+---
+
+## Git Worktree Management
+
+### List Worktrees
+```bash
+# List all worktrees (plain text)
+gwm worktree list
+npm run dev -- worktree list
+
+# List with JSON output
+gwm worktree list --json
+```
+
+### Prune Stale Worktrees
+```bash
+# Dry-run (preview what would be pruned)
+gwm worktree prune --dry-run
+npm run dev -- worktree prune --dry-run
+
+# Actually prune stale worktree data
+gwm worktree prune
+
+# Dry-run with JSON output
+gwm worktree prune --dry-run --json
+```
+
+**When to use**:
+- Working with multiple feature branches simultaneously
+- Cleaning up after manually deleted worktree directories
+- Maintaining clean worktree administrative data
+- Troubleshooting "branch checked out in another worktree" issues
 
 ---
 
