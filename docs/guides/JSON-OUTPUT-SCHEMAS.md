@@ -33,7 +33,14 @@ All JSON responses follow a consistent structure:
   "error": {
     "code": "ERROR_CODE",
     "message": "Human-readable error message",
-    "suggestion": "Optional fix suggestion"
+    "details": {
+      "worktree": "/path/to/current/worktree",
+      "worktreeBranch": "feature/my-feature"
+    },
+    "suggestions": [
+      "Suggestion 1",
+      "Suggestion 2"
+    ]
   },
   "metadata": {
     "timestamp": "2025-11-14T05:17:11.755Z",
@@ -42,6 +49,11 @@ All JSON responses follow a consistent structure:
   }
 }
 ```
+
+**Enhanced Error Context (Phase 2)**:
+- `details.worktree` (string, optional): Current working directory (worktree path) - automatically included in git-related errors
+- `details.worktreeBranch` (string, optional): Current branch name in the worktree - included when available
+- `suggestions` (array, optional): Actionable fix suggestions for the error
 
 ### Error Codes
 
@@ -369,6 +381,32 @@ All JSON responses follow a consistent structure:
   "metadata": {
     "timestamp": "2025-11-14T05:17:11.755Z",
     "duration": 0.721,
+    "version": "1.4.0"
+  }
+}
+```
+
+**Error Response** (Worktree Conflict):
+```json
+{
+  "success": false,
+  "error": {
+    "code": "WORKTREE_CONFLICT",
+    "message": "Branch 'feature/my-feature' is already checked out in another worktree",
+    "details": {
+      "branch": "feature/my-feature",
+      "currentWorktree": "/Users/user/project/main",
+      "conflictingWorktrees": ["/Users/user/project/feature-branch"]
+    },
+    "suggestions": [
+      "Switch to existing worktree: cd /Users/user/project/feature-branch",
+      "Or use a different branch name",
+      "Or remove the worktree: git worktree remove /Users/user/project/feature-branch"
+    ]
+  },
+  "metadata": {
+    "timestamp": "2025-11-14T05:17:11.755Z",
+    "duration": 0.821,
     "version": "1.4.0"
   }
 }

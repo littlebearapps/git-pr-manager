@@ -1,6 +1,6 @@
 # Git Workflow Manager - Claude Code Context
 
-**Last Updated**: 2025-11-13
+**Last Updated**: 2025-11-15
 **Version**: 1.4.0
 **Status**: Production-ready npm package (ready for publishing)
 
@@ -8,14 +8,14 @@
 
 ## Project Overview
 
-Production-ready git workflow automation for GitHub with Claude Code integration. Streamlines feature development with intelligent CI polling, comprehensive error reporting, automated PR workflows, and git hooks integration.
+Production-ready git workflow automation for GitHub with Claude Code integration. Streamlines feature development with intelligent CI polling, comprehensive error reporting, automated PR workflows, git hooks integration, and git worktree management.
 
 **Repository**: https://github.com/littlebearapps/git-workflow-manager
 **npm Package**: @littlebearapps/git-workflow-manager (⚠️ Not yet published to npm)
 **License**: MIT
 **Status**: v1.4.0 - Release Ready 🎉
 
-### Release 1.4.0 - ✅ COMPLETE (2025-11-13)
+### Release 1.4.0 - ✅ COMPLETE (2025-11-15)
 
 **Phase 2: Git Hooks Integration**
 - ✅ Non-blocking reminder hooks (pre-push, post-commit)
@@ -25,9 +25,17 @@ Production-ready git workflow automation for GitHub with Claude Code integration
 - ✅ Full documentation and AI agent integration
 - ✅ Rollout testing complete
 
+**Phase 3: Git Worktree Management**
+- ✅ `gwm worktree list` command with JSON support
+- ✅ `gwm worktree prune` command with dry-run support
+- ✅ Comprehensive production testing in bare repo environment
+- ✅ 15 new tests, all 678 tests passing
+- ✅ Full documentation and examples
+
 **Bug Fixes**
 - ✅ Status command JSON output (was producing no output)
-- ✅ All 573 tests passing
+- ✅ GitService.pruneWorktrees() stderr capture (git outputs to stderr, not stdout)
+- ✅ All 678 tests passing
 - ✅ GitHub token setup documentation enhanced
 
 **Documentation Updates**
@@ -35,6 +43,8 @@ Production-ready git workflow automation for GitHub with Claude Code integration
 - ✅ Setup guides for new users
 - ✅ Enhanced GitHub token configuration
 - ✅ Hooks management reference
+- ✅ Git worktree management guide and examples
+- ✅ JSON output schemas for worktree commands
 
 ### Known Issues
 

@@ -45,6 +45,32 @@ export async function featureCommand(
       process.exit(1);
     }
 
+    // Check if branch is checked out in another worktree
+    const worktrees = await gitService.getBranchWorktrees(branchName);
+    if (worktrees.length > 0) {
+      const currentPath = process.cwd();
+      // Filter out current worktree
+      const otherWorktrees = worktrees.filter(w => w !== currentPath);
+
+      if (otherWorktrees.length > 0) {
+        logger.error(
+          `Branch ${chalk.cyan(branchName)} is already checked out in another worktree`,
+          'WORKTREE_CONFLICT',
+          {
+            branch: branchName,
+            currentWorktree: currentPath,
+            conflictingWorktrees: otherWorktrees
+          },
+          [
+            `Switch to existing worktree: ${chalk.cyan(`cd ${otherWorktrees[0]}`)}`,
+            `Or use a different branch name`,
+            `Or remove the worktree: ${chalk.gray(`git worktree remove ${otherWorktrees[0]}`)}`
+          ]
+        );
+        process.exit(1);
+      }
+    }
+
     // Fetch latest changes
     spinner.start(`Fetching latest changes from ${baseBranch}...`);
     await gitService.fetch();

@@ -88,7 +88,8 @@ describe('Error Classes', () => {
       const error = new GitError('Push failed', details, suggestions);
 
       expect(error.code).toBe('GIT_ERROR');
-      expect(error.details).toEqual(details);
+      expect(error.details).toMatchObject(details); // Original details preserved
+      expect(error.details.worktree).toBe(process.cwd()); // Worktree context added
       expect(error.suggestions).toEqual(suggestions);
     });
 
@@ -97,6 +98,21 @@ describe('Error Classes', () => {
 
       expect(error).toBeInstanceOf(WorkflowError);
       expect(error).toBeInstanceOf(GitError);
+    });
+
+    it('should include worktree context in details', () => {
+      const error = new GitError('Test error', { file: 'test.ts' });
+
+      expect(error.details.worktree).toBe(process.cwd());
+      expect(error.details.file).toBe('test.ts');
+    });
+
+    it('should preserve existing details when adding worktree context', () => {
+      const originalDetails = { command: 'git push', exitCode: 1 };
+      const error = new GitError('Push failed', originalDetails);
+
+      expect(error.details).toMatchObject(originalDetails);
+      expect(error.details.worktree).toBe(process.cwd());
     });
   });
 

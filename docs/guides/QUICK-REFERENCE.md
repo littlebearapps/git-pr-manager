@@ -51,7 +51,7 @@ User: "Use git-workflow-manager to check status"
 | Command | When to Use | What It Does |
 |---------|-------------|--------------|
 | **gwm ship** | Ready to merge feature | Complete PR workflow |
-| **gwm feature start** | Starting new work | Creates feature branch from main |
+| **gwm feature** | Starting new work | Creates feature branch from main (with worktree conflict detection) |
 | **gwm status** | Check current state | Shows branch, PR, CI status |
 | **gwm abort** | Need to cancel feature | Deletes feature branch safely |
 
@@ -78,14 +78,56 @@ gwm ship --auto-description
 gwm ship --dry-run
 ```
 
-### gwm feature start
+### gwm feature
 
 ```bash
-# Create feature branch with custom base
-gwm feature start --base=main feature/my-feature
+# Create feature branch from default branch (main/master)
+gwm feature my-feature
 
-# Create and push immediately
-gwm feature start --push feature/my-feature
+# Create feature branch from custom base
+gwm feature my-feature --from develop
+
+# Note: Automatically detects worktree conflicts
+# If branch exists in another worktree, provides helpful error with suggestions
+```
+
+---
+
+## Git Worktree Management
+
+```bash
+# List all worktrees
+gwm worktree list
+gwm worktree list --json
+
+# Clean up stale worktree data
+gwm worktree prune
+gwm worktree prune --dry-run       # Preview what would be cleaned
+gwm worktree prune --json          # Machine-readable output
+```
+
+**When to use**:
+- Working on multiple features simultaneously
+- Reviewing PRs in separate directories
+- Maintaining clean worktree administrative data
+
+**Example output** (`gwm worktree list`):
+```
+▸ Git Worktrees
+────────────────────────────────────────────────────────────────────────────────
+* /Users/user/project/main
+  main [main]
+  55b5943
+
+  /Users/user/project/feature-1
+  feature/add-auth
+  abc1234
+
+  /Users/user/project/feature-2
+  feature/ui-polish
+  def5678
+
+ℹ Total: 3 worktrees
 ```
 
 ---
@@ -148,6 +190,56 @@ Solution:
 2. Fix issues reported
 3. Commit fixes
 4. Re-run gwm ship
+```
+
+### "Branch checked out in another worktree"
+```
+❌ Branch feature/my-feature is already checked out in another worktree
+   WORKTREE_CONFLICT
+
+   Conflicting worktrees:
+   - /path/to/other/worktree
+
+Solution:
+1. Switch to existing worktree: cd /path/to/other/worktree
+2. Or use a different branch name: gwm feature my-feature-v2
+3. Or remove the worktree: git worktree remove /path/to/other/worktree
+
+Note: This error only appears when using git worktrees. Standard repositories
+      will show "Branch already exists" instead.
+```
+
+### Enhanced Error Context (Phase 2)
+
+All git-related errors now automatically include worktree context for better debugging:
+
+```
+❌ Git operation failed
+   Worktree: feature/my-feature
+
+Error details:
+- Worktree path: /path/to/current/worktree
+- Current branch: feature/my-feature
+- Additional context: ...
+```
+
+**Benefits**:
+- Easier debugging in multi-worktree setups
+- Clear indication of which worktree encountered the error
+- Automatic context in both CLI and JSON output
+
+**JSON Output**:
+```json
+{
+  "error": {
+    "code": "GIT_ERROR",
+    "message": "Git operation failed",
+    "details": {
+      "worktree": "/path/to/current/worktree",
+      "worktreeBranch": "feature/my-feature"
+    }
+  }
+}
 ```
 
 ---

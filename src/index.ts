@@ -8,12 +8,14 @@ import { shipCommand } from './commands/ship';
 import { featureCommand } from './commands/feature';
 import { protectCommand } from './commands/protect';
 import { securityCommand } from './commands/security';
+import { verifyCommand } from './commands/verify';
 import { autoCommand } from './commands/auto';
 import { checkUpdateCommand } from './commands/check-update';
 import { docsCommand } from './commands/docs';
 import { doctorCommand } from './commands/doctor';
 import { installHooksCommand } from './commands/install-hooks';
 import { uninstallHooksCommand } from './commands/uninstall-hooks';
+import { worktreeListCommand, worktreePruneCommand } from './commands/worktree';
 import { logger, VerbosityLevel } from './utils/logger';
 import { maybeNotifyUpdate } from './utils/update-check';
 
@@ -108,6 +110,15 @@ program
   .action(securityCommand);
 
 program
+  .command('verify')
+  .description('Run pre-commit verification (lint, typecheck, test, build)')
+  .option('--skip-lint', 'Skip ESLint check')
+  .option('--skip-typecheck', 'Skip TypeScript type check')
+  .option('--skip-test', 'Skip test suite')
+  .option('--skip-build', 'Skip build step')
+  .action(verifyCommand);
+
+program
   .command('auto')
   .description('Auto workflow - create PR, wait for CI, merge automatically')
   .option('--draft', 'Create as draft PR')
@@ -145,6 +156,24 @@ program
   .command('uninstall-hooks')
   .description('Remove gwm git hooks')
   .action(uninstallHooksCommand);
+
+// Worktree command group
+const worktree = program
+  .command('worktree')
+  .description('Manage git worktrees');
+
+worktree
+  .command('list')
+  .description('List all worktrees')
+  .option('--json', 'Output as JSON')
+  .action(worktreeListCommand);
+
+worktree
+  .command('prune')
+  .description('Prune stale worktree data')
+  .option('--dry-run', 'Show what would be pruned')
+  .option('--json', 'Output as JSON')
+  .action(worktreePruneCommand);
 
 // Global error handler
 process.on('uncaughtException', (error) => {

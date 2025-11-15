@@ -1,4 +1,5 @@
 import chalk from 'chalk';
+import simpleGit from 'simple-git';
 
 /**
  * Verbosity levels for logger
@@ -28,6 +29,31 @@ export interface JsonResponse {
     duration: number;
     version: string;
   };
+}
+
+/**
+ * Get current worktree context for error messages
+ * @returns Branch name if in a worktree, null otherwise
+ */
+async function getWorktreeContext(): Promise<string | null> {
+  try {
+    const git = simpleGit(process.cwd());
+    const output = await git.raw(['worktree', 'list']);
+
+    // Find current worktree from output
+    const cwd = process.cwd();
+    const lines = output.split('\n');
+    const currentLine = lines.find(line => line.startsWith(cwd));
+
+    if (currentLine) {
+      // Extract branch from line
+      const match = currentLine.match(/\[(.+?)\]/);
+      return match ? match[1] : null;
+    }
+  } catch {
+    return null;
+  }
+  return null;
 }
 
 /**
@@ -150,6 +176,30 @@ export class Logger {
         }
       }
     }
+  }
+
+  /**
+   * Log error message with worktree context
+   * Automatically detects and displays current worktree branch if available
+   */
+  async errorWithContext(
+    message: string,
+    code?: string,
+    details?: any,
+    suggestions?: string[]
+  ): Promise<void> {
+    const worktreeBranch = await getWorktreeContext();
+
+    if (worktreeBranch && !this.jsonMode) {
+      this.log(chalk.gray(`Worktree: ${worktreeBranch}`));
+    }
+
+    // Add worktree to details if available
+    const enhancedDetails = worktreeBranch
+      ? { ...details, worktree: process.cwd(), worktreeBranch }
+      : details;
+
+    this.error(message, code, enhancedDetails, suggestions);
   }
 
   /**
