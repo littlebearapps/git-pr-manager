@@ -1,5 +1,8 @@
 import { Logger, VerbosityLevel, createLogger } from '../../src/utils/logger';
 
+// Mock simple-git for errorWithContext tests
+jest.mock('simple-git');
+
 describe('Logger', () => {
   let consoleLogSpy: jest.SpyInstance;
   let consoleErrorSpy: jest.SpyInstance;
@@ -256,6 +259,76 @@ describe('Logger', () => {
         logger.error('Test error');
 
         expect(consoleErrorSpy).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('errorWithContext', () => {
+      afterEach(() => {
+        jest.clearAllMocks();
+      });
+
+      it('should include worktree branch context when available', async () => {
+        // Mock simple-git to return worktree info
+        const mockGit = {
+          raw: jest.fn().mockResolvedValue(
+            `${process.cwd()} abc123 [feature/test-branch]\n` +
+            '/Users/test/project/main def456 [main]'
+          )
+        };
+        const simpleGit = require('simple-git');
+        simpleGit.mockReturnValue(mockGit);
+
+        const logger = new Logger({ level: VerbosityLevel.NORMAL });
+
+        await logger.errorWithContext('Test error', 'ERR_CODE', { file: 'test.ts' });
+
+        // Should display worktree context
+        expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Worktree:'));
+        expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('feature/test-branch'));
+        // Should call error with enhanced details
+        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.anything(), 'Test error');
+      });
+
+      it('should not display worktree context in JSON mode', async () => {
+        const logger = new Logger({ level: VerbosityLevel.NORMAL, jsonMode: true });
+
+        await logger.errorWithContext('Test error', 'ERR_CODE');
+
+        // Should not display worktree in JSON mode
+        expect(consoleLogSpy).not.toHaveBeenCalledWith(expect.stringContaining('Worktree:'));
+      });
+
+      it('should handle when worktree context is not available', async () => {
+        // Mock simple-git to simulate no worktree (standard repo or error)
+        const mockGit = {
+          raw: jest.fn().mockRejectedValue(new Error('fatal: not a git repository'))
+        };
+        const simpleGit = require('simple-git');
+        simpleGit.mockReturnValue(mockGit);
+
+        const logger = new Logger({ level: VerbosityLevel.NORMAL });
+
+        await logger.errorWithContext('Test error', 'ERR_CODE', { file: 'test.ts' });
+
+        // Should still call error method
+        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.anything(), 'Test error');
+        // Should not crash or display worktree
+        expect(consoleLogSpy).not.toHaveBeenCalledWith(expect.stringContaining('Worktree:'));
+      });
+
+      it('should pass through suggestions to error method', async () => {
+        const logger = new Logger({ level: VerbosityLevel.NORMAL });
+
+        await logger.errorWithContext(
+          'Test error',
+          'ERR_CODE',
+          {},
+          ['Suggestion 1', 'Suggestion 2']
+        );
+
+        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Suggestions'));
+        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Suggestion 1'));
+        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Suggestion 2'));
       });
     });
 

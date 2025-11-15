@@ -497,4 +497,175 @@ describe('GitService', () => {
       });
     });
   });
+
+  describe('Worktree Methods', () => {
+    describe('getWorktrees', () => {
+      it('should parse worktree list output', async () => {
+        const mockOutput = `worktree /path/to/main
+HEAD abc123
+branch refs/heads/main
+
+worktree /path/to/feature
+HEAD def456
+branch refs/heads/feature/test`;
+
+        mockGitInstance.raw.mockResolvedValue(mockOutput);
+
+        const worktrees = await service.getWorktrees();
+
+        expect(worktrees).toHaveLength(2);
+        expect(worktrees[0]).toMatchObject({
+          path: '/path/to/main',
+          commit: 'abc123',
+          branch: 'main'
+        });
+        expect(worktrees[1]).toMatchObject({
+          path: '/path/to/feature',
+          commit: 'def456',
+          branch: 'feature/test'
+        });
+      });
+
+      it('should handle detached HEAD', async () => {
+        const mockOutput = `worktree /path/to/detached
+HEAD abc123
+detached`;
+
+        mockGitInstance.raw.mockResolvedValue(mockOutput);
+
+        const worktrees = await service.getWorktrees();
+
+        expect(worktrees).toHaveLength(1);
+        expect(worktrees[0].branch).toBeNull();
+      });
+
+      it('should handle non-worktree repository', async () => {
+        mockGitInstance.raw.mockRejectedValue(new Error('not a worktree'));
+        mockGitInstance.status.mockResolvedValue({
+          current: 'main',
+          files: []
+        } as any);
+        mockGitInstance.log.mockResolvedValue({
+          latest: { hash: 'abc123' }
+        } as any);
+
+        const worktrees = await service.getWorktrees();
+
+        expect(worktrees).toHaveLength(1);
+        expect(worktrees[0].path).toBe('/test/dir'); // workingDir from mock setup
+        expect(worktrees[0].branch).toBe('main');
+        expect(worktrees[0].commit).toBe('abc123');
+      });
+
+      it('should return empty array when branch/commit info unavailable', async () => {
+        mockGitInstance.raw.mockRejectedValue(new Error('not a worktree'));
+        mockGitInstance.status.mockRejectedValue(new Error('no git repo'));
+
+        const worktrees = await service.getWorktrees();
+
+        expect(worktrees).toHaveLength(0);
+      });
+
+      it('should handle bare repository', async () => {
+        const mockOutput = `worktree /path/to/.bare
+HEAD 0000000
+bare`;
+
+        mockGitInstance.raw.mockResolvedValue(mockOutput);
+
+        const worktrees = await service.getWorktrees();
+
+        expect(worktrees).toHaveLength(1);
+        expect(worktrees[0].isMain).toBe(true);
+      });
+    });
+
+    describe('getBranchWorktrees', () => {
+      it('should return empty array when branch not checked out', async () => {
+        const mockOutput = `worktree /path/main
+HEAD abc
+branch refs/heads/main`;
+
+        mockGitInstance.raw.mockResolvedValue(mockOutput);
+
+        const paths = await service.getBranchWorktrees('feature/test');
+
+        expect(paths).toEqual([]);
+      });
+
+      it('should return worktree paths where branch is active', async () => {
+        const mockOutput = `worktree /path/worktree1
+HEAD abc123
+branch refs/heads/feature/test
+
+worktree /path/worktree2
+HEAD def456
+branch refs/heads/main
+
+worktree /path/worktree3
+HEAD ghi789
+branch refs/heads/feature/test`;
+
+        mockGitInstance.raw.mockResolvedValue(mockOutput);
+
+        const paths = await service.getBranchWorktrees('feature/test');
+
+        expect(paths).toEqual(['/path/worktree1', '/path/worktree3']);
+      });
+
+      it('should handle single worktree with matching branch', async () => {
+        const mockOutput = `worktree /path/to/feature
+HEAD abc123
+branch refs/heads/feature/test`;
+
+        mockGitInstance.raw.mockResolvedValue(mockOutput);
+
+        const paths = await service.getBranchWorktrees('feature/test');
+
+        expect(paths).toEqual(['/path/to/feature']);
+      });
+
+      it('should ignore detached HEAD worktrees', async () => {
+        const mockOutput = `worktree /path/worktree1
+HEAD abc123
+detached
+
+worktree /path/worktree2
+HEAD def456
+branch refs/heads/feature/test`;
+
+        mockGitInstance.raw.mockResolvedValue(mockOutput);
+
+        const paths = await service.getBranchWorktrees('feature/test');
+
+        expect(paths).toEqual(['/path/worktree2']);
+      });
+    });
+
+    describe('isWorktreeRepository', () => {
+      it('should return true for worktree repo', async () => {
+        mockGitInstance.raw.mockResolvedValue('worktree /path\nHEAD abc\nbranch refs/heads/main');
+
+        const isWorktree = await service.isWorktreeRepository();
+
+        expect(isWorktree).toBe(true);
+      });
+
+      it('should return false for standard repo', async () => {
+        mockGitInstance.raw.mockRejectedValue(new Error('not a worktree'));
+
+        const isWorktree = await service.isWorktreeRepository();
+
+        expect(isWorktree).toBe(false);
+      });
+
+      it('should call git worktree list', async () => {
+        mockGitInstance.raw.mockResolvedValue('worktree /path\nHEAD abc');
+
+        await service.isWorktreeRepository();
+
+        expect(mockGitInstance.raw).toHaveBeenCalledWith(['worktree', 'list']);
+      });
+    });
+  });
 });

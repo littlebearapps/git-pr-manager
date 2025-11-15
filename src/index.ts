@@ -14,6 +14,7 @@ import { docsCommand } from './commands/docs';
 import { doctorCommand } from './commands/doctor';
 import { installHooksCommand } from './commands/install-hooks';
 import { uninstallHooksCommand } from './commands/uninstall-hooks';
+import { worktreeListCommand, worktreePruneCommand } from './commands/worktree';
 import { logger, VerbosityLevel } from './utils/logger';
 import { maybeNotifyUpdate } from './utils/update-check';
 
@@ -145,6 +146,24 @@ program
   .command('uninstall-hooks')
   .description('Remove gwm git hooks')
   .action(uninstallHooksCommand);
+
+// Worktree command group
+const worktree = program
+  .command('worktree')
+  .description('Manage git worktrees');
+
+worktree
+  .command('list')
+  .description('List all worktrees')
+  .option('--json', 'Output as JSON')
+  .action(worktreeListCommand);
+
+worktree
+  .command('prune')
+  .description('Prune stale worktree data')
+  .option('--dry-run', 'Show what would be pruned')
+  .option('--json', 'Output as JSON')
+  .action(worktreePruneCommand);
 
 // Global error handler
 process.on('uncaughtException', (error) => {

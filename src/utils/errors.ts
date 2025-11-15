@@ -37,10 +37,17 @@ export class WorkflowError extends Error {
 
 /**
  * Git-related errors
+ * Automatically includes worktree context in error details
  */
 export class GitError extends WorkflowError {
   constructor(message: string, details?: any, suggestions: string[] = []) {
-    super('GIT_ERROR', message, details, suggestions);
+    // Add worktree context if available
+    const enhancedDetails = {
+      ...details,
+      worktree: process.cwd() // Current working directory (worktree path)
+    };
+
+    super('GIT_ERROR', message, enhancedDetails, suggestions);
     this.name = 'GitError';
   }
 }
@@ -165,6 +172,32 @@ export class MergeConflictError extends WorkflowError {
       ]
     );
     this.name = 'MergeConflictError';
+  }
+}
+
+/**
+ * Worktree conflict error - branch already checked out elsewhere
+ */
+export class WorktreeConflictError extends WorkflowError {
+  constructor(
+    branchName: string,
+    worktreePaths: string[],
+    currentPath: string
+  ) {
+    const message = `Branch '${branchName}' is already checked out in another worktree`;
+    const details = {
+      branch: branchName,
+      currentWorktree: currentPath,
+      conflictingWorktrees: worktreePaths
+    };
+    const suggestions = [
+      `Switch to existing worktree: cd ${worktreePaths[0]}`,
+      `Or use a different branch name`,
+      `Or remove the worktree: git worktree remove ${worktreePaths[0]}`
+    ];
+
+    super('WORKTREE_CONFLICT', message, details, suggestions);
+    this.name = 'WorktreeConflictError';
   }
 }
 

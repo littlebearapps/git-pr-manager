@@ -1,5 +1,6 @@
 import simpleGit, { SimpleGit, StatusResult } from 'simple-git';
-import { GitServiceOptions, BranchInfo } from '../types';
+import { GitServiceOptions, BranchInfo, WorktreeInfo } from '../types';
+import { parseWorktreeList } from '../utils/worktree-parser';
 
 /**
  * GitService - Wraps simple-git for local git operations
@@ -232,5 +233,94 @@ export class GitService {
 
     // Default to 'main' if we can't determine
     return 'main';
+  }
+
+  /**
+   * Get all worktrees in repository
+   * Returns worktree information for all worktrees, or current directory as single worktree if not a worktree repo
+   */
+  async getWorktrees(): Promise<WorktreeInfo[]> {
+    try {
+      const output = await this.git.raw(['worktree', 'list', '--porcelain']);
+      return parseWorktreeList(output);
+    } catch (error) {
+      // Not a worktree repository, return current directory as single worktree
+      try {
+        const currentBranch = await this.getCurrentBranch();
+        const commit = await this.getCurrentCommit();
+
+        return [{
+          path: this.workingDir,
+          commit,
+          branch: currentBranch,
+          isMain: true
+        }];
+      } catch {
+        // If we can't get branch/commit info, return empty array
+        return [];
+      }
+    }
+  }
+
+  /**
+   * Check if branch is checked out in any worktree
+   * Returns array of worktree paths where branch is active
+   */
+  async getBranchWorktrees(branchName: string): Promise<string[]> {
+    const worktrees = await this.getWorktrees();
+    return worktrees
+      .filter(w => w.branch === branchName)
+      .map(w => w.path);
+  }
+
+  /**
+   * Check if current directory is in a worktree setup
+   */
+  async isWorktreeRepository(): Promise<boolean> {
+    try {
+      await this.git.raw(['worktree', 'list']);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Prune stale worktree administrative data
+   * @param dryRun - If true, show what would be pruned without actually pruning
+   * @param verbose - If true, show verbose output
+   * @returns Output from git worktree prune command (from stderr since git outputs there)
+   */
+  async pruneWorktrees(dryRun = false, verbose = false): Promise<string> {
+    const args = ['worktree', 'prune'];
+    if (dryRun) args.push('--dry-run');
+    if (verbose) args.push('--verbose');
+
+    // Git worktree prune outputs to stderr, not stdout
+    // We need to use exec() to capture both streams
+    const { exec } = await import('child_process');
+    const { promisify } = await import('util');
+    const execAsync = promisify(exec);
+
+    try {
+      const { stdout, stderr } = await execAsync(`git ${args.join(' ')}`, {
+        cwd: this.workingDir,
+        encoding: 'utf8'
+      });
+
+      // Git worktree prune outputs to stderr, return that
+      return stderr || stdout;
+    } catch (error: any) {
+      // If there's an error, it might still have output in stderr
+      return error.stderr || error.stdout || '';
+    }
+  }
+
+  /**
+   * Get current commit hash
+   */
+  private async getCurrentCommit(): Promise<string> {
+    const log = await this.git.log({ maxCount: 1 });
+    return log.latest?.hash || '';
   }
 }

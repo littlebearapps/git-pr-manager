@@ -207,6 +207,31 @@ gwm status --json              # Shows hooks.prePush and hooks.postCommit
 - Create PR if on feature branch
 - Run security scans before pushing
 
+### Git Worktree Management
+
+```bash
+# List all worktrees
+gwm worktree list              # Show all worktrees with branch info
+gwm worktree list --json       # Machine-readable output
+
+# Prune stale worktree data
+gwm worktree prune             # Remove stale administrative data
+gwm worktree prune --dry-run   # Preview what would be pruned
+gwm worktree prune --json      # Machine-readable output
+```
+
+**Use cases**:
+- **Multi-project workflows**: Work on multiple features simultaneously
+- **Code review**: Keep separate worktrees for reviewing PRs
+- **Maintenance**: Clean up stale worktree administrative data
+
+**Worktree list output** shows:
+- Path to each worktree
+- Current branch name (or `(detached)` for detached HEAD)
+- Latest commit hash
+- Main worktree marker (`[main]`)
+- Current worktree indicator (`*`)
+
 ### Output Control
 
 All commands support output control flags:
@@ -300,6 +325,14 @@ AI Agent: [Reports] "✅ PR #47 created. CI checks pending."
 - **Configuration**: Apply presets (basic, standard, strict)
 - **PR Readiness**: Validate checks, reviews, conflicts, conversations
 - **Staleness Detection**: Warn on outdated branches (strict mode)
+
+### Git Worktree Support
+- **Conflict Detection**: Automatically detects when a branch is checked out in another worktree
+- **Smart Worktree Parsing**: Handles bare repositories, detached HEAD states, and multiple worktrees
+- **Actionable Error Messages**: Provides clear guidance when conflicts occur
+- **Enhanced Error Context**: Automatically includes worktree path and branch in all git-related errors
+- **Seamless Integration**: Works transparently with standard git repositories
+- **Current Worktree Filtering**: Ignores current worktree when checking for conflicts
 
 ### Performance Optimizations
 - **API Response Caching**: LRU cache with ETag support (5-minute TTL)
@@ -473,6 +506,7 @@ export GH_TOKEN="ghp_your_token_here"  # Alternative variable name
 - `gwm init` - Initialize configuration
 - `gwm doctor` - Check system requirements and dependencies
 - `gwm install-hooks` / `gwm uninstall-hooks` - Manage git hooks
+- `gwm worktree list` / `gwm worktree prune` - Git worktree management
 - `gwm docs` - View documentation
 
 #### Optional Environment Variables

@@ -336,3 +336,22 @@ export interface AutoFixMetrics {
   startTime: Date;
   lastUpdated: Date;
 }
+
+// Phase 1.5: Git Worktree Types
+/**
+ * Git worktree information
+ */
+export interface WorktreeInfo {
+  path: string;          // Absolute path to worktree
+  commit: string;        // Current commit hash
+  branch: string | null; // Branch name (null if detached HEAD)
+  isMain: boolean;       // True if this is the main/bare worktree
+}
+
+/**
+ * Worktree conflict error details
+ */
+export interface WorktreeConflict {
+  branchName: string;
+  worktrees: string[];   // Paths where branch is checked out
+}
