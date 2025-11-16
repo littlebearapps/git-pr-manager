@@ -2,7 +2,7 @@
 
 **Last Updated**: 2025-11-16
 **Version**: 1.4.3
-**Status**: Production-ready npm package (OIDC publishing enabled)
+**Status**: Production-ready npm package (⚠️ OIDC publishing setup in progress)
 
 ---
 
@@ -49,9 +49,12 @@ Production-ready git workflow automation for GitHub with Claude Code integration
 ### Known Issues
 
 #### 🔴 Critical
-- **Package Not Published**: Cannot `npm install -g` yet (using `npm link` for development)
-  - **Action**: Publish to npm registry when ready
-  - **Status**: v1.4.0 release finalized, awaiting publish decision
+- **OIDC Publishing Setup Required**: v1.4.3 prepared for OIDC publishing but needs npmjs.com configuration
+  - **Error**: `npm error code ENEEDAUTH` (Workflow run 19403947509)
+  - **Root cause**: npm Trusted Publisher not configured on npmjs.com
+  - **Action**: Configure trusted publisher on npmjs.com (see `docs/OIDC-VERIFICATION-CHECKLIST.md`)
+  - **Status**: Workflow ready, waiting for npmjs.com configuration
+  - **Details**: All workflow issues fixed (6 iterations), OIDC requires web portal setup
 
 #### ℹ️ Enhancement Opportunities
 - Add `--force` flag to `gpminit` for intentional config overwrites
