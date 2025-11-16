@@ -33,7 +33,7 @@ let telemetry: any = null;
     const username = os.userInfo().username;
 
     if (username === 'nathanschram') {
-      // @ts-ignore - Optional internal telemetry module (no types needed)
+      // @ts-expect-error - Optional internal telemetry module (no types needed)
       const { initTelemetry, captureBreadcrumb, captureError } = await import('../telemetry/src/telemetry.js');
       telemetry = {
         init: () => initTelemetry('git-pr-manager', pkg.version),
