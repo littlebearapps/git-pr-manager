@@ -45,14 +45,16 @@ let telemetry: any = null;
   } catch {
     // Telemetry not available - gracefully degrade
   }
-})();
+})().catch(() => {
+  // Telemetry initialization failed - gracefully degrade
+});
 
 const program = new Command();
 
 program
   .name('gpm')
   .description('Git PR Manager - Enhanced git workflow automation with CI integration')
-  .version('1.4.0')
+  .version(pkg.version)
   .option('--json', 'Output in JSON format (machine-readable)')
   .option('--quiet', 'Quiet mode (errors/warnings only)')
   .option('--silent', 'Silent mode (no output except exit codes)')
