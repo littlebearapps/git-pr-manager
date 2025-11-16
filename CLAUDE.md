@@ -1,7 +1,7 @@
 # Git PR Manager - Claude Code Context
 
 **Last Updated**: 2025-11-16
-**Version**: 1.4.1
+**Version**: 1.4.2
 **Status**: Production-ready npm package (CloakPipe telemetry integrated)
 
 ---
@@ -13,7 +13,7 @@ Production-ready git workflow automation for GitHub with Claude Code integration
 **Repository**: https://github.com/littlebearapps/git-pr-manager
 **npm Package**: @littlebearapps/git-pr-manager
 **License**: MIT
-**Status**: v1.4.1 - Production Ready 🎉
+**Status**: v1.4.2 - Production Ready 🎉
 
 ### Release 1.4.0 - ✅ COMPLETE (2025-11-15)
 
