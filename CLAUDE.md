@@ -333,140 +333,36 @@ npm publish --tag latest  # Stable
 
 ---
 
+<!-- ⚠️ DO NOT DELETE: CloakPipe Telemetry Section - Critical for npm/Homebrew releases -->
+
 ## CloakPipe Telemetry (Internal)
 
-### Overview
-
-**CloakPipe** is an internal error logging system integrated into gpm for development debugging purposes. It is **private**, **opt-in**, and **automatically excluded** from all public releases.
+**What**: Private error logging for Nathan-only development debugging
+**Status**: Automatically excluded from all public releases (npm/Homebrew)
 
 ### How It Works
+- **Activation**: Username detection (`os.userInfo().username === 'nathanschram'`)
+- **Location**: Git submodule at `./telemetry/` (private repo, not in package)
+- **External Users**: Zero impact - code not present, gracefully degrades
 
-**For Nathan (Developer)**:
-- Enabled automatically via username detection (`os.userInfo().username === 'nathanschram'`)
-- Loads from git submodule at `./telemetry/` (not in published package)
-- Captures error breadcrumbs and uncaught exceptions
-- Sends to private CloakPipe server for debugging
+### Release Process (npm/Homebrew)
 
-**For External Users**:
-- Completely invisible and non-functional
-- Gracefully degrades (no errors, no impact)
-- Zero performance overhead
-- Zero privacy concerns
+**✅ No Action Required** - Automatic exclusion via:
+1. `.npmignore` excludes `telemetry/` and `.gitmodules`
+2. Package verification: `npm pack --dry-run 2>&1 | grep telemetry` (no output = excluded)
+3. Package size: ~325 KB (telemetry would add ~50 KB if included)
 
-### Architecture
-
+### Implementation Pattern
 ```typescript
-// src/index.ts (lines 28-48)
-let telemetry: any = null;
-(async () => {
-  try {
-    const os = await import('os');
-    const username = os.userInfo().username;
-
-    if (username === 'nathanschram') {
-      // Only loads for Nathan - external users never reach here
-      const { initTelemetry, captureBreadcrumb, captureError } =
-        await import('../telemetry/src/telemetry.js');
-
-      telemetry = {
-        init: () => initTelemetry('git-pr-manager', pkg.version),
-        breadcrumb: captureBreadcrumb,
-        error: captureError
-      };
-      telemetry.init();
-    }
-  } catch {
-    // Telemetry not available - gracefully degrade
-  }
-})();
+// src/index.ts - Username detection with graceful degradation
+if (username === 'nathanschram') {
+  const { initTelemetry, captureBreadcrumb, captureError } =
+    await import('../telemetry/src/telemetry.js');
+  // Initialize and use with optional chaining: telemetry?.method()
+}
 ```
 
-### Defense-in-Depth Security
-
-**Multiple Exclusion Layers**:
-1. **Git submodule**: `./telemetry/` directory (private repository)
-2. **`.gitignore`**: Prevents accidental commits
-3. **`.npmignore`**: Excludes from npm package
-4. **`.gitmodules`**: Excluded from npm package
-5. **`package.json` files field**: Not in distribution list
-
-**Verification**:
-```bash
-# Verify telemetry is excluded
-npm pack --dry-run 2>&1 | grep telemetry
-# Expected: No output (excluded)
-```
-
-### Release Checklist (npm/Homebrew)
-
-**✅ No Action Required** - Telemetry automatically excluded!
-
-The following happens automatically during `npm publish`:
-1. Git submodule (`./telemetry/`) is excluded via `.npmignore`
-2. `.gitmodules` file is excluded via `.npmignore`
-3. Package contains 0 telemetry files
-4. External users install clean package with no telemetry code
-
-**Manual Verification** (optional):
-```bash
-# Before publishing
-npm pack
-tar -tzf littlebearapps-git-pr-manager-*.tgz | grep telemetry
-# Expected: No output
-
-# Check package size
-ls -lh littlebearapps-git-pr-manager-*.tgz
-# Expected: ~325 KB (telemetry would add ~50 KB if included)
-```
-
-### Postinstall Behavior
-
-**For Nathan**:
-```bash
-npm install
-# Output:
-# 🔧 Setting up internal telemetry...
-# (npm install runs in ./telemetry/)
-# ✅ Internal telemetry ready
-```
-
-**For External Users**:
-```bash
-npm install
-# Output:
-# ✨ git-pr-manager installed!
-# ✅ GitHub token detected (or setup instructions)
-# 📖 Quick Start: ...
-# (No telemetry messages - gracefully skipped)
-```
-
-### Developer Notes
-
-**When modifying telemetry**:
-- Telemetry code is in `./telemetry/` (git submodule - separate repo)
-- Always test both scenarios: Nathan-user and external-user
-- Ensure graceful degradation (no errors if telemetry unavailable)
-- Use optional chaining: `telemetry?.method()` (never `telemetry.method()`)
-
-**When releasing**:
-- No special steps needed - automatic exclusion
-- Verify with `npm pack --dry-run` if concerned
-- External users will never see telemetry code or behavior
-
-### Privacy & Security
-
-**Guarantees**:
-- ✅ Only activates for Nathan (username detection)
-- ✅ Never included in published packages
-- ✅ Never collects user data from external installations
-- ✅ Source code not visible to external users
-- ✅ Zero impact on external user experience
-
-**What's Captured** (Nathan only):
-- Error messages and stack traces (for debugging)
-- Command execution breadcrumbs (for workflow analysis)
-- Git-pr-manager version and OS info (for compatibility)
-- **Not captured**: GitHub tokens, repository data, user code
+**See**: @quickrefs/architecture.md - "CloakPipe Telemetry Pattern" for complete details
 
 ---
 
