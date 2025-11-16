@@ -14,6 +14,8 @@ jest.config.js
 .github/
 .vscode/
 .idea/
+.envrc
+.claude-settings.json
 
 # Internal telemetry (not for public distribution)
 telemetry/
