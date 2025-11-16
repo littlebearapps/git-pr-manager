@@ -72,6 +72,12 @@ jobs:
           echo "GITHUB_ACTIONS: ${GITHUB_ACTIONS:-NOT SET}"
           echo "=== Permissions Check ==="
           echo "id-token permission should allow OIDC token requests"
+          echo ""
+          echo "=== npm Configuration ==="
+          npm config list
+          echo ""
+          echo "=== npm Whoami (should use OIDC) ==="
+          npm whoami || echo "Not authenticated (expected - will use OIDC for publish)"
 
       - name: Publish to npm
         run: |
