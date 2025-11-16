@@ -27,7 +27,7 @@ maybeNotifyUpdate({ pkg, argv: process.argv }).catch(() => {
 
 // Internal telemetry (optional - Nathan only, private)
 let telemetry: any = null;
-(async () => {
+await (async () => {
   try {
     const os = await import('os');
     const username = os.userInfo().username;

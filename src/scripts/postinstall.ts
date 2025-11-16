@@ -72,10 +72,32 @@ function main() {
 
     const username = os.userInfo().username;
     if (username === 'nathanschram') {
-      const telemetryPath = path.join(__dirname, '../../telemetry');
+      console.log('\n🔧 Internal installation detected');
 
+      const installRoot = path.join(__dirname, '../..');
+      const telemetryPath = path.join(installRoot, 'telemetry');
+
+      // Check if telemetry directory exists
+      if (!fs.existsSync(telemetryPath)) {
+        console.log('📥 Downloading private telemetry module...');
+
+        try {
+          // Try HTTPS first (works with GitHub tokens)
+          execSync(
+            'git clone https://github.com/nathanschram/cloakpipe-telemetry.git telemetry',
+            { cwd: installRoot, stdio: 'inherit' }
+          );
+          console.log('✅ Telemetry downloaded');
+        } catch (cloneError) {
+          console.warn('⚠️  Could not download telemetry (private repo)');
+          console.warn('   Continuing without telemetry - tool will work normally\n');
+          return; // Skip telemetry setup, continue with standard install
+        }
+      }
+
+      // Install telemetry dependencies
       if (fs.existsSync(telemetryPath)) {
-        console.log('🔧 Setting up internal telemetry...');
+        console.log('📦 Installing telemetry dependencies...');
         execSync('npm install', {
           cwd: telemetryPath,
           stdio: 'inherit'
@@ -85,6 +107,8 @@ function main() {
     }
   } catch (error) {
     // Silently fail - telemetry is optional internal tooling
+    console.warn('⚠️  Telemetry setup encountered an issue');
+    console.warn('   Continuing without telemetry - tool will work normally\n');
   }
 
   // Show quick start guide
