@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Nothing yet
+
+### Changed
+- Nothing yet
+
+### Fixed
+- Nothing yet
+
+---
+
+## [1.4.0] - 2025-11-16
+
 ### Fixed
 - **Verification Subprocess Issue**: `gpm verify` now works correctly when called from `gpm ship`
   - Root cause: Ora spinner conflicts between parent and subprocess processes
