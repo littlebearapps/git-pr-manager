@@ -31,7 +31,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          registry-url: 'https://registry.npmjs.org'
+          # Note: registry-url is intentionally omitted to allow OIDC authentication
+          # Setting registry-url would create NODE_AUTH_TOKEN which prevents OIDC
 
       - name: Install dependencies
         run: npm install --ignore-scripts
