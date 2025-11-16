@@ -50,3 +50,8 @@ CLAUDE.local.md
 *.pem
 .env.production
 telemetry/
+
+# CloakPipe telemetry test scripts
+test-telemetry-init.js
+trigger-test-error.js
+.claude-settings.json

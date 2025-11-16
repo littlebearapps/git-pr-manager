@@ -27,7 +27,7 @@ maybeNotifyUpdate({ pkg, argv: process.argv }).catch(() => {
 
 // Internal telemetry (optional - Nathan only, private)
 let telemetry: any = null;
-await (async () => {
+(async () => {
   try {
     const os = await import('os');
     const username = os.userInfo().username;
@@ -36,7 +36,7 @@ await (async () => {
       // @ts-expect-error - Optional internal telemetry module (no types needed)
       const { initTelemetry, captureBreadcrumb, captureError } = await import('../telemetry/src/telemetry.js');
       telemetry = {
-        init: () => initTelemetry('git-pr-manager', pkg.version),
+        init: () => initTelemetry('gitprmanager', pkg.version),
         breadcrumb: captureBreadcrumb,
         error: captureError
       };
