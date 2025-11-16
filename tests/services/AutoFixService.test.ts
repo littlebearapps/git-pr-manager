@@ -43,8 +43,14 @@ describe('AutoFixService', () => {
       callback(null, { stdout: '', stderr: '' });
     });
 
-    // Create service instance
-    autoFixService = new AutoFixService(mockGitService, mockGitHubService);
+    // Create service instance with logging disabled for tests
+    autoFixService = new AutoFixService(
+      mockGitService,
+      mockGitHubService,
+      undefined, // config
+      undefined, // verify service
+      false      // enableLogging - suppress console output in tests
+    );
   });
 
   describe('attemptFix', () => {

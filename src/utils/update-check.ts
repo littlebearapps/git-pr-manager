@@ -143,12 +143,20 @@ export async function checkForUpdate(options: {
 
   // Fetch from npm registry
   try {
+    // Store timeout ID so we can clear it
+    let timeoutId: NodeJS.Timeout;
+
     const metadata = await Promise.race([
       packageJson(packageName, { version: channel }),
-      new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('Timeout')), timeoutMs)
-      ),
-    ]);
+      new Promise<never>((_, reject) => {
+        timeoutId = setTimeout(() => reject(new Error('Timeout')), timeoutMs);
+        // Prevent timer from keeping Node.js process alive
+        timeoutId.unref();
+      }),
+    ]).finally(() => {
+      // Clear timeout to prevent process from hanging
+      if (timeoutId) clearTimeout(timeoutId);
+    });
 
     const latestVersion = metadata.version;
     const updateAvailable = semver.gt(latestVersion, currentVersion);
