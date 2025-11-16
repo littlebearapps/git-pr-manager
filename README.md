@@ -1,4 +1,4 @@
-# Git Workflow Manager v1.4.2
+# Git Workflow Manager v1.4.3
 
 Production-ready git workflow automation for GitHub with Claude Code integration. Streamlines feature development with intelligent CI polling, comprehensive error reporting, and automated PR workflows.
 
@@ -6,13 +6,16 @@ Production-ready git workflow automation for GitHub with Claude Code integration
 [![Node.js CI](https://github.com/littlebearapps/git-pr-manager/workflows/Test/badge.svg)](https://github.com/littlebearapps/git-pr-manager/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## ✨ What's New in v1.4.2
+## ✨ What's New in v1.4.3
 
-### Bug Fixes
-- **Fixed critical startup error** - Resolved "await is not defined" error when running `gpm` commands
-- **Version consistency** - CLI version now dynamically read from package.json (no more hardcoded versions)
+### Security Enhancement
+- **npm Trusted Publishers with OIDC** - Migrated from token-based authentication to OpenID Connect for secure, token-less publishing from GitHub Actions
+  - Zero credential management - no NPM_TOKEN secret needed
+  - Short-lived tokens auto-generated per workflow run
+  - Cryptographic provenance attestation for published packages
+  - See `docs/NPM-TRUSTED-PUBLISHER-SETUP.md` for complete setup guide
 
-### Previous Release (v1.4.0-1.4.1)
+### Previous Release (v1.4.0-1.4.2)
 
 ### Performance & Efficiency
 - **40-60% reduction in API calls** through intelligent LRU caching with ETag support

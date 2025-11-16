@@ -18,6 +18,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.3] - 2025-11-16
+
+### Security
+- **npm Trusted Publishers with OIDC** - Migrated from token-based authentication to OpenID Connect
+  - Eliminates NPM_TOKEN secret requirement in GitHub Actions
+  - Short-lived OIDC tokens auto-generated per workflow run (~15 min validity)
+  - Cryptographic provenance attestation for published packages
+  - Enhanced security with zero credential management
+  - Added `docs/NPM-TRUSTED-PUBLISHER-SETUP.md` comprehensive setup guide
+
+### Changed
+- Updated `.github/workflows/publish.yml` to use OIDC authentication
+  - Added `permissions: id-token: write` for OIDC token requests
+  - Removed `NODE_AUTH_TOKEN` environment variable (NPM_TOKEN secret)
+  - Added `--provenance` flag for package attestation
+
+---
+
 ## [1.4.0] - 2025-11-16
 
 ### Fixed

@@ -18,6 +18,10 @@ jobs:
   publish:
     name: Publish to npm
     runs-on: ubuntu-latest
+    # No environment specified - matches npm trusted publisher config (blank environment)
+    permissions:
+      id-token: write  # Required for OIDC authentication with npm
+      contents: read   # Required to checkout code
 
     steps:
       - name: Checkout code
@@ -66,9 +70,9 @@ jobs:
             TAG="${{ steps.tag-manual.outputs.tag }}"
           fi
           echo "Publishing with dist-tag: $TAG"
-          npm publish --tag $TAG
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          npm publish --tag $TAG --provenance
+        # OIDC authentication - no token needed!
+        # npm will automatically use OIDC when NODE_AUTH_TOKEN is not provided
 
       - name: Publish summary
         run: |

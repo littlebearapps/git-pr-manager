@@ -1,8 +1,8 @@
 # Git PR Manager - Claude Code Context
 
 **Last Updated**: 2025-11-16
-**Version**: 1.4.2
-**Status**: Production-ready npm package (CloakPipe telemetry integrated)
+**Version**: 1.4.3
+**Status**: Production-ready npm package (OIDC publishing enabled)
 
 ---
 
