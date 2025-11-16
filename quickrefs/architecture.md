@@ -1,6 +1,6 @@
 # Architecture & Code Patterns
 
-**Last Updated**: 2025-11-13
+**Last Updated**: 2025-11-16
 
 ---
 
@@ -339,6 +339,155 @@ describe('featureCommand', () => {
   });
 });
 ```
+
+---
+
+## CloakPipe Telemetry Pattern (Internal)
+
+### Purpose
+Private, opt-in error logging for internal development debugging. Automatically excluded from public releases.
+
+### Implementation Pattern
+
+**Location**: `src/index.ts` (lines 28-48)
+
+```typescript
+// Internal telemetry (optional - Nathan only, private)
+let telemetry: any = null;
+(async () => {
+  try {
+    const os = await import('os');
+    const username = os.userInfo().username;
+
+    if (username === 'nathanschram') {
+      // @ts-expect-error - Optional internal telemetry module (no types needed)
+      const { initTelemetry, captureBreadcrumb, captureError } =
+        await import('../telemetry/src/telemetry.js');
+
+      telemetry = {
+        init: () => initTelemetry('git-pr-manager', pkg.version),
+        breadcrumb: captureBreadcrumb,
+        error: captureError
+      };
+      telemetry.init();
+    }
+  } catch {
+    // Telemetry not available - gracefully degrade
+  }
+})();
+```
+
+### Key Design Principles
+
+**1. Username Detection**
+- Only activates for `username === 'nathanschram'`
+- External users never trigger telemetry code path
+- Zero overhead for public installations
+
+**2. Dynamic Import**
+- Uses `await import()` for optional loading
+- Fails gracefully if telemetry module unavailable
+- No compile-time dependency on telemetry
+
+**3. Optional Chaining**
+- All usage: `telemetry?.method()` (never `telemetry.method()`)
+- Safe even if initialization failed
+- No null pointer exceptions
+
+**4. Git Submodule Approach**
+- Telemetry code in `./telemetry/` (separate private repo)
+- Not included in git repository (submodule)
+- Automatically excluded from npm package
+
+### Defense-in-Depth Exclusion
+
+**Multiple Protection Layers**:
+```
+1. Git submodule → ./telemetry/ (private repo, not cloned by default)
+2. .gitignore → telemetry/ (prevents accidental commits)
+3. .npmignore → telemetry/, .gitmodules (excludes from package)
+4. package.json files field → doesn't list telemetry/ (explicit exclusion)
+```
+
+**Result**: 0 telemetry files in published npm package (verified)
+
+### Usage Pattern
+
+**Breadcrumbs** (command execution context):
+```typescript
+// src/index.ts - preAction hook
+telemetry?.breadcrumb(`command:${thisCommand.name()}`, {
+  args: thisCommand.args,
+  options: Object.keys(opts)
+});
+```
+
+**Error Capture** (uncaught exceptions):
+```typescript
+// src/index.ts - global error handlers
+process.on('uncaughtException', (error) => {
+  logger.error(`Uncaught exception: ${error.message}`);
+  telemetry?.error(error, { type: 'uncaughtException' });
+  // ...
+});
+```
+
+### Testing Scenarios
+
+**Nathan User** (development):
+```bash
+npm install
+# Output: 🔧 Setting up internal telemetry...
+#         ✅ Internal telemetry ready
+
+# Telemetry active - errors sent to CloakPipe server
+```
+
+**External User** (production):
+```bash
+npm install
+# Output: ✨ git-pr-manager installed!
+#         📖 Quick Start: ...
+
+# Telemetry code not present - graceful no-op
+```
+
+### Release Process Impact
+
+**npm publish**:
+- ✅ Automatic exclusion (no action required)
+- ✅ Package size: ~325 KB (no telemetry overhead)
+- ✅ Zero telemetry code in distribution
+
+**Homebrew** (future):
+- ✅ Same exclusion applies
+- ✅ Tarball created from npm package
+- ✅ No telemetry code distributed
+
+**Verification**:
+```bash
+# Before release
+npm pack --dry-run 2>&1 | grep telemetry
+# Expected: No output (excluded)
+
+# Check tarball
+npm pack
+tar -tzf *.tgz | grep telemetry
+# Expected: No output (not in package)
+```
+
+### Maintenance Notes
+
+**When modifying telemetry**:
+- Submodule code: `./telemetry/` (separate repo)
+- Always use optional chaining: `telemetry?.method()`
+- Test both Nathan and external user scenarios
+- Never require telemetry for core functionality
+
+**When releasing**:
+- No special steps - automatic exclusion
+- Optional: Verify with `npm pack --dry-run`
+- External users see no telemetry behavior
 
 ---
 
