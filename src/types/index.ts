@@ -1,5 +1,5 @@
 /**
- * Core types for git-workflow-manager
+ * Core types for git-pr-manager
  */
 
 export interface CheckRunDetails {

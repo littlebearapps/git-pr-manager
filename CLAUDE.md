@@ -1,4 +1,4 @@
-# Git Workflow Manager - Claude Code Context
+# Git PR Manager - Claude Code Context
 
 **Last Updated**: 2025-11-15
 **Version**: 1.4.0
@@ -10,8 +10,8 @@
 
 Production-ready git workflow automation for GitHub with Claude Code integration. Streamlines feature development with intelligent CI polling, comprehensive error reporting, automated PR workflows, git hooks integration, and git worktree management.
 
-**Repository**: https://github.com/littlebearapps/git-workflow-manager
-**npm Package**: @littlebearapps/git-workflow-manager (⚠️ Not yet published to npm)
+**Repository**: https://github.com/littlebearapps/git-pr-manager
+**npm Package**: @littlebearapps/git-pr-manager (⚠️ Not yet published to npm)
 **License**: MIT
 **Status**: v1.4.0 - Release Ready 🎉
 
@@ -20,14 +20,14 @@ Production-ready git workflow automation for GitHub with Claude Code integration
 **Phase 2: Git Hooks Integration**
 - ✅ Non-blocking reminder hooks (pre-push, post-commit)
 - ✅ CI-aware (auto-skip in GitHub Actions, etc.)
-- ✅ Config synchronization (.gwm.yml hooks section)
+- ✅ Config synchronization (.gpm.yml hooks section)
 - ✅ Safe install/uninstall with signature detection
 - ✅ Full documentation and AI agent integration
 - ✅ Rollout testing complete
 
 **Phase 3: Git Worktree Management**
-- ✅ `gwm worktree list` command with JSON support
-- ✅ `gwm worktree prune` command with dry-run support
+- ✅ `gpmworktree list` command with JSON support
+- ✅ `gpmworktree prune` command with dry-run support
 - ✅ Comprehensive production testing in bare repo environment
 - ✅ 15 new tests, all 678 tests passing
 - ✅ Full documentation and examples
@@ -54,7 +54,7 @@ Production-ready git workflow automation for GitHub with Claude Code integration
   - **Status**: v1.4.0 release finalized, awaiting publish decision
 
 #### ℹ️ Enhancement Opportunities
-- Add `--force` flag to `gwm init` for intentional config overwrites
+- Add `--force` flag to `gpminit` for intentional config overwrites
 - Improve GitHub token error messages with setup guidance
 
 #### 💡 Future Ideas
@@ -275,21 +275,21 @@ const pr = await github.createPullRequest({
 ## Architectural Principles
 
 ### Design Philosophy
-**gwm is designed for local developer workflows, not CI orchestration**
+**gpmis designed for local developer workflows, not CI orchestration**
 
-**✅ Use gwm for**:
-- Local PR automation (`gwm ship`, `gwm auto`)
-- Security validation in CI (`gwm security`)
+**✅ Use gpm for**:
+- Local PR automation (`gpmship`, `gpmauto`)
+- Security validation in CI (`gpmsecurity`)
 - Developer status checking
 - Structured JSON output for scripts
 
-**❌ Don't use gwm for**:
+**❌ Don't use gpm for**:
 - Orchestrating GitHub Actions workflows
 - Creating workflows to monitor other workflows
 - Replacing GitHub's built-in PR status checks
 - Meta-monitoring (workflows checking workflows)
 
-**Key principle**: Let GitHub Actions handle workflow execution. Use gwm to **enhance developer workflows** and **add validation**, not to orchestrate CI.
+**Key principle**: Let GitHub Actions handle workflow execution. Use gpm to **enhance developer workflows** and **add validation**, not to orchestrate CI.
 
 **See**: @docs/guides/GITHUB-ACTIONS-INTEGRATION.md - "Anti-Patterns & Best Practices" section for detailed examples.
 
@@ -345,9 +345,9 @@ npm publish --tag latest  # Stable
 - Clear Jest cache: `npx jest --clearCache`
 
 ### Update Check Issues
-- Clear cache: `gwm check-update --clear-cache`
-- Check npm registry: `npm view @littlebearapps/git-workflow-manager`
-- Verify connectivity: `curl https://registry.npmjs.org/@littlebearapps/git-workflow-manager`
+- Clear cache: `gpmcheck-update --clear-cache`
+- Check npm registry: `npm view @littlebearapps/git-pr-manager`
+- Verify connectivity: `curl https://registry.npmjs.org/@littlebearapps/git-pr-manager`
 
 ---
 

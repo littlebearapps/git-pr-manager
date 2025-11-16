@@ -62,7 +62,7 @@ describe('Git Hooks Integration', () => {
       // Setup: Mock git hooks directory
       jest.spyOn(gitHooks, 'getGitHooksDir').mockResolvedValue('/test/repo/.git/hooks');
       jest.spyOn(gitHooks, 'fileExists').mockResolvedValue(false); // For install
-      jest.spyOn(gitHooks, 'isGwmHook').mockResolvedValue(true); // For uninstall
+      jest.spyOn(gitHooks, 'isGpmHook').mockResolvedValue(true); // For uninstall
       mockedFs.mkdir.mockResolvedValue(undefined);
       mockedFs.writeFile.mockResolvedValue(undefined);
       mockedFs.chmod.mockResolvedValue(undefined);
@@ -112,7 +112,7 @@ describe('Git Hooks Integration', () => {
       // Setup: Mock git hooks directory
       jest.spyOn(gitHooks, 'getGitHooksDir').mockResolvedValue('/test/repo/.git/hooks');
       jest.spyOn(gitHooks, 'fileExists').mockResolvedValue(false); // For install
-      jest.spyOn(gitHooks, 'isGwmHook').mockResolvedValue(true); // For uninstall
+      jest.spyOn(gitHooks, 'isGpmHook').mockResolvedValue(true); // For uninstall
       mockedFs.mkdir.mockResolvedValue(undefined);
       mockedFs.writeFile.mockResolvedValue(undefined);
       mockedFs.chmod.mockResolvedValue(undefined);
@@ -150,10 +150,10 @@ describe('Git Hooks Integration', () => {
 
   describe('hook persistence across reinstall', () => {
     it('should overwrite hook with --force flag', async () => {
-      // Setup: Mock git hooks directory and existing gwm hook
+      // Setup: Mock git hooks directory and existing gpm hook
       jest.spyOn(gitHooks, 'getGitHooksDir').mockResolvedValue('/test/repo/.git/hooks');
       jest.spyOn(gitHooks, 'fileExists').mockResolvedValue(true); // Hook exists
-      jest.spyOn(gitHooks, 'isGwmHook').mockResolvedValue(true); // Is a gwm hook
+      jest.spyOn(gitHooks, 'isGpmHook').mockResolvedValue(true); // Is a gpm hook
       mockedFs.mkdir.mockResolvedValue(undefined);
       mockedFs.chmod.mockResolvedValue(undefined);
       mockedFs.writeFile.mockResolvedValue(undefined);
@@ -222,7 +222,7 @@ describe('Git Hooks Integration', () => {
 
       // Setup for uninstall - Update mocks so hooks now exist
       jest.spyOn(gitHooks, 'fileExists').mockResolvedValue(true); // Hooks now exist
-      jest.spyOn(gitHooks, 'isGwmHook').mockResolvedValue(true); // And are gwm hooks
+      jest.spyOn(gitHooks, 'isGpmHook').mockResolvedValue(true); // And are gpm hooks
       mockedFs.unlink.mockResolvedValue(undefined);
 
       mockConfigInstance.load.mockResolvedValue({

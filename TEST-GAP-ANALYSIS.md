@@ -1,4 +1,4 @@
-# Test Coverage Gap Analysis - git-workflow-manager
+# Test Coverage Gap Analysis - git-pr-manager
 
 **Generated**: 2025-11-13
 **Current Coverage**: 70.32% statements, 63.5% branches, 63.07% functions, 70.34% lines

@@ -7,7 +7,7 @@
 ## Directory Structure
 
 ```
-git-workflow-manager/
+git-pr-manager/
 ├── src/
 │   ├── commands/           # CLI commands
 │   │   ├── auto.ts         # Automated workflow
@@ -27,7 +27,7 @@ git-workflow-manager/
 │   │
 │   ├── utils/              # Utilities
 │   │   ├── cache.ts        # LRU caching with ETag
-│   │   ├── config.ts       # .gwm.yml configuration
+│   │   ├── config.ts       # .gpm.yml configuration
 │   │   ├── error.ts        # Error types & codes
 │   │   ├── logger.ts       # Logging & output
 │   │   ├── spinner.ts      # CLI spinners
@@ -143,16 +143,16 @@ const cached = cache.get('key');
 
 **Cached Data**:
 - GitHub API responses (PRs, checks, repos)
-- Config files (.gwm.yml)
+- Config files (.gpm.yml)
 - Update check results
 
 #### Disk Cache (Persistent)
-**Location**: `TMPDIR/gwm-update-check/`
+**Location**: `TMPDIR/gpm-update-check/`
 **Usage**: Update check results
 
 ```typescript
 // 7-day TTL for update checks
-const cacheFile = join(tmpdir(), 'gwm-update-check', `${pkg}_${channel}.json`);
+const cacheFile = join(tmpdir(), 'gpm-update-check', `${pkg}_${channel}.json`);
 ```
 
 ---
@@ -263,7 +263,7 @@ try {
 
 ### Configuration Pattern
 
-#### Schema (`.gwm.yml`)
+#### Schema (`.gpm.yml`)
 ```yaml
 github:
   defaultBranch: main

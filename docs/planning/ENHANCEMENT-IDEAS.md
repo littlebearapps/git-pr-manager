@@ -1,4 +1,4 @@
-# git-workflow-manager - Enhancement Ideas
+# git-pr-manager - Enhancement Ideas
 
 **Version**: 0.2.0 (Current) → 0.3.0+ (Future)
 **Based On**: Production testing (2025-10-18)
@@ -26,10 +26,10 @@
 git status
 # Untracked files: artifacts/test-results/
 
-gwm ship  # ✅ Proceeds (no uncommitted changes to tracked files)
+gpm ship  # ✅ Proceeds (no uncommitted changes to tracked files)
 
 # Enhanced: Strict mode fails on untracked files
-gwm ship --strict  # ❌ Fails: "Untracked files detected"
+gpm ship --strict  # ❌ Fails: "Untracked files detected"
 ```
 
 **Implementation**:
@@ -62,7 +62,7 @@ fi
 git log --oneline main..feature/my-feature
 # 2 commits ahead, but main is 5 commits ahead
 
-gwm ship --rebase  # Rebases feature on latest main before PR
+gpm ship --rebase  # Rebases feature on latest main before PR
 ```
 
 **Implementation**:
@@ -144,7 +144,7 @@ Implements dark mode toggle in settings panel with user preference persistence.
 **Use Case**:
 ```bash
 # Initial ship attempt
-gwm ship
+gpm ship
 # ❌ CI failed: ESLint errors
 
 # Fix lint errors locally
@@ -152,7 +152,7 @@ npm run lint --fix
 git add . && git commit -m "fix: lint errors"
 
 # Retry with same PR
-gwm ship --retry-ci  # Detects existing PR, pushes updates, re-waits for CI
+gpm ship --retry-ci  # Detects existing PR, pushes updates, re-waits for CI
 ```
 
 **Implementation**:
@@ -173,14 +173,14 @@ gwm ship --retry-ci  # Detects existing PR, pushes updates, re-waits for CI
 
 **Current**:
 ```bash
-gwm ship
+gpm ship
 # ❌ Merge conflict detected
 # Solution: Manually resolve, then re-run
 ```
 
 **Enhanced**:
 ```bash
-gwm ship
+gpm ship
 # ❌ Merge conflict detected
 
 # Interactive prompts:
@@ -210,7 +210,7 @@ gwm ship
 
 **Use Case**:
 ```bash
-gwm ship
+gpm ship
 # 🚀 Shipping feature...
 # ⏱️  Estimated time: 2-3 min (based on last 10 ships)
 #
@@ -221,7 +221,7 @@ gwm ship
 ```
 
 **Implementation**:
-- Store ship durations in `.gwm.yml` or `.git/gwm-history.json`
+- Store ship durations in `.gpm.yml` or `.git/gpm-history.json`
 - Track timing for each step
 - Calculate rolling averages (last 10-50 ships)
 - Display estimates during execution
@@ -243,12 +243,12 @@ gwm ship
 # Create base feature
 git checkout -b feature/api-redesign
 # ... work ...
-gwm ship  # PR #1: feature/api-redesign → main
+gpm ship  # PR #1: feature/api-redesign → main
 
 # Create dependent feature (requires API redesign)
 git checkout -b feature/api-client
 # ... work ...
-gwm ship --base=feature/api-redesign  # PR #2: feature/api-client → feature/api-redesign
+gpm ship --base=feature/api-redesign  # PR #2: feature/api-client → feature/api-redesign
 
 # When PR #1 merges, auto-update PR #2 to target main
 ```
@@ -273,11 +273,11 @@ gwm ship --base=feature/api-redesign  # PR #2: feature/api-client → feature/ap
 ```bash
 # In API repo
 cd ~/projects/my-api/
-gwm ship --link-pr  # Creates PR, returns PR URL
+gpm ship --link-pr  # Creates PR, returns PR URL
 
 # In client repo
 cd ~/projects/my-client/
-gwm ship --depends-on=https://github.com/org/my-api/pull/42
+gpm ship --depends-on=https://github.com/org/my-api/pull/42
 # Waits for API PR to merge before creating client PR
 ```
 
@@ -300,7 +300,7 @@ gwm ship --depends-on=https://github.com/org/my-api/pull/42
 **Use Case**:
 ```bash
 # After shipping multiple features
-gwm changelog --since=v1.0.0
+gpm changelog --since=v1.0.0
 
 # Generates:
 ## Changelog (v1.0.0 → HEAD)
@@ -347,8 +347,8 @@ gwm changelog --since=v1.0.0
 - [ ] Documentation updated
 - [ ] CHANGELOG.md updated
 
-# gwm ship uses template automatically
-gwm ship --template=.github/pull_request_template.md
+# gpm ship uses template automatically
+gpm ship --template=.github/pull_request_template.md
 ```
 
 **Implementation**:
@@ -392,7 +392,7 @@ For each enhancement:
 
 1. **Dry-Run Testing** (5-10 min per enhancement)
    - Create test branch
-   - Run `gwm <command> --dry-run`
+   - Run `gpm <command> --dry-run`
    - Verify expected behavior
 
 2. **Real Execution** (10-20 min per enhancement)

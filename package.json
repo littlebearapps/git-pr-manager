@@ -1,10 +1,10 @@
 {
-  "name": "@littlebearapps/git-workflow-manager",
+  "name": "@littlebearapps/git-pr-manager",
   "version": "1.4.0",
   "description": "Production-ready git workflow automation for GitHub with Claude Code integration",
   "main": "dist/index.js",
   "bin": {
-    "gwm": "dist/index.js"
+    "gpm": "dist/index.js"
   },
   "files": [
     "dist/",
@@ -47,12 +47,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/littlebearapps/git-workflow-manager"
+    "url": "https://github.com/littlebearapps/git-pr-manager"
   },
   "bugs": {
-    "url": "https://github.com/littlebearapps/git-workflow-manager/issues"
+    "url": "https://github.com/littlebearapps/git-pr-manager/issues"
   },
-  "homepage": "https://github.com/littlebearapps/git-workflow-manager#readme",
+  "homepage": "https://github.com/littlebearapps/git-pr-manager#readme",
   "author": "Nathan Schram <nathan@littlebearapps.com>",
   "license": "MIT",
   "dependencies": {

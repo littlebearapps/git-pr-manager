@@ -8,7 +8,7 @@
 
 ## Summary
 
-Phase 1 of the git-workflow-manager enhancement has been successfully completed. The subagent has been migrated from bash to TypeScript with Octokit SDK integration, and the enhanced CI error reporting system is fully implemented.
+Phase 1 of the git-pr-manager enhancement has been successfully completed. The subagent has been migrated from bash to TypeScript with Octokit SDK integration, and the enhanced CI error reporting system is fully implemented.
 
 ## What Was Accomplished
 
@@ -59,7 +59,7 @@ Phase 1 of the git-workflow-manager enhancement has been successfully completed.
 - Default branch detection
 
 ✅ **ConfigService.ts** (239 lines)
-- .gwm.yml configuration management
+- .gpm.yml configuration management
 - YAML parsing and validation
 - Template support: basic, standard, strict
 - Default configuration merging
@@ -113,7 +113,7 @@ Phase 1 of the git-workflow-manager enhancement has been successfully completed.
 
 ✅ **Commands Implemented**
 - `checks.ts` (119 lines) - Show detailed CI check status
-- `init.ts` (53 lines) - Initialize .gwm.yml
+- `init.ts` (53 lines) - Initialize .gpm.yml
 - `status.ts` (75 lines) - Show git and workflow status
 
 ✅ **Utilities**
@@ -219,46 +219,46 @@ From COMPREHENSIVE-ENHANCEMENT-PLAN.md (lines 1736-1740):
 
 ## Commands Ready to Use
 
-### 1. `gwm checks <pr-number>`
+### 1. `gpm checks <pr-number>`
 
 Show detailed CI check status for a PR:
 
 ```bash
 # Show full summary
-gwm checks 123
+gpm checks 123
 
 # Show only affected files
-gwm checks 123 --files
+gpm checks 123 --files
 
 # Show detailed annotations (placeholder)
-gwm checks 123 --details
+gpm checks 123 --details
 ```
 
 **Requirements**:
 - `GITHUB_TOKEN` or `GH_TOKEN` environment variable
 - Must be run in a git repository
 
-### 2. `gwm init`
+### 2. `gpm init`
 
-Initialize .gwm.yml configuration:
+Initialize .gpm.yml configuration:
 
 ```bash
 # Basic template (default)
-gwm init
+gpm init
 
 # Standard template (with branch protection)
-gwm init --template standard
+gpm init --template standard
 
 # Strict template (max security)
-gwm init --template strict
+gpm init --template strict
 ```
 
-### 3. `gwm status`
+### 3. `gpm status`
 
 Show current git and workflow status:
 
 ```bash
-gwm status
+gpm status
 ```
 
 Shows:
@@ -278,7 +278,7 @@ These are expected and will be addressed in future phases:
    - Need to set up Nock for API mocking
 
 2. **Annotation Fetching Not Wired**
-   - `gwm checks --details` shows placeholder
+   - `gpm checks --details` shows placeholder
    - Implementation ready, just needs check run IDs
 
 3. **No PR Creation/Merge**
@@ -354,7 +354,7 @@ node dist/index.js checks 99999
 node dist/index.js init
 
 # View it
-cat .gwm.yml
+cat .gpm.yml
 
 # Status should show config
 node dist/index.js status
@@ -372,7 +372,7 @@ node dist/index.js status
 1. PRService and PRTemplateService
 2. Enhanced waitForChecks() with progress reporting
 3. VerifyService for pre-merge validation
-4. `gwm ship` command implementation
+4. `gpm ship` command implementation
 
 **Reference**: See COMPREHENSIVE-ENHANCEMENT-PLAN.md lines 1744-1820
 
@@ -390,7 +390,7 @@ node dist/index.js status
 ## Quick Start for Next Session
 
 ```bash
-cd ~/claude-code-tools/lba/apps/subagents/git-workflow-manager
+cd ~/claude-code-tools/lba/apps/subagents/git-pr-manager
 
 # Verify build works
 npm run build

@@ -1,4 +1,4 @@
-# Rename Audit: gwm → gwa (git-workflow-manager → git-workflow-automation)
+# Rename Audit: gpm → gpm (git-pr-manager → git-pr-manager)
 
 **Status**: Pre-Release Rename
 **Date**: 2025-11-15
@@ -8,20 +8,20 @@
 
 ## Executive Summary
 
-This document audits all instances of "gwm" and "git-workflow-manager" that require updating to "gwa" and "git-workflow-automation" respectively. Since the package has not been publicly released, we can perform a clean rename without migration concerns.
+This document audits all instances of "gpm" and "git-pr-manager" that require updating to "gpm" and "git-pr-manager" respectively. Since the package has not been publicly released, we can perform a clean rename without migration concerns.
 
 **Total Files Requiring Updates**: 106+ files
-- **58+ files** contain "gwm" (case-insensitive) - including `.claude/settings.local.json`
-- **44+ files** contain "git-workflow-manager" - including parent `CLAUDE.md`
-- **Additional**: User config files (`.gwm.yml` if exists), `package-lock.json` (auto-regenerated)
+- **58+ files** contain "gpm" (case-insensitive) - including `.claude/settings.local.json`
+- **44+ files** contain "git-pr-manager" - including parent `CLAUDE.md`
+- **Additional**: User config files (`.gpm.yml` if exists), `package-lock.json` (auto-regenerated)
 
 ---
 
 ## Critical Changes
 
 ### 1. Directory Path
-**Current**: `/Users/nathanschram/claude-code-tools/lba/apps/subagents/git-workflow-manager`
-**New**: `/Users/nathanschram/claude-code-tools/lba/apps/subagents/git-workflow-automation`
+**Current**: `/Users/nathanschram/claude-code-tools/lba/apps/subagents/git-pr-manager`
+**New**: `/Users/nathanschram/claude-code-tools/lba/apps/subagents/git-pr-manager`
 
 **Action**: Rename directory after all file updates are complete
 
@@ -34,12 +34,12 @@ This document audits all instances of "gwm" and "git-workflow-manager" that requ
 ---
 
 ### 2. Git Repository
-**Current**: `https://github.com/littlebearapps/git-workflow-manager`
-**New**: `https://github.com/littlebearapps/git-workflow-automation`
+**Current**: `https://github.com/littlebearapps/git-pr-manager`
+**New**: `https://github.com/littlebearapps/git-pr-manager`
 
 **Actions Required**:
 1. Rename repository on GitHub (Settings → Rename)
-2. Update all remote URLs: `git remote set-url origin https://github.com/littlebearapps/git-workflow-automation.git`
+2. Update all remote URLs: `git remote set-url origin https://github.com/littlebearapps/git-pr-manager.git`
 3. GitHub automatically redirects old URLs (but update references anyway)
 
 **Files Containing Repository URL**:
@@ -53,14 +53,14 @@ This document audits all instances of "gwm" and "git-workflow-manager" that requ
 ---
 
 ### 3. npm Package Name
-**Current**: `@littlebearapps/git-workflow-manager`
-**New**: `@littlebearapps/git-workflow-automation`
+**Current**: `@littlebearapps/git-pr-manager`
+**New**: `@littlebearapps/git-pr-manager`
 
 **File**: `package.json` (line 2)
 
 **Impact**:
-- Installation command: `npm install -g @littlebearapps/git-workflow-automation`
-- Import statements: `import { ... } from '@littlebearapps/git-workflow-automation'`
+- Installation command: `npm install -g @littlebearapps/git-pr-manager`
+- Import statements: `import { ... } from '@littlebearapps/git-pr-manager'`
 - All documentation showing installation instructions
 
 **Files Containing Package Name**:
@@ -75,8 +75,8 @@ This document audits all instances of "gwm" and "git-workflow-manager" that requ
 - `docs/guides/JSON-OUTPUT-SCHEMAS.md`
 - `docs/guides/AI-AGENT-INTEGRATION.md`
 - `docs/implementation/PHASE-5-PROGRESS.md`
-- `docs/planning/git-workflow-manager-phase-7-plan.md`
-- `docs/planning/git-workflow-manager-phase-5-plan.md`
+- `docs/planning/git-pr-manager-phase-7-plan.md`
+- `docs/planning/git-pr-manager-phase-5-plan.md`
 - `src/commands/docs.ts`
 - `src/utils/update-check.ts`
 - `tests/utils/update-check.test.ts`
@@ -84,22 +84,22 @@ This document audits all instances of "gwm" and "git-workflow-manager" that requ
 ---
 
 ### 4. Binary Name
-**Current**: `gwm`
-**New**: `gwa`
+**Current**: `gpm`
+**New**: `gpm`
 
 **File**: `package.json` (line 6-8)
 
 **Current**:
 ```json
 "bin": {
-  "gwm": "dist/index.js"
+  "gpm": "dist/index.js"
 }
 ```
 
 **New**:
 ```json
 "bin": {
-  "gwa": "dist/index.js"
+  "gpm": "dist/index.js"
 }
 ```
 
@@ -113,7 +113,7 @@ This document audits all instances of "gwm" and "git-workflow-manager" that requ
 
 #### 1. `package.json` - **CRITICAL**
 **Lines to Update**:
-- Line 2: `"name": "@littlebearapps/git-workflow-automation"`
+- Line 2: `"name": "@littlebearapps/git-pr-manager"`
 - Lines 6-8: Binary name `"gwa": "dist/index.js"`
 - Line 50: Repository URL
 - Line 53: Bugs URL
@@ -129,23 +129,23 @@ This document audits all instances of "gwm" and "git-workflow-manager" that requ
 **Instances**: Multiple (installation, usage examples, repository links)
 
 **Update Required**:
-- All `gwm` command examples → `gwa`
-- Installation: `npm install -g @littlebearapps/git-workflow-automation`
+- All `gpm` command examples → `gpm`
+- Installation: `npm install -g @littlebearapps/git-pr-manager`
 - Repository links: Update GitHub URLs
 - Title: "Git Workflow Automation" (or keep as is if generic)
 
-**Estimated Lines**: 50+ instances of `gwm`
+**Estimated Lines**: 50+ instances of `gpm`
 
 ---
 
 #### 3. `CLAUDE.md` - **HIGH PRIORITY**
-**Instances**: Multiple references to gwm and package name
+**Instances**: Multiple references to gpm and package name
 
 **Update Required**:
 - Project name references
 - Repository URL (line 9)
 - npm package name
-- All command examples using `gwm` → `gwa`
+- All command examples using `gpm` → `gpm`
 
 ---
 
@@ -161,17 +161,17 @@ This document audits all instances of "gwm" and "git-workflow-manager" that requ
 
 ---
 
-#### 5. `.gwm.example.yml` - **CRITICAL**
+#### 5. `.gpm.example.yml` - **CRITICAL**
 **File Name**: Rename to `.gwa.example.yml`
-**Content**: Update all references to gwm → gwa
+**Content**: Update all references to gpm → gpm
 
 ---
 
 #### 6. `AUTO-FIX.md` - **MEDIUM**
-**Instances**: Multiple references to gwm commands
+**Instances**: Multiple references to gpm commands
 
 **Update Required**:
-- All command examples: `gwm` → `gwa`
+- All command examples: `gpm` → `gpm`
 
 ---
 
@@ -183,7 +183,7 @@ This document audits all instances of "gwm" and "git-workflow-manager" that requ
 - Version info
 - Help text
 
-**Instances**: References to "gwm" in CLI setup
+**Instances**: References to "gpm" in CLI setup
 
 ---
 
@@ -204,26 +204,26 @@ This document audits all instances of "gwm" and "git-workflow-manager" that requ
 
 **Update Required**:
 - Help text and descriptions
-- Error messages referencing "gwm"
+- Error messages referencing "gpm"
 - Example commands in docs strings
-- Config file references (.gwm.yml → .gwa.yml)
+- Config file references (.gpm.yml → .gpm.yml)
 
 ---
 
 #### 9. `src/services/ConfigService.ts` - **CRITICAL**
-**Instances**: Config file name `.gwm.yml`
+**Instances**: Config file name `.gpm.yml`
 
 **Update Required**:
-- Line referencing `.gwm.yml` → `.gwa.yml`
+- Line referencing `.gpm.yml` → `.gpm.yml`
 - Any default config paths
 - Error messages about config file
 
 ---
 
 #### 10. `src/services/AutoFixService.ts` - **MEDIUM**
-**Instances**: References to gwm in error messages/logs
+**Instances**: References to gpm in error messages/logs
 
-**Update Required**: Command suggestions using gwm → gwa
+**Update Required**: Command suggestions using gpm → gpm
 
 ---
 
@@ -231,7 +231,7 @@ This document audits all instances of "gwm" and "git-workflow-manager" that requ
 **Instances**: Multiple references in git hook generation
 
 **Update Required**:
-- Hook signature comments (identifies gwm hooks)
+- Hook signature comments (identifies gpm hooks)
 - Command invocations in hook scripts
 - Config file references
 
@@ -241,13 +241,13 @@ This document audits all instances of "gwm" and "git-workflow-manager" that requ
 **Instances**: Package name for npm registry checks
 
 **Update Required**:
-- Package name: `@littlebearapps/git-workflow-automation`
+- Package name: `@littlebearapps/git-pr-manager`
 - CLI name in update messages
 
 ---
 
 #### 13. `src/utils/errors.ts` - **LOW**
-**Check for**: Error messages mentioning gwm
+**Check for**: Error messages mentioning gpm
 
 ---
 
@@ -270,7 +270,7 @@ This document audits all instances of "gwm" and "git-workflow-manager" that requ
 - Integration tests
 
 **Update Required**:
-- Mock configurations referencing gwm
+- Mock configurations referencing gpm
 - Test descriptions
 - Config file name tests
 - Command invocation tests
@@ -302,7 +302,7 @@ This document audits all instances of "gwm" and "git-workflow-manager" that requ
 **Instances**: Multiple (this is the positioning doc created earlier)
 
 **Update Required**:
-- All references to gwm → gwa throughout
+- All references to gpm → gpm throughout
 - Package name
 - Repository URLs
 - Binary name in all examples
@@ -313,7 +313,7 @@ This document audits all instances of "gwm" and "git-workflow-manager" that requ
 **Instances**: Multiple command examples, package name
 
 **Update Required**:
-- All `gwm` command examples → `gwa`
+- All `gpm` command examples → `gpm`
 - Installation instructions
 - JSON schema references
 
@@ -333,7 +333,7 @@ This document audits all instances of "gwm" and "git-workflow-manager" that requ
 **Instances**: Command examples with JSON output
 
 **Update Required**:
-- All `gwm` → `gwa` in examples
+- All `gpm` → `gpm` in examples
 - Package name
 
 ---
@@ -378,14 +378,14 @@ This document audits all instances of "gwm" and "git-workflow-manager" that requ
 
 #### 28. `docs/planning/*.md` (5 files) - **MEDIUM**
 **Files**:
-- `git-workflow-manager-phase-5-plan.md`
-- `git-workflow-manager-phase-6-plan.md`
-- `git-workflow-manager-phase-7-plan.md`
+- `git-pr-manager-phase-5-plan.md`
+- `git-pr-manager-phase-6-plan.md`
+- `git-pr-manager-phase-7-plan.md`
 - `COMPREHENSIVE-ENHANCEMENT-PLAN.md`
 - `ENHANCEMENT-IDEAS.md`
 
 **Update Required**:
-- File names: Rename to `git-workflow-automation-phase-*.md`
+- File names: Rename to `git-pr-manager-phase-*.md`
 - Content: Update package/command references
 
 ---
@@ -400,9 +400,9 @@ This document audits all instances of "gwm" and "git-workflow-manager" that requ
 ### Quick References
 
 #### 30. `quickrefs/commands.md` - **HIGH PRIORITY**
-**Instances**: All command examples use gwm
+**Instances**: All command examples use gpm
 
-**Update Required**: Every single command example gwm → gwa
+**Update Required**: Every single command example gpm → gpm
 
 ---
 
@@ -425,8 +425,8 @@ This document audits all instances of "gwm" and "git-workflow-manager" that requ
 - `setup-protection.yml`
 
 **Update Required**:
-- Installation: `npm install -g @littlebearapps/git-workflow-automation`
-- All command invocations: `gwm` → `gwa`
+- Installation: `npm install -g @littlebearapps/git-pr-manager`
+- All command invocations: `gpm` → `gpm`
 
 ---
 
@@ -447,7 +447,7 @@ This document audits all instances of "gwm" and "git-workflow-manager" that requ
 **Update Required**:
 - Package name in publish commands
 - Repository references
-- Any hardcoded gwm references
+- Any hardcoded gpm references
 
 ---
 
@@ -461,12 +461,12 @@ This document audits all instances of "gwm" and "git-workflow-manager" that requ
 ### Claude Code Configuration
 
 #### 37. `.claude/settings.local.json` - **HIGH PRIORITY**
-**Instances**: 3 references to gwm in permissions array
+**Instances**: 3 references to gpm in permissions array
 
 **Lines to Update**:
-- Line 20: `"Bash(gwm --version:*)"` → `"Bash(gwa --version:*)"`
-- Line 30: `"Bash(gwm --help:*)"` → `"Bash(gwa --help:*)"`
-- Line 32: `"Bash(gwm doctor:*)"` → `"Bash(gwa doctor:*)"`
+- Line 20: `"Bash(gpm --version:*)"` → `"Bash(gwa --version:*)"`
+- Line 30: `"Bash(gpm --help:*)"` → `"Bash(gwa --help:*)"`
+- Line 32: `"Bash(gpm doctor:*)"` → `"Bash(gwa doctor:*)"`
 
 **Impact**: Claude Code command permissions for local development
 
@@ -476,13 +476,13 @@ This document audits all instances of "gwm" and "git-workflow-manager" that requ
 
 #### 38. `~/claude-code-tools/CLAUDE.md` - **HIGH PRIORITY**
 **Location**: Root directory CLAUDE.md (parent of this project)
-**Instances**: 2 references to git-workflow-manager
+**Instances**: 2 references to git-pr-manager
 
 **Lines to Update**:
-- Line 14: `"Subagent development (git-workflow-manager, multi-project-tester, microtool-creator)"`
-  - Update: `git-workflow-manager` → `git-workflow-automation`
-- Line 124: `"| **git-workflow-manager** | v0.2.0 | Feature-branch PR workflow | >60% |"`
-  - Update: `**git-workflow-manager**` → `**git-workflow-automation**`
+- Line 14: `"Subagent development (git-pr-manager, multi-project-tester, microtool-creator)"`
+  - Update: `git-pr-manager` → `git-pr-manager`
+- Line 124: `"| **git-pr-manager** | v0.2.0 | Feature-branch PR workflow | >60% |"`
+  - Update: `**git-pr-manager**` → `**git-pr-manager**`
   - Update directory path in description
 
 **Impact**: Project documentation in root workspace
@@ -491,13 +491,13 @@ This document audits all instances of "gwm" and "git-workflow-manager" that requ
 
 ### User Configuration Files
 
-#### 39. `.gwm.yml` (User's Local Config) - **NOTE**
-**File**: `.gwm.yml` (if exists in user's working directory)
+#### 39. `.gpm.yml` (User's Local Config) - **NOTE**
+**File**: `.gpm.yml` (if exists in user's working directory)
 **Status**: User-specific config file (not in git)
 
 **Action**: Users should rename their local config file:
-- From: `.gwm.yml`
-- To: `.gwa.yml`
+- From: `.gpm.yml`
+- To: `.gpm.yml`
 
 **Note**: This is user-specific, not checked into git. Add reminder in CHANGELOG and release notes for users to migrate their local config files.
 
@@ -505,30 +505,30 @@ This document audits all instances of "gwm" and "git-workflow-manager" that requ
 
 ## Config File Migration
 
-### `.gwm.yml` → `.gwa.yml`
+### `.gpm.yml` → `.gpm.yml`
 
 **Files to Update**:
 1. `src/services/ConfigService.ts` - Config file discovery logic
 2. `src/commands/init.ts` - Config initialization
 3. All tests that create/read config files
 4. All documentation showing config examples
-5. `.gwm.example.yml` → `.gwa.example.yml`
+5. `.gpm.example.yml` → `.gwa.example.yml`
 
 **Migration Strategy**: ConfigService should check for both files during transition
 ```typescript
 // Pseudocode
-const configFiles = ['.gwa.yml', '.gwm.yml']; // Try new name first
+const configFiles = ['.gpm.yml', '.gpm.yml']; // Try new name first
 for (const file of configFiles) {
   if (await exists(file)) {
-    if (file === '.gwm.yml') {
-      logger.warn('Using deprecated .gwm.yml - please rename to .gwa.yml');
+    if (file === '.gpm.yml') {
+      logger.warn('Using deprecated .gpm.yml - please rename to .gpm.yml');
     }
     return file;
   }
 }
 ```
 
-**Note**: Since we're pre-release, we can skip migration logic and just use `.gwa.yml` exclusively.
+**Note**: Since we're pre-release, we can skip migration logic and just use `.gpm.yml` exclusively.
 
 ---
 
@@ -545,7 +545,7 @@ for (const file of configFiles) {
 3. package-lock.json automatically updates all references
 
 **Current References** (will auto-update):
-- Line 2: `"name": "@littlebearapps/git-workflow-manager"`
+- Line 2: `"name": "@littlebearapps/git-pr-manager"`
 - Line 8: Additional package name reference
 
 **Warning**: ⚠️ Do NOT manually edit package-lock.json - let npm handle it to avoid corruption.
@@ -563,17 +563,17 @@ for (const file of configFiles) {
 
 **Current Signature**:
 ```bash
-# Generated by git-workflow-manager (gwm)
+# Generated by git-pr-manager (gpm)
 ```
 
 **New Signature**:
 ```bash
-# Generated by git-workflow-automation (gwa)
+# Generated by git-pr-manager (gpm)
 ```
 
 **Update Required**:
 - Hook template generation
-- Hook detection regex (isGwmHook function)
+- Hook detection regex (isGpmHook function)
 - All tests validating hook signatures
 
 ---
@@ -588,17 +588,17 @@ for (const file of configFiles) {
 
 **Update Required**:
 - Program description
-- Command descriptions referencing "gwm"
+- Command descriptions referencing "gpm"
 - Usage examples
-- Error messages suggesting "gwm" commands
+- Error messages suggesting "gpm" commands
 
 **Example Updates**:
 ```diff
-- description: 'Initialize gwm configuration'
-+ description: 'Initialize gwa configuration'
+- description: 'Initialize gpm configuration'
++ description: 'Initialize gpm configuration'
 
-- suggestion: 'Run: gwm init'
-+ suggestion: 'Run: gwa init'
+- suggestion: 'Run: gpm init'
++ suggestion: 'Run: gpm init'
 ```
 
 ---
@@ -614,16 +614,16 @@ for (const file of configFiles) {
 **Critical Update**:
 ```typescript
 // Line ~20
-const pkg = '@littlebearapps/git-workflow-automation';
+const pkg = '@littlebearapps/git-pr-manager';
 ```
 
 **Update Messages**:
 ```diff
-- 'Update available for git-workflow-manager'
-+ 'Update available for git-workflow-automation'
+- 'Update available for git-pr-manager'
++ 'Update available for git-pr-manager'
 
-- 'npm install -g @littlebearapps/git-workflow-manager'
-+ 'npm install -g @littlebearapps/git-workflow-automation'
+- 'npm install -g @littlebearapps/git-pr-manager'
++ 'npm install -g @littlebearapps/git-pr-manager'
 ```
 
 ---
@@ -632,11 +632,11 @@ const pkg = '@littlebearapps/git-workflow-automation';
 
 ### Phase 1: Core Package Files (Critical)
 - [ ] `package.json` - Name, bin, repository, bugs, homepage
-- [ ] `.gwm.example.yml` → `.gwa.example.yml` (rename file)
+- [ ] `.gpm.example.yml` → `.gwa.example.yml` (rename file)
 - [ ] `src/services/ConfigService.ts` - Config file name
 - [ ] `src/utils/update-check.ts` - Package name
 - [ ] `.github/workflows/publish.yml` - Package name
-- [ ] `.claude/settings.local.json` - Update gwm permission entries (3 instances)
+- [ ] `.claude/settings.local.json` - Update gpm permission entries (3 instances)
 - [ ] `package-lock.json` - Run `npm install` after package.json update (auto-regenerates)
 
 ### Phase 2: Source Code
@@ -703,11 +703,11 @@ const pkg = '@littlebearapps/git-workflow-automation';
 - [ ] `AUTO-FIX.md` - Command examples
 - [ ] `TEST-GAP-ANALYSIS.md` - References
 - [ ] `~/claude-code-tools/CLAUDE.md` - Update project name in subagent references
-- [ ] Rename directory: `git-workflow-manager` → `git-workflow-automation`
+- [ ] Rename directory: `git-pr-manager` → `git-pr-manager`
 - [ ] Update git remote URL
 - [ ] Rename GitHub repository
-- [ ] Add migration note to CHANGELOG: Users should rename `.gwm.yml` → `.gwa.yml`
-- [ ] Rename user's local `.gwm.yml` → `.gwa.yml` (if exists)
+- [ ] Add migration note to CHANGELOG: Users should rename `.gpm.yml` → `.gpm.yml`
+- [ ] Rename user's local `.gpm.yml` → `.gpm.yml` (if exists)
 
 ---
 
@@ -717,40 +717,40 @@ const pkg = '@littlebearapps/git-workflow-automation';
 
 **Pattern 1: Binary Name**
 ```bash
-# Find: \bgwm\b (word boundary)
-# Replace: gwa
+# Find: \bgpm\b (word boundary)
+# Replace: gpm
 # Files: *.md, *.ts, *.js, *.yml, *.yaml
 # Exclude: node_modules/, dist/, coverage/
 ```
 
 **Pattern 2: Package Name**
 ```bash
-# Find: @littlebearapps/git-workflow-manager
-# Replace: @littlebearapps/git-workflow-automation
+# Find: @littlebearapps/git-pr-manager
+# Replace: @littlebearapps/git-pr-manager
 # Files: *.json, *.md, *.ts, *.yml
 # Exclude: node_modules/, dist/, coverage/, package-lock.json
 ```
 
 **Pattern 3: Config File**
 ```bash
-# Find: \.gwm\.yml
-# Replace: .gwa.yml
+# Find: \.gpm\.yml
+# Replace: .gpm.yml
 # Files: *.ts, *.md, *.yml
 # Exclude: node_modules/, dist/, coverage/
 ```
 
 **Pattern 4: Repository URL**
 ```bash
-# Find: github\.com/littlebearapps/git-workflow-manager
-# Replace: github.com/littlebearapps/git-workflow-automation
+# Find: github\.com/littlebearapps/git-pr-manager
+# Replace: github.com/littlebearapps/git-pr-manager
 # Files: *.json, *.md, *.yml
 # Exclude: node_modules/, dist/, coverage/
 ```
 
 **Pattern 5: Hook Signature**
 ```bash
-# Find: Generated by git-workflow-manager \(gwm\)
-# Replace: Generated by git-workflow-automation (gwa)
+# Find: Generated by git-pr-manager \(gpm\)
+# Replace: Generated by git-pr-manager (gpm)
 # Files: *.ts
 # Exclude: node_modules/, dist/, coverage/
 ```
@@ -811,22 +811,22 @@ const pkg = '@littlebearapps/git-workflow-automation';
 
 ### Automated Checks
 ```bash
-# 1. No remaining "gwm" references (except deprecation notices)
-grep -r "gwm" --include="*.ts" --include="*.json" --include="*.md" \
+# 1. No remaining "gpm" references (except deprecation notices)
+grep -r "gpm" --include="*.ts" --include="*.json" --include="*.md" \
   --exclude-dir=node_modules --exclude-dir=dist --exclude-dir=coverage
 
 # 2. No remaining old package name
-grep -r "@littlebearapps/git-workflow-manager" \
+grep -r "@littlebearapps/git-pr-manager" \
   --include="*.ts" --include="*.json" --include="*.md" \
   --exclude-dir=node_modules --exclude-dir=dist --exclude-dir=coverage
 
 # 3. No remaining old repository URL
-grep -r "github.com/littlebearapps/git-workflow-manager" \
+grep -r "github.com/littlebearapps/git-pr-manager" \
   --include="*.ts" --include="*.json" --include="*.md" --include="*.yml" \
   --exclude-dir=node_modules --exclude-dir=dist --exclude-dir=coverage
 
-# 4. No remaining .gwm.yml references
-grep -r "\.gwm\.yml" \
+# 4. No remaining .gpm.yml references
+grep -r "\.gpm\.yml" \
   --include="*.ts" --include="*.md" \
   --exclude-dir=node_modules --exclude-dir=dist --exclude-dir=coverage
 ```
@@ -843,13 +843,13 @@ grep -r "\.gwm\.yml" \
 - [ ] Update check works: `gwa check-update` (test with local registry)
 - [ ] `.claude/settings.local.json` permissions updated
 - [ ] `~/claude-code-tools/CLAUDE.md` references updated
-- [ ] User's `.gwm.yml` renamed to `.gwa.yml` (if exists)
+- [ ] User's `.gpm.yml` renamed to `.gpm.yml` (if exists)
 
 ### Integration Testing
 - [ ] Fresh install works: `npm install -g ./`
-- [ ] Global binary available: `which gwa`
+- [ ] Global binary available: `which gpm`
 - [ ] Commands work: `gwa status`, `gwa feature test`
-- [ ] Config file created correctly: `.gwa.yml` not `.gwm.yml`
+- [ ] Config file created correctly: `.gpm.yml` not `.gpm.yml`
 - [ ] Hooks install with new signature
 - [ ] Update check queries correct package
 
@@ -882,7 +882,7 @@ grep -r "\.gwm\.yml" \
 
 ## Recommended Execution Order
 
-1. **Create git branch**: `git checkout -b rename/gwm-to-gwa`
+1. **Create git branch**: `git checkout -b rename/gpm-to-gwa`
 2. **Phase 1**: Core package files (critical for everything else)
 3. **Automated find/replace**: Run safe patterns on source code
 4. **Manual review**: Check hook logic, config loading, update checks
@@ -893,7 +893,7 @@ grep -r "\.gwm\.yml" \
 9. **Verification**: Run all automated checks + manual tests
 10. **Phase 7**: Rename directory and repository (LAST STEP!)
 11. **Final test**: Clean install and full integration test
-12. **Commit**: `git commit -m "feat: rename gwm to gwa (git-workflow-automation)"`
+12. **Commit**: `git commit -m "feat: rename gpm to gpm (git-pr-manager)"`
 13. **PR**: Create PR for review before merging
 
 ---
@@ -911,8 +911,8 @@ grep -r "\.gwm\.yml" \
 
 - **POSITIONING.md** - Strategic rationale for rename
 - **package.json** - Current package configuration
-- Git repository: https://github.com/littlebearapps/git-workflow-manager (to be renamed)
-- Working directory: `/Users/nathanschram/claude-code-tools/lba/apps/subagents/git-workflow-manager` (to be renamed)
+- Git repository: https://github.com/littlebearapps/git-pr-manager (to be renamed)
+- Working directory: `/Users/nathanschram/claude-code-tools/lba/apps/subagents/git-pr-manager` (to be renamed)
 
 ---
 
@@ -922,14 +922,14 @@ grep -r "\.gwm\.yml" \
 
 **Additional Files Found** (not in original audit):
 
-1. ✅ **`.claude/settings.local.json`** (3 gwm references in permissions)
-2. ✅ **`~/claude-code-tools/CLAUDE.md`** (2 git-workflow-manager references in parent directory)
-3. ✅ **User's `.gwm.yml`** (local config file - migration note added)
+1. ✅ **`.claude/settings.local.json`** (3 gpm references in permissions)
+2. ✅ **`~/claude-code-tools/CLAUDE.md`** (2 git-pr-manager references in parent directory)
+3. ✅ **User's `.gpm.yml`** (local config file - migration note added)
 4. ✅ **`package-lock.json`** (clarified as auto-regenerated, no manual edit)
 
 **Investigation Method**:
-- Searched 194 instances of "gwm" in source files
-- Searched 256 instances of "git-workflow-manager" across all files
+- Searched 194 instances of "gpm" in source files
+- Searched 256 instances of "git-pr-manager" across all files
 - Checked hidden config files, parent directories, lock files
 - Verified GitHub-specific files and templates
 

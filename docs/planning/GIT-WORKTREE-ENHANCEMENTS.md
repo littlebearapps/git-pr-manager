@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-This plan outlines targeted enhancements to improve gwm's user experience for developers using git worktrees. While gwm's core workflows already function correctly in worktree environments, there are specific pain points that can be addressed with minimal complexity.
+This plan outlines targeted enhancements to improve gpm's user experience for developers using git worktrees. While gpm's core workflows already function correctly in worktree environments, there are specific pain points that can be addressed with minimal complexity.
 
 ### Current State
 
@@ -23,7 +23,7 @@ This plan outlines targeted enhancements to improve gwm's user experience for de
 - No detection of branch conflicts across worktrees
 - No worktree management commands
 - Generic error messages don't help worktree users
-- No visibility into worktree structure from gwm
+- No visibility into worktree structure from gpm
 
 ### The Problem
 
@@ -31,7 +31,7 @@ This plan outlines targeted enhancements to improve gwm's user experience for de
 
 ```bash
 # Developer in worktree1
-$ gwm feature my-branch
+$ gpm feature my-branch
 
 # Branch already checked out in worktree2
 fatal: 'my-branch' is already checked out at '/path/to/worktree2'
@@ -60,7 +60,7 @@ Three-phase enhancement plan:
 |--------|--------|-------|-------------|
 | **Error Clarity** | ⚠️ "fatal: already checked out" | ✅ "Branch active in: /path/worktree2" | 90% clearer |
 | **Resolution Time** | ⚠️ 5-10 min investigation | ✅ Immediate worktree path shown | 80-90% faster |
-| **Worktree Discovery** | ⚠️ Manual `git worktree list` | ✅ `gwm worktree list` (Phase 3) | Integrated UX |
+| **Worktree Discovery** | ⚠️ Manual `git worktree list` | ✅ `gpm worktree list` (Phase 3) | Integrated UX |
 | **Branch Safety** | ❌ No pre-checkout validation | ✅ Worktree conflict detection | Prevents errors |
 
 ---
@@ -713,7 +713,7 @@ describe('error context', () => {
 
 ### Implementation Steps
 
-#### Step 3.1: Add `gwm worktree list` Command (4 hours)
+#### Step 3.1: Add `gpm worktree list` Command (4 hours)
 
 **File**: `src/commands/worktree.ts` (NEW)
 
@@ -769,7 +769,7 @@ export async function worktreeListCommand(
 }
 ```
 
-#### Step 3.2: Add `gwm worktree prune` Command (3 hours)
+#### Step 3.2: Add `gpm worktree prune` Command (3 hours)
 
 **File**: `src/commands/worktree.ts`
 
@@ -890,14 +890,14 @@ Update README.md and quickrefs:
 
 **List worktrees:**
 ```bash
-gwm worktree list           # Human-readable format
-gwm worktree list --json    # JSON output
+gpm worktree list           # Human-readable format
+gpm worktree list --json    # JSON output
 ```
 
 **Prune stale worktrees:**
 ```bash
-gwm worktree prune              # Remove stale entries
-gwm worktree prune --dry-run    # Preview what would be removed
+gpm worktree prune              # Remove stale entries
+gpm worktree prune --dry-run    # Preview what would be removed
 ```
 ```
 
@@ -946,8 +946,8 @@ gwm worktree prune --dry-run    # Preview what would be removed
 
 **Phase 1:**
 - [ ] Create 3 worktrees with different branches
-- [ ] Attempt `gwm feature` with existing branch - verify error message
-- [ ] Attempt `gwm feature` with new branch - verify success
+- [ ] Attempt `gpm feature` with existing branch - verify error message
+- [ ] Attempt `gpm feature` with new branch - verify success
 - [ ] Test in standard (non-worktree) repo - verify no regression
 
 **Phase 2:**
@@ -956,10 +956,10 @@ gwm worktree prune --dry-run    # Preview what would be removed
 - [ ] Test JSON error output includes worktree details
 
 **Phase 3:**
-- [ ] Run `gwm worktree list` with 0, 1, and 3+ worktrees
+- [ ] Run `gpm worktree list` with 0, 1, and 3+ worktrees
 - [ ] Create orphaned worktree (delete directory manually)
-- [ ] Run `gwm worktree prune --dry-run` and verify detection
-- [ ] Run `gwm worktree prune` and verify cleanup
+- [ ] Run `gpm worktree prune --dry-run` and verify detection
+- [ ] Run `gpm worktree prune` and verify cleanup
 
 ---
 
@@ -1034,7 +1034,7 @@ gwm worktree prune --dry-run    # Preview what would be removed
 - ✅ Debugging time reduced by 50%
 
 **Phase 3:**
-- ✅ Users can manage worktrees without leaving gwm
+- ✅ Users can manage worktrees without leaving gpm
 - ✅ Worktree list adoption >25% of worktree users
 
 ---
@@ -1062,8 +1062,8 @@ gwm worktree prune --dry-run    # Preview what would be removed
 ## Future Enhancements (Out of Scope)
 
 **Not included in this plan:**
-- ❌ `gwm worktree add` - Complex, low ROI (users can use `git worktree add`)
-- ❌ `gwm worktree remove` - Dangerous operation, defer to git
+- ❌ `gpm worktree add` - Complex, low ROI (users can use `git worktree add`)
+- ❌ `gpm worktree remove` - Dangerous operation, defer to git
 - ❌ Automatic worktree switching - UX unclear, needs research
 - ❌ Worktree-aware PR merging - Complex dependency tracking
 

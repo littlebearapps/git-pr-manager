@@ -1,16 +1,16 @@
 # Node.js Project Integration Example
 
-This example shows how to integrate git-workflow-manager into a Node.js/TypeScript project.
+This example shows how to integrate git-pr-manager into a Node.js/TypeScript project.
 
 ## Installation
 
 ```bash
-npm install --save-dev @your-org/git-workflow-manager
+npm install --save-dev @your-org/git-pr-manager
 ```
 
 ## Configuration
 
-Create `.gwm.yml` in your project root:
+Create `.gpm.yml` in your project root:
 
 ```yaml
 branchProtection:
@@ -52,9 +52,9 @@ Add these scripts to your `package.json`:
     "typecheck": "tsc --noEmit",
     "build": "tsc",
     "verify": "npm test && npm run lint && npm run typecheck",
-    "gwm:init": "gwm config init --preset standard",
-    "gwm:validate": "gwm config validate",
-    "gwm:check": "gwm pr validate --pr-number $PR_NUMBER"
+    "gpm:init": "gpm config init --preset standard",
+    "gpm:validate": "gpm config validate",
+    "gpm:check": "gpm pr validate --pr-number $PR_NUMBER"
   }
 }
 ```
@@ -87,7 +87,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          npm run gwm:check -- \
+          npm run gpm:check -- \
             --owner "${{ github.repository_owner }}" \
             --repo "${{ github.event.repository.name }}" \
             --pr-number "${{ github.event.pull_request.number }}"
@@ -105,7 +105,7 @@ Create `.husky/pre-commit`:
 npm run verify
 
 # Run security scan
-npx gwm security scan --working-dir .
+npx gpm security scan --working-dir .
 ```
 
 ## Usage
@@ -113,19 +113,19 @@ npx gwm security scan --working-dir .
 ### Initialize Configuration
 
 ```bash
-npm run gwm:init
+npm run gpm:init
 ```
 
 ### Validate Configuration
 
 ```bash
-npm run gwm:validate
+npm run gpm:validate
 ```
 
 ### Setup Branch Protection
 
 ```bash
-npx gwm protection setup \
+npx gpm protection setup \
   --owner your-org \
   --repo your-repo \
   --branch main \
@@ -135,7 +135,7 @@ npx gwm protection setup \
 ### Validate PR Readiness
 
 ```bash
-npx gwm pr validate \
+npx gpm pr validate \
   --owner your-org \
   --repo your-repo \
   --pr-number 123
@@ -143,7 +143,7 @@ npx gwm pr validate \
 
 ## Best Practices
 
-1. **Commit the configuration**: Check `.gwm.yml` into version control
+1. **Commit the configuration**: Check `.gpm.yml` into version control
 2. **Use presets**: Start with `standard` preset and customize as needed
 3. **Run locally first**: Test workflows locally before pushing
 4. **Incremental adoption**: Start with basic protection, upgrade gradually
@@ -162,7 +162,7 @@ CI=true npm test
 
 ```bash
 # Check what was detected
-npx gwm security scan --working-dir . --verbose
+npx gpm security scan --working-dir . --verbose
 
 # Review findings and either:
 # 1. Fix the issue
@@ -173,8 +173,8 @@ npx gwm security scan --working-dir . --verbose
 
 ```bash
 # Verify protection settings
-npx gwm protection get --owner your-org --repo your-repo --branch main
+npx gpm protection get --owner your-org --repo your-repo --branch main
 
 # Re-apply if needed
-npx gwm protection setup --owner your-org --repo your-repo --branch main --preset standard
+npx gpm protection setup --owner your-org --repo your-repo --branch main --preset standard
 ```

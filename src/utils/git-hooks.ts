@@ -68,17 +68,17 @@ export async function fileExists(filePath: string): Promise<boolean> {
 }
 
 /**
- * Check if a hook was created by gwm
- * Checks for gwm signature on line 2
+ * Check if a hook was created by gpm
+ * Checks for gpm signature on line 2
  */
-export async function isGwmHook(hookPath: string): Promise<boolean> {
+export async function isGpmHook(hookPath: string): Promise<boolean> {
   try {
     const content = await fs.readFile(hookPath, { encoding: 'utf-8' });
     const lines = content.split('\n');
-    // Check for gwm signature on line 2 (0-indexed line 1)
+    // Check for gpm signature on line 2 (0-indexed line 1)
     return !!(lines[1] && (
-      lines[1].includes('gwm pre-push hook') ||
-      lines[1].includes('gwm post-commit hook')
+      lines[1].includes('gpm pre-push hook') ||
+      lines[1].includes('gpm post-commit hook')
     ));
   } catch {
     return false;

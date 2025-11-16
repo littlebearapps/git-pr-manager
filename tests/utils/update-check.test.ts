@@ -34,7 +34,7 @@ describe('Update Checker', () => {
       });
 
       const result = await checkForUpdate({
-        packageName: '@littlebearapps/git-workflow-manager',
+        packageName: '@littlebearapps/git-pr-manager',
         currentVersion: '1.4.0-beta.1',
         channel: 'latest',
       });
@@ -52,7 +52,7 @@ describe('Update Checker', () => {
       });
 
       const result = await checkForUpdate({
-        packageName: '@littlebearapps/git-workflow-manager',
+        packageName: '@littlebearapps/git-pr-manager',
         currentVersion: '1.4.0-beta.1',
         channel: 'latest',
       });
@@ -68,12 +68,12 @@ describe('Update Checker', () => {
       });
 
       await checkForUpdate({
-        packageName: '@littlebearapps/git-workflow-manager',
+        packageName: '@littlebearapps/git-pr-manager',
         currentVersion: '1.0.0',
       });
 
       expect(packageJson).toHaveBeenCalledWith(
-        '@littlebearapps/git-workflow-manager',
+        '@littlebearapps/git-pr-manager',
         { version: 'latest' }
       );
     });
@@ -84,13 +84,13 @@ describe('Update Checker', () => {
       });
 
       const result = await checkForUpdate({
-        packageName: '@littlebearapps/git-workflow-manager',
+        packageName: '@littlebearapps/git-pr-manager',
         currentVersion: '1.0.0',
         channel: 'next',
       });
 
       expect(packageJson).toHaveBeenCalledWith(
-        '@littlebearapps/git-workflow-manager',
+        '@littlebearapps/git-pr-manager',
         { version: 'next' }
       );
       expect(result.channel).toBe('next');
@@ -100,7 +100,7 @@ describe('Update Checker', () => {
       packageJson.mockRejectedValue(new Error('Network error'));
 
       const result = await checkForUpdate({
-        packageName: '@littlebearapps/git-workflow-manager',
+        packageName: '@littlebearapps/git-pr-manager',
         currentVersion: '1.0.0',
       });
 
@@ -114,7 +114,7 @@ describe('Update Checker', () => {
       );
 
       const result = await checkForUpdate({
-        packageName: '@littlebearapps/git-workflow-manager',
+        packageName: '@littlebearapps/git-pr-manager',
         currentVersion: '1.0.0',
         timeoutMs: 100,
       });
@@ -130,7 +130,7 @@ describe('Update Checker', () => {
 
       // First call - should fetch
       const result1 = await checkForUpdate({
-        packageName: '@littlebearapps/git-workflow-manager',
+        packageName: '@littlebearapps/git-pr-manager',
         currentVersion: '1.0.0',
       });
       expect(result1.cached).toBe(false);
@@ -138,7 +138,7 @@ describe('Update Checker', () => {
 
       // Second call - should use cache
       const result2 = await checkForUpdate({
-        packageName: '@littlebearapps/git-workflow-manager',
+        packageName: '@littlebearapps/git-pr-manager',
         currentVersion: '1.0.0',
       });
       expect(result2.cached).toBe(true);
@@ -152,7 +152,7 @@ describe('Update Checker', () => {
 
       // Check latest channel
       const result1 = await checkForUpdate({
-        packageName: '@littlebearapps/git-workflow-manager',
+        packageName: '@littlebearapps/git-pr-manager',
         currentVersion: '1.0.0',
         channel: 'latest',
       });
@@ -160,7 +160,7 @@ describe('Update Checker', () => {
 
       // Check next channel - should make new call
       const result2 = await checkForUpdate({
-        packageName: '@littlebearapps/git-workflow-manager',
+        packageName: '@littlebearapps/git-pr-manager',
         currentVersion: '1.0.0',
         channel: 'next',
       });
@@ -210,7 +210,7 @@ describe('Update Checker', () => {
 
   describe('maybeNotifyUpdate', () => {
     const pkg = {
-      name: '@littlebearapps/git-workflow-manager',
+      name: '@littlebearapps/git-pr-manager',
       version: '1.0.0',
     };
 
@@ -262,7 +262,7 @@ describe('Update Checker', () => {
       process.stdout.isTTY = true;
 
       const prereleasePkg = {
-        name: '@littlebearapps/git-workflow-manager',
+        name: '@littlebearapps/git-pr-manager',
         version: '1.0.0-beta.1',
       };
 
@@ -305,14 +305,14 @@ describe('Update Checker', () => {
 
       // Populate cache
       await checkForUpdate({
-        packageName: '@littlebearapps/git-workflow-manager',
+        packageName: '@littlebearapps/git-pr-manager',
         currentVersion: '1.0.0',
       });
       expect(packageJson).toHaveBeenCalledTimes(1);
 
       // Verify cache is used
       await checkForUpdate({
-        packageName: '@littlebearapps/git-workflow-manager',
+        packageName: '@littlebearapps/git-pr-manager',
         currentVersion: '1.0.0',
       });
       expect(packageJson).toHaveBeenCalledTimes(1);
@@ -322,7 +322,7 @@ describe('Update Checker', () => {
 
       // Should fetch again
       await checkForUpdate({
-        packageName: '@littlebearapps/git-workflow-manager',
+        packageName: '@littlebearapps/git-pr-manager',
         currentVersion: '1.0.0',
       });
       expect(packageJson).toHaveBeenCalledTimes(2);
@@ -341,7 +341,7 @@ describe('Update Checker', () => {
       });
 
       const pkg = {
-        name: '@littlebearapps/git-workflow-manager',
+        name: '@littlebearapps/git-pr-manager',
         version: '1.0.0',
       };
 

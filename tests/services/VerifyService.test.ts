@@ -17,8 +17,8 @@ describe('VerifyService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    // Mock execSync to simulate gwm not being available
-    // Tests can override this if they need to test gwm verify behavior
+    // Mock execSync to simulate gpm not being available
+    // Tests can override this if they need to test gpm verify behavior
     mockedExecSync.mockImplementation(() => {
       throw new Error('command not found');
     });

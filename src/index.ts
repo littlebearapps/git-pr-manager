@@ -28,8 +28,8 @@ maybeNotifyUpdate({ pkg, argv: process.argv }).catch(() => {
 const program = new Command();
 
 program
-  .name('gwm')
-  .description('Git Workflow Manager - Enhanced git workflow automation with CI integration')
+  .name('gpm')
+  .description('Git PR Manager - Enhanced git workflow automation with CI integration')
   .version('1.4.0')
   .option('--json', 'Output in JSON format (machine-readable)')
   .option('--quiet', 'Quiet mode (errors/warnings only)')
@@ -86,7 +86,7 @@ program
 
 program
   .command('init')
-  .description('Initialize .gwm.yml configuration')
+  .description('Initialize .gpm.yml configuration')
   .option('--template <type>', 'Configuration template (basic, standard, strict)', 'basic')
   .option('--interactive', 'Interactive setup wizard')
   .action(initCommand);
@@ -147,14 +147,14 @@ program
 
 program
   .command('install-hooks')
-  .description('Install git hooks to remind about gwm workflow')
+  .description('Install git hooks to remind about gpm workflow')
   .option('--force', 'Overwrite existing hooks')
   .option('--post-commit', 'Also install post-commit hook')
   .action(installHooksCommand);
 
 program
   .command('uninstall-hooks')
-  .description('Remove gwm git hooks')
+  .description('Remove gpm git hooks')
   .action(uninstallHooksCommand);
 
 // Worktree command group

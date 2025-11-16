@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-Phase 5 will transform git-workflow-manager from a solid MVP (v1.3.0) into a production-ready, high-performance CLI tool optimized for **Claude Code automation** and human workflows. This plan focuses on performance, automation-readiness, and seamless distribution.
+Phase 5 will transform git-pr-manager from a solid MVP (v1.3.0) into a production-ready, high-performance CLI tool optimized for **Claude Code automation** and human workflows. This plan focuses on performance, automation-readiness, and seamless distribution.
 
 **Key Objectives**:
 1. **2-3x Performance Improvement** through intelligent caching and batching
@@ -34,7 +34,7 @@ Phase 5 will transform git-workflow-manager from a solid MVP (v1.3.0) into a pro
 - Phase 3: BranchProtectionChecker, SecurityScanner
 
 **Commands Layer** (6 commands):
-- `gwm checks`, `gwm feature`, `gwm init`, `gwm protect`, `gwm security`, `gwm ship`, `gwm status`
+- `gpm checks`, `gpm feature`, `gpm init`, `gpm protect`, `gpm security`, `gpm ship`, `gpm status`
 
 **Test Coverage**:
 - 180 tests (152 unit + 28 integration)
@@ -81,7 +81,7 @@ while (!allChecksDone) {
 ```typescript
 // Current: Loads file every time
 async load() {
-  const content = await fs.readFile('.gwm.yml');
+  const content = await fs.readFile('.gpm.yml');
   return parse(content);
 }
 ```
@@ -125,14 +125,14 @@ async load() {
 - Auto-detect CI environments
 
 #### 3. **Workflow Complexity**
-**Problem**: 8-step `gwm ship` workflow with many flags
+**Problem**: 8-step `gpm ship` workflow with many flags
 ```bash
-gwm ship --no-wait --skip-verify --skip-security --draft --title "..." --no-delete-branch
+gpm ship --no-wait --skip-verify --skip-security --draft --title "..." --no-delete-branch
 ```
 
 **Need**: Simplified one-command workflow
 ```bash
-gwm auto  # Smart defaults, handles everything
+gpm auto  # Smart defaults, handles everything
 ```
 
 ---
@@ -469,7 +469,7 @@ export class EnhancedCIPoller {
 
 **Configuration**:
 ```yaml
-# .gwm.yml
+# .gpm.yml
 ci:
   pollStrategy: 'exponential'  # or 'fixed'
   initialPollInterval: 5        # seconds
@@ -567,9 +567,9 @@ export class ConfigService {
 
 ### Session 3: Claude Code UX & Simplified Workflows (3-4 hours)
 
-**Goal**: Make git-workflow-manager delightful for automation and humans
+**Goal**: Make git-pr-manager delightful for automation and humans
 
-#### 3.1 New Command: `gwm auto`
+#### 3.1 New Command: `gpm auto`
 
 **Implementation**:
 ```typescript
@@ -645,10 +645,10 @@ export async function autoCommand(options: AutoOptions) {
 **Usage**:
 ```bash
 # Simple one-command workflow
-gwm auto
+gpm auto
 
 # With options
-gwm auto --draft --no-merge
+gpm auto --draft --no-merge
 ```
 
 **Tests**:
@@ -692,7 +692,7 @@ throw new WorkflowError(
   [
     'Wait until 11:00 AM for rate limit reset',
     'Use a GitHub token with higher rate limit',
-    'Run `gwm cache clear` to reduce API calls',
+    'Run `gpm cache clear` to reduce API calls',
   ]
 );
 ```
@@ -773,12 +773,12 @@ export async function initCommand(options: InitOptions) {
 ```json
 // Update: package.json
 {
-  "name": "@littlebearapps/git-workflow-manager",
+  "name": "@littlebearapps/git-pr-manager",
   "version": "1.4.0",
   "description": "Production-ready git workflow automation for GitHub with Claude Code integration",
   "main": "dist/index.js",
   "bin": {
-    "gwm": "dist/index.js"
+    "gpm": "dist/index.js"
   },
   "files": [
     "dist/",
@@ -802,7 +802,7 @@ export async function initCommand(options: InitOptions) {
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/littlebearapps/git-workflow-manager"
+    "url": "https://github.com/littlebearapps/git-pr-manager"
   },
   "engines": {
     "node": ">=18.0.0"
@@ -833,7 +833,7 @@ export async function initCommand(options: InitOptions) {
 // Check for GitHub token
 if (!process.env.GITHUB_TOKEN && !process.env.GH_TOKEN) {
   console.log('\n⚠️  No GitHub token found!');
-  console.log('Run: gwm init --setup-token\n');
+  console.log('Run: gpm init --setup-token\n');
 }
 
 // Check for required tools (optional)
@@ -846,8 +846,8 @@ if (missing.length > 0) {
 }
 
 // Show quick start
-console.log('✨ git-workflow-manager installed!');
-console.log('Quick start: gwm init\n');
+console.log('✨ git-pr-manager installed!');
+console.log('Quick start: gpm init\n');
 ```
 
 #### 4.3 Cross-Platform Testing
@@ -890,7 +890,7 @@ jobs:
   - Performance improvements section
   - Claude Code integration examples
   - --json output documentation
-  - New gwm auto command
+  - New gpm auto command
 - `CHANGELOG.md`: Complete v1.4.0 changelog
 - Update examples with new flags
 
@@ -911,8 +911,8 @@ npm run build
 
 # Test locally
 npm pack
-npm install -g littlebearapps-git-workflow-manager-1.4.0.tgz
-gwm --version
+npm install -g littlebearapps-git-pr-manager-1.4.0.tgz
+gpm --version
 
 # Publish to npm
 npm login --scope=@littlebearapps
@@ -920,8 +920,8 @@ npm publish --access public
 ```
 
 **Post-Publish**:
-- [ ] Verify on npm: https://www.npmjs.com/package/@littlebearapps/git-workflow-manager
-- [ ] Test install: `npx @littlebearapps/git-workflow-manager@latest init`
+- [ ] Verify on npm: https://www.npmjs.com/package/@littlebearapps/git-pr-manager
+- [ ] Test install: `npx @littlebearapps/git-pr-manager@latest init`
 - [ ] Update GitHub release
 - [ ] Announce in relevant channels
 
@@ -1078,7 +1078,7 @@ describe('Rate Limit Handling', () => {
 
 **Mitigation**:
 - Comprehensive cache testing (hit/miss/expiry/invalidation)
-- Cache clear command: `gwm cache clear`
+- Cache clear command: `gpm cache clear`
 - Short TTLs initially (5 min for branch protection)
 - Cache-free mode: `--no-cache` flag
 - Extensive logging of cache operations (debug mode)
@@ -1147,13 +1147,13 @@ describe('Rate Limit Handling', () => {
 **Commands**: All existing commands work unchanged
 ```bash
 # v1.3.0 commands work identically in v1.4.0
-gwm checks 123
-gwm ship
-gwm protect --show
-gwm security
+gpm checks 123
+gpm ship
+gpm protect --show
+gpm security
 ```
 
-**Configuration**: .gwm.yml format unchanged
+**Configuration**: .gpm.yml format unchanged
 ```yaml
 # Existing configs work without modification
 branchProtection:
@@ -1178,8 +1178,8 @@ ci:
 - `--no-cache`: Bypass cache
 
 **New Commands**:
-- `gwm auto`: New one-shot workflow
-- `gwm cache clear`: New cache management
+- `gpm auto`: New one-shot workflow
+- `gpm cache clear`: New cache management
 
 ### Deprecation Policy
 
@@ -1226,7 +1226,7 @@ If future versions need to deprecate features:
 
 **Claude Code Command**:
 ```bash
-gwm ship --json --quiet
+gpm ship --json --quiet
 ```
 
 **Output**:
@@ -1270,7 +1270,7 @@ if (result.success) {
 
 **Claude Code Command**:
 ```bash
-gwm checks 123 --json
+gpm checks 123 --json
 ```
 
 **Output**:
@@ -1302,12 +1302,12 @@ gwm checks 123 --json
 set -e
 
 # Silent mode - only errors
-gwm feature "add-auth" --silent
+gpm feature "add-auth" --silent
 git add .
 git commit -m "feat: add authentication"
 
 # Quiet mode - errors + warnings
-gwm auto --quiet --json > result.json
+gpm auto --quiet --json > result.json
 
 # Parse result
 if jq -e '.success' result.json > /dev/null; then
@@ -1331,7 +1331,7 @@ fi
 - [ ] Add "What's New in v1.4.0" section
 - [ ] Document --json flag with examples
 - [ ] Document --quiet / --silent modes
-- [ ] Add gwm auto command documentation
+- [ ] Add gpm auto command documentation
 - [ ] Update performance benchmarks
 - [ ] Add Claude Code integration section
 
@@ -1349,8 +1349,8 @@ fi
 ### Video Content (Optional)
 
 **Screencasts**:
-1. "Installing and Setting Up gwm v1.4" (3 min)
-2. "One-Command Workflow with gwm auto" (2 min)
+1. "Installing and Setting Up gpm v1.4" (3 min)
+2. "One-Command Workflow with gpm auto" (2 min)
 3. "Claude Code Integration Tutorial" (5 min)
 
 **Platform**: YouTube, linked from README
@@ -1428,7 +1428,7 @@ fi
 
 ## Conclusion
 
-Phase 5 transforms git-workflow-manager into a production-ready tool optimized for Claude Code automation while maintaining excellent human UX. The implementation is well-scoped, low-risk, and achievable in 4 focused sessions.
+Phase 5 transforms git-pr-manager into a production-ready tool optimized for Claude Code automation while maintaining excellent human UX. The implementation is well-scoped, low-risk, and achievable in 4 focused sessions.
 
 **Key Strengths**:
 - ✅ Clear, actionable specifications

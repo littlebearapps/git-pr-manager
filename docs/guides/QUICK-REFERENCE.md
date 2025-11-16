@@ -1,4 +1,4 @@
-# git-workflow-manager - Quick Reference
+# git-pr-manager - Quick Reference
 
 **Version**: 0.2.0
 **Updated**: 2025-10-18
@@ -19,8 +19,8 @@ git commit -m "feat: my feature description"
 
 ### 2. Ship Feature (Primary Command)
 ```bash
-# Simple - Let gwm handle everything
-User: "Use git-workflow-manager to ship this feature"
+# Simple - Let gpm handle everything
+User: "Use git-pr-manager to ship this feature"
 
 # What happens:
 # 1. Runs verify.sh (lint, typecheck, tests, build)
@@ -34,7 +34,7 @@ User: "Use git-workflow-manager to ship this feature"
 
 ### 3. Check Status
 ```bash
-User: "Use git-workflow-manager to check status"
+User: "Use git-pr-manager to check status"
 
 # Shows:
 # - Current branch
@@ -50,42 +50,42 @@ User: "Use git-workflow-manager to check status"
 
 | Command | When to Use | What It Does |
 |---------|-------------|--------------|
-| **gwm ship** | Ready to merge feature | Complete PR workflow |
-| **gwm feature** | Starting new work | Creates feature branch from main (with worktree conflict detection) |
-| **gwm status** | Check current state | Shows branch, PR, CI status |
-| **gwm abort** | Need to cancel feature | Deletes feature branch safely |
+| **gpm ship** | Ready to merge feature | Complete PR workflow |
+| **gpm feature** | Starting new work | Creates feature branch from main (with worktree conflict detection) |
+| **gpm status** | Check current state | Shows branch, PR, CI status |
+| **gpm abort** | Need to cancel feature | Deletes feature branch safely |
 
 ---
 
 ## Common Flags
 
-### gwm ship
+### gpm ship
 
 ```bash
 # Force merge (skip CI wait)
-gwm ship --force-merge
+gpm ship --force-merge
 
 # Skip verify.sh checks
-gwm ship --no-verify
+gpm ship --no-verify
 
 # Keep feature branch after merge
-gwm ship --keep-branch
+gpm ship --keep-branch
 
 # Auto-generate PR description from commits
-gwm ship --auto-description
+gpm ship --auto-description
 
 # Dry-run (show what would happen)
-gwm ship --dry-run
+gpm ship --dry-run
 ```
 
-### gwm feature
+### gpm feature
 
 ```bash
 # Create feature branch from default branch (main/master)
-gwm feature my-feature
+gpm feature my-feature
 
 # Create feature branch from custom base
-gwm feature my-feature --from develop
+gpm feature my-feature --from develop
 
 # Note: Automatically detects worktree conflicts
 # If branch exists in another worktree, provides helpful error with suggestions
@@ -97,13 +97,13 @@ gwm feature my-feature --from develop
 
 ```bash
 # List all worktrees
-gwm worktree list
-gwm worktree list --json
+gpm worktree list
+gpm worktree list --json
 
 # Clean up stale worktree data
-gwm worktree prune
-gwm worktree prune --dry-run       # Preview what would be cleaned
-gwm worktree prune --json          # Machine-readable output
+gpm worktree prune
+gpm worktree prune --dry-run       # Preview what would be cleaned
+gpm worktree prune --json          # Machine-readable output
 ```
 
 **When to use**:
@@ -111,7 +111,7 @@ gwm worktree prune --json          # Machine-readable output
 - Reviewing PRs in separate directories
 - Maintaining clean worktree administrative data
 
-**Example output** (`gwm worktree list`):
+**Example output** (`gpm worktree list`):
 ```
 ▸ Git Worktrees
 ────────────────────────────────────────────────────────────────────────────────
@@ -165,7 +165,7 @@ Solution:
 1. Check GitHub Actions logs for details
 2. Fix issues in local branch
 3. Push updates: git push origin [branch-name]
-4. Re-run gwm ship
+4. Re-run gpm ship
 ```
 
 ### "Merge conflict"
@@ -178,7 +178,7 @@ Solution:
 3. Rebase on main: git rebase main
 4. Resolve conflicts (if any)
 5. Force push: git push --force origin feature/my-feature
-6. Re-run gwm ship
+6. Re-run gpm ship
 ```
 
 ### "verify.sh failed"
@@ -189,7 +189,7 @@ Solution:
 1. Run locally: bash scripts/phase-2/verify.sh
 2. Fix issues reported
 3. Commit fixes
-4. Re-run gwm ship
+4. Re-run gpm ship
 ```
 
 ### "Branch checked out in another worktree"
@@ -202,7 +202,7 @@ Solution:
 
 Solution:
 1. Switch to existing worktree: cd /path/to/other/worktree
-2. Or use a different branch name: gwm feature my-feature-v2
+2. Or use a different branch name: gpm feature my-feature-v2
 3. Or remove the worktree: git worktree remove /path/to/other/worktree
 
 Note: This error only appears when using git worktrees. Standard repositories
@@ -246,7 +246,7 @@ Error details:
 
 ## Time Savings
 
-| Task | Manual Time | gwm Time | Savings |
+| Task | Manual Time | gpm Time | Savings |
 |------|-------------|----------|---------|
 | Complete PR workflow | 10-15 min | <5 min | >60% |
 | Feature branch creation | 2-3 min | <1 min | 66% |
@@ -279,7 +279,7 @@ cd ~/claude-code-tools/[project]/main/
 git checkout -b feature/my-feature
 # Make changes
 git add . && git commit -m "feat: my feature"
-User: "Use git-workflow-manager to ship this feature"
+User: "Use git-pr-manager to ship this feature"
 # Done! Total: <5 minutes
 ```
 
@@ -294,7 +294,7 @@ git commit -m "feat: add button component"
 git commit -m "test: add button tests"
 git commit -m "docs: update button usage"
 
-# gwm ship will squash all commits into one PR
+# gpm ship will squash all commits into one PR
 ```
 
 ### 2. Use Conventional Commits
@@ -311,22 +311,22 @@ git commit -m "docs: add API reference"
 ### 3. Check Status Frequently
 ```bash
 # Before starting work
-User: "Use git-workflow-manager to check status"
+User: "Use git-pr-manager to check status"
 
 # After making changes
-User: "Use git-workflow-manager to check status"
+User: "Use git-pr-manager to check status"
 
 # Before shipping
-User: "Use git-workflow-manager to check status"
+User: "Use git-pr-manager to check status"
 ```
 
 ### 4. Use Dry-Run for Complex Scenarios
 ```bash
 # Preview what will happen
-User: "Use git-workflow-manager to ship this feature with --dry-run"
+User: "Use git-pr-manager to ship this feature with --dry-run"
 
 # Review output, then run for real
-User: "Use git-workflow-manager to ship this feature"
+User: "Use git-pr-manager to ship this feature"
 ```
 
 ---
@@ -362,7 +362,7 @@ Solution:
 Solution:
 1. cd ~/claude-code-tools/[project]/main/
 2. git pull origin main
-3. Re-run gwm ship
+3. Re-run gpm ship
 ```
 
 ---
@@ -371,7 +371,7 @@ Solution:
 
 ### If verify.sh exists
 ```bash
-# gwm ship automatically runs:
+# gpm ship automatically runs:
 bash scripts/phase-2/verify.sh
 
 # Checks:
@@ -380,18 +380,18 @@ bash scripts/phase-2/verify.sh
 - Tests (npm test/pytest)
 - Build (npm run build)
 
-# Skip with: gwm ship --no-verify
+# Skip with: gpm ship --no-verify
 ```
 
 ### If GitHub Actions configured
 ```bash
-# gwm ship automatically:
+# gpm ship automatically:
 - Waits for all required checks
 - Polls status every 30 seconds
 - Fails if any check fails
 - Timeout after 10 minutes
 
-# Force merge: gwm ship --force-merge
+# Force merge: gpm ship --force-merge
 ```
 
 ---
@@ -412,16 +412,16 @@ bash scripts/phase-2/verify.sh
 git checkout -b feature/my-feature
 
 # Ship feature (most common)
-User: "Use git-workflow-manager to ship"
+User: "Use git-pr-manager to ship"
 
 # Check status
-User: "Use git-workflow-manager to check status"
+User: "Use git-pr-manager to check status"
 
 # Abort feature
-User: "Use git-workflow-manager to abort this feature"
+User: "Use git-pr-manager to abort this feature"
 
 # Emergency force merge (skip CI)
-User: "Use git-workflow-manager to ship with --force-merge"
+User: "Use git-pr-manager to ship with --force-merge"
 ```
 
 ---

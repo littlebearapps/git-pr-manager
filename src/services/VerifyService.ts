@@ -72,15 +72,15 @@ export class VerifyService {
    * Returns command to execute
    */
   private async discoverVerifyScript(): Promise<string | null> {
-    // 1. Check for built-in gwm verify command
-    // This works when gwm is installed or we're in the built dist/
+    // 1. Check for built-in gpm verify command
+    // This works when gpm is installed or we're in the built dist/
     try {
       const { execSync } = require('child_process');
-      execSync('command -v gwm', { stdio: 'ignore' });
+      execSync('command -v gpm', { stdio: 'ignore' });
       // Use --json flag to avoid spinner conflicts when running as subprocess
-      return 'gwm verify --json';
+      return 'gpm verify --json';
     } catch {
-      // gwm not in PATH, continue to other methods
+      // gpm not in PATH, continue to other methods
     }
 
     // 2. Check for verify.sh

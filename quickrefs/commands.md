@@ -88,23 +88,23 @@ npm run test:coverage  # ✅ Coverage >80%
 
 ```bash
 # Install pre-push hook (default - reminder only)
-gwm install-hooks
+gpminstall-hooks
 npm run dev -- install-hooks  # Development mode
 
 # Install both pre-push and post-commit hooks
-gwm install-hooks --post-commit
+gpminstall-hooks --post-commit
 npm run dev -- install-hooks --post-commit
 
 # Force overwrite existing hooks
-gwm install-hooks --force
+gpminstall-hooks --force
 
-# Uninstall all gwm hooks
-gwm uninstall-hooks
+# Uninstall all gpm hooks
+gpmuninstall-hooks
 npm run dev -- uninstall-hooks
 
-# Check hook status (shows in .gwm.yml)
-cat .gwm.yml | grep -A 6 "^hooks:"
-gwm status  # Shows hooks in workflow status
+# Check hook status (shows in .gpm.yml)
+cat .gpm.yml | grep -A 6 "^hooks:"
+gpmstatus  # Shows hooks in workflow status
 ```
 
 **Hook Behavior**:
@@ -118,16 +118,16 @@ gwm status  # Shows hooks in workflow status
 # Issue: Hook not executable
 chmod +x .git/hooks/pre-push
 
-# Issue: Hook exists but not gwm hook
-gwm install-hooks --force  # Overwrites
+# Issue: Hook exists but not gpm hook
+gpminstall-hooks --force  # Overwrites
 
 # Issue: Want to disable temporarily
-gwm uninstall-hooks  # Can reinstall anytime
+gpmuninstall-hooks  # Can reinstall anytime
 
 # Issue: Hook not triggering
 # Check if it exists and is executable
 ls -l .git/hooks/pre-push
-cat .git/hooks/pre-push | head -3  # Should show gwm signature
+cat .git/hooks/pre-push | head -3  # Should show gpm signature
 ```
 
 ---
@@ -179,12 +179,12 @@ git push --tags
 npm link
 
 # Test globally
-gwm --help
-gwm feature test-branch
-gwm auto --json
+gpm--help
+gpmfeature test-branch
+gpmauto --json
 
 # Unlink
-npm unlink -g @littlebearapps/git-workflow-manager
+npm unlink -g @littlebearapps/git-pr-manager
 ```
 
 ### Direct Execution
@@ -205,24 +205,24 @@ node dist/index.js feature my-feature
 ### List Worktrees
 ```bash
 # List all worktrees (plain text)
-gwm worktree list
+gpmworktree list
 npm run dev -- worktree list
 
 # List with JSON output
-gwm worktree list --json
+gpmworktree list --json
 ```
 
 ### Prune Stale Worktrees
 ```bash
 # Dry-run (preview what would be pruned)
-gwm worktree prune --dry-run
+gpmworktree prune --dry-run
 npm run dev -- worktree prune --dry-run
 
 # Actually prune stale worktree data
-gwm worktree prune
+gpmworktree prune
 
 # Dry-run with JSON output
-gwm worktree prune --dry-run --json
+gpmworktree prune --dry-run --json
 ```
 
 **When to use**:
@@ -235,11 +235,11 @@ gwm worktree prune --dry-run --json
 
 ## System Health Check
 
-### Verify Setup with gwm doctor
+### Verify Setup with gpm doctor
 
 ```bash
 # Check all requirements and dependencies
-gwm doctor
+gpmdoctor
 npm run dev -- doctor  # Development mode
 
 # What it checks:
@@ -494,10 +494,10 @@ du -h dist/
 ### Load Time Testing
 ```bash
 # Time CLI startup
-time gwm --help
+time gpm --help
 
 # Time specific command
-time gwm status --json
+time gpm status --json
 ```
 
 ---
@@ -522,21 +522,21 @@ time gwm status --json
 ### Package Info
 ```bash
 # View published versions
-npm view @littlebearapps/git-workflow-manager versions
+npm view @littlebearapps/git-pr-manager versions
 
 # View latest version
-npm view @littlebearapps/git-workflow-manager version
+npm view @littlebearapps/git-pr-manager version
 
 # View package info
-npm view @littlebearapps/git-workflow-manager
+npm view @littlebearapps/git-pr-manager
 
 # View dist-tags
-npm view @littlebearapps/git-workflow-manager dist-tags
+npm view @littlebearapps/git-pr-manager dist-tags
 ```
 
 ### Install Specific Version
 ```bash
-npm install -g @littlebearapps/git-workflow-manager@latest
-npm install -g @littlebearapps/git-workflow-manager@next
-npm install -g @littlebearapps/git-workflow-manager@1.4.0-beta.1
+npm install -g @littlebearapps/git-pr-manager@latest
+npm install -g @littlebearapps/git-pr-manager@next
+npm install -g @littlebearapps/git-pr-manager@1.4.0-beta.1
 ```

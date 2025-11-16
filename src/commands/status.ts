@@ -93,7 +93,7 @@ export async function statusCommand(): Promise<void> {
 
     // Workflow configuration
     if (configExists) {
-      logger.log(chalk.bold('Workflow Configuration: ') + chalk.green('.gwm.yml ✓'));
+      logger.log(chalk.bold('Workflow Configuration: ') + chalk.green('.gpm.yml ✓'));
 
       logger.blank();
       logger.log(chalk.bold('Settings:'));
@@ -103,7 +103,7 @@ export async function statusCommand(): Promise<void> {
       logger.log(`  Branch Protection: ${config.branchProtection?.enabled ? chalk.green('Enabled') : chalk.gray('Disabled')}`);
     } else {
       logger.log(chalk.bold('Workflow Configuration: ') + chalk.gray('Not initialized'));
-      logger.info('Run `gwm init` to create .gwm.yml');
+      logger.info('Run `gpm init` to create .gpm.yml');
     }
 
     logger.blank();
@@ -113,16 +113,16 @@ export async function statusCommand(): Promise<void> {
 
     if (!configExists) {
       // No configuration - guide through setup
-      logger.info('📋 Get started with gwm:');
-      logger.info('   gwm init --interactive    # Initialize workflow configuration');
-      logger.info('   gwm docs                  # View documentation');
+      logger.info('📋 Get started with gpm:');
+      logger.info('   gpm init --interactive    # Initialize workflow configuration');
+      logger.info('   gpm docs                  # View documentation');
       logger.blank();
-      logger.info('💡 Tip: Run \'gwm init --interactive\' for guided setup');
+      logger.info('💡 Tip: Run \'gpm init --interactive\' for guided setup');
     } else if (branchInfo.current === 'main' || branchInfo.current === 'master') {
       // On main branch - suggest starting new work
       logger.info('🚀 Start new work:');
-      logger.info('   gwm feature <name>        # Create feature branch and start work');
-      logger.info('   gwm status                # Check repository status');
+      logger.info('   gpm feature <name>        # Create feature branch and start work');
+      logger.info('   gpm status                # Check repository status');
       logger.blank();
       logger.info('💡 Tip: Always work on feature branches, not main');
     } else if (!branchInfo.isClean) {
@@ -132,15 +132,15 @@ export async function statusCommand(): Promise<void> {
       logger.info('   git commit -m "..."       # Commit with message');
       logger.info('   git push                  # Push to remote');
       logger.blank();
-      logger.info('💡 Tip: Commit and push before using gwm ship or gwm auto');
+      logger.info('💡 Tip: Commit and push before using gpm ship or gpm auto');
     } else {
       // Clean feature branch - suggest PR workflow
       logger.info('🚢 Ready to create PR:');
-      logger.info('   gwm ship                  # Create PR and wait for checks');
-      logger.info('   gwm auto --draft          # Create draft PR (faster)');
-      logger.info('   gwm security              # Run security scan before PR');
+      logger.info('   gpm ship                  # Create PR and wait for checks');
+      logger.info('   gpm auto --draft          # Create draft PR (faster)');
+      logger.info('   gpm security              # Run security scan before PR');
       logger.blank();
-      logger.info('💡 Tip: Use \'gwm ship\' for full automated PR workflow');
+      logger.info('💡 Tip: Use \'gpm ship\' for full automated PR workflow');
     }
 
     logger.blank();

@@ -1,4 +1,4 @@
-import { getGitHooksDir, fileExists, isGwmHook } from '../../src/utils/git-hooks';
+import { getGitHooksDir, fileExists, isGpmHook } from '../../src/utils/git-hooks';
 import * as fs from 'fs/promises';
 import { execSync } from 'child_process';
 
@@ -152,39 +152,39 @@ describe('git-hooks utility', () => {
     });
   });
 
-  describe('isGwmHook', () => {
-    it('should return true for gwm pre-push hook', async () => {
+  describe('isGpmHook', () => {
+    it('should return true for gpm pre-push hook', async () => {
       const hookContent = `#!/bin/sh
-# gwm pre-push hook
-# Installed via: gwm install-hooks
+# gpm pre-push hook
+# Installed via: gpm install-hooks
 `;
       mockedFs.readFile.mockResolvedValue(hookContent);
 
-      const result = await isGwmHook('/test/.git/hooks/pre-push');
+      const result = await isGpmHook('/test/.git/hooks/pre-push');
 
       expect(result).toBe(true);
     });
 
-    it('should return true for gwm post-commit hook', async () => {
+    it('should return true for gpm post-commit hook', async () => {
       const hookContent = `#!/bin/sh
-# gwm post-commit hook
-# Installed via: gwm install-hooks
+# gpm post-commit hook
+# Installed via: gpm install-hooks
 `;
       mockedFs.readFile.mockResolvedValue(hookContent);
 
-      const result = await isGwmHook('/test/.git/hooks/post-commit');
+      const result = await isGpmHook('/test/.git/hooks/post-commit');
 
       expect(result).toBe(true);
     });
 
-    it('should return false for non-gwm hook', async () => {
+    it('should return false for non-gpm hook', async () => {
       const hookContent = `#!/bin/sh
 # Some other hook
-# Not created by gwm
+# Not created by gpm
 `;
       mockedFs.readFile.mockResolvedValue(hookContent);
 
-      const result = await isGwmHook('/test/.git/hooks/pre-push');
+      const result = await isGpmHook('/test/.git/hooks/pre-push');
 
       expect(result).toBe(false);
     });
@@ -192,7 +192,7 @@ describe('git-hooks utility', () => {
     it('should return false when hook file cannot be read', async () => {
       mockedFs.readFile.mockRejectedValue(new Error('ENOENT'));
 
-      const result = await isGwmHook('/test/.git/hooks/pre-push');
+      const result = await isGpmHook('/test/.git/hooks/pre-push');
 
       expect(result).toBe(false);
     });
@@ -200,7 +200,7 @@ describe('git-hooks utility', () => {
     it('should return false for empty file', async () => {
       mockedFs.readFile.mockResolvedValue('');
 
-      const result = await isGwmHook('/test/.git/hooks/pre-push');
+      const result = await isGpmHook('/test/.git/hooks/pre-push');
 
       expect(result).toBe(false);
     });

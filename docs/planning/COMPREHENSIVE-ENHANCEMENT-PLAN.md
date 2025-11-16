@@ -1,4 +1,4 @@
-# git-workflow-manager: Comprehensive Enhancement Plan
+# git-pr-manager: Comprehensive Enhancement Plan
 ## Full SDK Migration + CI/Security Improvements
 
 **Version**: 2.0.0
@@ -10,7 +10,7 @@
 
 ## Executive Summary
 
-This document outlines a complete transformation of git-workflow-manager from bash + gh CLI to a sophisticated Node.js + Octokit SDK solution with **enhanced CI error reporting**, **intelligent polling**, **branch protection integration**, and **security features**.
+This document outlines a complete transformation of git-pr-manager from bash + gh CLI to a sophisticated Node.js + Octokit SDK solution with **enhanced CI error reporting**, **intelligent polling**, **branch protection integration**, and **security features**.
 
 ### What's Changed from Option 2
 
@@ -96,7 +96,7 @@ This plan **supersedes** the original Option 2 migration plan by integrating fin
 - TAP output for Codex compatibility
 - Strict branch protection
 
-### Key Takeaway for git-workflow-manager
+### Key Takeaway for git-pr-manager
 
 **Claude Code needs better error information**:
 1. **Quick classification** - Test failure? Linting? Type error? Security issue?
@@ -111,7 +111,7 @@ This plan **supersedes** the original Option 2 migration plan by integrating fin
 ### Current Tech Stack
 
 ```
-git-workflow-manager (v0.3.0)
+git-pr-manager (v0.3.0)
 ├── Language: Bash
 ├── Git Operations: git CLI
 ├── GitHub Operations: gh CLI
@@ -126,7 +126,7 @@ git-workflow-manager (v0.3.0)
 ### Current Workflow (Bash)
 
 ```bash
-gwm ship
+gpm ship
   ├── 1. Preflight Checks (bash)
   │   ├── Current branch validation
   │   ├── Uncommitted changes check
@@ -199,7 +199,7 @@ gwm ship
 ### New Tech Stack
 
 ```
-git-workflow-manager (v1.0.0 - SDK-based + Enhanced)
+git-pr-manager (v1.0.0 - SDK-based + Enhanced)
 ├── Language: TypeScript (compiled to JavaScript)
 ├── Git Operations: simple-git (npm package)
 ├── GitHub Operations: Octokit SDK (@octokit/rest)
@@ -215,17 +215,17 @@ git-workflow-manager (v1.0.0 - SDK-based + Enhanced)
 ### Project Structure
 
 ```
-git-workflow-manager/
+git-pr-manager/
 ├── src/
 │   ├── index.ts                          # CLI entry point
 │   │
 │   ├── commands/
-│   │   ├── init.ts                       # gwm init
-│   │   ├── feature-start.ts              # gwm feature start
-│   │   ├── ship.ts                       # gwm ship ⭐
-│   │   ├── status.ts                     # gwm status
-│   │   ├── checks.ts                     # gwm checks ⭐ NEW
-│   │   └── protect.ts                    # gwm protect ⭐ NEW
+│   │   ├── init.ts                       # gpm init
+│   │   ├── feature-start.ts              # gpm feature start
+│   │   ├── ship.ts                       # gpm ship ⭐
+│   │   ├── status.ts                     # gpm status
+│   │   ├── checks.ts                     # gpm checks ⭐ NEW
+│   │   └── protect.ts                    # gpm protect ⭐ NEW
 │   │
 │   ├── services/
 │   │   ├── GitHubService.ts              # Core Octokit wrapper
@@ -236,7 +236,7 @@ git-workflow-manager/
 │   │   ├── SecurityScanner.ts            # ⭐ NEW - Pre-commit security
 │   │   ├── PRTemplateService.ts          # Template discovery + merging
 │   │   ├── VerifyService.ts              # Run verify.sh with progress
-│   │   └── ConfigService.ts              # .gwm.yml management
+│   │   └── ConfigService.ts              # .gpm.yml management
 │   │
 │   ├── types/
 │   │   ├── config.ts                     # Config types
@@ -285,7 +285,7 @@ git-workflow-manager/
 ### Enhanced Workflow (Node.js + SDK + Enhancements)
 
 ```typescript
-gwm ship
+gpm ship
   ├── 1. Preflight Checks (TypeScript)
   │   ├── GitService.getCurrentBranch()
   │   ├── GitService.hasUncommittedChanges()
@@ -337,30 +337,30 @@ gwm ship
 
 | Command | Current (Bash) | New (TypeScript) | Notes |
 |---------|----------------|------------------|-------|
-| `gwm init` | ✅ Bash script | ✅ TypeScript | Add template option |
-| `gwm feature start <name>` | ✅ Bash script | ✅ TypeScript | Same functionality |
-| `gwm ship` | ✅ Bash script | ✅ TypeScript + Enhanced | Major improvements |
-| `gwm status` | ✅ Bash script | ✅ TypeScript | Better formatting |
+| `gpm init` | ✅ Bash script | ✅ TypeScript | Add template option |
+| `gpm feature start <name>` | ✅ Bash script | ✅ TypeScript | Same functionality |
+| `gpm ship` | ✅ Bash script | ✅ TypeScript + Enhanced | Major improvements |
+| `gpm status` | ✅ Bash script | ✅ TypeScript | Better formatting |
 
 ### New Commands ⭐
 
 | Command | Purpose | Example |
 |---------|---------|---------|
-| `gwm checks <pr-number>` | Show detailed CI check status | `gwm checks 123` |
-| `gwm protect [branch]` | Configure branch protection | `gwm protect main --preset standard` |
-| `gwm security` | Run pre-commit security checks | `gwm security --secrets --deps` |
-| `gwm init --template <type>` | Initialize with CI template | `gwm init --template python` |
+| `gpm checks <pr-number>` | Show detailed CI check status | `gpm checks 123` |
+| `gpm protect [branch]` | Configure branch protection | `gpm protect main --preset standard` |
+| `gpm security` | Run pre-commit security checks | `gpm security --secrets --deps` |
+| `gpm init --template <type>` | Initialize with CI template | `gpm init --template python` |
 
 ### Enhanced Flags
 
 | Flag | Command | Purpose |
 |------|---------|---------|
-| `--wait` | `gwm ship` | Wait for CI (default: true) |
-| `--fail-fast` | `gwm ship` | Exit on first critical failure (default: true) |
-| `--retry-flaky` | `gwm ship` | Retry flaky tests (default: false) |
-| `--skip-security` | `gwm ship` | Skip pre-commit security checks |
-| `--details` | `gwm checks` | Show full error details with annotations |
-| `--files` | `gwm checks` | List affected files only |
+| `--wait` | `gpm ship` | Wait for CI (default: true) |
+| `--fail-fast` | `gpm ship` | Exit on first critical failure (default: true) |
+| `--retry-flaky` | `gpm ship` | Retry flaky tests (default: false) |
+| `--skip-security` | `gpm ship` | Skip pre-commit security checks |
+| `--details` | `gpm checks` | Show full error details with annotations |
+| `--files` | `gpm checks` | List affected files only |
 
 ---
 
@@ -1406,7 +1406,7 @@ export class SecurityScanner {
 
 **Before** (bash + gh CLI):
 ```
-$ gwm ship
+$ gpm ship
 ✓ Verified locally
 ✗ CI checks failed
 Error: Some checks were not successful
@@ -1414,7 +1414,7 @@ Error: Some checks were not successful
 
 **After** (Node.js + Octokit SDK):
 ```
-$ gwm ship
+$ gpm ship
 
 🔄 Running pre-commit checks...
   ✅ No secrets detected
@@ -1481,7 +1481,7 @@ Passed (7):
 
 Quick Actions:
   → Run failing tests: pytest tests/test_auth.py tests/test_api.py -v
-  → View full details: gwm checks 123 --details
+  → View full details: gpm checks 123 --details
   → Open in GitHub: open https://github.com/littlebearapps/repo/pull/123
 ```
 
@@ -1507,7 +1507,7 @@ Quick Actions:
 ### 3. Branch Protection Validation
 
 ```
-$ gwm ship
+$ gpm ship
 
 🔍 Checking PR readiness...
 
@@ -1531,7 +1531,7 @@ PR Status:
 ### 4. Pre-Commit Security Checks
 
 ```
-$ gwm ship
+$ gpm ship
 
 🔒 Running pre-commit security checks...
 
@@ -1659,7 +1659,7 @@ try {
     process.exit(1);
   } else if (error instanceof TimeoutError) {
     console.error('⏱️  CI checks timed out');
-    console.error('Check status: gwm checks <pr-number>');
+    console.error('Check status: gpm checks <pr-number>');
     process.exit(1);
   } else {
     // Unknown error
@@ -1694,7 +1694,7 @@ try {
      - Current branch
      - Uncommitted changes check
      - Push/pull operations
-   - [ ] Implement ConfigService.ts (.gwm.yml management)
+   - [ ] Implement ConfigService.ts (.gpm.yml management)
 
 3. **Enhanced CI Poller** (12 hours) ⭐ **PRIORITY**
    - [ ] Create EnhancedCIPoller.ts
@@ -1774,7 +1774,7 @@ try {
      - Show real-time progress
 
 4. **Ship Command** (8 hours)
-   - [ ] Implement `gwm ship` command
+   - [ ] Implement `gpm ship` command
      - Preflight checks
      - Run verify.sh
      - Push branch
@@ -1786,7 +1786,7 @@ try {
    - [ ] Add error recovery
 
 **Deliverables**:
-- ✅ Complete `gwm ship` command
+- ✅ Complete `gpm ship` command
 - ✅ PR creation with templates
 - ✅ Intelligent CI polling with progress
 - ✅ Fail-fast and retry logic
@@ -1818,8 +1818,8 @@ try {
      - getProtection()
      - validatePRReadiness()
      - setupProtection() (auto-configure)
-   - [ ] Integrate into `gwm ship` (pre-flight + pre-merge)
-   - [ ] Add `gwm protect` command
+   - [ ] Integrate into `gpm ship` (pre-flight + pre-merge)
+   - [ ] Add `gpm protect` command
      - Configure protection with presets (basic, standard, strict)
      - Based on org best practices from audit
 
@@ -1827,14 +1827,14 @@ try {
    - [ ] Create SecurityScanner.ts
      - scanForSecrets() (detect-secrets or TruffleHog)
      - checkDependencies() (pip-audit, npm audit)
-   - [ ] Integrate into `gwm ship` (pre-commit)
-   - [ ] Add `gwm security` command
+   - [ ] Integrate into `gpm ship` (pre-commit)
+   - [ ] Add `gpm security` command
      - Run security checks manually
      - Show detailed results
-   - [ ] Add configurable thresholds (.gwm.yml)
+   - [ ] Add configurable thresholds (.gpm.yml)
 
 3. **Checks Command** (4 hours) ⭐ **NEW FEATURE**
-   - [ ] Implement `gwm checks <pr-number>` command
+   - [ ] Implement `gpm checks <pr-number>` command
      - Show detailed check status
      - Show annotations with --details flag
      - Show affected files with --files flag
@@ -1842,16 +1842,16 @@ try {
    - [ ] Use OutputFormatter for display
 
 4. **Additional Commands** (6 hours)
-   - [ ] Implement `gwm feature start <name>`
-   - [ ] Implement `gwm status`
-   - [ ] Implement `gwm init` (with --template flag)
+   - [ ] Implement `gpm feature start <name>`
+   - [ ] Implement `gpm status`
+   - [ ] Implement `gpm init` (with --template flag)
 
 **Deliverables**:
 - ✅ Branch protection integration
 - ✅ Pre-commit security scanning
-- ✅ `gwm checks` command
-- ✅ `gwm protect` command
-- ✅ `gwm security` command
+- ✅ `gpm checks` command
+- ✅ `gpm protect` command
+- ✅ `gpm security` command
 - ✅ All core commands implemented
 
 **Testing**:
@@ -1885,7 +1885,7 @@ try {
    - [ ] Achieve 80%+ code coverage
 
 2. **Integration Tests** (6 hours)
-   - [ ] Test full `gwm ship` workflow
+   - [ ] Test full `gpm ship` workflow
    - [ ] Test with auditor-toolkit (Python)
    - [ ] Test with wp-navigator-pro (Node.js/PHP)
    - [ ] Test error scenarios (CI failures, merge conflicts, etc.)
@@ -1911,7 +1911,7 @@ try {
    - [ ] Create ci-python.yml (based on auditor-toolkit)
    - [ ] Create ci-nodejs.yml (based on wp-navigator-pro)
    - [ ] Create security.yml (based on org audit)
-   - [ ] Add `gwm init --template <type>` support
+   - [ ] Add `gpm init --template <type>` support
    - [ ] Document templates in templates/README.md
 
 5. **Polish** (4 hours)
@@ -2163,10 +2163,10 @@ describe('Error Reporting Integration', () => {
 **Target**: auditor-toolkit (best CI setup, good test case)
 
 **Steps**:
-1. Install git-workflow-manager v1.0.0
-2. Test `gwm ship` with passing CI
-3. Test `gwm ship` with failing tests (introduce test failure)
-4. Test `gwm checks <pr-number>`
+1. Install git-pr-manager v1.0.0
+2. Test `gpm ship` with passing CI
+3. Test `gpm ship` with failing tests (introduce test failure)
+4. Test `gpm checks <pr-number>`
 5. Verify error reporting is accurate
 6. Document any issues
 
@@ -2255,7 +2255,7 @@ interface PRMetrics {
 **Example Survey Questions**:
 1. How satisfied are you with the new error reporting? (1-5)
 2. Do suggested fixes help you resolve issues faster? (Yes/No)
-3. How often do you use `gwm checks` to debug CI? (Never/Sometimes/Often/Always)
+3. How often do you use `gpm checks` to debug CI? (Never/Sometimes/Often/Always)
 4. Has the new workflow reduced your PR/merge time? (Yes/No)
 5. Do you feel more confident shipping code with the security scanning? (Yes/No)
 
@@ -2276,8 +2276,8 @@ interface PRMetrics {
 
 **Revert Command**:
 ```bash
-npm uninstall -g git-workflow-manager
-npm install -g git-workflow-manager@0.3.0
+npm uninstall -g git-pr-manager
+npm install -g git-pr-manager@0.3.0
 ```
 
 ### Scenario 2: Performance Issues
@@ -2301,7 +2301,7 @@ npm install -g git-workflow-manager@0.3.0
 
 **Example** (disable security scanning):
 ```yaml
-# .gwm.yml
+# .gpm.yml
 security:
   enabled: false  # Disable until fixed
 ```

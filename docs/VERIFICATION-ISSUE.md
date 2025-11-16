@@ -11,7 +11,7 @@ The issue has been **RESOLVED** by modifying VerifyService to use JSON mode for 
 
 **Root Cause**: Ora spinner conflicts between parent process (ship) and subprocess (verify).
 
-**Solution**: Changed VerifyService.ts line 81 from `'gwm verify'` to `'gwm verify --json'`, which:
+**Solution**: Changed VerifyService.ts line 81 from `'gpm verify'` to `'gpm verify --json'`, which:
 - Disables spinners in the subprocess
 - Outputs machine-readable JSON instead
 - Eliminates stdio conflicts with parent spinner
@@ -22,13 +22,13 @@ The issue has been **RESOLVED** by modifying VerifyService to use JSON mode for 
 
 ## Summary (Original Issue)
 
-The `gwm verify` command worked perfectly when run standalone, but failed with exit code 1 when called via `VerifyService.executeScript()` from within `gwm ship`.
+The `gpm verify` command worked perfectly when run standalone, but failed with exit code 1 when called via `VerifyService.executeScript()` from within `gpm ship`.
 
 ## Evidence
 
 ### ✅ Works Standalone
 ```bash
-$ gwm verify
+$ gpm verify
 ▸ Running Verification Checks
 ────────────────────────────────────────────────────────────────────────────────
 - Running Lint (ESLint)...
@@ -58,11 +58,11 @@ const result = await verifyService.runChecks();
 // Result: { success: true, errors: [], duration: 21825 }
 ```
 
-### ❌ Fails When Called from gwm ship
+### ❌ Fails When Called from gpm ship
 
 **OLD ERROR (not descriptive):**
 ```bash
-$ gwm ship
+$ gpm ship
 - Running verification checks...
 ✖ Verification checks failed
 ❌ Verification errors:
@@ -71,11 +71,11 @@ $ gwm ship
 
 **NEW ERROR (improved in v1.4.0):**
 ```bash
-$ gwm ship
+$ gpm ship
 - Running verification checks...
 ✖ Verification checks failed
 ❌ Verification errors:
-  Command failed: gwm verify
+  Command failed: gpm verify
   Exit code: 1
 
   Unable to parse specific errors. Raw output:
@@ -86,7 +86,7 @@ $ gwm ship
     stderr length: 0 chars
 
   This may indicate a subprocess stdio conflict.
-  Try running the command directly: gwm verify
+  Try running the command directly: gpm verify
 ```
 
 The improved error message now shows:
@@ -113,10 +113,10 @@ The improved error message now shows:
 
 ## Root Cause Analysis
 
-The issue appears to be related to **subprocess environment/context** when gwm calls itself:
+The issue appears to be related to **subprocess environment/context** when gpm calls itself:
 
-1. **VerifyService discovers**: `gwm verify` (correct)
-2. **VerifyService executes**: `child_process.exec('gwm verify')`
+1. **VerifyService discovers**: `gpm verify` (correct)
+2. **VerifyService executes**: `child_process.exec('gpm verify')`
 3. **Subprocess exits with**: code 1 (incorrect)
 4. **But direct execution**: exits with code 0 (correct)
 
@@ -128,11 +128,11 @@ Potential factors:
 
 ## ~~Workaround~~ (No Longer Needed)
 
-~~Use `--skip-verify` flag when running `gwm ship`:~~
+~~Use `--skip-verify` flag when running `gpm ship`:~~
 
 ```bash
 # ✅ NOW WORKS: No workaround needed!
-$ gwm ship
+$ gpm ship
 
 # Verification runs successfully as subprocess
 ```
@@ -142,27 +142,27 @@ The `--skip-verify` flag is still available if you want to skip verification for
 ## Impact (Original)
 
 **Low** - This was a testing/development quirk, not a production issue:
-- ✅ `gwm verify` command worked perfectly for developers
+- ✅ `gpm verify` command worked perfectly for developers
 - ✅ All tests passed (678/678)
 - ✅ Documentation is complete
-- ⚠️  Only failed when gwm called gwm (subprocess inception)
+- ⚠️  Only failed when gpm called gpm (subprocess inception)
 
 ## ~~Recommendation~~ (Issue Resolved)
 
 ~~This is **not blocking** for release because:~~
 ~~1. The verify command itself is fully functional~~
-~~2. Developers can run `gwm verify` separately before `gwm ship --skip-verify`~~
+~~2. Developers can run `gpm verify` separately before `gpm ship --skip-verify`~~
 ~~3. All tests pass and code quality is verified~~
 ~~4. This appears to be an environmental quirk, not a code bug~~
 
-**✅ UPDATE**: Issue has been resolved. `gwm ship` now works correctly with verification enabled.
+**✅ UPDATE**: Issue has been resolved. `gpm ship` now works correctly with verification enabled.
 
 ## Implementation Details
 
 **Files Changed**:
 1. **src/services/VerifyService.ts** (line 81)
-   - Changed: `return 'gwm verify';`
-   - To: `return 'gwm verify --json';`
+   - Changed: `return 'gpm verify';`
+   - To: `return 'gpm verify --json';`
    - Also improved error messages with command context, exit codes, and debug info
 
 2. **src/utils/logger.ts** (lines 122-127)

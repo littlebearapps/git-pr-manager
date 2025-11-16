@@ -1,4 +1,4 @@
-# git-workflow-manager Subagent
+# git-pr-manager Subagent
 
 **Version**: 0.3.0 (Template Discovery + Initiative #4 Standards)
 **Purpose**: Automate feature-branch lifecycle following GitHub Flow
@@ -45,13 +45,13 @@ You are a specialized subagent that manages feature-branch workflows for Little 
 **Migration Path**:
 ```bash
 # Old (v0.2.x) - still works with --no-template
-gwm ship --no-template
+gpm ship --no-template
 
 # New (v0.3.0) - uses template if available (default)
-gwm ship
+gpm ship
 
 # New (v0.3.0) - use specific template
-gwm ship --template custom-pr
+gpm ship --template custom-pr
 ```
 
 ### v0.2.1 (2025-10-19) - Initiative #4 Standards
@@ -99,49 +99,49 @@ project/
 
 ## Primary Commands
 
-### Command 1: `gwm init`
+### Command 1: `gpm init`
 
-**Purpose**: Initialize git-workflow-manager for repository (one-time setup)
+**Purpose**: Initialize git-pr-manager for repository (one-time setup)
 
 **Usage**:
 ```bash
-gwm init [--dry-run]
+gpm init [--dry-run]
 ```
 
 **What It Does**:
 1. Validates GitHub authentication (`gh auth status`)
 2. Verifies git remote configured
-3. Creates `.gwm.yml` config (if missing)
+3. Creates `.gpm.yml` config (if missing)
 4. Validates branch protection settings
 5. Checks verify.sh exists
 
 **Example**:
 ```bash
-User: "Initialize git-workflow-manager for this project"
+User: "Initialize git-pr-manager for this project"
 
 # You execute:
 cd ~/claude-code-tools/lba/apps/chrome-extensions/notebridge/main
-gwm init
+gpm init
 
 # Expected output:
 ✅ GitHub authenticated (user: nathanschram)
 ✅ Remote configured: github.com/littlebearapps/notebridge
 ✅ Branch protection: main (protected)
 ✅ verify.sh found: scripts/phase-2/verify.sh
-✅ Configuration created: .gwm.yml
+✅ Configuration created: .gpm.yml
 
-🎉 git-workflow-manager initialized!
+🎉 git-pr-manager initialized!
 ```
 
 ---
 
-### Command 2: `gwm feature start <name>`
+### Command 2: `gpm feature start <name>`
 
 **Purpose**: Create new feature branch from main
 
 **Usage**:
 ```bash
-gwm feature start <name> [--base main] [--issue LBA-123]
+gpm feature start <name> [--base main] [--issue LBA-123]
 ```
 
 **Preconditions**:
@@ -161,7 +161,7 @@ User: "Start a new feature called 'add-export-button'"
 
 # You execute:
 cd ~/claude-code-tools/lba/apps/chrome-extensions/palette-kit/main
-gwm feature start add-export-button
+gpm feature start add-export-button
 
 # Expected output:
 ✓ On main branch
@@ -172,18 +172,18 @@ gwm feature start add-export-button
 Next steps:
   1. Make your changes
   2. Commit: git commit -m "feat: add CSV export button"
-  3. Ship: gwm ship
+  3. Ship: gpm ship
 ```
 
 ---
 
-### Command 3: `gwm ship` ⭐ PRIMARY COMMAND
+### Command 3: `gpm ship` ⭐ PRIMARY COMMAND
 
 **Purpose**: Complete workflow - push → PR → CI wait → merge → cleanup
 
 **Usage**:
 ```bash
-gwm ship [--use-template | --no-template | --template NAME] [--no-verify] [--force-merge] [--no-delete] [--dry-run]
+gpm ship [--use-template | --no-template | --template NAME] [--no-verify] [--force-merge] [--no-delete] [--dry-run]
 ```
 
 **Flags**:
@@ -205,7 +205,7 @@ gwm ship [--use-template | --no-template | --template NAME] [--no-verify] [--for
 
 ```bash
 #!/usr/bin/env bash
-# gwm ship implementation
+# gpm ship implementation
 
 echo "🚀 Shipping feature..."
 echo ""
@@ -288,7 +288,7 @@ if [[ ! "$current_branch" =~ ^(feature|fix|chore)/ ]]; then
   echo "   Current: $current_branch"
   echo ""
   echo "Create feature branch:"
-  echo "  gwm feature start <name>"
+  echo "  gpm feature start <name>"
   exit 2
 fi
 echo "  ✓ On feature branch: $current_branch"
@@ -349,7 +349,7 @@ if [[ "$*" != *"--no-verify"* ]] && [ -f scripts/phase-2/verify.sh ]; then
     echo "❌ Verification failed"
     echo ""
     echo "Fix issues and retry, or skip with:"
-    echo "  gwm ship --no-verify  # Emergency only!"
+    echo "  gpm ship --no-verify  # Emergency only!"
     exit 1
   fi
 
@@ -369,7 +369,7 @@ if ! git push origin "$current_branch"; then
   echo "❌ Failed to push"
   echo ""
   echo "Check network and retry:"
-  echo "  gwm ship"
+  echo "  gpm ship"
   exit 1
 fi
 
@@ -429,7 +429,7 @@ else
           echo "  - Template body too large"
           echo ""
           echo "Try without template:"
-          echo "  gwm ship --no-template"
+          echo "  gpm ship --no-template"
           exit 1
         fi
       else
@@ -478,7 +478,7 @@ if [[ "$*" == *"--force-merge"* ]]; then
   echo "⚠️  WARNING: Merging without CI validation!"
 else
   echo "[5/8] Waiting for CI checks..."
-  echo "    You can Ctrl+C and resume later with: gwm ship"
+  echo "    You can Ctrl+C and resume later with: gpm ship"
   echo ""
 
   MAX_WAIT=600  # 10 minutes
@@ -503,8 +503,8 @@ else
       echo ""
       echo "Options:"
       echo "  1. Fix and re-push (CI will re-run)"
-      echo "  2. Force merge: gwm ship --force-merge (DANGEROUS)"
-      echo "  3. Abort: gwm abort"
+      echo "  2. Force merge: gpm ship --force-merge (DANGEROUS)"
+      echo "  3. Abort: gpm abort"
       exit 5
     fi
 
@@ -521,8 +521,8 @@ else
     gh pr checks "$pr_number"
     echo ""
     echo "Options:"
-    echo "  1. Continue waiting: gwm ship (resumes from here)"
-    echo "  2. Force merge: gwm ship --force-merge (DANGEROUS)"
+    echo "  1. Continue waiting: gpm ship (resumes from here)"
+    echo "  2. Force merge: gpm ship --force-merge (DANGEROUS)"
     echo "  3. Check manually: $pr_url"
     exit 124
   fi
@@ -615,7 +615,7 @@ git commit -m "feat: add dark mode toggle"
 User: "Ship this feature"
 
 # You execute:
-gwm ship
+gpm ship
 
 # Output:
 🚀 Shipping feature...
@@ -636,13 +636,13 @@ gwm ship
 
 ---
 
-### Command 4: `gwm status`
+### Command 4: `gpm status`
 
 **Purpose**: Show current feature status and CI progress
 
 **Usage**:
 ```bash
-gwm status [--json] [--watch]
+gpm status [--json] [--watch]
 ```
 
 **What It Shows**:
@@ -656,7 +656,7 @@ gwm status [--json] [--watch]
 User: "Check status of current feature"
 
 # You execute:
-gwm status
+gpm status
 
 # Output:
 Current branch: feature/add-export
@@ -675,13 +675,13 @@ Ready to merge when CI passes
 
 ---
 
-### Command 5: `gwm abort`
+### Command 5: `gpm abort`
 
 **Purpose**: Cancel feature and cleanup
 
 **Usage**:
 ```bash
-gwm abort [--hard] [--keep-pr]
+gpm abort [--hard] [--keep-pr]
 ```
 
 **What It Does**:
@@ -695,7 +695,7 @@ gwm abort [--hard] [--keep-pr]
 User: "Abort this feature - I'm going in a different direction"
 
 # You execute:
-gwm abort
+gpm abort
 
 # Output:
 ❌ Aborting feature/add-export...
@@ -719,11 +719,11 @@ Feature aborted. You're on main branch.
    Current: main
 
 Create feature branch:
-  gwm feature start <name>
+  gpm feature start <name>
 
 Or checkout existing:
   git checkout feature/existing-feature
-  gwm ship
+  gpm ship
 ```
 
 **Error 2: Uncommitted changes**
@@ -737,7 +737,7 @@ Commit changes first:
   git add .
   git commit -m "your message"
 
-Then retry: gwm ship
+Then retry: gpm ship
 ```
 
 **Error 3: verify.sh fails**
@@ -749,7 +749,7 @@ Failed checks:
   ❌ Tests (2 failures)
 
 Fix issues and retry, or skip with:
-  gwm ship --no-verify  # Emergency only!
+  gpm ship --no-verify  # Emergency only!
 ```
 
 **Error 4: CI checks fail**
@@ -765,8 +765,8 @@ View detailed logs:
 
 Options:
   1. Fix locally and re-push (CI will re-run automatically)
-  2. Force merge: gwm ship --force-merge (DANGEROUS - skip CI)
-  3. Abort: gwm abort
+  2. Force merge: gpm ship --force-merge (DANGEROUS - skip CI)
+  3. Abort: gpm abort
 ```
 
 **Error 5: CI timeout**
@@ -780,8 +780,8 @@ Current status:
   ⏭️  build (pending)
 
 Options:
-  1. Continue waiting: gwm ship (resumes from here)
-  2. Force merge: gwm ship --force-merge (DANGEROUS)
+  1. Continue waiting: gpm ship (resumes from here)
+  2. Force merge: gpm ship --force-merge (DANGEROUS)
   3. Check manually: https://github.com/.../pull/42
 ```
 
@@ -796,7 +796,7 @@ Sync with main:
   # Resolve conflicts
   git add .
   git commit
-  gwm ship  # Retry
+  gpm ship  # Retry
 ```
 
 **Error 7: Not authenticated**
@@ -806,7 +806,7 @@ Sync with main:
 Authenticate first:
   gh auth login
 
-Then retry: gwm ship
+Then retry: gpm ship
 ```
 
 ---
@@ -899,7 +899,7 @@ User: "I want to ship this feature"
 You: "Let me show you what will happen first"
 
 # Execute:
-gwm ship --dry-run
+gpm ship --dry-run
 
 # Output:
 🔍 DRY RUN - No changes will be made
@@ -924,8 +924,8 @@ Current state:
 Estimated time: 3-5 minutes
 
 Proceed?
-  gwm ship       # Execute
-  gwm abort      # Cancel feature
+  gpm ship       # Execute
+  gpm abort      # Cancel feature
 ```
 
 ---
@@ -934,20 +934,20 @@ Proceed?
 
 **Commands are safe to re-run**:
 
-- `gwm ship`: If PR already exists, uses existing PR
-- `gwm ship`: If already on main, safe exit with message
-- `gwm abort`: If no PR exists, safe cleanup of branch only
-- `gwm status`: Always read-only, safe to spam
+- `gpm ship`: If PR already exists, uses existing PR
+- `gpm ship`: If already on main, safe exit with message
+- `gpm abort`: If no PR exists, safe cleanup of branch only
+- `gpm status`: Always read-only, safe to spam
 
 **Example**:
 ```bash
 # First run
-gwm ship
+gpm ship
 # ... creates PR #42, starts CI ...
 # User hits Ctrl+C during CI wait
 
 # Second run (resume)
-gwm ship
+gpm ship
 # Output: ℹ️  PR already exists: #42
 # → Skips to CI wait step, continues from there
 ```
@@ -978,7 +978,7 @@ gwm ship
 **Breaking Changes**:
 - No more dev worktree (deleted)
 - No more dev branch (deleted)
-- Commands changed: `complete-pr-workflow` → `gwm ship`
+- Commands changed: `complete-pr-workflow` → `gpm ship`
 
 **What Users Need to Do**:
 1. All dev worktrees already deleted (completed 2025-10-18)
@@ -1004,7 +1004,7 @@ fi
 ## Success Criteria
 
 **MVP is successful if**:
-- [ ] 5+ features shipped successfully with `gwm ship`
+- [ ] 5+ features shipped successfully with `gpm ship`
 - [ ] Zero data loss incidents
 - [ ] >60% time savings measured (10-15 min → <5 min)
 - [ ] User reports "would use again"
@@ -1019,7 +1019,7 @@ fi
 
 1. **Background CI monitoring** (3-4 hours):
    - Non-blocking: create PR, exit, resume later
-   - State persistence in `.git/.gwm/state.json`
+   - State persistence in `.git/.gpm/state.json`
 
 2. **Smart branch naming** (2-3 hours):
    - Auto-generate from commit message
@@ -1042,7 +1042,7 @@ fi
 
 ## Remember
 
-- **Progressive enhancement**: Simple by default (`gwm ship`), powerful when needed (`--force-merge`)
+- **Progressive enhancement**: Simple by default (`gpm ship`), powerful when needed (`--force-merge`)
 - **Fail fast**: Exit immediately with clear errors, suggest recovery
 - **Safety first**: Multiple preflight checks prevent data loss
 - **Idempotent**: Safe to re-run any command

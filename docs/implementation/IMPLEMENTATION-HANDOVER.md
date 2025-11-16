@@ -1,4 +1,4 @@
-# git-workflow-manager Implementation Handover
+# git-pr-manager Implementation Handover
 
 **Date**: 2025-11-12
 **Status**: Ready to Start Phase 1
@@ -8,7 +8,7 @@
 
 ## Quick Orientation
 
-You are about to implement a **complete transformation** of the `git-workflow-manager` subagent from bash + gh CLI to TypeScript + Octokit SDK with enhanced CI/security features.
+You are about to implement a **complete transformation** of the `git-pr-manager` subagent from bash + gh CLI to TypeScript + Octokit SDK with enhanced CI/security features.
 
 ### What Happened Before This Session
 
@@ -30,7 +30,7 @@ You are about to implement a **complete transformation** of the `git-workflow-ma
 
 ## Key Documents
 
-**Location**: `~/claude-code-tools/lba/apps/subagents/git-workflow-manager/`
+**Location**: `~/claude-code-tools/lba/apps/subagents/git-pr-manager/`
 
 ### Primary Document (Follow This)
 - **COMPREHENSIVE-ENHANCEMENT-PLAN.md** ⭐
@@ -52,7 +52,7 @@ You are about to implement a **complete transformation** of the `git-workflow-ma
 
 ## What You're Building
 
-**Transform git-workflow-manager from**:
+**Transform git-pr-manager from**:
 ```
 Current (v0.3.0):
 - Language: Bash
@@ -104,7 +104,7 @@ Target (v1.0.0):
 - PRService, PRTemplateService
 - Intelligent polling (progress, fail-fast, retry)
 - VerifyService
-- **`gwm ship` command** ⭐
+- **`gpm ship` command** ⭐
 
 ### Phase 3: Branch Protection + Security (Week 3, ~25-30 hours)
 **Goal**: Add branch protection validation and pre-commit security
@@ -112,7 +112,7 @@ Target (v1.0.0):
 **Key Deliverables**:
 - **BranchProtectionChecker** ⭐ - Validate merge requirements
 - **SecurityScanner** ⭐ - Pre-commit checks
-- New commands: `gwm checks`, `gwm protect`, `gwm security`
+- New commands: `gpm checks`, `gpm protect`, `gpm security`
 
 ### Phase 4: Testing + Documentation (Week 4, ~20-25 hours)
 **Goal**: Comprehensive tests, docs, workflow templates
@@ -137,7 +137,7 @@ Target (v1.0.0):
 **Your first task**: Project Setup (4 hours)
 
 ```bash
-cd ~/claude-code-tools/lba/apps/subagents/git-workflow-manager
+cd ~/claude-code-tools/lba/apps/subagents/git-pr-manager
 ```
 
 ### Step 1: Initialize TypeScript Project
@@ -145,12 +145,12 @@ cd ~/claude-code-tools/lba/apps/subagents/git-workflow-manager
 1. Create `package.json`:
 ```json
 {
-  "name": "git-workflow-manager",
+  "name": "git-pr-manager",
   "version": "1.0.0",
   "description": "Enhanced git workflow automation with Octokit SDK",
   "main": "dist/index.js",
   "bin": {
-    "gwm": "dist/index.js"
+    "gpm": "dist/index.js"
   },
   "scripts": {
     "build": "tsc",
@@ -325,7 +325,7 @@ npm run dev checks 123  # Replace 123 with real PR number
 
 **Current location**:
 ```bash
-cd ~/claude-code-tools/lba/apps/subagents/git-workflow-manager
+cd ~/claude-code-tools/lba/apps/subagents/git-pr-manager
 ```
 
 **View plan**:
@@ -390,7 +390,7 @@ cat SUBAGENT_PROMPT.md  # Current bash version
 
 **Your first command**:
 ```bash
-cd ~/claude-code-tools/lba/apps/subagents/git-workflow-manager
+cd ~/claude-code-tools/lba/apps/subagents/git-pr-manager
 npm init -y  # Then edit package.json as shown above
 ```
 

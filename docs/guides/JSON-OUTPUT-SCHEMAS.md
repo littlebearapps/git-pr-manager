@@ -7,7 +7,7 @@
 
 ## Overview
 
-All `git-workflow-manager` commands support machine-readable JSON output via the `--json` flag. This guide documents the JSON schemas for each command's output.
+All `git-pr-manager` commands support machine-readable JSON output via the `--json` flag. This guide documents the JSON schemas for each command's output.
 
 ## Standard Response Format
 
@@ -68,7 +68,7 @@ All JSON responses follow a consistent structure:
 
 ## Command Schemas
 
-### 1. `gwm status --json`
+### 1. `gpm status --json`
 
 **Command**: Display current git and workflow status
 
@@ -89,7 +89,7 @@ All JSON responses follow a consistent structure:
     },
     "config": {
       "owner": "littlebearapps",
-      "repo": "git-workflow-manager",
+      "repo": "git-pr-manager",
       "defaultBranch": "main"
     }
   },
@@ -114,7 +114,7 @@ All JSON responses follow a consistent structure:
 
 ---
 
-### 2. `gwm protect --show --json`
+### 2. `gpm protect --show --json`
 
 **Command**: Display branch protection settings
 
@@ -163,7 +163,7 @@ All JSON responses follow a consistent structure:
 
 ---
 
-### 3. `gwm security --json`
+### 3. `gpm security --json`
 
 **Command**: Run security scanning (secrets + vulnerabilities)
 
@@ -269,7 +269,7 @@ All JSON responses follow a consistent structure:
 
 ---
 
-### 4. `gwm checks <pr-number> --json`
+### 4. `gpm checks <pr-number> --json`
 
 **Command**: Get CI check status for a pull request
 
@@ -344,7 +344,7 @@ All JSON responses follow a consistent structure:
 
 ---
 
-### 5. `gwm feature <name> --json`
+### 5. `gpm feature <name> --json`
 
 **Command**: Create a new feature branch
 
@@ -414,7 +414,7 @@ All JSON responses follow a consistent structure:
 
 ---
 
-### 6. `gwm ship --json`
+### 6. `gpm ship --json`
 
 **Command**: Ship feature (create PR, wait for CI, merge)
 
@@ -425,7 +425,7 @@ All JSON responses follow a consistent structure:
   "data": {
     "merged": true,
     "prNumber": 123,
-    "prUrl": "https://github.com/littlebearapps/git-workflow-manager/pull/123",
+    "prUrl": "https://github.com/littlebearapps/git-pr-manager/pull/123",
     "branch": "feature/my-feature",
     "defaultBranch": "main",
     "branchDeleted": true
@@ -448,7 +448,7 @@ All JSON responses follow a consistent structure:
 
 ---
 
-### 7. `gwm auto --json`
+### 7. `gpm auto --json`
 
 **Command**: Automated workflow (push, create PR, wait for CI, optionally merge)
 
@@ -459,7 +459,7 @@ All JSON responses follow a consistent structure:
   "data": {
     "merged": true,
     "prNumber": 123,
-    "prUrl": "https://github.com/littlebearapps/git-workflow-manager/pull/123",
+    "prUrl": "https://github.com/littlebearapps/git-pr-manager/pull/123",
     "branch": "feature/my-feature",
     "defaultBranch": "main"
   },
@@ -478,7 +478,7 @@ All JSON responses follow a consistent structure:
   "data": {
     "merged": false,
     "prNumber": 123,
-    "prUrl": "https://github.com/littlebearapps/git-workflow-manager/pull/123",
+    "prUrl": "https://github.com/littlebearapps/git-pr-manager/pull/123",
     "branch": "feature/my-feature",
     "defaultBranch": "main"
   },
@@ -499,7 +499,7 @@ All JSON responses follow a consistent structure:
 
 ---
 
-### 8. `gwm check-update --json`
+### 8. `gpm check-update --json`
 
 **Command**: Check for npm package updates
 
@@ -547,7 +547,7 @@ All JSON responses follow a consistent structure:
 
 ---
 
-### 9. `gwm install-hooks --json`
+### 9. `gpm install-hooks --json`
 
 **Command**: Install git hooks
 
@@ -573,7 +573,7 @@ All JSON responses follow a consistent structure:
 
 ---
 
-### 10. `gwm uninstall-hooks --json`
+### 10. `gpm uninstall-hooks --json`
 
 **Command**: Uninstall git hooks
 
@@ -599,9 +599,9 @@ All JSON responses follow a consistent structure:
 
 ---
 
-### 11. `gwm init --json`
+### 11. `gpm init --json`
 
-**Command**: Initialize .gwm.yml configuration
+**Command**: Initialize .gpm.yml configuration
 
 **Success Response**:
 ```json
@@ -610,7 +610,7 @@ All JSON responses follow a consistent structure:
   "data": {
     "created": true,
     "template": "basic",
-    "filePath": ".gwm.yml",
+    "filePath": ".gpm.yml",
     "config": {
       "branchProtection": {
         "enabled": false,
@@ -675,7 +675,7 @@ All JSON responses follow a consistent structure:
   "data": null,
   "error": {
     "code": "ERROR",
-    "message": ".gwm.yml already exists",
+    "message": ".gpm.yml already exists",
     "suggestions": [
       "Delete the existing file or use --force flag to overwrite"
     ]
@@ -690,7 +690,7 @@ All JSON responses follow a consistent structure:
 
 ---
 
-### 12. `gwm docs --json`
+### 12. `gpm docs --json`
 
 **Command**: Show documentation index
 
@@ -700,43 +700,43 @@ All JSON responses follow a consistent structure:
   "success": true,
   "data": {
     "version": "1.4.0",
-    "installationPath": "/usr/local/lib/node_modules/@littlebearapps/git-workflow-manager/",
+    "installationPath": "/usr/local/lib/node_modules/@littlebearapps/git-pr-manager/",
     "availableGuides": [
       {
         "name": "AI-AGENT-INTEGRATION",
         "description": "AI Agent Setup Guide",
-        "command": "gwm docs --guide=AI-AGENT-INTEGRATION"
+        "command": "gpm docs --guide=AI-AGENT-INTEGRATION"
       },
       {
         "name": "GITHUB-ACTIONS-INTEGRATION",
         "description": "GitHub Actions Integration Guide",
-        "command": "gwm docs --guide=GITHUB-ACTIONS-INTEGRATION"
+        "command": "gpm docs --guide=GITHUB-ACTIONS-INTEGRATION"
       },
       {
         "name": "JSON-OUTPUT-SCHEMAS",
         "description": "JSON Output Schemas Reference",
-        "command": "gwm docs --guide=JSON-OUTPUT-SCHEMAS"
+        "command": "gpm docs --guide=JSON-OUTPUT-SCHEMAS"
       },
       {
         "name": "CONFIGURATION",
         "description": "Configuration Guide",
-        "command": "gwm docs --guide=CONFIGURATION"
+        "command": "gpm docs --guide=CONFIGURATION"
       },
       {
         "name": "README",
         "description": "Full README",
-        "command": "gwm docs --guide=README"
+        "command": "gpm docs --guide=README"
       }
     ],
     "paths": {
-      "guides": "/usr/local/lib/node_modules/@littlebearapps/git-workflow-manager/docs/guides",
-      "quickrefs": "/usr/local/lib/node_modules/@littlebearapps/git-workflow-manager/quickrefs",
-      "docs": "/usr/local/lib/node_modules/@littlebearapps/git-workflow-manager/docs"
+      "guides": "/usr/local/lib/node_modules/@littlebearapps/git-pr-manager/docs/guides",
+      "quickrefs": "/usr/local/lib/node_modules/@littlebearapps/git-pr-manager/quickrefs",
+      "docs": "/usr/local/lib/node_modules/@littlebearapps/git-pr-manager/docs"
     },
     "links": {
-      "npm": "https://www.npmjs.com/package/@littlebearapps/git-workflow-manager",
-      "github": "https://github.com/littlebearapps/git-workflow-manager",
-      "issues": "https://github.com/littlebearapps/git-workflow-manager/issues"
+      "npm": "https://www.npmjs.com/package/@littlebearapps/git-pr-manager",
+      "github": "https://github.com/littlebearapps/git-pr-manager",
+      "issues": "https://github.com/littlebearapps/git-pr-manager/issues"
     }
   },
   "metadata": {
@@ -760,7 +760,7 @@ All JSON responses follow a consistent structure:
   "success": true,
   "data": {
     "guide": "README",
-    "path": "/usr/local/lib/node_modules/@littlebearapps/git-workflow-manager/docs/README.md",
+    "path": "/usr/local/lib/node_modules/@littlebearapps/git-pr-manager/docs/README.md",
     "found": true,
     "contentLength": 4985,
     "contentPreview": "# Documentation Index\n\nComplete documentation for Git Workflow Manager..."
@@ -810,24 +810,24 @@ All JSON responses follow a consistent structure:
 
 ```bash
 # Get overall status from checks
-gwm checks 123 --json | jq '.data.overallStatus'
+gpm checks 123 --json | jq '.data.overallStatus'
 # Output: "success"
 
 # Count failed checks
-gwm checks 123 --json | jq '.data.failed'
+gpm checks 123 --json | jq '.data.failed'
 # Output: 0
 
 # Get list of required status checks
-gwm protect --show --json | jq '.data.requiredStatusChecks[]'
+gpm protect --show --json | jq '.data.requiredStatusChecks[]'
 # Output: "Test on ubuntu-latest with Node 20"
 #         "Code Coverage"
 
 # Check if update available
-gwm check-update --json | jq '.data.updateAvailable'
+gpm check-update --json | jq '.data.updateAvailable'
 # Output: false
 
 # Get vulnerability counts
-gwm security --json | jq '.data.vulnerabilities | {total, critical, high}'
+gpm security --json | jq '.data.vulnerabilities | {total, critical, high}'
 # Output: {"total": 0, "critical": 0, "high": 0}
 ```
 
@@ -837,7 +837,7 @@ gwm security --json | jq '.data.vulnerabilities | {total, critical, high}'
 #!/bin/bash
 
 # Wait for CI and check result
-RESULT=$(gwm checks 123 --json)
+RESULT=$(gpm checks 123 --json)
 STATUS=$(echo "$RESULT" | jq -r '.data.overallStatus')
 
 if [ "$STATUS" = "success" ]; then
@@ -856,7 +856,7 @@ fi
 - name: Check CI status
   id: ci-check
   run: |
-    RESULT=$(gwm checks ${{ github.event.pull_request.number }} --json)
+    RESULT=$(gpm checks ${{ github.event.pull_request.number }} --json)
     echo "result=$RESULT" >> $GITHUB_OUTPUT
 
 - name: Parse results
@@ -868,11 +868,11 @@ fi
 
 ## TypeScript Type Definitions
 
-For TypeScript projects integrating with gwm's JSON output:
+For TypeScript projects integrating with gpm's JSON output:
 
 ```typescript
 // Standard response wrapper
-interface GwmResponse<T> {
+interface GpmResponse<T> {
   success: boolean;
   data?: T;
   error?: {
@@ -1086,7 +1086,7 @@ interface DocsGuideData {
 }
 
 // Usage example
-const response: GwmResponse<ChecksData> = JSON.parse(output);
+const response: GpmResponse<ChecksData> = JSON.parse(output);
 if (response.success && response.data) {
   console.log(`${response.data.passed}/${response.data.total} checks passed`);
 }
@@ -1100,10 +1100,10 @@ if (response.success && response.data) {
 
 ```bash
 # ❌ Bad - assumes success
-BRANCH=$(gwm status --json | jq -r '.data.branch.current')
+BRANCH=$(gpm status --json | jq -r '.data.branch.current')
 
 # ✅ Good - check success first
-RESULT=$(gwm status --json)
+RESULT=$(gpm status --json)
 if [ $(echo "$RESULT" | jq -r '.success') = "true" ]; then
   BRANCH=$(echo "$RESULT" | jq -r '.data.branch.current')
 else
@@ -1115,7 +1115,7 @@ fi
 ### 2. Handle Errors Gracefully
 
 ```typescript
-const response: GwmResponse<ChecksData> = JSON.parse(output);
+const response: GpmResponse<ChecksData> = JSON.parse(output);
 
 if (!response.success) {
   console.error(`Error: ${response.error?.message}`);
@@ -1133,21 +1133,21 @@ const { passed, total } = response.data!;
 
 ```bash
 # Track command performance
-RESULT=$(gwm security --json)
+RESULT=$(gpm security --json)
 DURATION=$(echo "$RESULT" | jq -r '.metadata.duration')
 echo "Security scan completed in ${DURATION}s"
 
 # Log for audit trails
 TIMESTAMP=$(echo "$RESULT" | jq -r '.metadata.timestamp')
 VERSION=$(echo "$RESULT" | jq -r '.metadata.version')
-echo "[$TIMESTAMP] gwm v$VERSION: scan completed"
+echo "[$TIMESTAMP] gpm v$VERSION: scan completed"
 ```
 
 ### 4. Validate Schema
 
 ```typescript
-function isValidGwmResponse<T>(data: unknown): data is GwmResponse<T> {
-  const response = data as GwmResponse<T>;
+function isValidGpmResponse<T>(data: unknown): data is GpmResponse<T> {
+  const response = data as GpmResponse<T>;
   return (
     typeof response.success === 'boolean' &&
     response.metadata !== undefined &&
@@ -1159,8 +1159,8 @@ function isValidGwmResponse<T>(data: unknown): data is GwmResponse<T> {
 
 // Usage
 const parsed = JSON.parse(output);
-if (!isValidGwmResponse(parsed)) {
-  throw new Error('Invalid gwm response format');
+if (!isValidGpmResponse(parsed)) {
+  throw new Error('Invalid gpm response format');
 }
 ```
 
@@ -1168,7 +1168,7 @@ if (!isValidGwmResponse(parsed)) {
 
 ## Exit Codes
 
-gwm uses exit codes consistently across all commands:
+gpm uses exit codes consistently across all commands:
 
 - `0` - Success (corresponds to `success: true`)
 - `1` - General failure
@@ -1184,7 +1184,7 @@ When using JSON output, **always prefer checking the JSON `success` field** over
 
 ### Schema Versioning
 
-JSON schemas follow semantic versioning tied to gwm releases:
+JSON schemas follow semantic versioning tied to gpm releases:
 
 - **Major version changes** (2.0.0): Breaking schema changes
 - **Minor version changes** (1.5.0): Additive schema changes (new fields)
@@ -1193,8 +1193,8 @@ JSON schemas follow semantic versioning tied to gwm releases:
 ### Checking Schema Version
 
 ```bash
-# Get gwm version from any JSON response
-gwm status --json | jq -r '.metadata.version'
+# Get gpm version from any JSON response
+gpm status --json | jq -r '.metadata.version'
 # Output: "1.4.0"
 ```
 
@@ -1214,7 +1214,7 @@ gwm status --json | jq -r '.metadata.version'
 **Problem**: Command runs but produces no JSON output
 
 **Solutions**:
-1. Ensure `--json` flag is used: `gwm status --json`
+1. Ensure `--json` flag is used: `gpm status --json`
 2. Check that command supports JSON (all commands v1.4.0+)
 3. Verify output isn't being filtered (spinner output is suppressed in JSON mode)
 
@@ -1223,16 +1223,16 @@ gwm status --json | jq -r '.metadata.version'
 **Problem**: `jq` reports parse errors
 
 **Solutions**:
-1. Check for debug output mixed with JSON (use `gwm --json` not `DEBUG=1 gwm --json`)
+1. Check for debug output mixed with JSON (use `gpm --json` not `DEBUG=1 gpm --json`)
 2. Ensure you're parsing the correct output (not stderr)
-3. Validate JSON manually: `gwm status --json | jq .`
+3. Validate JSON manually: `gpm status --json | jq .`
 
 ### Issue: Missing Fields
 
 **Problem**: Expected fields are `null` or missing
 
 **Solutions**:
-1. Check that you're using the correct command (`gwm protect --show --json` not `gwm protect --json`)
+1. Check that you're using the correct command (`gpm protect --show --json` not `gpm protect --json`)
 2. Verify the operation completed successfully (check `success: true`)
 3. Check metadata.version for schema compatibility
 
@@ -1250,5 +1250,5 @@ gwm status --json | jq -r '.metadata.version'
 ## Feedback
 
 For schema suggestions or issues:
-- Open an issue: https://github.com/littlebearapps/git-workflow-manager/issues
+- Open an issue: https://github.com/littlebearapps/git-pr-manager/issues
 - Reference this schema version in bug reports

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# verify.sh - Pre-ship verification script for git-workflow-manager
+# verify.sh - Pre-ship verification script for git-pr-manager
 # Runs lint, typecheck, tests, and build to ensure quality before shipping
 
 set -e  # Exit on any error

@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to git-workflow-manager will be documented in this file.
+All notable changes to git-pr-manager will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -8,9 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
-- **Verification Subprocess Issue**: `gwm verify` now works correctly when called from `gwm ship`
+- **Verification Subprocess Issue**: `gpm verify` now works correctly when called from `gpm ship`
   - Root cause: Ora spinner conflicts between parent and subprocess processes
-  - Solution: Modified VerifyService to call `gwm verify --json` instead of `gwm verify`
+  - Solution: Modified VerifyService to call `gpm verify --json` instead of `gpm verify`
   - JSON mode disables spinners and eliminates stdio conflicts
   - Enhanced error messages with command context, exit codes, and debug info
   - Added `Logger.isJsonMode()` method for JSON mode detection
@@ -134,10 +134,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - State management edge cases
 
 #### Configuration & Metrics (Session 3)
-- **Auto-Fix Configuration Schema**: Complete .gwm.yml integration
+- **Auto-Fix Configuration Schema**: Complete .gpm.yml integration
   - `autoFix` section in WorkflowConfig
   - 7 configuration options with validation
-  - Example configuration in `.gwm.example.yml`
+  - Example configuration in `.gpm.example.yml`
   - ConfigService integration with defaults
   - Validation: maxAttempts (1-5), maxChangedLines (1-10000)
 
@@ -218,7 +218,7 @@ autoFix:
 - `src/services/ConfigService.ts`: autoFix configuration support
 - `src/utils/SuggestionEngine.ts`: Auto-fixable detection
 - `tests/services/AutoFixService.test.ts`: Comprehensive test suite
-- `.gwm.example.yml`: Example configuration with auto-fix section
+- `.gpm.example.yml`: Example configuration with auto-fix section
 
 **Architecture Enhancements**:
 - GitService integration for state management
@@ -236,7 +236,7 @@ autoFix:
 - **API Response Caching**: LRU cache with ETag support for conditional requests (src/utils/cache.ts)
   - Configurable TTL and max size (default: 100 entries, 5-minute TTL)
   - Reduces API calls by 40-60%
-- **Config File Caching**: TTL-based caching for .gwm.yml (default 60 seconds)
+- **Config File Caching**: TTL-based caching for .gpm.yml (default 60 seconds)
   - Eliminates repeated disk I/O and YAML parsing
   - 98% reduction in config load time for cached hits
 - **Exponential Backoff Polling**: Dynamic CI check polling intervals
@@ -257,12 +257,12 @@ autoFix:
   - Auto-detects CI environments (defaults to QUIET)
 
 #### CLI Commands
-- **gwm auto**: Automated workflow command
+- **gpm auto**: Automated workflow command
   - Auto-detect state, run checks, create PR, wait for CI, merge
-  - Smart defaults from .gwm.yml config
+  - Smart defaults from .gpm.yml config
   - Flags: `--draft`, `--no-merge`, `--skip-security`, `--skip-verify`
   - 80% of users need zero flags for common workflow
-- **gwm init --interactive**: Interactive setup wizard
+- **gpm init --interactive**: Interactive setup wizard
   - Preset selection with descriptions (basic/standard/strict)
   - Configuration preview before saving
   - Confirmation prompts with cancel handling
@@ -288,7 +288,7 @@ autoFix:
 
 #### Distribution
 - **npm Package Configuration**: Production-ready setup
-  - Scoped package: @littlebearapps/git-workflow-manager
+  - Scoped package: @littlebearapps/git-pr-manager
   - Repository metadata, bugs URL, homepage
   - Files whitelist (dist/, README.md, LICENSE)
   - prepublishOnly script (build + test)
@@ -306,7 +306,7 @@ autoFix:
 - **.npmignore**: Excludes dev files from npm package
 
 ### Changed
-- Package name: git-workflow-manager → @littlebearapps/git-workflow-manager
+- Package name: git-pr-manager → @littlebearapps/git-pr-manager
 - Package description: Updated to emphasize Claude Code integration
 - Keywords: Added claude-code, cli, devops, developer-tools
 - Author: Added email (nathan@littlebearapps.com)
@@ -346,7 +346,7 @@ autoFix:
 - Config & File I/O Caching
 
 #### Session 3: Claude Code UX & Workflows
-- gwm auto command
+- gpm auto command
 - Structured Error Messages
 - Interactive Mode for init command
 

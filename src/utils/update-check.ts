@@ -38,7 +38,7 @@ const updateCache = new LRUCache<string, UpdateCheckResult>({
  * Uses TMPDIR for ephemeral storage
  */
 function getCacheDir(): string {
-  return join(tmpdir(), 'gwm-update-check');
+  return join(tmpdir(), 'gpm-update-check');
 }
 
 /**
@@ -101,7 +101,7 @@ async function saveCachedCheck(
  * @example
  * ```typescript
  * const result = await checkForUpdate({
- *   packageName: '@littlebearapps/git-workflow-manager',
+ *   packageName: '@littlebearapps/git-pr-manager',
  *   currentVersion: '1.4.0-beta.1',
  *   channel: 'latest'
  * });

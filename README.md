@@ -2,8 +2,8 @@
 
 Production-ready git workflow automation for GitHub with Claude Code integration. Streamlines feature development with intelligent CI polling, comprehensive error reporting, and automated PR workflows.
 
-[![npm version](https://badge.fury.io/js/%40littlebearapps%2Fgit-workflow-manager.svg)](https://www.npmjs.com/package/@littlebearapps/git-workflow-manager)
-[![Node.js CI](https://github.com/littlebearapps/git-workflow-manager/workflows/Test/badge.svg)](https://github.com/littlebearapps/git-workflow-manager/actions)
+[![npm version](https://badge.fury.io/js/%40littlebearapps%2Fgit-pr-manager.svg)](https://www.npmjs.com/package/@littlebearapps/git-pr-manager)
+[![Node.js CI](https://github.com/littlebearapps/git-pr-manager/workflows/Test/badge.svg)](https://github.com/littlebearapps/git-pr-manager/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## ✨ What's New in v1.4.0
@@ -16,14 +16,14 @@ Production-ready git workflow automation for GitHub with Claude Code integration
 
 ### Enhanced UX
 - **Auto-update notifications** - Automatic update checks with smart suppression (CI-aware, 7-day cache)
-- **`gwm auto`** - One-command automated workflow (detect → verify → security → PR → CI → merge)
-- **Interactive mode** - `gwm init --interactive` with preset selection and preview
+- **`gpm auto`** - One-command automated workflow (detect → verify → security → PR → CI → merge)
+- **Interactive mode** - `gpm init --interactive` with preset selection and preview
 - **Machine-readable output** - `--json` flag for all commands (CI/automation-friendly)
 - **Verbosity control** - `--quiet`, `--silent`, `--verbose` flags with auto-detection for CI environments
 - **Structured errors** - Error codes, details, and actionable suggestions for every failure
 
 ### Developer Experience
-- **Zero configuration for 80% of use cases** - Smart defaults from `.gwm.yml`
+- **Zero configuration for 80% of use cases** - Smart defaults from `.gpm.yml`
 - **Post-install guidance** - Automatic setup help and quick start guide
 - **Cross-platform tested** - macOS, Linux, Windows × Node.js 18, 20, 22
 - **Production-ready** - npm package, MIT license, comprehensive documentation
@@ -33,7 +33,7 @@ Production-ready git workflow automation for GitHub with Claude Code integration
 ### Installation
 
 ```bash
-npm install -g @littlebearapps/git-workflow-manager
+npm install -g @littlebearapps/git-pr-manager
 ```
 
 ### Setup
@@ -43,7 +43,7 @@ npm install -g @littlebearapps/git-workflow-manager
 Create a GitHub Personal Access Token with `repo` scope:
 
 1. Go to https://github.com/settings/tokens/new
-2. Give it a name (e.g., "gwm")
+2. Give it a name (e.g., "gpm")
 3. Select scopes: `repo` (full control)
 4. Click "Generate token"
 5. Copy the token (starts with `ghp_`)
@@ -72,37 +72,37 @@ echo $GITHUB_TOKEN  # Should show your token
 
 ```bash
 # Interactive setup wizard (recommended for first time)
-gwm init --interactive
+gpm init --interactive
 
 # Or use a preset template
-gwm init --template standard  # Balanced settings
-gwm init --template strict    # Maximum protection
-gwm init --template basic     # Minimal configuration
+gpm init --template standard  # Balanced settings
+gpm init --template strict    # Maximum protection
+gpm init --template basic     # Minimal configuration
 ```
 
 #### 3. Optional: Install Git Hooks
 
 ```bash
 # Install reminder hooks (non-blocking, helpful)
-gwm install-hooks
+gpm install-hooks
 
 # Or install both pre-push and post-commit hooks
-gwm install-hooks --post-commit
+gpm install-hooks --post-commit
 ```
 
 ### Basic Usage
 
 ```bash
 # Start a new feature
-gwm feature add-login-form
+gpm feature add-login-form
 
 # ... make your changes ...
 
 # Ship it! (automated workflow)
-gwm auto
+gpm auto
 ```
 
-That's it! `gwm auto` will:
+That's it! `gpm auto` will:
 1. Run verification checks
 2. Run security scans
 3. Push changes
@@ -116,15 +116,15 @@ That's it! `gwm auto` will:
 
 ```bash
 # Automated end-to-end workflow (recommended)
-gwm auto                        # Full automation
-gwm auto --draft                # Create draft PR
-gwm auto --no-merge             # Stop after CI passes
-gwm auto --skip-security        # Skip security scan
-gwm auto --skip-verify          # Skip verification
+gpm auto                        # Full automation
+gpm auto --draft                # Create draft PR
+gpm auto --no-merge             # Stop after CI passes
+gpm auto --skip-security        # Skip security scan
+gpm auto --skip-verify          # Skip verification
 
 # Manual workflow control
-gwm feature <name>              # Start new feature branch
-gwm ship                        # Ship feature with full control
+gpm feature <name>              # Start new feature branch
+gpm ship                        # Ship feature with full control
   --no-wait                     # Don't wait for CI
   --skip-verify                 # Skip pre-commit checks
   --skip-security               # Skip security scan
@@ -137,65 +137,65 @@ gwm ship                        # Ship feature with full control
 
 ```bash
 # Check CI status with detailed error reports
-gwm checks <pr-number>          # Show check status
-gwm checks <pr-number> --details # Full error details
-gwm checks <pr-number> --files   # Affected files only
+gpm checks <pr-number>          # Show check status
+gpm checks <pr-number> --details # Full error details
+gpm checks <pr-number> --files   # Affected files only
 
 # Show current git and workflow status
-gwm status
+gpm status
 ```
 
 ### Configuration & Security
 
 ```bash
 # Initialize configuration
-gwm init                        # Basic template
-gwm init --interactive          # Interactive wizard
-gwm init --template standard    # Standard preset
-gwm init --template strict      # Strict preset
+gpm init                        # Basic template
+gpm init --interactive          # Interactive wizard
+gpm init --template standard    # Standard preset
+gpm init --template strict      # Strict preset
 
 # Branch protection
-gwm protect --show              # View current settings
-gwm protect --preset standard   # Configure protection
-gwm protect --branch main --preset strict
+gpm protect --show              # View current settings
+gpm protect --preset standard   # Configure protection
+gpm protect --branch main --preset strict
 
 # Security scanning
-gwm security                    # Run security scan
+gpm security                    # Run security scan
 
 # Pre-commit verification
-gwm verify                      # Run all checks (lint, typecheck, test, build)
-gwm verify --skip-lint          # Skip ESLint
-gwm verify --skip-typecheck     # Skip TypeScript type check
-gwm verify --skip-test          # Skip tests
-gwm verify --skip-build         # Skip build
+gpm verify                      # Run all checks (lint, typecheck, test, build)
+gpm verify --skip-lint          # Skip ESLint
+gpm verify --skip-typecheck     # Skip TypeScript type check
+gpm verify --skip-test          # Skip tests
+gpm verify --skip-build         # Skip build
 
 # System health check
-gwm doctor                      # Check requirements & dependencies
+gpm doctor                      # Check requirements & dependencies
 
 # Check for updates
-gwm check-update                # Check for available updates
-gwm check-update --json         # Machine-readable output
-gwm check-update --clear-cache  # Force fresh check
-gwm check-update --channel next # Check prerelease channel
+gpm check-update                # Check for available updates
+gpm check-update --json         # Machine-readable output
+gpm check-update --clear-cache  # Force fresh check
+gpm check-update --channel next # Check prerelease channel
 ```
 
 ### Git Hooks
 
 ```bash
 # Install pre-push hook (default)
-gwm install-hooks               # Reminder-only, non-blocking
+gpm install-hooks               # Reminder-only, non-blocking
 
 # Install both pre-push and post-commit hooks
-gwm install-hooks --post-commit # Additional post-commit reminders
+gpm install-hooks --post-commit # Additional post-commit reminders
 
 # Force overwrite existing hooks
-gwm install-hooks --force       # Overwrite non-gwm hooks
+gpm install-hooks --force       # Overwrite non-gpm hooks
 
-# Uninstall gwm hooks
-gwm uninstall-hooks            # Remove all gwm hooks
+# Uninstall gpm hooks
+gpm uninstall-hooks            # Remove all gpm hooks
 
 # Check hook status
-gwm status --json              # Shows hooks.prePush and hooks.postCommit
+gpm status --json              # Shows hooks.prePush and hooks.postCommit
 ```
 
 **Hook Behavior**:
@@ -206,9 +206,9 @@ gwm status --json              # Shows hooks.prePush and hooks.postCommit
 - **Worktree-compatible**: Works with both standard repos and git worktrees
 
 **Pre-push hook** reminds you to:
-- Run `gwm ship` for automated PR creation
-- Run `gwm security` to scan for secrets
-- Consider `gwm auto` for full workflow
+- Run `gpm ship` for automated PR creation
+- Run `gpm security` to scan for secrets
+- Consider `gpm auto` for full workflow
 
 **Post-commit hook** (optional) reminds you to:
 - Create PR if on feature branch
@@ -218,13 +218,13 @@ gwm status --json              # Shows hooks.prePush and hooks.postCommit
 
 ```bash
 # List all worktrees
-gwm worktree list              # Show all worktrees with branch info
-gwm worktree list --json       # Machine-readable output
+gpm worktree list              # Show all worktrees with branch info
+gpm worktree list --json       # Machine-readable output
 
 # Prune stale worktree data
-gwm worktree prune             # Remove stale administrative data
-gwm worktree prune --dry-run   # Preview what would be pruned
-gwm worktree prune --json      # Machine-readable output
+gpm worktree prune             # Remove stale administrative data
+gpm worktree prune --dry-run   # Preview what would be pruned
+gpm worktree prune --json      # Machine-readable output
 ```
 
 **Use cases**:
@@ -254,7 +254,7 @@ All commands support output control flags:
 
 ### GitHub Actions Integration
 
-Use `gwm` in your GitHub Actions workflows for automated PR validation and CI orchestration:
+Use `gpm` in your GitHub Actions workflows for automated PR validation and CI orchestration:
 
 ```yaml
 name: PR Validation
@@ -269,16 +269,16 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install gwm
-        run: npm install -g @littlebearapps/git-workflow-manager
+      - name: Install gpm
+        run: npm install -g @littlebearapps/git-pr-manager
 
       - name: Run security scan
-        run: gwm security --json
+        run: gpm security --json
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Wait for CI checks
-        run: gwm checks ${{ github.event.pull_request.number }}
+        run: gpm checks ${{ github.event.pull_request.number }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
@@ -287,19 +287,19 @@ jobs:
 
 ### AI Agent Integration
 
-`gwm` is designed for CLI AI agents (Claude Code, Aider, Cursor, etc.) with machine-readable JSON output:
+`gpm` is designed for CLI AI agents (Claude Code, Aider, Cursor, etc.) with machine-readable JSON output:
 
 ```bash
-# AI agents can execute gwm commands
-gwm checks 123 --json    # Get structured CI status
-gwm security --json      # Security scan results
-gwm auto --json          # Full PR workflow
+# AI agents can execute gpm commands
+gpm checks 123 --json    # Get structured CI status
+gpm security --json      # Security scan results
+gpm auto --json          # Full PR workflow
 ```
 
 **Example AI Agent Workflow**:
 ```
 User: "Create a PR for this feature"
-AI Agent: [Executes] gwm auto --json
+AI Agent: [Executes] gpm auto --json
 AI Agent: [Parses] {"prNumber": 47, "url": "...", "ciStatus": "pending"}
 AI Agent: [Reports] "✅ PR #47 created. CI checks pending."
 ```
@@ -310,7 +310,7 @@ AI Agent: [Reports] "✅ PR #47 created. CI checks pending."
 
 ### Complete Workflow Automation
 - Feature branch creation → PR → CI → Merge in one command
-- Smart defaults from `.gwm.yml` configuration
+- Smart defaults from `.gpm.yml` configuration
 - Automatic branch cleanup after merge
 - Draft PR support for work-in-progress
 
@@ -368,7 +368,7 @@ For detailed documentation, see [AUTO-FIX.md](AUTO-FIX.md)
 
 ## 📋 Configuration
 
-### `.gwm.yml` Example
+### `.gpm.yml` Example
 
 ```yaml
 branchProtection:
@@ -426,15 +426,15 @@ autoFix:
 
 ### System Health Check
 
-Use `gwm doctor` to verify your setup and identify missing dependencies:
+Use `gpm doctor` to verify your setup and identify missing dependencies:
 
 ```bash
-gwm doctor
+gpm doctor
 ```
 
 **What it checks**:
 - ✅ **GitHub Token**: Verifies `GITHUB_TOKEN` or `GH_TOKEN` is set
-- ✅ **Required Tools**: `git`, `node` (needed for gwm to run)
+- ✅ **Required Tools**: `git`, `node` (needed for gpm to run)
 - ✅ **Optional Tools**: `gh` (GitHub CLI), `detect-secrets`, `pip-audit`, `npm`
 
 **Example output**:
@@ -461,15 +461,15 @@ Optional Tools:
 
 ────────────────────────────────────────────────────────────────────────────────
 ℹ️  Some optional tools are missing
-   gwm will work but some features may be limited:
+   gpm will work but some features may be limited:
    • Secret scanning requires detect-secrets
    • Python security scans require pip-audit
    • Enhanced GitHub features require gh CLI
 
 Next Steps:
-  gwm init              - Initialize .gwm.yml configuration
-  gwm docs              - View documentation
-  gwm --help            - Show all commands
+  gpm init              - Initialize .gpm.yml configuration
+  gpm docs              - View documentation
+  gpm --help            - Show all commands
 ```
 
 **When to use**:
@@ -479,10 +479,10 @@ Next Steps:
 - To verify environment configuration in CI/CD
 
 **Optional dependencies explained**:
-- **detect-secrets** (Python): Scans code for hardcoded secrets (API keys, tokens, passwords). Required for `gwm security` secret scanning.
-- **pip-audit** (Python): Scans Python dependencies for known vulnerabilities. Used by `gwm security` for Python projects.
+- **detect-secrets** (Python): Scans code for hardcoded secrets (API keys, tokens, passwords). Required for `gpm security` secret scanning.
+- **pip-audit** (Python): Scans Python dependencies for known vulnerabilities. Used by `gpm security` for Python projects.
 - **gh** (GitHub CLI): Enhances PR operations with additional GitHub features. Not required but recommended.
-- **npm**: Used for JavaScript dependency scanning in `gwm security`. Already installed if you're using gwm.
+- **npm**: Used for JavaScript dependency scanning in `gpm security`. Already installed if you're using gpm.
 
 ### Environment Variables
 
@@ -502,19 +502,19 @@ export GH_TOKEN="ghp_your_token_here"  # Alternative variable name
 **Where to get token**: https://github.com/settings/tokens/new
 
 **Commands that require token**:
-- `gwm ship` - Create PR and merge
-- `gwm auto` - Automated PR workflow
-- `gwm checks <pr>` - Check CI status
-- `gwm feature <name>` - Create feature branch (if pushing to remote)
+- `gpm ship` - Create PR and merge
+- `gpm auto` - Automated PR workflow
+- `gpm checks <pr>` - Check CI status
+- `gpm feature <name>` - Create feature branch (if pushing to remote)
 
 **Commands that work without token**:
-- `gwm status` - Local git status
-- `gwm security` - Local security scan
-- `gwm init` - Initialize configuration
-- `gwm doctor` - Check system requirements and dependencies
-- `gwm install-hooks` / `gwm uninstall-hooks` - Manage git hooks
-- `gwm worktree list` / `gwm worktree prune` - Git worktree management
-- `gwm docs` - View documentation
+- `gpm status` - Local git status
+- `gpm security` - Local security scan
+- `gpm init` - Initialize configuration
+- `gpm doctor` - Check system requirements and dependencies
+- `gpm install-hooks` / `gpm uninstall-hooks` - Manage git hooks
+- `gpm worktree list` / `gpm worktree prune` - Git worktree management
+- `gpm docs` - View documentation
 
 #### Optional Environment Variables
 
@@ -613,8 +613,8 @@ Contributions welcome! Please read our contributing guidelines and code of condu
 
 ```bash
 # Development setup
-git clone https://github.com/littlebearapps/git-workflow-manager.git
-cd git-workflow-manager
+git clone https://github.com/littlebearapps/git-pr-manager.git
+cd git-pr-manager
 npm install
 
 # Build
@@ -661,18 +661,18 @@ See [CHANGELOG.md](CHANGELOG.md) for detailed version history.
 ### v1.4.0 Highlights
 
 **Phase 2: Git Hooks Integration**
-- `gwm install-hooks` - Install non-blocking git hooks (pre-push, post-commit)
-- `gwm uninstall-hooks` - Remove gwm git hooks
+- `gpm install-hooks` - Install non-blocking git hooks (pre-push, post-commit)
+- `gpm uninstall-hooks` - Remove gpm git hooks
 - CI-aware hooks (auto-skip in GitHub Actions)
-- Config synchronization (.gwm.yml hooks section)
+- Config synchronization (.gpm.yml hooks section)
 
 **Bug Fixes**:
-- Fixed `gwm status --json` producing no output
+- Fixed `gpm status --json` producing no output
 - Enhanced GitHub token setup documentation
 
 **Previous Features**:
-- `gwm auto` - Automated workflow command
-- Interactive mode for `gwm init`
+- `gpm auto` - Automated workflow command
+- Interactive mode for `gpm init`
 - Machine-readable JSON output (`--json` flag)
 - Verbosity levels (`--quiet`, `--silent`, `--verbose`)
 - Structured error classes with suggestions
@@ -692,7 +692,7 @@ See [CHANGELOG.md](CHANGELOG.md) for detailed version history.
 - Zero rate limit errors
 
 **Changed**:
-- Package name: `@littlebearapps/git-workflow-manager`
+- Package name: `@littlebearapps/git-pr-manager`
 - Enhanced error messages with actionable suggestions
 
 ## 📄 License
@@ -715,4 +715,4 @@ Built with:
 
 **Made with ❤️ by [Little Bear Apps](https://littlebearapps.com)**
 
-For support, please [open an issue](https://github.com/littlebearapps/git-workflow-manager/issues) or contact nathan@littlebearapps.com.
+For support, please [open an issue](https://github.com/littlebearapps/git-pr-manager/issues) or contact nathan@littlebearapps.com.

@@ -318,8 +318,8 @@ describe('Error Classes', () => {
       expect(error.message).toBe('Invalid config');
       expect(error.name).toBe('ConfigError');
       expect(error.suggestions).toEqual([
-        'Run `gwm init` to create config file',
-        'Check .gwm.yml syntax',
+        'Run `gpm init` to create config file',
+        'Check .gpm.yml syntax',
         'Refer to documentation for config options'
       ]);
     });

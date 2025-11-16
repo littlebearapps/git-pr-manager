@@ -80,7 +80,7 @@ describe('install-hooks', () => {
 
       expect(mockedFs.writeFile).toHaveBeenCalledWith(
         expect.stringContaining('pre-push'),
-        expect.stringContaining('gwm pre-push hook'),
+        expect.stringContaining('gpm pre-push hook'),
         'utf-8'
       );
 
@@ -103,13 +103,13 @@ describe('install-hooks', () => {
 
       expect(mockedFs.writeFile).toHaveBeenCalledWith(
         expect.stringContaining('pre-push'),
-        expect.stringContaining('gwm pre-push hook'),
+        expect.stringContaining('gpm pre-push hook'),
         'utf-8'
       );
 
       expect(mockedFs.writeFile).toHaveBeenCalledWith(
         expect.stringContaining('post-commit'),
-        expect.stringContaining('gwm post-commit hook'),
+        expect.stringContaining('gpm post-commit hook'),
         'utf-8'
       );
 
@@ -141,14 +141,14 @@ describe('install-hooks', () => {
     });
 
     it('should overwrite hooks with --force flag', async () => {
-      // Mock hook file exists and is a gwm hook
-      mockedFs.readFile.mockResolvedValue('#!/bin/sh\n# gwm pre-push hook\n# old content');
+      // Mock hook file exists and is a gpm hook
+      mockedFs.readFile.mockResolvedValue('#!/bin/sh\n# gpm pre-push hook\n# old content');
 
       await installHooksCommand({ force: true });
 
       expect(mockedFs.writeFile).toHaveBeenCalledWith(
         expect.stringContaining('pre-push'),
-        expect.stringContaining('gwm pre-push hook'),
+        expect.stringContaining('gpm pre-push hook'),
         'utf-8'
       );
     });
@@ -163,10 +163,10 @@ describe('install-hooks', () => {
       expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 
-    it('should error when hook exists and is not gwm hook without --force', async () => {
+    it('should error when hook exists and is not gpm hook without --force', async () => {
       jest.spyOn(gitHooks, 'getGitHooksDir').mockResolvedValue('/test/repo/.git/hooks');
       jest.spyOn(gitHooks, 'fileExists').mockResolvedValue(true);
-      jest.spyOn(gitHooks, 'isGwmHook').mockResolvedValue(false);
+      jest.spyOn(gitHooks, 'isGpmHook').mockResolvedValue(false);
       mockedFs.mkdir.mockResolvedValue(undefined);
 
       await expect(installHooksCommand({})).rejects.toThrow('Process.exit called with code 1');
@@ -193,19 +193,19 @@ describe('install-hooks', () => {
       mockedFs.writeFile.mockResolvedValue(undefined);
     });
 
-    it('should detect gwm pre-push hook', async () => {
+    it('should detect gpm pre-push hook', async () => {
       jest.spyOn(gitHooks, 'fileExists').mockResolvedValue(true);
-      jest.spyOn(gitHooks, 'isGwmHook').mockResolvedValue(true);
+      jest.spyOn(gitHooks, 'isGpmHook').mockResolvedValue(true);
 
-      // Should not error without --force (hook is already gwm hook)
+      // Should not error without --force (hook is already gpm hook)
       await installHooksCommand({ force: true });
 
       expect(mockedFs.writeFile).toHaveBeenCalled();
     });
 
-    it('should detect gwm post-commit hook', async () => {
+    it('should detect gpm post-commit hook', async () => {
       jest.spyOn(gitHooks, 'fileExists').mockResolvedValue(true);
-      jest.spyOn(gitHooks, 'isGwmHook').mockResolvedValue(true);
+      jest.spyOn(gitHooks, 'isGpmHook').mockResolvedValue(true);
 
       await installHooksCommand({ postCommit: true, force: true });
 
@@ -292,7 +292,7 @@ describe('install-hooks', () => {
       expect(hookContent).toContain('exit 0');
     });
 
-    it('should include gwm signature in pre-push hook', async () => {
+    it('should include gpm signature in pre-push hook', async () => {
       let hookContent = '';
       mockedFs.writeFile.mockImplementation(async (path, content) => {
         if (path.toString().includes('pre-push')) {
@@ -302,9 +302,9 @@ describe('install-hooks', () => {
 
       await installHooksCommand({});
 
-      expect(hookContent).toContain('# gwm pre-push hook');
-      expect(hookContent).toContain('gwm install-hooks');
-      expect(hookContent).toContain('gwm uninstall-hooks');
+      expect(hookContent).toContain('# gpm pre-push hook');
+      expect(hookContent).toContain('gpm install-hooks');
+      expect(hookContent).toContain('gpm uninstall-hooks');
     });
 
     it('should include reminder messages in pre-push hook', async () => {
@@ -317,9 +317,9 @@ describe('install-hooks', () => {
 
       await installHooksCommand({});
 
-      expect(hookContent).toContain('gwm ship');
-      expect(hookContent).toContain('gwm auto');
-      expect(hookContent).toContain('gwm security');
+      expect(hookContent).toContain('gpm ship');
+      expect(hookContent).toContain('gpm auto');
+      expect(hookContent).toContain('gpm security');
     });
 
     it('should include CI environment check in post-commit hook', async () => {

@@ -9,7 +9,7 @@ import { VerifyService } from './src/services/VerifyService';
 import { spinner } from './src/utils/spinner';
 
 async function testWithSpinner() {
-  console.log('=== Testing VerifyService with active spinner (simulates gwm ship) ===\n');
+  console.log('=== Testing VerifyService with active spinner (simulates gpm ship) ===\n');
 
   const verifyService = new VerifyService();
 

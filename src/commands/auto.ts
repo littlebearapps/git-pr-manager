@@ -69,7 +69,7 @@ export async function autoCommand(options: AutoOptions = {}): Promise<void> {
         'BRANCH_ERROR',
         { currentBranch, defaultBranch },
         [
-          `Create a feature branch first: gwm feature <name>`,
+          `Create a feature branch first: gpm feature <name>`,
           `Or checkout an existing branch: git checkout <branch>`
         ]
       );
