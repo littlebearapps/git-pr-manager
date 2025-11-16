@@ -1,4 +1,4 @@
-# git-workflow-manager: Complete Workflow Documentation
+# git-pr-manager: Complete Workflow Documentation
 
 **Version**: 0.1.0 MVP
 **Last Updated**: 2025-10-17
@@ -8,7 +8,7 @@
 
 ## 📖 Overview
 
-This document provides a **detailed step-by-step breakdown** of what git-workflow-manager does when you invoke it, including real examples from our integration test.
+This document provides a **detailed step-by-step breakdown** of what git-pr-manager does when you invoke it, including real examples from our integration test.
 
 ---
 
@@ -17,7 +17,7 @@ This document provides a **detailed step-by-step breakdown** of what git-workflo
 ### Invocation
 
 ```
-User: "Use git-workflow-manager to create PR and sync worktrees"
+User: "Use git-pr-manager to create PR and sync worktrees"
 ```
 
 ### Workflow Execution

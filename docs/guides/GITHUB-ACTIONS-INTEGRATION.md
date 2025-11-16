@@ -7,9 +7,9 @@
 
 ## Overview
 
-This guide shows how to integrate `git-workflow-manager` (`gwm`) into your GitHub Actions workflows for automated PR validation, CI/CD orchestration, and workflow automation.
+This guide shows how to integrate `git-pr-manager` (`gpm`) into your GitHub Actions workflows for automated PR validation, CI/CD orchestration, and workflow automation.
 
-## Why Use gwm in GitHub Actions?
+## Why Use gpm in GitHub Actions?
 
 - **Automated PR Validation**: Verify PRs meet protection requirements before merge
 - **CI Status Monitoring**: Poll and wait for all checks to pass
@@ -39,11 +39,11 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install git-workflow-manager
-        run: npm install -g @littlebearapps/git-workflow-manager
+      - name: Install git-pr-manager
+        run: npm install -g @littlebearapps/git-pr-manager
 
       - name: Run security scan
-        run: gwm security
+        run: gpm security
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
@@ -55,23 +55,23 @@ jobs:
 ### Global Installation (Recommended)
 
 ```yaml
-- name: Install gwm
-  run: npm install -g @littlebearapps/git-workflow-manager
+- name: Install gpm
+  run: npm install -g @littlebearapps/git-pr-manager
 ```
 
 **Pros**:
-- Binary available system-wide as `gwm`
+- Binary available system-wide as `gpm`
 - No path configuration needed
 - Works like standard CLI tools
 
 ### Local Installation (Alternative)
 
 ```yaml
-- name: Install gwm locally
-  run: npm install @littlebearapps/git-workflow-manager
+- name: Install gpm locally
+  run: npm install @littlebearapps/git-pr-manager
 
-- name: Run gwm
-  run: npx gwm status
+- name: Run gpm
+  run: npx gpm status
 ```
 
 **Pros**:
@@ -109,12 +109,12 @@ For operations requiring additional permissions (e.g., cross-repo access, packag
 
 2. **Add as Repository Secret**:
    - Go to repository → Settings → Secrets and variables → Actions
-   - Add secret named `GWM_TOKEN`
+   - Add secret named `GPM_TOKEN`
 
 3. **Use in workflow**:
    ```yaml
    env:
-     GITHUB_TOKEN: ${{ secrets.GWM_TOKEN }}
+     GITHUB_TOKEN: ${{ secrets.GPM_TOKEN }}
    ```
 
 ---
@@ -140,11 +140,11 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install gwm
-        run: npm install -g @littlebearapps/git-workflow-manager
+      - name: Install gpm
+        run: npm install -g @littlebearapps/git-pr-manager
 
       - name: Run security scan
-        run: gwm security --json > security-report.json
+        run: gpm security --json > security-report.json
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -171,11 +171,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install gwm
-        run: npm install -g @littlebearapps/git-workflow-manager
+      - name: Install gpm
+        run: npm install -g @littlebearapps/git-pr-manager
 
       - name: Verify all checks passed
-        run: gwm checks ${{ github.event.pull_request.number }} --json
+        run: gpm checks ${{ github.event.pull_request.number }} --json
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -201,11 +201,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install gwm
-        run: npm install -g @littlebearapps/git-workflow-manager
+      - name: Install gpm
+        run: npm install -g @littlebearapps/git-pr-manager
 
       - name: Create feature branch
-        run: gwm feature ${{ github.event.inputs.feature_name }}
+        run: gpm feature ${{ github.event.inputs.feature_name }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
@@ -225,14 +225,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install gwm
-        run: npm install -g @littlebearapps/git-workflow-manager
+      - name: Install gpm
+        run: npm install -g @littlebearapps/git-pr-manager
 
-      - name: Initialize gwm config
-        run: gwm init --template strict
+      - name: Initialize gpm config
+        run: gpm init --template strict
 
       - name: Check protection settings
-        run: gwm protect --show --json > protection-report.json
+        run: gpm protect --show --json > protection-report.json
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -258,13 +258,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install gwm
-        run: npm install -g @littlebearapps/git-workflow-manager
+      - name: Install gpm
+        run: npm install -g @littlebearapps/git-pr-manager
 
-      - name: Check for gwm updates
+      - name: Check for gpm updates
         id: update-check
         run: |
-          gwm check-update --json > update-check.json
+          gpm check-update --json > update-check.json
           cat update-check.json
         continue-on-error: true
 
@@ -280,8 +280,8 @@ jobs:
               github.rest.issues.create({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                title: `gwm update available: ${updateData.latestVersion}`,
-                body: `A new version of git-workflow-manager is available.
+                title: `gpm update available: ${updateData.latestVersion}`,
+                body: `A new version of git-pr-manager is available.
 
 Current version: ${updateData.currentVersion}
 Latest version: ${updateData.latestVersion}
@@ -289,10 +289,10 @@ Channel: ${updateData.channel}
 
 To update:
 \`\`\`bash
-npm install -g @littlebearapps/git-workflow-manager
+npm install -g @littlebearapps/git-pr-manager
 \`\`\`
 
-See the [changelog](https://github.com/littlebearapps/git-workflow-manager/releases) for details.`,
+See the [changelog](https://github.com/littlebearapps/git-pr-manager/releases) for details.`,
                 labels: ['dependencies', 'enhancement']
               });
             }
@@ -322,11 +322,11 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install gwm
-        run: npm install -g @littlebearapps/git-workflow-manager
+      - name: Install gpm
+        run: npm install -g @littlebearapps/git-pr-manager
 
       - name: Security scan
-        run: gwm security
+        run: gpm security
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -340,12 +340,12 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install gwm
-        run: npm install -g @littlebearapps/git-workflow-manager
+      - name: Install gpm
+        run: npm install -g @littlebearapps/git-pr-manager
 
       - name: Check PR status
         run: |
-          gwm checks ${{ github.event.pull_request.number }} --json | \
+          gpm checks ${{ github.event.pull_request.number }} --json | \
           jq -e '.overallStatus == "success" or .overallStatus == "pending"'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -361,13 +361,13 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install gwm
-        run: npm install -g @littlebearapps/git-workflow-manager
+      - name: Install gpm
+        run: npm install -g @littlebearapps/git-pr-manager
 
       - name: Get final status
         id: status
         run: |
-          STATUS=$(gwm checks ${{ github.event.pull_request.number }} --json)
+          STATUS=$(gpm checks ${{ github.event.pull_request.number }} --json)
           echo "status=$STATUS" >> $GITHUB_OUTPUT
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -404,12 +404,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install gwm
-        run: npm install -g @littlebearapps/git-workflow-manager
+      - name: Install gpm
+        run: npm install -g @littlebearapps/git-pr-manager
 
       - name: Wait for CI checks
         run: |
-          gwm checks ${{ github.event.pull_request.number }} --json | \
+          gpm checks ${{ github.event.pull_request.number }} --json | \
           jq -e '.overallStatus == "success"'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -428,11 +428,11 @@ jobs:
 
 ### Using JSON Mode
 
-All `gwm` commands support `--json` flag for machine-readable output:
+All `gpm` commands support `--json` flag for machine-readable output:
 
 ```yaml
 - name: Get CI status as JSON
-  run: gwm checks ${{ github.event.pull_request.number }} --json > status.json
+  run: gpm checks ${{ github.event.pull_request.number }} --json > status.json
   env:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -445,7 +445,7 @@ All `gwm` commands support `--json` flag for machine-readable output:
 
 ### Example JSON Output
 
-**gwm checks --json**:
+**gpm checks --json**:
 ```json
 {
   "total": 5,
@@ -459,7 +459,7 @@ All `gwm` commands support `--json` flag for machine-readable output:
 }
 ```
 
-**gwm security --json**:
+**gpm security --json**:
 ```json
 {
   "passed": true,
@@ -482,25 +482,25 @@ All `gwm` commands support `--json` flag for machine-readable output:
 
 ```yaml
 # Quiet mode (errors only)
-- run: gwm checks 123 --quiet
+- run: gpm checks 123 --quiet
 
 # Silent mode (no output, exit codes only)
-- run: gwm checks 123 --silent
+- run: gpm checks 123 --silent
 
 # Verbose mode (detailed output)
-- run: gwm checks 123 --verbose
+- run: gpm checks 123 --verbose
 
 # JSON mode (machine-readable)
-- run: gwm checks 123 --json
+- run: gpm checks 123 --json
 ```
 
 ### Auto-Detection
 
-gwm automatically detects CI environments and adjusts output:
+gpm automatically detects CI environments and adjusts output:
 
 ```yaml
 # CI environment detected automatically
-- run: gwm checks 123
+- run: gpm checks 123
   # Output: Structured, concise format optimized for CI logs
 ```
 
@@ -508,11 +508,11 @@ gwm automatically detects CI environments and adjusts output:
 
 ## Configuration in CI
 
-### Using .gwm.yml in Repository
+### Using .gpm.yml in Repository
 
-1. **Commit .gwm.yml to repository**:
+1. **Commit .gpm.yml to repository**:
    ```yaml
-   # .gwm.yml
+   # .gpm.yml
    branchProtection:
      enabled: true
      requireReviews: 1
@@ -529,30 +529,30 @@ gwm automatically detects CI environments and adjusts output:
      scanDependencies: true
    ```
 
-2. **gwm reads config automatically**:
+2. **gpm reads config automatically**:
    ```yaml
-   - name: Run gwm (uses .gwm.yml)
-     run: gwm auto
+   - name: Run gpm (uses .gpm.yml)
+     run: gpm auto
    ```
 
 ### Initialize Config in CI
 
 ```yaml
-- name: Initialize gwm config
-  run: gwm init --template strict --no-interactive
+- name: Initialize gpm config
+  run: gpm init --template strict --no-interactive
 ```
 
 ---
 
 ## Troubleshooting
 
-### Verify Setup with gwm doctor
+### Verify Setup with gpm doctor
 
-Use `gwm doctor` to verify your CI environment has all required and optional tools:
+Use `gpm doctor` to verify your CI environment has all required and optional tools:
 
 ```yaml
-- name: Verify gwm setup
-  run: gwm doctor
+- name: Verify gpm setup
+  run: gpm doctor
 ```
 
 **Example output in CI**:
@@ -572,7 +572,7 @@ Use `gwm doctor` to verify your CI environment has all required and optional too
 - Confirming environment setup before running workflows
 - Troubleshooting security scan issues
 
-**Note**: `gwm doctor` works without GITHUB_TOKEN, making it safe to run in any CI environment.
+**Note**: `gpm doctor` works without GITHUB_TOKEN, making it safe to run in any CI environment.
 
 ### Issue: "No GitHub token found"
 
@@ -592,7 +592,7 @@ env:
 
 **Solution 2**: Increase timeout for rate limit recovery:
 ```yaml
-- run: gwm checks 123
+- run: gpm checks 123
   timeout-minutes: 10
 ```
 
@@ -600,8 +600,8 @@ env:
 
 **Solution**: Ensure checkout action runs first:
 ```yaml
-- uses: actions/checkout@v4  # Must run before gwm commands
-- run: gwm status
+- uses: actions/checkout@v4  # Must run before gpm commands
+- run: gpm status
 ```
 
 ### Issue: "Permission denied"
@@ -616,18 +616,18 @@ permissions:
   statuses: read      # Read commit statuses
 ```
 
-### Issue: "Command not found: gwm"
+### Issue: "Command not found: gpm"
 
 **Solution 1**: Install globally:
 ```yaml
-- run: npm install -g @littlebearapps/git-workflow-manager
-- run: gwm --version
+- run: npm install -g @littlebearapps/git-pr-manager
+- run: gpm --version
 ```
 
 **Solution 2**: Use npx:
 ```yaml
-- run: npm install @littlebearapps/git-workflow-manager
-- run: npx gwm --version
+- run: npm install @littlebearapps/git-pr-manager
+- run: npx gpm --version
 ```
 
 ---
@@ -643,8 +643,8 @@ permissions:
     node-version: '20'
     cache: 'npm'
 
-- name: Install gwm
-  run: npm install -g @littlebearapps/git-workflow-manager
+- name: Install gpm
+  run: npm install -g @littlebearapps/git-pr-manager
 ```
 
 ### 2. Use matrix strategy for multi-environment testing
@@ -660,15 +660,15 @@ steps:
   - uses: actions/setup-node@v4
     with:
       node-version: ${{ matrix.node }}
-  - run: npm install -g @littlebearapps/git-workflow-manager
-  - run: gwm --version
+  - run: npm install -g @littlebearapps/git-pr-manager
+  - run: gpm --version
 ```
 
 ### 3. Set appropriate timeouts
 
 ```yaml
 - name: Wait for CI
-  run: gwm checks ${{ github.event.pull_request.number }}
+  run: gpm checks ${{ github.event.pull_request.number }}
   timeout-minutes: 30  # Prevent hanging jobs
   env:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -678,7 +678,7 @@ steps:
 
 ```yaml
 - name: Run security scan
-  run: gwm security --json > security.json
+  run: gpm security --json > security.json
   continue-on-error: true
 
 - name: Upload results
@@ -696,13 +696,13 @@ jobs:
   security:
     runs-on: ubuntu-latest
     steps:
-      - run: gwm security
+      - run: gpm security
 
   validate:
     needs: security  # Wait for security to complete
     runs-on: ubuntu-latest
     steps:
-      - run: gwm checks $PR_NUMBER
+      - run: gpm checks $PR_NUMBER
 
   deploy:
     needs: [security, validate]  # Wait for both
@@ -736,11 +736,11 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: Install gwm
-        run: npm install -g @littlebearapps/git-workflow-manager
+      - name: Install gpm
+        run: npm install -g @littlebearapps/git-pr-manager
 
       - name: Run security scan
-        run: gwm security --json
+        run: gpm security --json
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -776,11 +776,11 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install gwm
-        run: npm install -g @littlebearapps/git-workflow-manager
+      - name: Install gpm
+        run: npm install -g @littlebearapps/git-pr-manager
 
       - name: Check CI status
-        run: gwm checks ${{ github.event.pull_request.number }} --json
+        run: gpm checks ${{ github.event.pull_request.number }} --json
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -819,11 +819,11 @@ jobs:
   check-status:
     runs-on: ubuntu-latest
     steps:
-      - name: Install gwm
-        run: npm install -g @littlebearapps/git-workflow-manager
+      - name: Install gpm
+        run: npm install -g @littlebearapps/git-pr-manager
 
       - name: Check other workflows
-        run: gwm checks ${{ github.event.pull_request.number }}
+        run: gpm checks ${{ github.event.pull_request.number }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
@@ -836,15 +836,15 @@ jobs:
 
 **✅ Better alternatives**:
 
-1. **Use gwm locally** for PR monitoring:
+1. **Use gpm locally** for PR monitoring:
    ```bash
    # Developer workflow
-   gwm status              # Check current branch status
-   gwm checks 47          # Monitor PR #47 checks locally
-   gwm ship               # Full automated workflow
+   gpm status              # Check current branch status
+   gpm checks 47          # Monitor PR #47 checks locally
+   gpm ship               # Full automated workflow
    ```
 
-2. **Add gwm to existing workflows** as validation steps:
+2. **Add gpm to existing workflows** as validation steps:
    ```yaml
    # ✅ GOOD: Part of existing workflow
    jobs:
@@ -852,7 +852,7 @@ jobs:
        runs-on: ubuntu-latest
        steps:
          - name: Run security scan
-           run: gwm security  # Adds value, doesn't duplicate
+           run: gpm security  # Adds value, doesn't duplicate
    ```
 
 3. **Use GitHub's built-in features**:
@@ -862,20 +862,20 @@ jobs:
 
 ---
 
-### ✅ Best Practice: gwm as Validation, Not Orchestration
+### ✅ Best Practice: gpm as Validation, Not Orchestration
 
-**gwm is designed for**:
-- ✅ Security scanning (`gwm security`)
-- ✅ Local PR workflows (`gwm ship`, `gwm auto`)
+**gpm is designed for**:
+- ✅ Security scanning (`gpm security`)
+- ✅ Local PR workflows (`gpm ship`, `gpm auto`)
 - ✅ CLI automation for developers
 - ✅ Validation steps in existing workflows
 
-**gwm is NOT designed for**:
+**gpm is NOT designed for**:
 - ❌ Orchestrating other GitHub Actions workflows
 - ❌ Replacing GitHub's workflow engine
 - ❌ Creating meta-workflows that monitor workflows
 
-**Key principle**: Let GitHub Actions handle workflow execution. Use gwm for:
+**Key principle**: Let GitHub Actions handle workflow execution. Use gpm for:
 - **Security**: Scanning secrets and vulnerabilities
 - **Developer UX**: Local CLI automation
 - **Validation**: Checking requirements in CI steps
@@ -894,13 +894,13 @@ jobs:
       - name: Run tests
         run: npm test
 
-  # 2. Add gwm as additional validation
+  # 2. Add gpm as additional validation
   security:
     runs-on: ubuntu-latest
     needs: test
     steps:
       - name: Security scan
-        run: gwm security  # Complements existing checks
+        run: gpm security  # Complements existing checks
 ```
 
 **Avoid**:
@@ -910,15 +910,15 @@ jobs:
 
 ---
 
-### ✅ Best Practice: Use gwm Where It Adds Value
+### ✅ Best Practice: Use gpm Where It Adds Value
 
-**Add gwm when**:
+**Add gpm when**:
 - ✅ You need security scanning beyond existing tools
 - ✅ You want standardized git workflows for developers
 - ✅ You need structured JSON output for reporting
 - ✅ You want automated PR workflows locally
 
-**Skip gwm when**:
+**Skip gpm when**:
 - ❌ GitHub's built-in features already cover the need
 - ❌ It would duplicate existing CI checks
 - ❌ It adds complexity without clear benefit
@@ -927,8 +927,8 @@ jobs:
 
 ## Resources
 
-- **CLI Reference**: Run `gwm --help` for all commands
-- **Configuration Guide**: See `.gwm.yml` documentation in README
+- **CLI Reference**: Run `gpm --help` for all commands
+- **Configuration Guide**: See `.gpm.yml` documentation in README
 - **Exit Codes**: 0 = success, 1 = failure, 2 = validation error
 - **GitHub Actions Docs**: https://docs.github.com/en/actions
 
@@ -937,8 +937,8 @@ jobs:
 ## Next Steps
 
 1. **Start simple**: Add security scanning to your PR workflow
-2. **Add validation**: Use `gwm checks` to wait for CI
-3. **Automate**: Use `gwm auto` for full workflow automation
+2. **Add validation**: Use `gpm checks` to wait for CI
+3. **Automate**: Use `gpm auto` for full workflow automation
 4. **Monitor**: Review JSON output for metrics and reporting
 
 For AI agent integration, see [AI-AGENT-INTEGRATION.md](AI-AGENT-INTEGRATION.md).

@@ -2,7 +2,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import { logger } from '../utils/logger';
 import { ConfigService } from '../services/ConfigService';
-import { getGitHooksDir, fileExists, isGwmHook } from '../utils/git-hooks';
+import { getGitHooksDir, fileExists, isGpmHook } from '../utils/git-hooks';
 
 export interface InstallHooksOptions {
   force?: boolean;       // Overwrite existing hooks
@@ -12,11 +12,11 @@ export interface InstallHooksOptions {
 }
 
 const PRE_PUSH_TEMPLATE = `#!/bin/sh
-# gwm pre-push hook
-# Installed via: gwm install-hooks
-# Remove with: gwm uninstall-hooks
+# gpm pre-push hook
+# Installed via: gpm install-hooks
+# Remove with: gpm uninstall-hooks
 #
-# This hook reminds you to use gwm for PR workflow.
+# This hook reminds you to use gpm for PR workflow.
 # It never blocks your push - just a friendly reminder!
 
 # Skip in CI environments
@@ -24,15 +24,15 @@ if [ -n "$CI" ] || [ -n "$GITHUB_ACTIONS" ] || [ -n "$GITLAB_CI" ] || [ -n "$JEN
   exit 0
 fi
 
-# Check if gwm is available
-if command -v gwm >/dev/null 2>&1; then
+# Check if gpm is available
+if command -v gpm >/dev/null 2>&1; then
   echo ""
-  echo "💡 gwm reminder: Consider using 'gwm ship' or 'gwm auto'"
-  echo "   • gwm ship       = Create PR + wait for CI + merge"
-  echo "   • gwm auto       = Quick PR creation"
-  echo "   • gwm security   = Security scan before PR"
+  echo "💡 gpm reminder: Consider using 'gpm ship' or 'gpm auto'"
+  echo "   • gpm ship       = Create PR + wait for CI + merge"
+  echo "   • gpm auto       = Quick PR creation"
+  echo "   • gpm security   = Security scan before PR"
   echo ""
-  echo "   Remove this reminder: gwm uninstall-hooks"
+  echo "   Remove this reminder: gpm uninstall-hooks"
   echo ""
 fi
 
@@ -41,9 +41,9 @@ exit 0
 `;
 
 const POST_COMMIT_TEMPLATE = `#!/bin/sh
-# gwm post-commit hook
-# Installed via: gwm install-hooks
-# Remove with: gwm uninstall-hooks
+# gpm post-commit hook
+# Installed via: gpm install-hooks
+# Remove with: gpm uninstall-hooks
 #
 # This hook reminds you to consider creating a PR after commits.
 # It never blocks your workflow - just a friendly reminder!
@@ -53,14 +53,14 @@ if [ -n "$CI" ] || [ -n "$GITHUB_ACTIONS" ] || [ -n "$GITLAB_CI" ] || [ -n "$JEN
   exit 0
 fi
 
-# Check if gwm is available
-if command -v gwm >/dev/null 2>&1; then
+# Check if gpm is available
+if command -v gpm >/dev/null 2>&1; then
   echo ""
-  echo "💡 gwm reminder: Ready to create a PR?"
-  echo "   • gwm ship       = Full PR workflow (create + wait + merge)"
-  echo "   • gwm auto       = Quick PR creation"
+  echo "💡 gpm reminder: Ready to create a PR?"
+  echo "   • gpm ship       = Full PR workflow (create + wait + merge)"
+  echo "   • gpm auto       = Quick PR creation"
   echo ""
-  echo "   Remove this reminder: gwm uninstall-hooks"
+  echo "   Remove this reminder: gpm uninstall-hooks"
   echo ""
 fi
 
@@ -69,7 +69,7 @@ exit 0
 `;
 
 /**
- * Install git hooks for gwm workflow reminders
+ * Install git hooks for gpm workflow reminders
  */
 export async function installHooksCommand(options: InstallHooksOptions = {}): Promise<void> {
   try {
@@ -105,9 +105,9 @@ export async function installHooksCommand(options: InstallHooksOptions = {}): Pr
       const exists = await fileExists(prePushPath);
 
       if (exists && !options.force) {
-        const isGwm = await isGwmHook(prePushPath);
-        if (!isGwm) {
-          const error = 'pre-push hook already exists (not created by gwm). Use --force to overwrite.';
+        const isGpm = await isGpmHook(prePushPath);
+        if (!isGpm) {
+          const error = 'pre-push hook already exists (not created by gpm). Use --force to overwrite.';
           if (options.json) {
             console.log(JSON.stringify({
               success: false,
@@ -135,9 +135,9 @@ export async function installHooksCommand(options: InstallHooksOptions = {}): Pr
       const exists = await fileExists(postCommitPath);
 
       if (exists && !options.force) {
-        const isGwm = await isGwmHook(postCommitPath);
-        if (!isGwm) {
-          const error = 'post-commit hook already exists (not created by gwm). Use --force to overwrite.';
+        const isGpm = await isGpmHook(postCommitPath);
+        if (!isGpm) {
+          const error = 'post-commit hook already exists (not created by gpm). Use --force to overwrite.';
           if (options.json) {
             console.log(JSON.stringify({
               success: false,
@@ -159,7 +159,7 @@ export async function installHooksCommand(options: InstallHooksOptions = {}): Pr
       installedHooks.push('post-commit');
     }
 
-    // Update .gwm.yml config to track installation
+    // Update .gpm.yml config to track installation
     const configService = new ConfigService(process.cwd());
     const config = await configService.load();
 
@@ -194,8 +194,8 @@ export async function installHooksCommand(options: InstallHooksOptions = {}): Pr
         logger.info(`  • ${hook} hook: ${path.join(hooksDir, hook)}`);
       });
       logger.blank();
-      logger.info('💡 The hook(s) will remind you about gwm before pushes/commits');
-      logger.info('   Remove with: gwm uninstall-hooks');
+      logger.info('💡 The hook(s) will remind you about gpm before pushes/commits');
+      logger.info('   Remove with: gpm uninstall-hooks');
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);

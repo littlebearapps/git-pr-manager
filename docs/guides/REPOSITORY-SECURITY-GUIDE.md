@@ -7,11 +7,11 @@
 
 ## Overview
 
-This guide provides comprehensive security recommendations for setting up repositories with `git-workflow-manager` (`gwm`), covering branch protection, GitHub Actions security, secrets management, and Claude Code directory security.
+This guide provides comprehensive security recommendations for setting up repositories with `git-pr-manager` (`gpm`), covering branch protection, GitHub Actions security, secrets management, and Claude Code directory security.
 
 ## Quick Reference
 
-| Repository Type | gwm Preset | Required Reviews | Status Checks | Use Case |
+| Repository Type | gpm Preset | Required Reviews | Status Checks | Use Case |
 |----------------|------------|------------------|---------------|----------|
 | **Personal/Experimental** | `basic` | 0 | None | Prototypes, learning projects |
 | **Team/Open Source** | `standard` | 0-1 (optional) | ci, security | Team projects, OSS libraries |
@@ -25,13 +25,13 @@ This guide provides comprehensive security recommendations for setting up reposi
 
 **Use Case**: Solo development, prototypes, learning projects, quick experiments
 
-**gwm Configuration**:
+**gpm Configuration**:
 ```bash
 # Initialize with basic preset
-gwm init --template basic
+gpm init --template basic
 
 # Or apply protection manually
-gwm protect --preset basic
+gpm protect --preset basic
 ```
 
 **Settings**:
@@ -52,7 +52,7 @@ echo 'export GITHUB_TOKEN="ghp_your_token_here"' >> ~/.zshrc
 
 **Branch Protection**:
 ```yaml
-# .gwm.yml
+# .gpm.yml
 branchProtection:
   enabled: true
   requireReviews: 0
@@ -67,13 +67,13 @@ branchProtection:
 
 **Use Case**: Team collaboration, open source libraries, shared repositories
 
-**gwm Configuration**:
+**gpm Configuration**:
 ```bash
 # Initialize with standard preset (recommended)
-gwm init --template standard
+gpm init --template standard
 
 # Or apply protection manually
-gwm protect --preset standard
+gpm protect --preset standard
 ```
 
 **Settings**:
@@ -95,7 +95,7 @@ echo '.envrc' >> .gitignore  # CRITICAL: Prevent token leak
 
 **Branch Protection**:
 ```yaml
-# .gwm.yml
+# .gpm.yml
 branchProtection:
   enabled: true
   requireReviews: 0  # or 1 for mandatory reviews
@@ -128,7 +128,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Security scan
-        run: gwm security
+        run: gpm security
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
@@ -139,13 +139,13 @@ jobs:
 
 **Use Case**: Production applications, critical infrastructure, financial systems
 
-**gwm Configuration**:
+**gpm Configuration**:
 ```bash
 # Initialize with strict preset
-gwm init --template strict
+gpm init --template strict
 
 # Or apply protection manually
-gwm protect --preset strict
+gpm protect --preset strict
 ```
 
 **Settings**:
@@ -170,13 +170,13 @@ echo 'source ~/bin/kc.sh && export GITHUB_TOKEN=$(kc_get GITHUB_PAT)' > .envrc
 direnv allow
 echo '.envrc' >> .gitignore
 
-# Run gwm doctor to verify setup
-gwm doctor
+# Run gpm doctor to verify setup
+gpm doctor
 ```
 
 **Branch Protection**:
 ```yaml
-# .gwm.yml
+# .gpm.yml
 branchProtection:
   enabled: true
   requireReviews: 1  # Minimum 1 reviewer
@@ -214,7 +214,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Security scan
-        run: gwm security
+        run: gpm security
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -394,7 +394,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Security scan
-        run: gwm security
+        run: gpm security
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -434,8 +434,8 @@ jobs:
 
       - name: Verify all checks passed
         run: |
-          # Use gwm to verify CI status
-          gwm checks ${{ github.event.pull_request.number }} --json | \
+          # Use gpm to verify CI status
+          gpm checks ${{ github.event.pull_request.number }} --json | \
           jq -e '.overallStatus == "success"'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -478,7 +478,7 @@ direnv allow
 echo '.envrc' >> .gitignore
 
 # 7. Verify setup
-gwm doctor
+gpm doctor
 ```
 
 **Security Levels**:
@@ -491,9 +491,9 @@ gwm doctor
 | **.env file** | Low | Per-project | Local dev only (add to .gitignore!) |
 | **Current session** | Low | Session only | Quick testing |
 
-**Run `gwm doctor` to get context-aware recommendations**:
+**Run `gpm doctor` to get context-aware recommendations**:
 ```bash
-gwm doctor  # Shows smart suggestions based on your system
+gpm doctor  # Shows smart suggestions based on your system
 ```
 
 ---
@@ -514,8 +514,8 @@ gwm doctor  # Shows smart suggestions based on your system
 secrets.yml
 credentials.json
 
-# gwm specific
-.gwm-cache/
+# gpm specific
+.gpm-cache/
 
 # MCP server credentials
 .mcp/credentials.json
@@ -546,8 +546,8 @@ build/
 
 **Verify no secrets committed**:
 ```bash
-# Run gwm security scan
-gwm security
+# Run gpm security scan
+gpm security
 
 # Or manually with detect-secrets
 detect-secrets scan --baseline .secrets.baseline
@@ -604,15 +604,15 @@ direnv allow
 **New Repository Security Checklist**:
 
 ```bash
-# 1. Initialize gwm configuration
+# 1. Initialize gpm configuration
 cd /path/to/repo
-gwm init --template standard  # or strict for production
+gpm init --template standard  # or strict for production
 
 # 2. Set up GitHub token (choose security level)
-gwm doctor  # Get smart recommendations
+gpm doctor  # Get smart recommendations
 
 # 3. Configure branch protection
-gwm protect --preset standard  # or strict
+gpm protect --preset standard  # or strict
 
 # 4. Set up .gitignore
 curl -o .gitignore https://www.toptal.com/developers/gitignore/api/node,macos,linux,windows
@@ -628,10 +628,10 @@ secrets.yml
 EOF
 
 # 6. Run security scan
-gwm security
+gpm security
 
 # 7. Install git hooks (optional but recommended)
-gwm install-hooks
+gpm install-hooks
 
 # 8. Create initial commit
 git add .
@@ -677,10 +677,10 @@ git push
 - ✅ Do not allow bypassing settings (uncheck)
 - ✅ Restrict who can push (optional)
 
-**Or use gwm**:
+**Or use gpm**:
 ```bash
-gwm protect --preset standard
-gwm protect --show  # Verify settings
+gpm protect --preset standard
+gpm protect --show  # Verify settings
 ```
 
 ---
@@ -713,10 +713,10 @@ gwm protect --show  # Verify settings
 
 ```bash
 # 1. Verify branch protection
-gwm protect --show
+gpm protect --show
 
 # 2. Run security scan
-gwm security
+gpm security
 
 # 3. Check for committed secrets
 git log --all --oneline --grep="password\|secret\|key\|token" -i
@@ -725,13 +725,13 @@ git log --all --oneline --grep="password\|secret\|key\|token" -i
 git ls-files | grep -E "\.env|\.pem|\.key|secrets"  # Should be empty
 
 # 5. Check CI status
-gwm status
+gpm status
 
 # 6. Verify required checks configured
-cat .gwm.yml | grep -A 10 "requiredStatusChecks"
+cat .gpm.yml | grep -A 10 "requiredStatusChecks"
 
 # 7. Review GitHub token setup
-gwm doctor
+gpm doctor
 ```
 
 ---
@@ -743,9 +743,9 @@ gwm doctor
 | Task | Frequency | Command |
 |------|-----------|---------|
 | Update dependencies | Weekly | `npm audit fix` |
-| Scan for secrets | Every commit | `gwm security` |
+| Scan for secrets | Every commit | `gpm security` |
 | Rotate GitHub tokens | 90 days | https://github.com/settings/tokens |
-| Review branch protection | Monthly | `gwm protect --show` |
+| Review branch protection | Monthly | `gpm protect --show` |
 | Audit repository access | Quarterly | Settings → Manage access |
 | Check Dependabot alerts | Weekly | Security → Dependabot |
 
@@ -766,7 +766,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Security scan
-        run: gwm security
+        run: gpm security
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -774,7 +774,7 @@ jobs:
         run: npm audit --audit-level=moderate
 
       - name: Branch protection check
-        run: gwm protect --show --json
+        run: gpm protect --show --json
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
@@ -838,9 +838,9 @@ npm audit fix
 
 ```bash
 # Setup
-gwm init --template basic
+gpm init --template basic
 echo 'export GITHUB_TOKEN="ghp_..."' >> ~/.zshrc
-gwm protect --preset basic
+gpm protect --preset basic
 
 # .gitignore
 echo ".env*" >> .gitignore
@@ -851,12 +851,12 @@ echo ".envrc" >> .gitignore
 
 ```bash
 # Setup
-gwm init --template standard
+gpm init --template standard
 echo 'export GITHUB_TOKEN="ghp_..."' > .envrc
 direnv allow
 echo '.envrc' >> .gitignore
-gwm protect --preset standard
-gwm install-hooks
+gpm protect --preset standard
+gpm install-hooks
 
 # CI
 # Copy from "Team/Open Source Projects" section above
@@ -866,7 +866,7 @@ gwm install-hooks
 
 ```bash
 # Setup
-gwm init --template strict
+gpm init --template strict
 
 # Keychain integration
 security add-generic-password -a "$USER" -s "GITHUB_PAT" -w "ghp_..."
@@ -875,13 +875,13 @@ direnv allow
 echo '.envrc' >> .gitignore
 
 # Protection
-gwm protect --preset strict
-gwm install-hooks --post-commit
+gpm protect --preset strict
+gpm install-hooks --post-commit
 
 # Verify
-gwm doctor
-gwm protect --show
-gwm security
+gpm doctor
+gpm protect --show
+gpm security
 
 # CI
 # Copy from "Production/Critical Systems" section above
@@ -891,7 +891,7 @@ gwm security
 
 ## 8. Additional Resources
 
-### 8.1 gwm Documentation
+### 8.1 gpm Documentation
 - **GitHub Actions Integration**: `docs/guides/GITHUB-ACTIONS-INTEGRATION.md`
 - **AI Agent Integration**: `docs/guides/AI-AGENT-INTEGRATION.md`
 - **Quick Reference**: `docs/guides/QUICK-REFERENCE.md`
@@ -903,7 +903,7 @@ gwm security
 - **GitHub Token Permissions**: https://docs.github.com/en/actions/security-guides/automatic-token-authentication#permissions-for-the-github_token
 
 ### 8.3 Support
-- **gwm Issues**: https://github.com/littlebearapps/git-workflow-manager/issues
+- **gpm Issues**: https://github.com/littlebearapps/git-pr-manager/issues
 - **Security Vulnerabilities**: Report privately via GitHub Security tab
 
 ---
@@ -916,16 +916,16 @@ gwm security
 - 🔴 **Strict**: Maximum protection, production systems
 
 **Three pillars**:
-1. **Branch Protection** - `gwm protect --preset [basic|standard|strict]`
-2. **Secrets Management** - `gwm doctor` (direnv + keychain recommended)
-3. **Security Scanning** - `gwm security` (secrets + vulnerabilities)
+1. **Branch Protection** - `gpm protect --preset [basic|standard|strict]`
+2. **Secrets Management** - `gpm doctor` (direnv + keychain recommended)
+3. **Security Scanning** - `gpm security` (secrets + vulnerabilities)
 
 **Start simple, scale up**:
 ```bash
-gwm init --template standard  # Good starting point
-gwm doctor                     # Set up GitHub token
-gwm security                   # Scan for issues
-gwm protect --preset standard  # Apply protection
+gpm init --template standard  # Good starting point
+gpm doctor                     # Set up GitHub token
+gpm security                   # Scan for issues
+gpm protect --preset standard  # Apply protection
 ```
 
-**Questions?** Run `gwm --help` or `gwm docs` for more information.
+**Questions?** Run `gpm --help` or `gpm docs` for more information.

@@ -8,7 +8,7 @@
 
 ## Overview
 
-This document describes how to integrate the **Claude GitHub SDK** (Octokit wrapper) into git-workflow-manager to enhance PR automation capabilities.
+This document describes how to integrate the **Claude GitHub SDK** (Octokit wrapper) into git-pr-manager to enhance PR automation capabilities.
 
 ### Benefits of Integration
 
@@ -32,7 +32,7 @@ This document describes how to integrate the **Claude GitHub SDK** (Octokit wrap
 Use **both** gh CLI and Octokit SDK for their respective strengths:
 
 ```bash
-# git-workflow-manager flow
+# git-pr-manager flow
 ┌─────────────────────────────────────┐
 │ 1. Preflight Checks (bash)         │
 │    - Validate working directory     │
@@ -96,7 +96,7 @@ Use **both** gh CLI and Octokit SDK for their respective strengths:
 **Implementation**:
 
 ```bash
-# In git-workflow-manager script
+# In git-pr-manager script
 if [[ "$*" == *"--wait-for-ci"* ]]; then
   # Use Octokit SDK for CI polling
   node -e "
@@ -134,7 +134,7 @@ fi
 **Example**:
 
 ```javascript
-// git-workflow-manager-sdk.js
+// git-pr-manager-sdk.js
 import { PRAutomation } from 'claude-github-sdk';
 
 const pr = new PRAutomation({
@@ -159,12 +159,12 @@ console.log(prUrl);
 **Bash wrapper**:
 
 ```bash
-# git-workflow-manager calls SDK
+# git-pr-manager calls SDK
 BRANCH_NAME="$current_branch" \
 PR_TITLE="$pr_title" \
 PR_BODY="$pr_body" \
 REPO_NAME="$repo_name" \
-node git-workflow-manager-sdk.js
+node git-pr-manager-sdk.js
 ```
 
 **Pros**:
@@ -376,7 +376,7 @@ expect(checksPass).toBe(true);
 
 - ✅ Install Octokit SDK globally (DONE)
 - ✅ Configure GITHUB_TOKEN environment (DONE)
-- 🚧 Add `--sdk` flag to git-workflow-manager
+- 🚧 Add `--sdk` flag to git-pr-manager
 - 🚧 Test both paths side-by-side
 
 ### Phase 2: Enhanced Features (Weeks 3-4)
@@ -396,7 +396,7 @@ expect(checksPass).toBe(true);
 ## Next Steps
 
 1. **Choose Integration Option**: Start with Option 1 (Simple Enhancement)
-2. **Add SDK Flag**: Implement `--use-sdk` flag in git-workflow-manager
+2. **Add SDK Flag**: Implement `--use-sdk` flag in git-pr-manager
 3. **Test Integration**: Run side-by-side tests with existing workflow
 4. **Update Documentation**: Document SDK usage in SUBAGENT_PROMPT.md
 5. **Rollout**: Deploy to one project, validate, then expand

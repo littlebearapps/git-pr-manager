@@ -23,7 +23,7 @@ function commandExists(cmd: string): boolean {
  * Main post-install logic
  */
 function main() {
-  console.log('\n✨ git-workflow-manager installed!\n');
+  console.log('\n✨ git-pr-manager installed!\n');
 
   // Check for GitHub token
   const hasToken = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
@@ -52,7 +52,7 @@ function main() {
 
     if (requiredMissing.length > 0) {
       console.log(`❌ Required tools missing: ${requiredMissing.map(t => t.name).join(', ')}`);
-      console.log('   Please install them before using gwm\n');
+      console.log('   Please install them before using gpm\n');
     }
 
     if (optionalMissing.length > 0) {
@@ -60,36 +60,36 @@ function main() {
       optionalMissing.forEach(tool => {
         console.log(`   • ${tool.name.padEnd(16)} - ${tool.purpose}`);
       });
-      console.log('   gwm will skip these scans gracefully when tools are unavailable\n');
+      console.log('   gpm will skip these scans gracefully when tools are unavailable\n');
     }
   }
 
   // Show quick start guide
   console.log('📖 Quick Start:');
-  console.log('   gwm init              - Initialize .gwm.yml configuration');
-  console.log('   gwm feature <name>    - Start a new feature branch');
-  console.log('   gwm auto              - Automated workflow (create PR, CI, merge)');
-  console.log('   gwm --help            - Show all commands\n');
+  console.log('   gpm init              - Initialize .gpm.yml configuration');
+  console.log('   gpm feature <name>    - Start a new feature branch');
+  console.log('   gpm auto              - Automated workflow (create PR, CI, merge)');
+  console.log('   gpm --help            - Show all commands\n');
 
   // ✨ Opt-in Features - Prominent but optional
   console.log('✨ OPTIONAL: Enhance Your Workflow (100% Opt-In)');
   console.log('┌────────────────────────────────────────────────────────────┐');
-  console.log('│ 🎯 Git Hooks - Never Miss gwm in Your Workflow            │');
+  console.log('│ 🎯 Git Hooks - Never Miss gpm in Your Workflow            │');
   console.log('│                                                            │');
-  console.log('│   gwm install-hooks       Install pre-push hook            │');
-  console.log('│                           (suggests gwm before push)       │');
+  console.log('│   gpm install-hooks       Install pre-push hook            │');
+  console.log('│                           (suggests gpm before push)       │');
   console.log('│                                                            │');
   console.log('│   Benefits:                                                │');
-  console.log('│   • Reminds you to run gwm ship before pushing             │');
+  console.log('│   • Reminds you to run gpm ship before pushing             │');
   console.log('│   • Prevents accidentally pushing without CI checks        │');
   console.log('│   • 100% optional - you choose when to enable              │');
   console.log('│                                                            │');
   console.log('│ 📚 Learn More:                                             │');
-  console.log('│   gwm docs                View all documentation           │');
-  console.log('│   gwm docs --guide=AI-AGENT-INTEGRATION                    │');
+  console.log('│   gpm docs                View all documentation           │');
+  console.log('│   gpm docs --guide=AI-AGENT-INTEGRATION                    │');
   console.log('└────────────────────────────────────────────────────────────┘\n');
 
-  console.log('🔗 Documentation: https://github.com/littlebearapps/git-workflow-manager#readme\n');
+  console.log('🔗 Documentation: https://github.com/littlebearapps/git-pr-manager#readme\n');
 }
 
 // Run post-install

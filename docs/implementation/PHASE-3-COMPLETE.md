@@ -8,7 +8,7 @@
 
 ## Overview
 
-Phase 3 successfully implements comprehensive branch protection validation and pre-commit security scanning. The git-workflow-manager now provides enterprise-grade security features with automatic secret detection, dependency vulnerability scanning, and branch protection configuration.
+Phase 3 successfully implements comprehensive branch protection validation and pre-commit security scanning. The git-pr-manager now provides enterprise-grade security features with automatic secret detection, dependency vulnerability scanning, and branch protection configuration.
 
 ---
 
@@ -97,21 +97,21 @@ async checkDependencies(): Promise<VulnerabilityResult>
 - ✅ Node.js (package.json)
 - ⚠️ Other languages: graceful skip
 
-### 3. ✅ gwm protect Command (src/commands/protect.ts - 154 lines)
+### 3. ✅ gpm protect Command (src/commands/protect.ts - 154 lines)
 
 **Purpose**: Configure and view branch protection settings
 
 **Usage**:
 ```bash
 # Show current protection
-gwm protect --show
+gpm protect --show
 
 # Configure with preset
-gwm protect --preset standard
-gwm protect --preset strict --branch main
+gpm protect --preset standard
+gpm protect --preset strict --branch main
 
 # Show protection for specific branch
-gwm protect --branch develop --show
+gpm protect --branch develop --show
 ```
 
 **Features**:
@@ -139,17 +139,17 @@ Protection Rules:
   ✅ Blocks deletions
 ```
 
-### 4. ✅ gwm security Command (src/commands/security.ts - 133 lines)
+### 4. ✅ gpm security Command (src/commands/security.ts - 133 lines)
 
 **Purpose**: Run comprehensive security scans manually
 
 **Usage**:
 ```bash
 # Run full security scan
-gwm security
+gpm security
 
 # Run with detailed output
-DEBUG=1 gwm security
+DEBUG=1 gpm security
 ```
 
 **Features**:
@@ -201,13 +201,13 @@ Blockers:
   • Found 2 critical vulnerabilities
 ```
 
-### 5. ✅ gwm ship Integration
+### 5. ✅ gpm ship Integration
 
 **Security Integration**: Added security scanning step to ship workflow
 
 **New Options**:
 ```bash
-gwm ship --skip-security  # Skip security scan
+gpm ship --skip-security  # Skip security scan
 ```
 
 **Workflow Updates**:
@@ -225,7 +225,7 @@ gwm ship --skip-security  # Skip security scan
 - Blocks ship on critical vulnerabilities
 - Displays detailed error messages
 - Provides fix guidance
-- Suggests `gwm security` for details
+- Suggests `gpm security` for details
 
 ### 6. ✅ Type Definitions (src/types/index.ts)
 
@@ -255,7 +255,7 @@ export interface SecurityScanResult { ... }
 All TypeScript strict mode checks pass:
 ```bash
 $ npm run build
-> git-workflow-manager@1.2.0 build
+> git-pr-manager@1.2.0 build
 > tsc
 
 # Success - 0 errors
@@ -279,9 +279,9 @@ $ npm run build
 | Secret Scanning | ✅ | SecurityScanner.scanForSecrets() |
 | Vulnerability Scanning | ✅ | SecurityScanner.checkDependencies() |
 | Language Detection | ✅ | Python + Node.js support |
-| gwm protect Command | ✅ | Full implementation (154 lines) |
-| gwm security Command | ✅ | Full implementation (133 lines) |
-| gwm ship Integration | ✅ | Security scan step added |
+| gpm protect Command | ✅ | Full implementation (154 lines) |
+| gpm security Command | ✅ | Full implementation (133 lines) |
+| gpm ship Integration | ✅ | Security scan step added |
 | TypeScript Strict | ✅ | Clean compilation |
 
 **Result**: ✅ 10/10 criteria met
@@ -314,53 +314,53 @@ src/
 
 ```bash
 # Show current protection settings
-gwm protect --show
+gpm protect --show
 
 # Show protection for specific branch
-gwm protect --branch develop --show
+gpm protect --branch develop --show
 ```
 
 ### 2. Configure Branch Protection
 
 ```bash
 # Apply standard preset (recommended)
-gwm protect
+gpm protect
 
 # Apply strict preset
-gwm protect --preset strict
+gpm protect --preset strict
 
 # Configure specific branch
-gwm protect --branch main --preset standard
+gpm protect --branch main --preset standard
 ```
 
 ### 3. Run Security Scan
 
 ```bash
 # Run full security scan
-gwm security
+gpm security
 
 # Scan before committing
-gwm security && git commit -m "feat: add feature"
+gpm security && git commit -m "feat: add feature"
 ```
 
 ### 4. Ship with Security
 
 ```bash
 # Full automated workflow (includes security)
-gwm ship
+gpm ship
 
 # Skip security scan (not recommended)
-gwm ship --skip-security
+gpm ship --skip-security
 
 # Skip everything (emergency use only)
-gwm ship --skip-verify --skip-security --skip-ci
+gpm ship --skip-verify --skip-security --skip-ci
 ```
 
 ---
 
 ## Configuration Integration
 
-Phase 3 can be configured via `.gwm.yml`:
+Phase 3 can be configured via `.gpm.yml`:
 
 ```yaml
 security:
@@ -415,7 +415,7 @@ pip-audit --format json
 npm audit --json
 ```
 
-**Graceful Degradation**: If tools are not installed, gwm provides warnings but doesn't block the workflow.
+**Graceful Degradation**: If tools are not installed, gpm provides warnings but doesn't block the workflow.
 
 ---
 
@@ -439,7 +439,7 @@ npm audit --json
    - [ ] Test Node.js project scanning
    - [ ] Test with tools not installed
 
-3. **gwm ship Integration**
+3. **gpm ship Integration**
    - [ ] Ship with clean security scan
    - [ ] Ship with security failures (should block)
    - [ ] Ship with --skip-security
@@ -456,20 +456,20 @@ npm audit --json
 ```bash
 # Test full workflow with security
 cd /path/to/test-repo
-gwm feature test-security
+gpm feature test-security
 # Add some changes
 git add .
 git commit -m "test: security integration"
-gwm ship  # Should run security scan
+gpm ship  # Should run security scan
 
 # Test with intentional security issue
 echo "password = 'hardcoded123'" > test_secrets.py
-gwm security  # Should detect secret
-gwm ship      # Should block on security failure
+gpm security  # Should detect secret
+gpm ship      # Should block on security failure
 
 # Clean up
 rm test_secrets.py
-gwm ship --skip-security  # Should succeed
+gpm ship --skip-security  # Should succeed
 ```
 
 ---
@@ -542,9 +542,9 @@ Phase 3 is **100% complete** with all deliverables implemented and verified:
 
 ✅ BranchProtectionChecker - Comprehensive protection validation
 ✅ SecurityScanner - Secret + vulnerability scanning
-✅ gwm protect - Branch protection management
-✅ gwm security - Manual security scanning
-✅ gwm ship integration - Automatic security checks
+✅ gpm protect - Branch protection management
+✅ gpm security - Manual security scanning
+✅ gpm ship integration - Automatic security checks
 ✅ Type definitions - Complete type safety
 ✅ TypeScript strict mode - Clean compilation
 ✅ Error handling - Graceful degradation
@@ -559,11 +559,11 @@ Phase 3 is **100% complete** with all deliverables implemented and verified:
 - 📊 Detailed security reporting
 
 **Commands Added**:
-- `gwm protect` - Configure branch protection
-- `gwm security` - Run security scans
+- `gpm protect` - Configure branch protection
+- `gpm security` - Run security scans
 
 **Enhanced Commands**:
-- `gwm ship` - Now includes security scanning
+- `gpm ship` - Now includes security scanning
 
 **Ready for Phase 4**: Testing + Documentation
 

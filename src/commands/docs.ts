@@ -103,32 +103,32 @@ function showIndex(basePath: string): void {
     {
       name: 'REPOSITORY-SECURITY-GUIDE',
       description: 'Repository Security & Setup Guide ⭐',
-      command: 'gwm docs --guide=REPOSITORY-SECURITY-GUIDE'
+      command: 'gpm docs --guide=REPOSITORY-SECURITY-GUIDE'
     },
     {
       name: 'AI-AGENT-INTEGRATION',
       description: 'AI Agent Setup Guide',
-      command: 'gwm docs --guide=AI-AGENT-INTEGRATION'
+      command: 'gpm docs --guide=AI-AGENT-INTEGRATION'
     },
     {
       name: 'GITHUB-ACTIONS-INTEGRATION',
       description: 'GitHub Actions Integration Guide',
-      command: 'gwm docs --guide=GITHUB-ACTIONS-INTEGRATION'
+      command: 'gpm docs --guide=GITHUB-ACTIONS-INTEGRATION'
     },
     {
       name: 'JSON-OUTPUT-SCHEMAS',
       description: 'JSON Output Schemas Reference',
-      command: 'gwm docs --guide=JSON-OUTPUT-SCHEMAS'
+      command: 'gpm docs --guide=JSON-OUTPUT-SCHEMAS'
     },
     {
       name: 'CONFIGURATION',
       description: 'Configuration Guide',
-      command: 'gwm docs --guide=CONFIGURATION'
+      command: 'gpm docs --guide=CONFIGURATION'
     },
     {
       name: 'README',
       description: 'Full README',
-      command: 'gwm docs --guide=README'
+      command: 'gpm docs --guide=README'
     }
   ];
 
@@ -143,9 +143,9 @@ function showIndex(basePath: string): void {
       docs: join(basePath, 'docs')
     },
     links: {
-      npm: 'https://www.npmjs.com/package/@littlebearapps/git-workflow-manager',
-      github: 'https://github.com/littlebearapps/git-workflow-manager',
-      issues: 'https://github.com/littlebearapps/git-workflow-manager/issues'
+      npm: 'https://www.npmjs.com/package/@littlebearapps/git-pr-manager',
+      github: 'https://github.com/littlebearapps/git-pr-manager',
+      issues: 'https://github.com/littlebearapps/git-pr-manager/issues'
     }
   };
 
@@ -159,22 +159,22 @@ function showIndex(basePath: string): void {
 📍 Installation Location: ${basePath}
 
 📖 Available Guides:
-  • Security Guide ⭐: gwm docs --guide=REPOSITORY-SECURITY-GUIDE
-  • AI Agent Setup:    gwm docs --guide=AI-AGENT-INTEGRATION
-  • GitHub Actions:    gwm docs --guide=GITHUB-ACTIONS-INTEGRATION
-  • JSON Schemas:      gwm docs --guide=JSON-OUTPUT-SCHEMAS
-  • Configuration:     gwm docs --guide=CONFIGURATION
-  • Full README:       gwm docs --guide=README
+  • Security Guide ⭐: gpm docs --guide=REPOSITORY-SECURITY-GUIDE
+  • AI Agent Setup:    gpm docs --guide=AI-AGENT-INTEGRATION
+  • GitHub Actions:    gpm docs --guide=GITHUB-ACTIONS-INTEGRATION
+  • JSON Schemas:      gpm docs --guide=JSON-OUTPUT-SCHEMAS
+  • Configuration:     gpm docs --guide=CONFIGURATION
+  • Full README:       gpm docs --guide=README
 
 🔗 Online Documentation:
-  • npm package:  https://www.npmjs.com/package/@littlebearapps/git-workflow-manager
-  • GitHub repo:  https://github.com/littlebearapps/git-workflow-manager
-  • Issue tracker: https://github.com/littlebearapps/git-workflow-manager/issues
+  • npm package:  https://www.npmjs.com/package/@littlebearapps/git-pr-manager
+  • GitHub repo:  https://github.com/littlebearapps/git-pr-manager
+  • Issue tracker: https://github.com/littlebearapps/git-pr-manager/issues
 
 💡 Quick Start:
-  gwm init --interactive     # Initialize configuration
-  gwm feature my-feature     # Start feature branch
-  gwm auto                   # Automated PR workflow
+  gpm init --interactive     # Initialize configuration
+  gpm feature my-feature     # Start feature branch
+  gpm auto                   # Automated PR workflow
 
 📄 Local Documentation Files:
   • Guides:       ${join(basePath, 'docs', 'guides')}
@@ -186,6 +186,6 @@ function showIndex(basePath: string): void {
   Documentation is co-located with the package installation.
 
   Claude Code users: The package includes CLAUDE.md and quickrefs/ for optimal context.
-  Other AI agents: All guides are available via 'gwm docs --guide=<name>' command.
+  Other AI agents: All guides are available via 'gpm docs --guide=<name>' command.
 `);
 }

@@ -8,7 +8,7 @@
 
 ## Overview
 
-Phase 2 successfully implements the complete PR workflow automation with intelligent CI polling, template support, and pre-commit verification. The `gwm ship` command provides a seamless end-to-end workflow from feature branch to merged PR.
+Phase 2 successfully implements the complete PR workflow automation with intelligent CI polling, template support, and pre-commit verification. The `gpm ship` command provides a seamless end-to-end workflow from feature branch to merged PR.
 
 ---
 
@@ -98,7 +98,7 @@ async hasVerifyScript(): Promise<boolean>
 async getVerifyCommand(): Promise<string | null>
 ```
 
-### 4. ✅ gwm ship Command (src/commands/ship.ts)
+### 4. ✅ gpm ship Command (src/commands/ship.ts)
 
 **Purpose**: Complete end-to-end workflow automation
 
@@ -138,7 +138,7 @@ async getVerifyCommand(): Promise<string | null>
 
 **Command Options**:
 ```bash
-gwm ship [options]
+gpm ship [options]
 
 Options:
   --no-wait           Do not wait for CI checks
@@ -153,11 +153,11 @@ Options:
 ```
 
 **Configuration Support**:
-- Reads from `.gwm.yml` for defaults
+- Reads from `.gpm.yml` for defaults
 - Command-line options override config
 - Sensible defaults for all settings
 
-### 5. ✅ gwm feature Command (src/commands/feature.ts)
+### 5. ✅ gpm feature Command (src/commands/feature.ts)
 
 **Purpose**: Start new feature branch with proper setup
 
@@ -173,7 +173,7 @@ Options:
 
 **Command Usage**:
 ```bash
-gwm feature <name> [options]
+gpm feature <name> [options]
 
 Arguments:
   name            Feature name (auto-sanitized)
@@ -224,7 +224,7 @@ Options:
 All TypeScript strict mode checks pass:
 ```bash
 $ npm run build
-> git-workflow-manager@1.0.0 build
+> git-pr-manager@1.0.0 build
 > tsc
 
 # Success - no errors
@@ -250,8 +250,8 @@ $ npm run build
 | Template Discovery | ✅ | PRTemplateService discovers 5+ locations |
 | Template Rendering | ✅ | Variable substitution ({{title}}, {{branch}}, {{baseBranch}}) |
 | Pre-commit Checks | ✅ | VerifyService auto-discovers 5+ check types |
-| gwm ship Command | ✅ | Complete 6-step workflow automation |
-| gwm feature Command | ✅ | Branch creation with validation |
+| gpm ship Command | ✅ | Complete 6-step workflow automation |
+| gpm feature Command | ✅ | Branch creation with validation |
 | CI Integration | ✅ | Reuses Phase 1 EnhancedCIPoller |
 | Error Handling | ✅ | Comprehensive error messages throughout |
 | TypeScript Strict | ✅ | All code passes strict type checking |
@@ -285,53 +285,53 @@ src/
 
 ```bash
 # Create feature branch
-gwm feature "add user authentication"
+gpm feature "add user authentication"
 # Creates: feature/add-user-authentication
 
 # With custom base branch
-gwm feature "hotfix-security" --from develop
+gpm feature "hotfix-security" --from develop
 ```
 
 ### 2. Ship Complete Feature
 
 ```bash
 # Full automated workflow
-gwm ship
+gpm ship
 
 # Skip verification checks
-gwm ship --skip-verify
+gpm ship --skip-verify
 
 # Create draft PR
-gwm ship --draft
+gpm ship --draft
 
 # Custom PR title and template
-gwm ship --title "Add Authentication System" --template feature
+gpm ship --title "Add Authentication System" --template feature
 
 # Skip CI and merge immediately
-gwm ship --skip-ci
+gpm ship --skip-ci
 
 # Keep branch after merge
-gwm ship --no-delete-branch
+gpm ship --no-delete-branch
 ```
 
 ### 3. Ship with Custom Options
 
 ```bash
 # Don't wait for CI
-gwm ship --no-wait
+gpm ship --no-wait
 
 # Retry flaky tests
-gwm ship --retry-flaky
+gpm ship --retry-flaky
 
 # Don't fail fast on errors
-gwm ship --no-fail-fast
+gpm ship --no-fail-fast
 ```
 
 ---
 
 ## Configuration Integration
 
-Phase 2 respects `.gwm.yml` configuration:
+Phase 2 respects `.gpm.yml` configuration:
 
 ```yaml
 ci:
@@ -349,14 +349,14 @@ Command-line options override config values.
 
 ### Manual Testing Checklist
 
-1. **gwm feature Command**
+1. **gpm feature Command**
    - [ ] Create feature branch from main
    - [ ] Create feature branch from custom base
    - [ ] Test branch name sanitization
    - [ ] Test duplicate branch detection
    - [ ] Test dirty working directory detection
 
-2. **gwm ship Command - Happy Path**
+2. **gpm ship Command - Happy Path**
    - [ ] Create PR with auto-generated title
    - [ ] Create PR with custom title
    - [ ] Create PR with template
@@ -364,7 +364,7 @@ Command-line options override config values.
    - [ ] Merge PR successfully
    - [ ] Delete remote and local branches
 
-3. **gwm ship Command - Error Cases**
+3. **gpm ship Command - Error Cases**
    - [ ] Verify fail-fast on CI failure
    - [ ] Test pre-commit check failure
    - [ ] Test merge conflict detection
@@ -387,11 +387,11 @@ Command-line options override config values.
 ```bash
 # Full workflow test
 cd /path/to/test-repo
-gwm feature test-workflow
+gpm feature test-workflow
 # Make some changes
 git add .
 git commit -m "test: workflow validation"
-gwm ship --skip-ci  # For quick test
+gpm ship --skip-ci  # For quick test
 ```
 
 ---
@@ -462,10 +462,10 @@ Phase 2 is **100% complete** with all deliverables implemented and verified:
 ✅ PRService - Full PR lifecycle management
 ✅ PRTemplateService - Automatic template discovery
 ✅ VerifyService - Pre-commit validation
-✅ gwm ship - Complete workflow automation
-✅ gwm feature - Smart branch creation
+✅ gpm ship - Complete workflow automation
+✅ gpm feature - Smart branch creation
 ✅ TypeScript strict mode - Clean compilation
-✅ Configuration integration - .gwm.yml support
+✅ Configuration integration - .gpm.yml support
 ✅ Error handling - Comprehensive validation
 
 **Ready for Phase 3**: Branch Protection + Security Integration

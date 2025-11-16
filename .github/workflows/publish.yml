@@ -78,5 +78,5 @@ jobs:
           else
             TAG="${{ steps.tag-manual.outputs.tag }}"
           fi
-          echo "✅ Published @littlebearapps/git-workflow-manager@$VERSION (dist-tag: $TAG)" >> $GITHUB_STEP_SUMMARY
-          echo "📦 View on npm: https://www.npmjs.com/package/@littlebearapps/git-workflow-manager" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Published @littlebearapps/git-pr-manager@$VERSION (dist-tag: $TAG)" >> $GITHUB_STEP_SUMMARY
+          echo "📦 View on npm: https://www.npmjs.com/package/@littlebearapps/git-pr-manager" >> $GITHUB_STEP_SUMMARY

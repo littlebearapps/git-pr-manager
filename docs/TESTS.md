@@ -1,4 +1,4 @@
-# Test Documentation - git-workflow-manager
+# Test Documentation - git-pr-manager
 
 **Last Updated**: 2025-11-14
 **Current Coverage**: 89.67% statements, 82.82% branches, 95.11% functions, 89.61% lines

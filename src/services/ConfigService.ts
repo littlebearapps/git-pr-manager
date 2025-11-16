@@ -49,10 +49,10 @@ const DEFAULT_CONFIG: WorkflowConfig = {
   }
 };
 
-const CONFIG_FILENAME = '.gwm.yml';
+const CONFIG_FILENAME = '.gpm.yml';
 
 /**
- * ConfigService - Manages .gwm.yml configuration file
+ * ConfigService - Manages .gpm.yml configuration file
  * Implements TTL-based caching to reduce disk I/O and parsing overhead
  */
 export class ConfigService {
@@ -69,7 +69,7 @@ export class ConfigService {
   }
 
   /**
-   * Load configuration from .gwm.yml
+   * Load configuration from .gpm.yml
    * Returns default config if file doesn't exist
    * Uses TTL-based cache to avoid repeated disk I/O
    */
@@ -102,7 +102,7 @@ export class ConfigService {
   }
 
   /**
-   * Save configuration to .gwm.yml
+   * Save configuration to .gpm.yml
    */
   async save(config: WorkflowConfig): Promise<void> {
     try {
@@ -141,7 +141,7 @@ export class ConfigService {
   }
 
   /**
-   * Initialize a new .gwm.yml with default values
+   * Initialize a new .gpm.yml with default values
    */
   /**
    * Get template configuration without saving
@@ -210,19 +210,19 @@ export class ConfigService {
     const hooks = config.hooks || DEFAULT_CONFIG.hooks;
 
     // Build YAML with inline comments that guide AI agents
-    const yaml = `# .gwm.yml - Git Workflow Manager Configuration
+    const yaml = `# .gpm.yml - Git PR Manager Configuration
 # Generated: ${new Date().toISOString()}
 # Template: ${template}
 #
 # 💡 AI Agent Guidance:
-#   - Use 'gwm ship' for full PR workflow (create, wait, merge)
-#   - Use 'gwm auto' for quick PR creation
-#   - Use 'gwm security' before creating PRs
-#   - Use 'gwm checks <pr-number>' to monitor CI status
+#   - Use 'gpm ship' for full PR workflow (create, wait, merge)
+#   - Use 'gpm auto' for quick PR creation
+#   - Use 'gpm security' before creating PRs
+#   - Use 'gpm checks <pr-number>' to monitor CI status
 #
 # 🎯 Optional Features:
-#   - Run 'gwm install-hooks' to get reminders before push
-#   - Run 'gwm docs' for full documentation
+#   - Run 'gpm install-hooks' to get reminders before push
+#   - Run 'gpm docs' for full documentation
 
 # Branch Protection
 # Solo developer? Set requireReviews: 0
@@ -236,7 +236,7 @@ ${(bp!.requireStatusChecks || []).map(check => `    - ${check}`).join('\n') || '
   enforceAdmins: ${bp!.enforceAdmins}
 
 # CI Configuration
-# waitForChecks: true  = gwm waits for all CI checks to pass
+# waitForChecks: true  = gpm waits for all CI checks to pass
 # failFast: true       = stop on first critical failure
 # retryFlaky: true     = retry flaky tests automatically
 ci:
@@ -274,8 +274,8 @@ autoFix:
   autoMerge: ${autoFix!.autoMerge}
   createPR: ${autoFix!.createPR}
 
-# Git Hooks (Optional - install with 'gwm install-hooks')
-# These track installation state - updated by gwm install-hooks/uninstall-hooks
+# Git Hooks (Optional - install with 'gpm install-hooks')
+# These track installation state - updated by gpm install-hooks/uninstall-hooks
 # enabled: false       = hook not installed
 # enabled: true        = hook installed in .git/hooks/
 # reminder: true       = show reminder message (can be disabled per hook)
@@ -288,15 +288,15 @@ hooks:
     reminder: ${hooks!.postCommit!.reminder}
 
 # 📚 Documentation:
-#   gwm docs                                  - View all guides
-#   gwm docs --guide=AI-AGENT-INTEGRATION     - AI agent setup
-#   gwm docs --guide=GITHUB-ACTIONS-INTEGRATION - CI/CD setup
+#   gpm docs                                  - View all guides
+#   gpm docs --guide=AI-AGENT-INTEGRATION     - AI agent setup
+#   gpm docs --guide=GITHUB-ACTIONS-INTEGRATION - CI/CD setup
 #
 # 🎯 Next Steps:
 #   1. Review this configuration
-#   2. Run 'gwm install-hooks' for workflow reminders (optional)
-#   3. Run 'gwm feature <name>' to start your first feature branch
-#   4. Run 'gwm ship' to create PR and merge
+#   2. Run 'gpm install-hooks' for workflow reminders (optional)
+#   3. Run 'gpm feature <name>' to start your first feature branch
+#   4. Run 'gpm ship' to create PR and merge
 `;
 
     return yaml;

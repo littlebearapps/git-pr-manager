@@ -8,7 +8,7 @@
 
 ## Overview
 
-Phase 5 transforms git-workflow-manager into a Claude Code-optimized tool with performance improvements, intelligent caching, and enhanced UX. Target completion: v1.4.0 stable release.
+Phase 5 transforms git-pr-manager into a Claude Code-optimized tool with performance improvements, intelligent caching, and enhanced UX. Target completion: v1.4.0 stable release.
 
 **Total Sessions**: 4
 **Completed**: 4/4 (100%)
@@ -231,7 +231,7 @@ const config4 = await configService.load(); // Forces reload
 **Status**: ✅ Complete
 **Impact**: Enhanced Claude Code integration and developer experience
 
-### 3.1 Create 'gwm auto' Command ✅
+### 3.1 Create 'gpm auto' Command ✅
 
 **Files Modified**:
 - `src/commands/auto.ts` (NEW)
@@ -248,11 +248,11 @@ const config4 = await configService.load(); // Forces reload
 **Key Features**:
 ```typescript
 // Automated workflow with smart defaults
-gwm auto                    // Full automation
-gwm auto --draft            // Create draft PR
-gwm auto --no-merge         // Stop after CI passes
-gwm auto --skip-security    // Skip security scan
-gwm auto --skip-verify      // Skip verification
+gpm auto                    // Full automation
+gpm auto --draft            // Create draft PR
+gpm auto --no-merge         // Stop after CI passes
+gpm auto --skip-security    // Skip security scan
+gpm auto --skip-verify      // Skip verification
 ```
 
 **Workflow Steps**:
@@ -339,7 +339,7 @@ throw new RateLimitError(
 - `@types/prompts: ^2.4.9`
 
 **Implementation**:
-- Added `--interactive` flag to `gwm init` command
+- Added `--interactive` flag to `gpm init` command
 - Interactive preset selection with descriptions
 - Configuration preview before saving
 - Confirmation prompts with cancel handling
@@ -369,9 +369,9 @@ throw new RateLimitError(
 
 **Usage**:
 ```bash
-gwm init --interactive           # Interactive wizard
-gwm init --template standard     # Non-interactive with template
-gwm init                         # Defaults to basic template
+gpm init --interactive           # Interactive wizard
+gpm init --template standard     # Non-interactive with template
+gpm init                         # Defaults to basic template
 ```
 
 **Expected Impact**: Better onboarding for new users, reduced configuration errors
@@ -392,7 +392,7 @@ gwm init                         # Defaults to basic template
 - `.npmignore` (NEW)
 
 **Implementation**:
-- **Package name**: Changed to `@littlebearapps/git-workflow-manager` (scoped)
+- **Package name**: Changed to `@littlebearapps/git-pr-manager` (scoped)
 - **Description**: Updated to emphasize Claude Code integration
 - **Files whitelist**: Only ship `dist/`, `README.md`, `LICENSE`
 - **Repository metadata**: Added GitHub URLs for repo, bugs, homepage
@@ -404,18 +404,18 @@ gwm init                         # Defaults to basic template
 **package.json Changes**:
 ```json
 {
-  "name": "@littlebearapps/git-workflow-manager",
+  "name": "@littlebearapps/git-pr-manager",
   "version": "1.4.0-beta.1",
   "description": "Production-ready git workflow automation for GitHub with Claude Code integration",
   "files": ["dist/", "README.md", "LICENSE"],
   "repository": {
     "type": "git",
-    "url": "https://github.com/littlebearapps/git-workflow-manager"
+    "url": "https://github.com/littlebearapps/git-pr-manager"
   },
   "bugs": {
-    "url": "https://github.com/littlebearapps/git-workflow-manager/issues"
+    "url": "https://github.com/littlebearapps/git-pr-manager/issues"
   },
-  "homepage": "https://github.com/littlebearapps/git-workflow-manager#readme",
+  "homepage": "https://github.com/littlebearapps/git-pr-manager#readme",
   "scripts": {
     "prepublishOnly": "npm run build && npm test",
     "postinstall": "node dist/scripts/postinstall.js"
@@ -457,7 +457,7 @@ docs/
 
 **Post-Install Output**:
 ```
-✨ git-workflow-manager installed!
+✨ git-pr-manager installed!
 
 ⚠️  No GitHub token found!
    Set GITHUB_TOKEN or GH_TOKEN environment variable
@@ -467,12 +467,12 @@ docs/
    Some features may be limited
 
 📖 Quick Start:
-   gwm init              - Initialize .gwm.yml configuration
-   gwm feature <name>    - Start a new feature branch
-   gwm auto              - Automated workflow (create PR, CI, merge)
-   gwm --help            - Show all commands
+   gpm init              - Initialize .gpm.yml configuration
+   gpm feature <name>    - Start a new feature branch
+   gpm auto              - Automated workflow (create PR, CI, merge)
+   gpm --help            - Show all commands
 
-🔗 Documentation: https://github.com/littlebearapps/git-workflow-manager#readme
+🔗 Documentation: https://github.com/littlebearapps/git-pr-manager#readme
 ```
 
 **Features**:

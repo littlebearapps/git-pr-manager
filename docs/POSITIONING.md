@@ -1,4 +1,4 @@
-# Git Workflow Automation - Market Positioning & Strategy
+# Git PR Manager - Market Positioning & Strategy
 
 **Version**: 1.4.0
 **Last Updated**: 2025-11-15
@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-**Git Workflow Automation** (gwa) is an agent-ready, policy-aware GitHub workflow executor designed for AI coding agents and automated systems. It provides a stable JSON contract for orchestrating Git operations, PR workflows, and CI/CD integration—bridging the gap between code generation (AI agents) and safe production deployment (GitHub policies).
+**Git PR Manager** (gpm) is an agent-ready, policy-aware GitHub workflow executor designed for AI coding agents and automated systems. It provides a stable JSON contract for orchestrating Git operations, PR workflows, and CI/CD integration—bridging the gap between code generation (AI agents) and safe production deployment (GitHub policies).
 
 **Key Insight**: While tools like GitHub CLI, git-flow, and AI agents (Codex, Claude Code) exist, none provide **deterministic, policy-aware workflow orchestration with a machine-readable contract** specifically designed for non-human callers.
 
@@ -19,7 +19,7 @@
 ### Primary USP
 **"Agent-Ready GitHub Workflow Executor with Policy Guardrails"**
 
-Git Workflow Automation (gwa) is the **control plane** for AI-generated code changes—enforcing branch protection, waiting for CI, handling conflicts, and providing structured feedback that agents can parse and act on.
+Git PR Manager (gpm) is the **control plane** for AI-generated code changes—enforcing branch protection, waiting for CI, handling conflicts, and providing structured feedback that agents can parse and act on.
 
 ### What Makes Us Different
 
@@ -78,7 +78,7 @@ Git Workflow Automation (gwa) is the **control plane** for AI-generated code cha
 - Larger community and ecosystem
 - Native GitHub Actions integration
 
-**Positioning**: We **complement** `gh` as the workflow orchestration layer. Users can use `gh` for ad-hoc tasks and `gwa` (or `git workflow`) for automated workflows.
+**Positioning**: We **complement** `gh` as the workflow orchestration layer. Users can use `gh` for ad-hoc tasks and `gpm` (or `git pr`) for automated workflows.
 
 ---
 
@@ -115,7 +115,7 @@ Git Workflow Automation (gwa) is the **control plane** for AI-generated code cha
 - PR description generation
 - Test generation
 
-**Positioning**: **Complementary tools**. PR-Agent generates insights; we execute policy-safe workflows. Integration opportunity: PR-Agent recommends changes → gwa safely merges when approved.
+**Positioning**: **Complementary tools**. PR-Agent generates insights; we execute policy-safe workflows. Integration opportunity: PR-Agent recommends changes → gpm safely merges when approved.
 
 ---
 
@@ -146,14 +146,14 @@ Git Workflow Automation (gwa) is the **control plane** for AI-generated code cha
 
 **Why Complementary**:
 - Codex/Claude Code **generate code** (diffs, new files, refactors)
-- gwa **executes workflows** (creates PRs, enforces policy, merges safely)
+- gpm **executes workflows** (creates PRs, enforces policy, merges safely)
 - Codex/Claude Code need a **stable API** for Git operations → we provide it
-- gwa provides **structured feedback** agents can parse → enables autonomous workflows
+- gpm provides **structured feedback** agents can parse → enables autonomous workflows
 
 **Integration Value**:
 - **Codex prompt**: "Implement feature X, create PR, merge when CI passes"
   - Codex generates code
-  - Codex calls `gwa ship --json` or `git workflow ship --json` to create PR and wait for CI
+  - Codex calls `gpm ship --json` or `git pr ship --json` to create PR and wait for CI
   - Codex parses JSON response for merge status or policy blockers
   - Codex can retry or adjust based on structured errors
 
@@ -178,7 +178,7 @@ Git Workflow Automation (gwa) is the **control plane** for AI-generated code cha
 - Event-driven workflows
 - Hosted runners
 
-**Positioning**: We **enable** GitHub Actions workflows (use gwa in Actions for complex orchestration). We also provide local alternative for developer workflows.
+**Positioning**: We **enable** GitHub Actions workflows (use gpm in Actions for complex orchestration). We also provide local alternative for developer workflows.
 
 ---
 
@@ -211,7 +211,7 @@ Git Workflow Automation (gwa) is the **control plane** for AI-generated code cha
 - Cursor/Aider users seeking GitHub integration
 - Bot/agent builders needing policy-safe GitHub operations
 
-**Message**: "Turn AI-generated code into production-safe PRs. gwa provides the stable JSON contract your agents need."
+**Message**: "Turn AI-generated code into production-safe PRs. gpm provides the stable JSON contract your agents need."
 
 #### Secondary Audience
 **DevOps Engineers & Platform Teams**
@@ -252,9 +252,9 @@ Git Workflow Automation (gwa) is the **control plane** for AI-generated code cha
 - AI agent builder forums
 
 #### 4. **Distribution**
-- npm global install: `npm install -g @littlebearapps/git-workflow-automation`
-- Provides dual binaries: `gwa` and `git-workflow` (for git plugin syntax)
-- Homebrew formula for `gwa`
+- npm global install: `npm install -g @littlebearapps/git-pr-manager`
+- Provides dual binaries: `gpm` and `git-pr` (for git plugin syntax)
+- Homebrew formula for `gpm`
 - Docker image (agents love containers)
 - GitHub Action wrapper
 
@@ -270,19 +270,19 @@ Git Workflow Automation (gwa) is the **control plane** for AI-generated code cha
 - Demonstrate agent parsing structured output
 
 ##### 2. **Integration Guides** (Priority Content)
-- "Using gwa with Claude Code for Autonomous PRs"
-- "Codex CLI + gwa: From Issue to Deployed PR"
-- "Replace 300 Lines of Bash with One gwa Command"
+- "Using gpm with Claude Code for Autonomous PRs"
+- "Codex CLI + gpm: From Issue to Deployed PR"
+- "Replace 300 Lines of Bash with One gpm Command"
 - "Backport PRs Across Maintenance Branches with Conflict Reporting"
-- "Git Plugin Syntax: Using `git workflow` Commands"
+- "Git Plugin Syntax: Using `git pr` Commands"
 
 ##### 3. **Comparison Documentation**
-- Side-by-side: `gh + bash` vs `gwa` for 3 common workflows
+- Side-by-side: `gh + bash` vs `gpm` for 3 common workflows
   1. Merge-when-green with branch protection
   2. Backport to multiple branches
   3. Multi-repo label sync
 - Show lines of code, error handling, JSON output
-- Demonstrate both `gwa` and `git workflow` syntax
+- Demonstrate both `gpm` and `git pr` syntax
 
 ##### 4. **JSON Schema Documentation**
 - Publish stable schemas for all commands
@@ -290,9 +290,9 @@ Git Workflow Automation (gwa) is the **control plane** for AI-generated code cha
 - Example requests/responses for agent developers
 
 ##### 5. **Case Studies**
-- "How LittleBearApps Uses gwa for Autonomous AI PRs"
+- "How LittleBearApps Uses gpm for Autonomous AI PRs"
 - "Multi-Repo Security Scanning Across 50 Repositories"
-- "Reducing PR Merge Time from 2 Hours to 5 Minutes with gwa"
+- "Reducing PR Merge Time from 2 Hours to 5 Minutes with gpm"
 
 ---
 
@@ -306,7 +306,7 @@ Git Workflow Automation (gwa) is the **control plane** for AI-generated code cha
 5. "GitHub automation built for the AI era"
 
 #### **Elevator Pitch** (30 seconds)
-"Git Workflow Automation (gwa) is a CLI tool that safely automates GitHub workflows with policy enforcement and a stable JSON API. Think of it as the control plane for AI-generated code—agents produce the changes, gwa makes sure they land safely. It handles branch protection, CI polling, conflict detection, and security scanning, with structured output that agents can parse. Use it as `gwa` for quick commands or `git workflow` for native Git integration. Free, open source, and built for the era of AI-assisted development."
+"Git PR Manager (gpm) is a CLI tool that safely automates GitHub workflows with policy enforcement and a stable JSON API. Think of it as the control plane for AI-generated code—agents produce the changes, gpm makes sure they land safely. It handles branch protection, CI polling, conflict detection, and security scanning, with structured output that agents can parse. Use it as `gpm` for quick commands or `git pr` for native Git integration. Free, open source, and built for the era of AI-assisted development."
 
 #### **One-Liner** (Twitter/HN)
 "Agent-ready GitHub workflow executor with policy guardrails and a stable JSON contract. Do safe PRs and merges programmatically—no brittle shell glue."
@@ -320,7 +320,7 @@ Git Workflow Automation (gwa) is the **control plane** for AI-generated code cha
 - auto merge GitHub branch protection
 - AI GitHub automation CLI
 - GitHub policy CLI JSON
-- git workflow automation agent
+- git pr automation agent
 - Codex CLI GitHub integration
 - Claude Code GitHub automation
 
@@ -345,8 +345,8 @@ Topics: github, automation, cli, workflow, ai-agents,
 #### **Phase 1: Foundation (Weeks 1-2)** ✅ DECISION MADE
 - ✅ Core features stable (v1.4.0)
 - ✅ 624 tests passing, 89.67% coverage
-- ✅ Binary name decided: **gwa** (Git Workflow Automation) + **git-workflow** (git plugin)
-- ✅ Package name: @littlebearapps/git-workflow-automation
+- ✅ Binary name decided: **gpm** (Git PR Manager) + **git-pr** (git plugin)
+- ✅ Package name: @littlebearapps/git-pr-manager
 - ⏳ Execute rename (use RENAME_AUDIT.md checklist)
 - ⏳ v1 JSON schema locked for 3 commands (create-pr, merge-when-green, wait-ci)
 - ⏳ Docker image published
@@ -359,9 +359,9 @@ Topics: github, automation, cli, workflow, ai-agents,
 - Integration guide template
 
 #### **Phase 3: Community & Content (Weeks 5-8)**
-- 2-3 minute demo video (show both `gwa` and `git workflow` syntax)
+- 2-3 minute demo video (show both `gpm` and `git pr` syntax)
 - 2 integration guides (Claude Code, Codex CLI)
-- Comparison doc (gh + bash vs gwa)
+- Comparison doc (gh + bash vs gpm)
 - Submit to awesome lists
 - Product Hunt launch
 - HN/Reddit posts with engineering narrative
@@ -375,34 +375,34 @@ Topics: github, automation, cli, workflow, ai-agents,
 
 ---
 
-## 4. Naming Decision: gwa (Git Workflow Automation)
+## 4. Naming Decision: gpm (Git PR Manager)
 
 ### ✅ Decision Made (2025-11-15)
 
-**New name**: **gwa** (Git Workflow Automation)
-**Package**: `@littlebearapps/git-workflow-automation`
-**Dual binaries**: `gwa` + `git-workflow` (for git plugin syntax)
+**New name**: **gpm** (Git PR Manager)
+**Package**: `@littlebearapps/git-pr-manager`
+**Dual binaries**: `gpm` + `git-pr` (for git plugin syntax)
 
-### Why gwa Won
+### Why gpm Won
 
 After comprehensive market research and analysis:
 
 #### ✅ Advantages
-1. **Clear meaning**: "Git Workflow Automation" is descriptive and accurate
-2. **No conflicts**: Only one obscure project (gwa/wpsh) - minimal collision risk
+1. **Clear meaning**: "Git PR Manager" is descriptive and accurate
+2. **No conflicts**: Only one obscure project (gpm/wpsh) - minimal collision risk
 3. **Short & memorable**: 3 characters, easy to type
 4. **SEO-friendly**: Unique enough to rank well
 5. **Future-proof**: Works for GitLab/Bitbucket expansion
 6. **Dual-binary strategy**:
-   - `gwa` for quick commands (short CLI)
-   - `git workflow` for git plugin syntax (native integration)
+   - `gpm` for quick commands (short CLI)
+   - `git pr` for git plugin syntax (native integration)
 
 #### ❌ Rejected Alternatives
 
 | Name | Why Rejected |
 |------|--------------|
 | **gw** | CONFLICT with sotarok/gw (git worktree wrapper), too generic, weak SEO |
-| **gwm** | CONFLICT with shutootaki/gwm (git worktree manager), current name being replaced |
+| **gpm** | CONFLICT with shutootaki/gpm (git worktree manager), current name being replaced |
 | **gwx** | Windows GWX confusion (Get Windows 10 tool) |
 | **gfa** | Could confuse with git-flow |
 | **shippr** | Loses git namespace, harder to discover |
@@ -414,27 +414,27 @@ Since package is **not yet published**, we can do a clean rename with no migrati
 
 ```json
 {
-  "name": "@littlebearapps/git-workflow-automation",
+  "name": "@littlebearapps/git-pr-manager",
   "bin": {
-    "gwa": "dist/index.js",
-    "git-workflow": "dist/index.js"
+    "gpm": "dist/index.js",
+    "git-pr": "dist/index.js"
   }
 }
 ```
 
-**No gwm alias** - clean break since no users exist yet.
+**No gpm alias** - clean break since no users exist yet.
 
 ### Dual-Binary Benefits
 
-1. **`gwa`** - Short CLI for frequent use
-   - `gwa ship`
-   - `gwa status`
-   - `gwa checks 123`
+1. **`gpm`** - Short CLI for frequent use
+   - `gpm ship`
+   - `gpm status`
+   - `gpm checks 123`
 
-2. **`git workflow`** - Native Git integration
-   - `git workflow ship`
-   - `git workflow status`
-   - `git workflow checks 123`
+2. **`git pr`** - Native Git integration
+   - `git pr ship`
+   - `git pr status`
+   - `git pr checks 123`
    - Feels like native git command (like `git worktree`, `git submodule`)
 
 ### Next Steps
@@ -447,7 +447,7 @@ See `RENAME_AUDIT.md` for complete implementation checklist (106+ files to updat
 
 ### Near-Term (Q1 2025)
 - ✅ Core features stable (v1.4.0)
-- ✅ Binary name decided: gwa + git-workflow
+- ✅ Binary name decided: gpm + git-pr
 - ⏳ Execute rename (RENAME_AUDIT.md checklist)
 - ⏳ Codex CLI compatibility testing
 - ⏳ Gemini CLI integration testing
@@ -510,7 +510,7 @@ See `RENAME_AUDIT.md` for complete implementation checklist (106+ files to updat
 ### Risk: Permissions Complexity
 **Mitigation**:
 - Least-privilege token documentation
-- `gwa capabilities` command showing available features
+- `gpm capabilities` command showing available features
 - Clear PAT vs GitHub App tradeoffs
 - Pre-flight permission checks
 
@@ -532,19 +532,19 @@ See `RENAME_AUDIT.md` for complete implementation checklist (106+ files to updat
 
 ## 8. Conclusion
 
-**Git Workflow Automation (gwa)** occupies a unique position at the intersection of AI agents, GitHub automation, and policy-safe workflows. No existing tool combines:
+**Git PR Manager (gpm)** occupies a unique position at the intersection of AI agents, GitHub automation, and policy-safe workflows. No existing tool combines:
 
 1. **Agent-ready JSON contract** (structured, stable, versioned)
 2. **Policy-aware orchestration** (branch protection, CI polling, conflict handling)
 3. **Security & compliance** (built-in scanning, audit trails)
 4. **Multi-repo scaling** (enterprise-ready)
-5. **Dual-interface design** (short `gwa` CLI + native `git workflow` plugin)
+5. **Dual-interface design** (short `gpm` CLI + native `git pr` plugin)
 6. **Free & open source** (no SaaS lock-in)
 
 Our competitive advantage is **timing and focus**. As AI coding agents mature (Codex, Claude Code, Cursor), they need reliable infrastructure for executing workflows safely. We're building that infrastructure **before** the market gets crowded.
 
 **Recommended Actions**:
-1. ✅ Naming decision finalized: **gwa** + **git-workflow** dual binaries
+1. ✅ Naming decision finalized: **gpm** + **git-pr** dual binaries
 2. ⏳ Execute rename (RENAME_AUDIT.md - 106+ files, 6-8 hours)
 3. ⏳ Lock v1 JSON schemas for 3 core commands
 4. ⏳ Publish Docker image + GitHub Action
@@ -559,6 +559,6 @@ Our competitive advantage is **timing and focus**. As AI coding agents mature (C
 
 **Maintained by**: Little Bear Apps
 **Contact**: nathan@littlebearapps.com
-**Repository**: https://github.com/littlebearapps/git-workflow-automation
-**Package**: @littlebearapps/git-workflow-automation
+**Repository**: https://github.com/littlebearapps/git-pr-manager
+**Package**: @littlebearapps/git-pr-manager
 **License**: MIT

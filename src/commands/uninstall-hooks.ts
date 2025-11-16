@@ -2,15 +2,15 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import { logger } from '../utils/logger';
 import { ConfigService } from '../services/ConfigService';
-import { getGitHooksDir, fileExists, isGwmHook } from '../utils/git-hooks';
+import { getGitHooksDir, fileExists, isGpmHook } from '../utils/git-hooks';
 
 export interface UninstallHooksOptions {
   json?: boolean;  // JSON output mode
 }
 
 /**
- * Uninstall gwm git hooks
- * Only removes hooks that were created by gwm (checks for gwm signature)
+ * Uninstall gpm git hooks
+ * Only removes hooks that were created by gpm (checks for gpm signature)
  */
 export async function uninstallHooksCommand(options: UninstallHooksOptions = {}): Promise<void> {
   try {
@@ -39,12 +39,12 @@ export async function uninstallHooksCommand(options: UninstallHooksOptions = {})
     const prePushExists = await fileExists(prePushPath);
 
     if (prePushExists) {
-      const isGwm = await isGwmHook(prePushPath);
-      if (isGwm) {
+      const isGpm = await isGpmHook(prePushPath);
+      if (isGpm) {
         await fs.unlink(prePushPath);
         removedHooks.push('pre-push');
       } else {
-        skippedHooks.push('pre-push (not created by gwm)');
+        skippedHooks.push('pre-push (not created by gpm)');
       }
     }
 
@@ -53,16 +53,16 @@ export async function uninstallHooksCommand(options: UninstallHooksOptions = {})
     const postCommitExists = await fileExists(postCommitPath);
 
     if (postCommitExists) {
-      const isGwm = await isGwmHook(postCommitPath);
-      if (isGwm) {
+      const isGpm = await isGpmHook(postCommitPath);
+      if (isGpm) {
         await fs.unlink(postCommitPath);
         removedHooks.push('post-commit');
       } else {
-        skippedHooks.push('post-commit (not created by gwm)');
+        skippedHooks.push('post-commit (not created by gpm)');
       }
     }
 
-    // Update .gwm.yml config to reflect removal
+    // Update .gpm.yml config to reflect removal
     const configService = new ConfigService(process.cwd());
     const configExists = await configService.exists();
 
@@ -87,7 +87,7 @@ export async function uninstallHooksCommand(options: UninstallHooksOptions = {})
         success: true,
         message: removedHooks.length > 0
           ? 'Git hooks uninstalled successfully'
-          : 'No gwm hooks found to uninstall',
+          : 'No gpm hooks found to uninstall',
         removed: removedHooks,
         skipped: skippedHooks
       }));
@@ -98,12 +98,12 @@ export async function uninstallHooksCommand(options: UninstallHooksOptions = {})
           logger.info(`  • Removed ${hook} hook`);
         });
       } else {
-        logger.info('No gwm hooks found to uninstall');
+        logger.info('No gpm hooks found to uninstall');
       }
 
       if (skippedHooks.length > 0) {
         logger.blank();
-        logger.warn('Skipped hooks (not created by gwm):');
+        logger.warn('Skipped hooks (not created by gpm):');
         skippedHooks.forEach(hook => {
           logger.info(`  • ${hook}`);
         });

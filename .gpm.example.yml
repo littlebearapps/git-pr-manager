@@ -1,5 +1,5 @@
-# git-workflow-manager Configuration
-# Place this file as .gwm.yml in your project root
+# git-pr-manager Configuration
+# Place this file as .gpm.yml in your project root
 
 # Branch protection settings
 branchProtection:
@@ -45,4 +45,4 @@ autoFix:
 # - standard: Balanced protection and velocity
 # - strict: Maximum protection, slower but safer
 #
-# Initialize with: gwm init --template=standard
+# Initialize with: gpm init --template=standard

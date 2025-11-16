@@ -62,10 +62,10 @@ describe('uninstall-hooks', () => {
   });
 
   describe('success cases', () => {
-    it('should remove gwm pre-push hook', async () => {
+    it('should remove gpm pre-push hook', async () => {
       jest.spyOn(gitHooks, 'getGitHooksDir').mockResolvedValue('/test/repo/.git/hooks');
       jest.spyOn(gitHooks, 'fileExists').mockResolvedValue(true);
-      jest.spyOn(gitHooks, 'isGwmHook').mockResolvedValue(true);
+      jest.spyOn(gitHooks, 'isGpmHook').mockResolvedValue(true);
       mockedFs.unlink.mockResolvedValue(undefined);
 
       await uninstallHooksCommand({});
@@ -83,10 +83,10 @@ describe('uninstall-hooks', () => {
       );
     });
 
-    it('should remove gwm post-commit hook', async () => {
+    it('should remove gpm post-commit hook', async () => {
       jest.spyOn(gitHooks, 'getGitHooksDir').mockResolvedValue('/test/repo/.git/hooks');
       jest.spyOn(gitHooks, 'fileExists').mockResolvedValue(true);
-      jest.spyOn(gitHooks, 'isGwmHook').mockResolvedValue(true);
+      jest.spyOn(gitHooks, 'isGpmHook').mockResolvedValue(true);
       mockedFs.unlink.mockResolvedValue(undefined);
 
       await uninstallHooksCommand({});
@@ -104,10 +104,10 @@ describe('uninstall-hooks', () => {
       );
     });
 
-    it('should remove both hooks if both are gwm hooks', async () => {
+    it('should remove both hooks if both are gpm hooks', async () => {
       jest.spyOn(gitHooks, 'getGitHooksDir').mockResolvedValue('/test/repo/.git/hooks');
       jest.spyOn(gitHooks, 'fileExists').mockResolvedValue(true);
-      jest.spyOn(gitHooks, 'isGwmHook').mockResolvedValue(true);
+      jest.spyOn(gitHooks, 'isGpmHook').mockResolvedValue(true);
       mockedFs.unlink.mockResolvedValue(undefined);
 
       await uninstallHooksCommand({});
@@ -123,23 +123,23 @@ describe('uninstall-hooks', () => {
       );
     });
 
-    it('should skip non-gwm hooks', async () => {
+    it('should skip non-gpm hooks', async () => {
       jest.spyOn(gitHooks, 'getGitHooksDir').mockResolvedValue('/test/repo/.git/hooks');
       jest.spyOn(gitHooks, 'fileExists').mockResolvedValue(true);
 
-      // First call (pre-push): not a gwm hook
-      // Second call (post-commit): is a gwm hook
-      let isGwmCallCount = 0;
-      jest.spyOn(gitHooks, 'isGwmHook').mockImplementation(async () => {
-        isGwmCallCount++;
-        return isGwmCallCount === 2; // Only second call returns true
+      // First call (pre-push): not a gpm hook
+      // Second call (post-commit): is a gpm hook
+      let isGpmCallCount = 0;
+      jest.spyOn(gitHooks, 'isGpmHook').mockImplementation(async () => {
+        isGpmCallCount++;
+        return isGpmCallCount === 2; // Only second call returns true
       });
 
       mockedFs.unlink.mockResolvedValue(undefined);
 
       await uninstallHooksCommand({});
 
-      // Should only remove the gwm post-commit hook
+      // Should only remove the gpm post-commit hook
       expect(mockedFs.unlink).toHaveBeenCalledTimes(1);
       expect(mockedFs.unlink).toHaveBeenCalledWith(
         expect.stringContaining('post-commit')
@@ -157,7 +157,7 @@ describe('uninstall-hooks', () => {
     it('should output JSON when --json flag is set', async () => {
       jest.spyOn(gitHooks, 'getGitHooksDir').mockResolvedValue('/test/repo/.git/hooks');
       jest.spyOn(gitHooks, 'fileExists').mockResolvedValue(true);
-      jest.spyOn(gitHooks, 'isGwmHook').mockResolvedValue(true);
+      jest.spyOn(gitHooks, 'isGpmHook').mockResolvedValue(true);
       mockedFs.unlink.mockResolvedValue(undefined);
 
       await uninstallHooksCommand({ json: true });
@@ -204,8 +204,8 @@ describe('uninstall-hooks', () => {
       mockedFs.unlink.mockResolvedValue(undefined);
     });
 
-    it('should detect gwm pre-push hook by signature', async () => {
-      jest.spyOn(gitHooks, 'isGwmHook').mockResolvedValue(true);
+    it('should detect gpm pre-push hook by signature', async () => {
+      jest.spyOn(gitHooks, 'isGpmHook').mockResolvedValue(true);
 
       await uninstallHooksCommand({});
 
@@ -214,8 +214,8 @@ describe('uninstall-hooks', () => {
       );
     });
 
-    it('should detect gwm post-commit hook by signature', async () => {
-      jest.spyOn(gitHooks, 'isGwmHook').mockResolvedValue(true);
+    it('should detect gpm post-commit hook by signature', async () => {
+      jest.spyOn(gitHooks, 'isGpmHook').mockResolvedValue(true);
 
       await uninstallHooksCommand({});
 
@@ -224,8 +224,8 @@ describe('uninstall-hooks', () => {
       );
     });
 
-    it('should not remove hook without gwm signature', async () => {
-      jest.spyOn(gitHooks, 'isGwmHook').mockResolvedValue(false);
+    it('should not remove hook without gpm signature', async () => {
+      jest.spyOn(gitHooks, 'isGpmHook').mockResolvedValue(false);
 
       await uninstallHooksCommand({});
 
@@ -240,7 +240,7 @@ describe('uninstall-hooks', () => {
     });
 
     it('should update config when removing pre-push hook', async () => {
-      // First call (pre-push): exists and is gwm hook
+      // First call (pre-push): exists and is gpm hook
       // Second call (post-commit): doesn't exist
       let fileExistsCallCount = 0;
       jest.spyOn(gitHooks, 'fileExists').mockImplementation(async (path) => {
@@ -248,10 +248,10 @@ describe('uninstall-hooks', () => {
         return fileExistsCallCount === 1 && path.includes('pre-push');
       });
 
-      let isGwmCallCount = 0;
-      jest.spyOn(gitHooks, 'isGwmHook').mockImplementation(async (path) => {
-        isGwmCallCount++;
-        return isGwmCallCount === 1 && path.includes('pre-push');
+      let isGpmCallCount = 0;
+      jest.spyOn(gitHooks, 'isGpmHook').mockImplementation(async (path) => {
+        isGpmCallCount++;
+        return isGpmCallCount === 1 && path.includes('pre-push');
       });
 
       await uninstallHooksCommand({});
@@ -267,14 +267,14 @@ describe('uninstall-hooks', () => {
 
     it('should update config when removing post-commit hook', async () => {
       // First call (pre-push): doesn't exist
-      // Second call (post-commit): exists and is gwm hook
+      // Second call (post-commit): exists and is gpm hook
       let fileExistsCallCount = 0;
       jest.spyOn(gitHooks, 'fileExists').mockImplementation(async (path) => {
         fileExistsCallCount++;
         return fileExistsCallCount === 2 && path.includes('post-commit');
       });
 
-      jest.spyOn(gitHooks, 'isGwmHook').mockResolvedValue(true);
+      jest.spyOn(gitHooks, 'isGpmHook').mockResolvedValue(true);
 
       await uninstallHooksCommand({});
 
@@ -290,7 +290,7 @@ describe('uninstall-hooks', () => {
     it('should handle missing config gracefully', async () => {
       mockConfigInstance.exists.mockResolvedValue(false);
       jest.spyOn(gitHooks, 'fileExists').mockResolvedValue(true);
-      jest.spyOn(gitHooks, 'isGwmHook').mockResolvedValue(true);
+      jest.spyOn(gitHooks, 'isGpmHook').mockResolvedValue(true);
 
       await uninstallHooksCommand({});
 
@@ -307,7 +307,7 @@ describe('uninstall-hooks', () => {
     });
 
     it('should report removed hooks', async () => {
-      jest.spyOn(gitHooks, 'isGwmHook').mockResolvedValue(true);
+      jest.spyOn(gitHooks, 'isGpmHook').mockResolvedValue(true);
 
       await uninstallHooksCommand({ json: true });
 
@@ -316,21 +316,21 @@ describe('uninstall-hooks', () => {
     });
 
     it('should report skipped hooks', async () => {
-      jest.spyOn(gitHooks, 'isGwmHook').mockResolvedValue(false);
+      jest.spyOn(gitHooks, 'isGpmHook').mockResolvedValue(false);
 
       await uninstallHooksCommand({ json: true });
 
       const output = JSON.parse(consoleLogSpy.mock.calls[0][0]);
-      expect(output.skipped).toContain('pre-push (not created by gwm)');
+      expect(output.skipped).toContain('pre-push (not created by gpm)');
     });
 
-    it('should report when no gwm hooks found', async () => {
-      jest.spyOn(gitHooks, 'isGwmHook').mockResolvedValue(false);
+    it('should report when no gpm hooks found', async () => {
+      jest.spyOn(gitHooks, 'isGpmHook').mockResolvedValue(false);
 
       await uninstallHooksCommand({ json: true });
 
       const output = JSON.parse(consoleLogSpy.mock.calls[0][0]);
-      expect(output.message).toContain('No gwm hooks found');
+      expect(output.message).toContain('No gpm hooks found');
     });
   });
 });

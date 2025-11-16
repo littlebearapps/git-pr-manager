@@ -49,15 +49,15 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install git-workflow-manager
-        run: npm install -g @your-org/git-workflow-manager
+      - name: Install git-pr-manager
+        run: npm install -g @your-org/git-pr-manager
 
       - name: Show current protection
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Current protection settings for ${{ inputs.branch }}:"
-          gwm protection get \
+          gpm protection get \
             --owner "${{ github.repository_owner }}" \
             --repo "${{ github.event.repository.name }}" \
             --branch "${{ inputs.branch }}"
@@ -68,7 +68,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Dry run - showing changes that would be applied:"
-          gwm protection setup \
+          gpm protection setup \
             --owner "${{ github.repository_owner }}" \
             --repo "${{ github.event.repository.name }}" \
             --branch "${{ inputs.branch }}" \
@@ -81,7 +81,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Applying ${{ inputs.preset }} protection to ${{ inputs.branch }}:"
-          gwm protection setup \
+          gpm protection setup \
             --owner "${{ github.repository_owner }}" \
             --repo "${{ github.event.repository.name }}" \
             --branch "${{ inputs.branch }}" \
@@ -93,7 +93,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Verifying protection was applied:"
-          gwm protection get \
+          gpm protection get \
             --owner "${{ github.repository_owner }}" \
             --repo "${{ github.event.repository.name }}" \
             --branch "${{ inputs.branch }}"

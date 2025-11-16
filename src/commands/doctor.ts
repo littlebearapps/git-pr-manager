@@ -2,7 +2,7 @@
 
 /**
  * Doctor command - checks system requirements and optional dependencies
- * Helps users verify their gwm setup and identify missing tools
+ * Helps users verify their gpm setup and identify missing tools
  */
 
 import { execSync } from 'child_process';
@@ -42,13 +42,13 @@ const TOOLS: Tool[] = [
   {
     name: 'git',
     required: true,
-    purpose: 'Version control - required for all gwm operations',
+    purpose: 'Version control - required for all gpm operations',
     checkCommand: 'git --version'
   },
   {
     name: 'node',
     required: true,
-    purpose: 'JavaScript runtime - required to run gwm',
+    purpose: 'JavaScript runtime - required to run gpm',
     checkCommand: 'node --version'
   },
   {
@@ -322,11 +322,11 @@ export async function doctorCommand(): Promise<void> {
 
   // Summary
   if (hasErrors) {
-    logger.error('⚠️  Required tools are missing - gwm may not work correctly');
-    logger.info('   Please install missing required tools before using gwm');
+    logger.error('⚠️  Required tools are missing - gpm may not work correctly');
+    logger.info('   Please install missing required tools before using gpm');
   } else if (hasWarnings) {
     logger.warn('ℹ️  Some optional tools are missing');
-    logger.info('   gwm will work but some features may be limited:');
+    logger.info('   gpm will work but some features may be limited:');
     logger.info('   • Secret scanning requires detect-secrets');
     logger.info('   • Python security scans require pip-audit');
     logger.info('   • Enhanced GitHub features require gh CLI');
@@ -336,7 +336,7 @@ export async function doctorCommand(): Promise<void> {
 
   logger.blank();
   logger.log('Next Steps:');
-  logger.info('  gwm init              - Initialize .gwm.yml configuration');
-  logger.info('  gwm docs              - View documentation');
-  logger.info('  gwm --help            - Show all commands');
+  logger.info('  gpm init              - Initialize .gpm.yml configuration');
+  logger.info('  gpm docs              - View documentation');
+  logger.info('  gpm --help            - Show all commands');
 }

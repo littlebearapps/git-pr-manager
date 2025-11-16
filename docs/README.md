@@ -44,7 +44,7 @@ Phase-by-phase implementation documentation:
 
 ### `/guides` - User Guides
 
-Practical guides for using git-workflow-manager:
+Practical guides for using git-pr-manager:
 
 - **[QUICK-REFERENCE.md](guides/QUICK-REFERENCE.md)** - Quick reference for common tasks
   - Command cheat sheet
@@ -141,12 +141,12 @@ Future enhancements and planning documents:
 - **Main README**: [../README.md](../README.md)
 - **Changelog**: [../CHANGELOG.md](../CHANGELOG.md)
 - **License**: [../LICENSE](../LICENSE)
-- **npm Package**: [@littlebearapps/git-workflow-manager](https://www.npmjs.com/package/@littlebearapps/git-workflow-manager)
-- **GitHub Repository**: [littlebearapps/git-workflow-manager](https://github.com/littlebearapps/git-workflow-manager)
+- **npm Package**: [@littlebearapps/git-pr-manager](https://www.npmjs.com/package/@littlebearapps/git-pr-manager)
+- **GitHub Repository**: [littlebearapps/git-pr-manager](https://github.com/littlebearapps/git-pr-manager)
 
 ## 💡 Need Help?
 
-- **Issues**: [GitHub Issues](https://github.com/littlebearapps/git-workflow-manager/issues)
+- **Issues**: [GitHub Issues](https://github.com/littlebearapps/git-pr-manager/issues)
 - **Email**: nathan@littlebearapps.com
 - **Documentation**: Browse this `/docs` folder
 

@@ -1,16 +1,16 @@
 # Python Project Integration Example
 
-This example shows how to integrate git-workflow-manager into a Python project.
+This example shows how to integrate git-pr-manager into a Python project.
 
 ## Installation
 
 ```bash
-pip install git-workflow-manager
+pip install git-pr-manager
 ```
 
 ## Configuration
 
-Create `.gwm.yml` in your project root:
+Create `.gpm.yml` in your project root:
 
 ```yaml
 branchProtection:
@@ -122,7 +122,7 @@ jobs:
           pip install -U pip
           pip install -r requirements.txt
           pip install -r requirements-dev.txt
-          pip install git-workflow-manager
+          pip install git-pr-manager
 
       - name: Install security tools
         run: |
@@ -132,13 +132,13 @@ jobs:
         run: ./verify.sh
 
       - name: Run security scan
-        run: gwm security scan --working-dir .
+        run: gpm security scan --working-dir .
 
       - name: Validate PR
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gwm pr validate \
+          gpm pr validate \
             --owner "${{ github.repository_owner }}" \
             --repo "${{ github.event.repository.name }}" \
             --pr-number "${{ github.event.pull_request.number }}"
@@ -160,7 +160,7 @@ repos:
 
       - id: security-scan
         name: Security scan
-        entry: gwm security scan --working-dir .
+        entry: gpm security scan --working-dir .
         language: system
         pass_filenames: false
 ```
@@ -176,19 +176,19 @@ pre-commit install
 ### Initialize Configuration
 
 ```bash
-gwm config init --preset standard
+gpm config init --preset standard
 ```
 
 ### Validate Configuration
 
 ```bash
-gwm config validate
+gpm config validate
 ```
 
 ### Setup Branch Protection
 
 ```bash
-gwm protection setup \
+gpm protection setup \
   --owner your-org \
   --repo your-repo \
   --branch main \
@@ -198,13 +198,13 @@ gwm protection setup \
 ### Run Security Scan
 
 ```bash
-gwm security scan --working-dir .
+gpm security scan --working-dir .
 ```
 
 ### Validate PR Readiness
 
 ```bash
-gwm pr validate \
+gpm pr validate \
   --owner your-org \
   --repo your-repo \
   --pr-number 123
@@ -222,7 +222,7 @@ gwm pr validate \
 
 ### Security scan finds false positives
 
-Edit `.gwm.yml` to allow specific vulnerabilities:
+Edit `.gpm.yml` to allow specific vulnerabilities:
 
 ```yaml
 security:
@@ -247,7 +247,7 @@ git commit --no-verify -m "WIP: work in progress"
 
 # But always run before pushing
 ./verify.sh
-gwm security scan --working-dir .
+gpm security scan --working-dir .
 ```
 
 ## Example Project Structure
@@ -264,7 +264,7 @@ my-python-project/
 │       └── main.py
 ├── tests/
 │   └── test_main.py
-├── .gwm.yml
+├── .gpm.yml
 ├── .pre-commit-config.yaml
 ├── tox.ini
 ├── verify.sh

@@ -1,4 +1,4 @@
-# git-workflow-manager: Option 2 - Full SDK Migration Plan
+# git-pr-manager: Option 2 - Full SDK Migration Plan
 
 **Version**: 1.0.0
 **Date**: 2025-11-12
@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-This document outlines a complete migration strategy for git-workflow-manager from bash + gh CLI to Node.js + Octokit SDK. This represents Option 2 from the integration guide - a full rewrite prioritizing type safety, testability, and programmatic control.
+This document outlines a complete migration strategy for git-pr-manager from bash + gh CLI to Node.js + Octokit SDK. This represents Option 2 from the integration guide - a full rewrite prioritizing type safety, testability, and programmatic control.
 
 ### Key Benefits
 
@@ -52,7 +52,7 @@ This document outlines a complete migration strategy for git-workflow-manager fr
 ### Current Tech Stack
 
 ```
-git-workflow-manager (v0.3.0)
+git-pr-manager (v0.3.0)
 ├── Language: Bash
 ├── Git Operations: git CLI
 ├── GitHub Operations: gh CLI
@@ -65,7 +65,7 @@ git-workflow-manager (v0.3.0)
 ### Current Workflow (Bash)
 
 ```bash
-gwm ship
+gpm ship
   ├── 1. Preflight Checks (bash)
   │   ├── Current branch validation
   │   ├── Uncommitted changes check
@@ -112,7 +112,7 @@ gwm ship
 ### New Tech Stack
 
 ```
-git-workflow-manager (v1.0.0 - SDK-based)
+git-pr-manager (v1.0.0 - SDK-based)
 ├── Language: TypeScript (compiled to JavaScript)
 ├── Git Operations: simple-git (npm package)
 ├── GitHub Operations: Octokit SDK (@octokit/rest)
@@ -125,21 +125,21 @@ git-workflow-manager (v1.0.0 - SDK-based)
 ### Project Structure
 
 ```
-git-workflow-manager/
+git-pr-manager/
 ├── src/
 │   ├── index.ts                 # CLI entry point
 │   ├── commands/
-│   │   ├── init.ts              # gwm init
-│   │   ├── feature-start.ts     # gwm feature start
-│   │   ├── ship.ts              # gwm ship ⭐
-│   │   └── status.ts            # gwm status
+│   │   ├── init.ts              # gpm init
+│   │   ├── feature-start.ts     # gpm feature start
+│   │   ├── ship.ts              # gpm ship ⭐
+│   │   └── status.ts            # gpm status
 │   ├── lib/
 │   │   ├── github.ts            # Octokit wrapper
 │   │   ├── git.ts               # Git operations (simple-git)
 │   │   ├── pr-template.ts       # Template discovery + merging
 │   │   ├── ci-poller.ts         # Async CI status polling
 │   │   ├── verify.ts            # Run verify.sh with progress
-│   │   └── config.ts            # .gwm.yml management
+│   │   └── config.ts            # .gpm.yml management
 │   ├── types/
 │   │   ├── config.ts            # Config types
 │   │   ├── pr.ts                # PR types
@@ -169,7 +169,7 @@ git-workflow-manager/
 ### New Workflow (Node.js + SDK)
 
 ```javascript
-gwm ship
+gpm ship
   ├── 1. Preflight Checks (TypeScript)
   │   ├── GitService.getCurrentBranch()
   │   ├── GitService.hasUncommittedChanges()
@@ -205,13 +205,13 @@ gwm ship
 
 ### Current (Bash + gh CLI) → Target (Node.js + Octokit)
 
-#### Command: `gwm init`
+#### Command: `gpm init`
 
 **Current Implementation** (Bash):
 ```bash
 gh auth status
 git remote get-url origin
-# Create .gwm.yml
+# Create .gpm.yml
 ```
 
 **New Implementation** (TypeScript):
@@ -232,7 +232,7 @@ async function init() {
   const origin = remotes.find(r => r.name === 'origin');
   console.log(`✅ Remote configured: ${origin.refs.fetch}`);
 
-  // Create .gwm.yml
+  // Create .gpm.yml
   const config = {
     version: '1.0.0',
     verify: {
@@ -246,8 +246,8 @@ async function init() {
     }
   };
 
-  await fs.writeFile('.gwm.yml', yaml.dump(config));
-  console.log('✅ Configuration created: .gwm.yml');
+  await fs.writeFile('.gpm.yml', yaml.dump(config));
+  console.log('✅ Configuration created: .gpm.yml');
 }
 ```
 
@@ -256,7 +256,7 @@ async function init() {
 
 ---
 
-#### Command: `gwm feature start <name>`
+#### Command: `gpm feature start <name>`
 
 **Current Implementation** (Bash):
 ```bash
@@ -294,7 +294,7 @@ async function featureStart(name: string) {
   console.log('\nNext steps:');
   console.log('  1. Make your changes');
   console.log('  2. Commit: git commit -m "feat: description"');
-  console.log('  3. Ship: gwm ship');
+  console.log('  3. Ship: gpm ship');
 }
 ```
 
@@ -302,7 +302,7 @@ async function featureStart(name: string) {
 
 ---
 
-#### Command: `gwm ship` (⭐ PRIMARY COMMAND)
+#### Command: `gpm ship` (⭐ PRIMARY COMMAND)
 
 **Current Implementation** (Bash):
 ```bash
@@ -332,7 +332,7 @@ gh pr merge $PR_NUMBER --squash --delete-branch
 async function ship(options: ShipOptions) {
   const git = simpleGit();
   const github = new GitHubService(process.env.GITHUB_TOKEN);
-  const config = await Config.load('.gwm.yml');
+  const config = await Config.load('.gpm.yml');
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // Step 1: Preflight Checks
@@ -878,9 +878,9 @@ export class PRTemplateService {
 
 ```typescript
 /**
- * Base error class for git-workflow-manager
+ * Base error class for git-pr-manager
  */
-export class GWMError extends Error {
+export class GPMError extends Error {
   constructor(message: string) {
     super(message);
     this.name = this.constructor.name;
@@ -891,7 +891,7 @@ export class GWMError extends Error {
 /**
  * GitHub authentication error
  */
-export class AuthError extends GWMError {
+export class AuthError extends GPMError {
   constructor(message: string) {
     super(message);
   }
@@ -900,14 +900,14 @@ export class AuthError extends GWMError {
 /**
  * PR creation/merge errors
  */
-export class PRExistsError extends GWMError {}
-export class MergeBlockedError extends GWMError {}
-export class MergeConflictError extends GWMError {}
+export class PRExistsError extends GPMError {}
+export class MergeBlockedError extends GPMError {}
+export class MergeConflictError extends GPMError {}
 
 /**
  * CI check errors
  */
-export class CIFailedError extends GWMError {
+export class CIFailedError extends GPMError {
   constructor(
     message: string,
     public failedChecks: string[]
@@ -916,15 +916,15 @@ export class CIFailedError extends GWMError {
   }
 }
 
-export class TimeoutError extends GWMError {}
+export class TimeoutError extends GPMError {}
 
 /**
  * Git operation errors
  */
-export class UncommittedChangesError extends GWMError {}
-export class InvalidBranchError extends GWMError {}
-export class ConfigError extends GWMError {}
-export class NotFoundError extends GWMError {}
+export class UncommittedChangesError extends GPMError {}
+export class InvalidBranchError extends GPMError {}
+export class ConfigError extends GPMError {}
+export class NotFoundError extends GPMError {}
 ```
 
 ### Error Handling Pattern
@@ -1034,16 +1034,16 @@ try {
 ### Phase 3: Additional Commands (Week 2 - 10-15 hours)
 
 **Goals**:
-- ✅ Implement `gwm init`
-- ✅ Implement `gwm feature start`
-- ✅ Implement `gwm status`
+- ✅ Implement `gpm init`
+- ✅ Implement `gpm feature start`
+- ✅ Implement `gpm status`
 
 **Deliverables**:
 ```
 ✅ src/commands/init.ts
 ✅ src/commands/feature-start.ts
 ✅ src/commands/status.ts
-✅ src/lib/config.ts - .gwm.yml management
+✅ src/lib/config.ts - .gpm.yml management
 ```
 
 ---
@@ -1225,20 +1225,20 @@ describe('ship workflow (integration)', () => {
 **Option A**: Keep both implementations side-by-side
 ```bash
 # Old implementation (bash)
-gwm-legacy ship
+gpm-legacy ship
 
 # New implementation (Node.js)
-gwm ship
+gpm ship
 ```
 
 **Option B**: Revert to v0.3.0
 ```bash
 # Restore bash scripts
 git checkout v0.3.0 -- scripts/
-git checkout v0.3.0 -- gwm
+git checkout v0.3.0 -- gpm
 
 # Update PATH
-export PATH="$PATH:~/claude-code-tools/lba/apps/subagents/git-workflow-manager/v0.3.0"
+export PATH="$PATH:~/claude-code-tools/lba/apps/subagents/git-pr-manager/v0.3.0"
 ```
 
 ### Gradual Migration Strategy

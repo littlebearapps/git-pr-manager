@@ -148,7 +148,7 @@ describe('init command', () => {
         expect.objectContaining({
           created: true,
           template: 'basic',
-          filePath: '.gwm.yml',
+          filePath: '.gpm.yml',
           config: mockConfig,
         })
       );
@@ -167,7 +167,7 @@ describe('init command', () => {
         null,
         expect.objectContaining({
           code: 'ERROR',
-          message: '.gwm.yml already exists',
+          message: '.gpm.yml already exists',
           suggestions: expect.arrayContaining([
             expect.stringContaining('Delete the existing file'),
           ]),
@@ -190,7 +190,7 @@ describe('init command', () => {
         null,
         expect.objectContaining({
           code: 'ERROR',
-          message: '.gwm.yml already exists',
+          message: '.gpm.yml already exists',
           suggestions: expect.any(Array),
         })
       );

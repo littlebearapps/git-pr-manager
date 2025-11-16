@@ -207,8 +207,8 @@ export class WorktreeConflictError extends WorkflowError {
 export class ConfigError extends WorkflowError {
   constructor(message: string, details?: any, suggestions: string[] = []) {
     const defaultSuggestions = [
-      'Run `gwm init` to create config file',
-      'Check .gwm.yml syntax',
+      'Run `gpm init` to create config file',
+      'Check .gpm.yml syntax',
       'Refer to documentation for config options'
     ];
 

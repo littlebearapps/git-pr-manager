@@ -35,14 +35,14 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install git-workflow-manager
-        run: npm install -g @your-org/git-workflow-manager
+      - name: Install git-pr-manager
+        run: npm install -g @your-org/git-pr-manager
 
       - name: Check branch protection
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gwm protection check \
+          gpm protection check \
             --owner "${{ github.repository_owner }}" \
             --repo "${{ github.event.repository.name }}" \
             --branch "${{ github.base_ref }}"
@@ -51,7 +51,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gwm pr validate \
+          gpm pr validate \
             --owner "${{ github.repository_owner }}" \
             --repo "${{ github.event.repository.name }}" \
             --pr-number "${{ github.event.pull_request.number }}"
@@ -76,7 +76,7 @@ jobs:
 
       - name: Run security scan
         run: |
-          gwm security scan --working-dir "${{ github.workspace }}"
+          gpm security scan --working-dir "${{ github.workspace }}"
 
       - name: Upload security report
         if: always()
@@ -105,7 +105,7 @@ jobs:
 
       - name: Run verification checks
         run: |
-          gwm verify run --working-dir "${{ github.workspace }}"
+          gpm verify run --working-dir "${{ github.workspace }}"
 
       - name: Upload verification report
         if: always()
@@ -134,7 +134,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gwm pr assess \
+          gpm pr assess \
             --owner "${{ github.repository_owner }}" \
             --repo "${{ github.event.repository.name }}" \
             --pr-number "${{ github.event.pull_request.number }}" \

@@ -123,7 +123,7 @@ export async function shipCommand(options: ShipOptions = {}): Promise<void> {
 
         logger.blank();
         logger.info('Fix security issues before shipping:');
-        logger.log(`  • ${chalk.cyan('gwm security')} - View detailed security report`);
+        logger.log(`  • ${chalk.cyan('gpm security')} - View detailed security report`);
         logger.log('  • Remove secrets and update .gitignore');
         logger.log('  • Update vulnerable dependencies');
 

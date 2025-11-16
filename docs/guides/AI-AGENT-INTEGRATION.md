@@ -7,9 +7,9 @@
 
 ## Overview
 
-This guide shows how to integrate `git-workflow-manager` (`gwm`) with CLI-based AI coding agents like Claude Code, Aider, Cursor, and others for automated git workflow management.
+This guide shows how to integrate `git-pr-manager` (`gpm`) with CLI-based AI coding agents like Claude Code, Aider, Cursor, and others for automated git workflow management.
 
-## Why Use gwm with AI Agents?
+## Why Use gpm with AI Agents?
 
 - **Structured Output**: `--json` flag provides machine-readable data for AI parsing
 - **Autonomous Workflows**: AI agents can execute complete PR workflows without human intervention
@@ -21,10 +21,10 @@ This guide shows how to integrate `git-workflow-manager` (`gwm`) with CLI-based 
 
 ## Quick Start
 
-### 1. Install gwm Globally
+### 1. Install gpm Globally
 
 ```bash
-npm install -g @littlebearapps/git-workflow-manager
+npm install -g @littlebearapps/git-pr-manager
 ```
 
 ### 2. Configure Environment
@@ -34,7 +34,7 @@ npm install -g @littlebearapps/git-workflow-manager
 export GITHUB_TOKEN="ghp_your_token_here"
 
 # Verify installation
-gwm --version
+gpm --version
 ```
 
 ### 3. Test with AI Agent
@@ -43,8 +43,8 @@ gwm --version
 ```
 User: "Create a PR for my feature"
 
-Claude: Let me create a PR using gwm:
-  - Running: gwm auto --draft
+Claude: Let me create a PR using gpm:
+  - Running: gpm auto --draft
   - PR #47 created successfully
   - CI checks pending...
 ```
@@ -57,7 +57,7 @@ Claude: Let me create a PR using gwm:
 
 **Use case**: You're the only developer, reviewing code with AI before PRs
 
-**Configuration** (`.gwm.yml`):
+**Configuration** (`.gpm.yml`):
 ```yaml
 branchProtection:
   enabled: false  # Or set requireReviews: 0
@@ -108,7 +108,7 @@ branchProtection:
   requireReviews: 1  # At least 1 review
   requireStatusChecks:
     - quality-gate
-    - gwm-security
+    - gpm-security
   enforceAdmins: false  # Allow admins to bypass
 
 ci:
@@ -148,7 +148,7 @@ branchProtection:
   requireReviews: 2  # At least 2 reviews
   requireStatusChecks:
     - quality-gate
-    - gwm-security
+    - gpm-security
     - integration-tests
     - e2e-tests
   enforceAdmins: true  # Even admins follow rules
@@ -202,7 +202,7 @@ When team is large or enterprise:
 **`branchProtection.requireStatusChecks`**:
 - List of CI check names that must pass
 - Leave empty `[]` for no required checks
-- Example: `["quality-gate", "gwm-security"]`
+- Example: `["quality-gate", "gpm-security"]`
 
 **`branchProtection.enforceAdmins`**:
 - `false`: Admins can bypass rules (flexibility)
@@ -210,16 +210,16 @@ When team is large or enterprise:
 
 ### How to Apply Configuration
 
-**1. Edit `.gwm.yml`** (update requireReviews, etc.)
+**1. Edit `.gpm.yml`** (update requireReviews, etc.)
 
 **2. Apply to GitHub** (if using branch protection):
 ```bash
-gwm protect  # Applies settings to GitHub
+gpm protect  # Applies settings to GitHub
 ```
 
 **3. Verify** (check GitHub settings match):
 ```bash
-gwm protect --show  # Display current protection
+gpm protect --show  # Display current protection
 ```
 
 ### Changing Configuration Later
@@ -232,7 +232,7 @@ branchProtection:
 
 Then:
 ```bash
-gwm protect  # Re-applies with 0 reviews
+gpm protect  # Re-applies with 0 reviews
 ```
 
 **Disable protection entirely**:
@@ -245,7 +245,7 @@ branchProtection:
 
 ## AI Agent Setup Checklist
 
-When setting up gwm for a new repository, AI agents should:
+When setting up gpm for a new repository, AI agents should:
 
 ### 1. **Ask About Team Size** (if not obvious)
 ```
@@ -260,7 +260,7 @@ AI: "I'll configure with requireReviews: 1 for lightweight review"
 
 ### 2. **Show Configuration Before Applying**
 ```yaml
-# Proposed .gwm.yml (show to user first)
+# Proposed .gpm.yml (show to user first)
 branchProtection:
   enabled: true
   requireReviews: 0  # ← Solo dev, no reviews
@@ -276,20 +276,20 @@ AI: "This configuration will:
 ✅ Enable security scanning
 ✅ Enable auto-fix for simple issues
 
-To apply GitHub branch protection: gwm protect
-To skip protection: Leave requireReviews: 0 and don't run gwm protect"
+To apply GitHub branch protection: gpm protect
+To skip protection: Leave requireReviews: 0 and don't run gpm protect"
 ```
 
-### 4. **Don't Auto-Run `gwm protect`**
+### 4. **Don't Auto-Run `gpm protect`**
 ```
-❌ Bad: Run gwm protect without asking
+❌ Bad: Run gpm protect without asking
 ✅ Good: Explain what it does, let user decide
 
 "If you want GitHub to enforce these rules, run:
-  gwm protect
+  gpm protect
 
 This will configure branch protection on GitHub.
-For solo dev, you may prefer to skip this and just use gwm locally."
+For solo dev, you may prefer to skip this and just use gpm locally."
 ```
 
 ---
@@ -299,14 +299,14 @@ For solo dev, you may prefer to skip this and just use gwm locally."
 ### Claude Code (Anthropic)
 
 **Setup**:
-1. Install gwm globally: `npm install -g @littlebearapps/git-workflow-manager`
+1. Install gpm globally: `npm install -g @littlebearapps/git-pr-manager`
 2. Set `GITHUB_TOKEN` in shell environment
 3. Claude Code inherits environment variables automatically
 
 **Usage**:
 ```
 User: "Check the status of PR #123"
-Claude: [Executes] gwm checks 123 --json
+Claude: [Executes] gpm checks 123 --json
 Claude: [Parses JSON] "All 5 checks passed ✅"
 ```
 
@@ -321,15 +321,15 @@ Claude: [Parses JSON] "All 5 checks passed ✅"
 ### Aider (Paul Gauthier)
 
 **Setup**:
-1. Install gwm: `npm install -g @littlebearapps/git-workflow-manager`
+1. Install gpm: `npm install -g @littlebearapps/git-pr-manager`
 2. Export GITHUB_TOKEN in shell
 3. Launch Aider in project directory
 
 **Usage**:
 ```
-You: /run gwm auto
+You: /run gpm auto
 
-Aider: Running command: gwm auto
+Aider: Running command: gpm auto
 [Output]: Feature branch created...
 [Output]: PR #48 created...
 [Output]: Waiting for CI...
@@ -339,23 +339,23 @@ Aider: Running command: gwm auto
 **Advantages**:
 - `/run` command for direct CLI execution
 - Git-aware context
-- Can commit changes before running gwm
+- Can commit changes before running gpm
 
 ---
 
 ### Cursor (Anysphere)
 
 **Setup**:
-1. Install gwm globally
+1. Install gpm globally
 2. Configure GITHUB_TOKEN in terminal
 3. Use Cursor's terminal integration
 
 **Usage** (via Cursor terminal):
 ```bash
 # AI generates and runs:
-gwm feature add-auth
+gpm feature add-auth
 # Make changes...
-gwm auto
+gpm auto
 ```
 
 **Advantages**:
@@ -369,24 +369,24 @@ gwm auto
 
 **Setup**:
 ```bash
-npm install -g @littlebearapps/git-workflow-manager
+npm install -g @littlebearapps/git-pr-manager
 export GITHUB_TOKEN="ghp_..."
 ```
 
 **Usage**:
 ```bash
 # Natural language command
-gh copilot suggest "create a PR with gwm"
+gh copilot suggest "create a PR with gpm"
 
 # Generates:
-gwm auto --title "feat: add authentication"
+gpm auto --title "feat: add authentication"
 ```
 
 ---
 
 ### Custom AI Agents
 
-Any AI agent with shell access can use gwm:
+Any AI agent with shell access can use gpm:
 
 **Requirements**:
 - Can execute bash commands
@@ -398,10 +398,10 @@ Any AI agent with shell access can use gwm:
 import subprocess
 import json
 
-def run_gwm(command):
-    """Run gwm command and parse JSON output"""
+def run_gpm(command):
+    """Run gpm command and parse JSON output"""
     result = subprocess.run(
-        f"gwm {command} --json",
+        f"gpm {command} --json",
         shell=True,
         capture_output=True,
         text=True
@@ -410,10 +410,10 @@ def run_gwm(command):
     if result.returncode == 0:
         return json.loads(result.stdout)
     else:
-        raise Exception(f"gwm failed: {result.stderr}")
+        raise Exception(f"gpm failed: {result.stderr}")
 
 # Example: Check CI status
-status = run_gwm("checks 123")
+status = run_gpm("checks 123")
 print(f"Passed: {status['passed']}, Failed: {status['failed']}")
 ```
 
@@ -423,13 +423,13 @@ print(f"Passed: {status['passed']}, Failed: {status['failed']}")
 
 ### JSON Mode
 
-All gwm commands support `--json` flag for machine-readable output:
+All gpm commands support `--json` flag for machine-readable output:
 
 ```bash
-gwm status --json
-gwm checks 123 --json
-gwm security --json
-gwm auto --json
+gpm status --json
+gpm checks 123 --json
+gpm security --json
+gpm auto --json
 ```
 
 **For complete JSON schema documentation**, see [JSON-OUTPUT-SCHEMAS.md](JSON-OUTPUT-SCHEMAS.md) which includes:
@@ -446,12 +446,12 @@ gwm auto --json
 ```javascript
 const { execSync } = require('child_process');
 
-function runGwm(command) {
-  const output = execSync(`gwm ${command} --json`, { encoding: 'utf-8' });
+function runGpm(command) {
+  const output = execSync(`gpm ${command} --json`, { encoding: 'utf-8' });
   return JSON.parse(output);
 }
 
-const status = runGwm('checks 123');
+const status = runGpm('checks 123');
 console.log(`Overall status: ${status.overallStatus}`);
 ```
 
@@ -460,16 +460,16 @@ console.log(`Overall status: ${status.overallStatus}`);
 import subprocess
 import json
 
-def run_gwm(command):
+def run_gpm(command):
     result = subprocess.run(
-        f"gwm {command} --json",
+        f"gpm {command} --json",
         shell=True,
         capture_output=True,
         text=True
     )
     return json.loads(result.stdout)
 
-status = run_gwm('checks 123')
+status = run_gpm('checks 123')
 print(f"Overall status: {status['overallStatus']}")
 ```
 
@@ -489,8 +489,8 @@ type CheckStatus struct {
     OverallStatus  string `json:"overallStatus"`
 }
 
-func runGwm(command string) (*CheckStatus, error) {
-    cmd := exec.Command("gwm", command, "--json")
+func runGpm(command string) (*CheckStatus, error) {
+    cmd := exec.Command("gpm", command, "--json")
     output, err := cmd.Output()
     if err != nil {
         return nil, err
@@ -513,10 +513,10 @@ func runGwm(command string) (*CheckStatus, error) {
 **AI Agent Execution**:
 ```bash
 # Step 1: Check current branch
-gwm status --json
+gpm status --json
 
 # Step 2: Create PR with automation
-gwm auto --json
+gpm auto --json
 
 # Step 3: Parse output and report
 # {"prNumber": 47, "url": "https://github.com/...", "ciStatus": "pending"}
@@ -532,7 +532,7 @@ gwm auto --json
 
 **AI Agent Execution**:
 ```bash
-gwm checks 123 --json
+gpm checks 123 --json
 ```
 
 **Output**:
@@ -556,7 +556,7 @@ gwm checks 123 --json
 
 **AI Agent Execution**:
 ```bash
-gwm checks 123 --json
+gpm checks 123 --json
 ```
 
 **Output**:
@@ -595,7 +595,7 @@ Would you like me to:
 
 **AI Agent Execution**:
 ```bash
-gwm security --json
+gpm security --json
 ```
 
 **Output**:
@@ -637,16 +637,16 @@ Proceed with fix?
 **AI Agent Execution**:
 ```bash
 # Check PR status
-gwm checks $PR_NUMBER --json
+gpm checks $PR_NUMBER --json
 
 # Validate branch protection
-gwm protect --show --json
+gpm protect --show --json
 ```
 
 **AI Decision Logic**:
 ```javascript
-const checks = runGwm(`checks ${prNumber}`);
-const protection = runGwm('protect --show');
+const checks = runGpm(`checks ${prNumber}`);
+const protection = runGpm('protect --show');
 
 if (checks.overallStatus === 'success' &&
     protection.requireReviews <= checks.approvals) {
@@ -658,23 +658,23 @@ if (checks.overallStatus === 'success' &&
 
 ### Workflow 6: Update Management
 
-**User Request**: "Is gwm up to date?"
+**User Request**: "Is gpm up to date?"
 
 **AI Agent Execution**:
 ```bash
 # Check for updates (machine-readable)
-gwm check-update --json
+gpm check-update --json
 ```
 
 **AI Response**:
 ```javascript
-const updateCheck = runGwm('check-update');
+const updateCheck = runGpm('check-update');
 
 if (updateCheck.success && updateCheck.updateAvailable) {
   return `Update available: ${updateCheck.currentVersion} → ${updateCheck.latestVersion}
-Run: npm install -g @littlebearapps/git-workflow-manager`;
+Run: npm install -g @littlebearapps/git-pr-manager`;
 } else if (updateCheck.success) {
-  return `gwm is up to date (${updateCheck.currentVersion})`;
+  return `gpm is up to date (${updateCheck.currentVersion})`;
 } else {
   return `Failed to check for updates: ${updateCheck.error}`;
 }
@@ -700,16 +700,16 @@ Run: npm install -g @littlebearapps/git-workflow-manager`;
 **AI Agent Integration**:
 ```javascript
 // Check for updates periodically
-async function checkGwmUpdates() {
-  const result = runGwm('check-update');
+async function checkGpmUpdates() {
+  const result = runGpm('check-update');
 
   if (result.updateAvailable) {
     // Option 1: Notify user
-    console.log(`📦 gwm update available: ${result.latestVersion}`);
+    console.log(`📦 gpm update available: ${result.latestVersion}`);
 
     // Option 2: Auto-update (optional, ask user first)
-    if (await askUser('Update gwm?')) {
-      execSync('npm install -g @littlebearapps/git-workflow-manager');
+    if (await askUser('Update gpm?')) {
+      execSync('npm install -g @littlebearapps/git-pr-manager');
     }
   }
 }
@@ -724,13 +724,13 @@ async function checkGwmUpdates() {
 **AI Agent Execution**:
 ```bash
 # Install pre-push hook (default)
-gwm install-hooks
+gpm install-hooks
 
 # Install both pre-push and post-commit hooks
-gwm install-hooks --post-commit
+gpm install-hooks --post-commit
 
 # Check installation status
-gwm status --json
+gpm status --json
 ```
 
 **Recommendation Logic**:
@@ -749,7 +749,7 @@ function shouldRecommendHooks(context) {
   if (context.hasCIChecks) {
     return {
       recommend: true,
-      reason: 'Pre-push hook reminds developers to run gwm ship for automated PR workflow'
+      reason: 'Pre-push hook reminds developers to run gpm ship for automated PR workflow'
     };
   }
 
@@ -771,13 +771,13 @@ I can set up git hooks to provide helpful workflow reminders. These hooks are:
 
 ✅ Non-blocking: Never prevent commits or pushes
 ✅ Optional: Can be disabled or uninstalled anytime
-✅ Helpful: Remind you to run gwm commands for better workflows
+✅ Helpful: Remind you to run gpm commands for better workflows
 
 Two types of hooks available:
 1. **pre-push** (default): Reminds you before pushing to run:
-   - `gwm ship` - Create PR with CI checks
-   - `gwm auto` - Full automated workflow
-   - `gwm security` - Scan for secrets/vulnerabilities
+   - `gpm ship` - Create PR with CI checks
+   - `gpm auto` - Full automated workflow
+   - `gpm security` - Scan for secrets/vulnerabilities
 
 2. **post-commit** (optional): Reminds you after committing to:
    - Consider creating a PR if on feature branch
@@ -786,7 +786,7 @@ Two types of hooks available:
 Would you like me to install:
 1. Just pre-push hook (recommended)
 2. Both pre-push and post-commit hooks
-3. Skip hooks (you can install later with `gwm install-hooks`)
+3. Skip hooks (you can install later with `gpm install-hooks`)
 ```
 
 **Installation Flow**:
@@ -794,12 +794,12 @@ Would you like me to install:
 async function installHooks(options) {
   // Default: just pre-push
   if (!options.postCommit) {
-    execSync('gwm install-hooks');
+    execSync('gpm install-hooks');
     return `✅ Installed pre-push hook. You'll see helpful reminders before pushing.`;
   }
 
   // Both hooks
-  execSync('gwm install-hooks --post-commit');
+  execSync('gpm install-hooks --post-commit');
   return `✅ Installed pre-push and post-commit hooks. You'll see reminders at both stages.`;
 }
 ```
@@ -809,7 +809,7 @@ async function installHooks(options) {
 The hooks I installed are "reminder-only" hooks:
 
 **What they do**:
-- Display helpful messages about available gwm commands
+- Display helpful messages about available gpm commands
 - Remind you to run security scans or create PRs
 - Show relevant workflow options
 
@@ -819,7 +819,7 @@ The hooks I installed are "reminder-only" hooks:
 - Never modify your code or git history
 - Never slow down your workflow
 
-You can uninstall anytime with: `gwm uninstall-hooks`
+You can uninstall anytime with: `gpm uninstall-hooks`
 ```
 
 **Uninstall Workflow**:
@@ -828,39 +828,39 @@ You can uninstall anytime with: `gwm uninstall-hooks`
 
 **AI Agent Execution**:
 ```bash
-# Uninstall all gwm hooks
-gwm uninstall-hooks
+# Uninstall all gpm hooks
+gpm uninstall-hooks
 
 # Verify removal
-gwm status --json
+gpm status --json
 ```
 
 **AI Response**:
 ```
-✅ Removed all gwm git hooks.
+✅ Removed all gpm git hooks.
 
 Your git workflow is back to default behavior (no reminders).
 
 You can reinstall anytime with:
-- `gwm install-hooks` - Pre-push hook only
-- `gwm install-hooks --post-commit` - Both hooks
+- `gpm install-hooks` - Pre-push hook only
+- `gpm install-hooks --post-commit` - Both hooks
 ```
 
 **Safety Checks**:
 ```javascript
 // AI should verify before uninstalling
 async function uninstallHooks() {
-  // Check if hooks are gwm-managed
-  const hooksStatus = runGwm('status --json');
+  // Check if hooks are gpm-managed
+  const hooksStatus = runGpm('status --json');
 
   if (!hooksStatus.hooks || !hooksStatus.hooks.prePush.enabled) {
-    return '⚠️  No gwm hooks are currently installed.';
+    return '⚠️  No gpm hooks are currently installed.';
   }
 
   // Uninstall
-  execSync('gwm uninstall-hooks');
+  execSync('gpm uninstall-hooks');
 
-  return `✅ Uninstalled gwm hooks:
+  return `✅ Uninstalled gpm hooks:
 - Pre-push: ${hooksStatus.hooks.prePush.enabled ? 'Removed' : 'Not installed'}
 - Post-commit: ${hooksStatus.hooks.postCommit.enabled ? 'Removed' : 'Not installed'}`;
 }
@@ -869,13 +869,13 @@ async function uninstallHooks() {
 **Advanced: Force Reinstall**:
 ```bash
 # Overwrite existing hooks (if user has custom hooks)
-gwm install-hooks --force
+gpm install-hooks --force
 
 # This will:
-# 1. Warn if non-gwm hooks exist
+# 1. Warn if non-gpm hooks exist
 # 2. Ask for confirmation (unless --force)
 # 3. Backup existing hooks (future enhancement)
-# 4. Install gwm hooks
+# 4. Install gpm hooks
 ```
 
 **JSON Output** (for status checking):
@@ -909,9 +909,9 @@ gwm install-hooks --force
 ### Parsing Errors
 
 ```javascript
-function runGwmSafely(command) {
+function runGpmSafely(command) {
   try {
-    const output = execSync(`gwm ${command} --json`, {
+    const output = execSync(`gpm ${command} --json`, {
       encoding: 'utf-8',
       stdio: 'pipe'
     });
@@ -934,9 +934,9 @@ function runGwmSafely(command) {
 ### Retry Logic
 
 ```javascript
-async function runGwmWithRetry(command, maxRetries = 3) {
+async function runGpmWithRetry(command, maxRetries = 3) {
   for (let i = 0; i < maxRetries; i++) {
-    const result = runGwmSafely(command);
+    const result = runGpmSafely(command);
 
     if (result.success) {
       return result.data;
@@ -971,17 +971,17 @@ async function runGwmWithRetry(command, maxRetries = 3) {
 
 ```bash
 # Good
-gwm checks 123 --json
+gpm checks 123 --json
 
 # Bad (human-readable output is harder to parse)
-gwm checks 123
+gpm checks 123
 ```
 
 ### 2. Validate Before Executing
 
 ```bash
 # Check environment first
-gwm status --json
+gpm status --json
 
 # Verify GITHUB_TOKEN is set
 if [ -z "$GITHUB_TOKEN" ]; then
@@ -993,7 +993,7 @@ fi
 ### 3. Handle Rate Limits Gracefully
 
 ```javascript
-const result = runGwm('checks 123');
+const result = runGpm('checks 123');
 
 if (result.error === 'RATE_LIMIT') {
   // Wait and retry, or notify user
@@ -1006,7 +1006,7 @@ if (result.error === 'RATE_LIMIT') {
 
 ```javascript
 try {
-  const result = runGwm('auto');
+  const result = runGpm('auto');
 } catch (error) {
   // Good: Provide context and suggestions
   console.log(`Failed to create PR: ${error.message}`);
@@ -1014,7 +1014,7 @@ try {
   console.log('  1. No GITHUB_TOKEN set');
   console.log('  2. Branch has no changes');
   console.log('  3. PR already exists');
-  console.log('Run: gwm status --json to diagnose');
+  console.log('Run: gpm status --json to diagnose');
 }
 ```
 
@@ -1032,7 +1032,7 @@ function getCIStatus(prNumber) {
     return cached.data;
   }
 
-  const data = runGwm(`checks ${prNumber}`);
+  const data = runGpm(`checks ${prNumber}`);
   cache.set(cacheKey, { data, timestamp: Date.now() });
   return data;
 }
@@ -1048,20 +1048,20 @@ function getCIStatus(prNumber) {
 class GitWorkflowAgent {
   async createFeaturePR(featureName, title) {
     // Step 1: Create feature branch
-    const branch = await this.runGwm(`feature ${featureName}`);
+    const branch = await this.runGpm(`feature ${featureName}`);
     console.log(`Created branch: ${branch.name}`);
 
     // Step 2: User makes changes (AI agent edits files)
     await this.makeChanges();
 
     // Step 3: Run security scan
-    const security = await this.runGwm('security');
+    const security = await this.runGpm('security');
     if (!security.passed) {
       throw new Error('Security scan failed');
     }
 
     // Step 4: Create PR
-    const pr = await this.runGwm(`auto --title "${title}"`);
+    const pr = await this.runGpm(`auto --title "${title}"`);
     console.log(`PR created: ${pr.url}`);
 
     // Step 5: Wait for CI
@@ -1079,7 +1079,7 @@ class GitWorkflowAgent {
     const startTime = Date.now();
 
     while (Date.now() - startTime < timeout) {
-      const checks = await this.runGwm(`checks ${prNumber}`);
+      const checks = await this.runGpm(`checks ${prNumber}`);
 
       if (checks.overallStatus === 'success') {
         return checks;
@@ -1096,8 +1096,8 @@ class GitWorkflowAgent {
     throw new Error('CI timeout');
   }
 
-  async runGwm(command) {
-    const output = execSync(`gwm ${command} --json`, { encoding: 'utf-8' });
+  async runGpm(command) {
+    const output = execSync(`gpm ${command} --json`, { encoding: 'utf-8' });
     return JSON.parse(output);
   }
 }
@@ -1106,11 +1106,11 @@ class GitWorkflowAgent {
 ### Event-Driven Integration
 
 ```javascript
-// Listen for PR events and trigger gwm
+// Listen for PR events and trigger gpm
 async function handlePREvent(event) {
   if (event.action === 'opened' || event.action === 'synchronize') {
     // Run security scan on new PRs
-    const security = await runGwm('security');
+    const security = await runGpm('security');
 
     if (!security.passed) {
       // Comment on PR with security issues
@@ -1123,7 +1123,7 @@ async function handlePREvent(event) {
 
   if (event.action === 'labeled' && event.label.name === 'auto-merge') {
     // Auto-merge labeled PRs
-    const checks = await runGwm(`checks ${event.number}`);
+    const checks = await runGpm(`checks ${event.number}`);
 
     if (checks.overallStatus === 'success') {
       await github.pulls.merge({
@@ -1139,18 +1139,18 @@ async function handlePREvent(event) {
 
 ## Troubleshooting
 
-### Issue: "Command not found: gwm"
+### Issue: "Command not found: gpm"
 
 **Solution for AI agents**:
 ```javascript
-// Check if gwm is installed
-function checkGwmInstalled() {
+// Check if gpm is installed
+function checkGpmInstalled() {
   try {
-    execSync('gwm --version', { stdio: 'ignore' });
+    execSync('gpm --version', { stdio: 'ignore' });
     return true;
   } catch (error) {
-    console.log('gwm not installed. Installing...');
-    execSync('npm install -g @littlebearapps/git-workflow-manager');
+    console.log('gpm not installed. Installing...');
+    execSync('npm install -g @littlebearapps/git-pr-manager');
     return true;
   }
 }
@@ -1179,7 +1179,7 @@ function safeParseJSON(output) {
   try {
     return JSON.parse(output);
   } catch (error) {
-    console.error('Failed to parse gwm output:', output);
+    console.error('Failed to parse gpm output:', output);
     console.error('Error:', error.message);
 
     // Try to extract JSON from mixed output
@@ -1188,7 +1188,7 @@ function safeParseJSON(output) {
       return JSON.parse(jsonMatch[0]);
     }
 
-    throw new Error('Invalid JSON output from gwm');
+    throw new Error('Invalid JSON output from gpm');
   }
 }
 ```
@@ -1200,7 +1200,7 @@ function safeParseJSON(output) {
 ```javascript
 #!/usr/bin/env node
 /**
- * Example AI agent that uses gwm for PR automation
+ * Example AI agent that uses gpm for PR automation
  */
 
 const { execSync } = require('child_process');
@@ -1211,12 +1211,12 @@ class GitWorkflowAI {
   }
 
   ensureSetup() {
-    // Check gwm is installed
+    // Check gpm is installed
     try {
-      execSync('gwm --version', { stdio: 'ignore' });
+      execSync('gpm --version', { stdio: 'ignore' });
     } catch (error) {
-      console.log('Installing git-workflow-manager...');
-      execSync('npm install -g @littlebearapps/git-workflow-manager');
+      console.log('Installing git-pr-manager...');
+      execSync('npm install -g @littlebearapps/git-pr-manager');
     }
 
     // Check GITHUB_TOKEN
@@ -1225,15 +1225,15 @@ class GitWorkflowAI {
     }
   }
 
-  runGwm(command) {
+  runGpm(command) {
     try {
-      const output = execSync(`gwm ${command} --json`, {
+      const output = execSync(`gpm ${command} --json`, {
         encoding: 'utf-8',
         stdio: 'pipe'
       });
       return JSON.parse(output);
     } catch (error) {
-      console.error('gwm error:', error.stderr);
+      console.error('gpm error:', error.stderr);
       throw error;
     }
   }
@@ -1251,23 +1251,23 @@ class GitWorkflowAI {
   }
 
   createPR() {
-    console.log('Creating PR with gwm auto...');
+    console.log('Creating PR with gpm auto...');
 
     // Run security scan first
-    const security = this.runGwm('security');
+    const security = this.runGpm('security');
     if (!security.passed) {
       return `❌ Security scan failed: ${security.secretsFound} secrets found`;
     }
 
     // Create PR
-    const result = this.runGwm('auto');
+    const result = this.runGpm('auto');
     return `✅ PR #${result.prNumber} created: ${result.url}`;
   }
 
   checkCI(prNumber) {
     console.log(`Checking CI for PR #${prNumber}...`);
 
-    const checks = this.runGwm(`checks ${prNumber}`);
+    const checks = this.runGpm(`checks ${prNumber}`);
 
     if (checks.overallStatus === 'success') {
       return `✅ All ${checks.passed} checks passed!`;
@@ -1303,15 +1303,15 @@ console.log(response);
 
 ## Best Practices for AI Agents
 
-### ✅ Use gwm for Local Automation, Not CI Orchestration
+### ✅ Use gpm for Local Automation, Not CI Orchestration
 
-**gwm is designed for**:
-- ✅ Local developer workflows (`gwm ship`, `gwm auto`)
-- ✅ Security scanning in CI (`gwm security`)
+**gpm is designed for**:
+- ✅ Local developer workflows (`gpm ship`, `gpm auto`)
+- ✅ Security scanning in CI (`gpm security`)
 - ✅ Status checking during development
 - ✅ Automated PR management from developer machines
 
-**gwm is NOT designed for**:
+**gpm is NOT designed for**:
 - ❌ Orchestrating GitHub Actions workflows
 - ❌ Creating workflows to monitor other workflows
 - ❌ Replacing GitHub's built-in PR status checks
@@ -1321,21 +1321,21 @@ console.log(response);
 User: "Create a PR for my changes"
 
 AI Agent:
-1. Check status: gwm status --json
-2. Create PR: gwm auto --draft
-3. Monitor checks: gwm checks <pr-number> (optional, locally)
+1. Check status: gpm status --json
+2. Create PR: gpm auto --draft
+3. Monitor checks: gpm checks <pr-number> (optional, locally)
 4. Provide feedback to user
 
-✅ This is good - AI uses gwm locally for automation
+✅ This is good - AI uses gpm locally for automation
 ```
 
 **Example - Bad AI agent integration**:
 ```
-User: "Set up gwm in GitHub Actions"
+User: "Set up gpm in GitHub Actions"
 
 AI Agent:
-1. Creates workflow to run gwm checks
-2. gwm checks monitors other workflows
+1. Creates workflow to run gpm checks
+2. gpm checks monitors other workflows
 3. Workflow waits for other workflows
 
 ❌ This is bad - creates circular dependencies
@@ -1343,18 +1343,18 @@ AI Agent:
 
 ---
 
-### ✅ Propose gwm as Validation, Not Meta-Monitoring
+### ✅ Propose gpm as Validation, Not Meta-Monitoring
 
 When proposing GitHub Actions integration:
 
 **✅ Good proposal**:
 ```yaml
-# Add gwm as validation step in existing workflow
+# Add gpm as validation step in existing workflow
 jobs:
   security:
     steps:
       - name: Security scan
-        run: gwm security  # Adds value
+        run: gpm security  # Adds value
 ```
 
 **❌ Bad proposal**:
@@ -1364,7 +1364,7 @@ jobs:
   check-status:
     steps:
       - name: Monitor CI
-        run: gwm checks $PR_NUMBER  # Redundant
+        run: gpm checks $PR_NUMBER  # Redundant
 ```
 
 **Why the second is bad**:
@@ -1373,7 +1373,7 @@ jobs:
 - Adds complexity without value
 - Delays feedback (waits for other workflows)
 
-**Better alternative**: Tell user to run `gwm checks` locally when they need status updates.
+**Better alternative**: Tell user to run `gpm checks` locally when they need status updates.
 
 ---
 
@@ -1384,9 +1384,9 @@ When users ask about CI monitoring:
 **✅ Good response**:
 ```
 "You can monitor PR checks locally:
-  gwm checks 47          # Check PR #47 status
-  gwm status             # Check current branch
-  gwm ship               # Automated workflow
+  gpm checks 47          # Check PR #47 status
+  gpm status             # Check current branch
+  gpm ship               # Automated workflow
 
 GitHub's PR UI already shows check status in CI."
 ```
@@ -1396,22 +1396,22 @@ GitHub's PR UI already shows check status in CI."
 "Let's create a workflow to monitor checks:
   [proposes separate workflow file]
 
-This will run gwm checks on every PR."
+This will run gpm checks on every PR."
 ```
 
 ---
 
-### ✅ Understand gwm's Design Philosophy
+### ✅ Understand gpm's Design Philosophy
 
-**Core principle**: gwm enhances **developer workflows**, not CI orchestration.
+**Core principle**: gpm enhances **developer workflows**, not CI orchestration.
 
-**When to recommend gwm**:
+**When to recommend gpm**:
 - ✅ User wants to automate PR creation locally
 - ✅ User needs security scanning in CI
 - ✅ User wants structured JSON output
 - ✅ User needs to monitor checks during development
 
-**When NOT to recommend gwm**:
+**When NOT to recommend gpm**:
 - ❌ GitHub's built-in features already cover the need
 - ❌ Would create meta-workflows (workflows checking workflows)
 - ❌ Would duplicate existing CI checks
@@ -1422,10 +1422,10 @@ This will run gwm checks on every PR."
 ### ✅ Suggest Appropriate Integration Points
 
 **Good integration points**:
-1. **Local development**: `gwm ship`, `gwm auto`, `gwm checks`
-2. **CI validation**: `gwm security` as additional scanning
-3. **Pre-commit hooks**: `gwm security` for local validation
-4. **Documentation**: `gwm docs` for discovery
+1. **Local development**: `gpm ship`, `gpm auto`, `gpm checks`
+2. **CI validation**: `gpm security` as additional scanning
+3. **Pre-commit hooks**: `gpm security` for local validation
+4. **Documentation**: `gpm docs` for discovery
 
 **Poor integration points**:
 1. ❌ Separate workflow to check other workflows
@@ -1437,7 +1437,7 @@ This will run gwm checks on every PR."
 
 ## Resources
 
-- **gwm CLI Reference**: `gwm --help`
+- **gpm CLI Reference**: `gpm --help`
 - **JSON Schema Documentation**: [JSON-OUTPUT-SCHEMAS.md](JSON-OUTPUT-SCHEMAS.md) - Complete schemas for all commands
 - **GitHub Actions Integration**: See [GITHUB-ACTIONS-INTEGRATION.md](GITHUB-ACTIONS-INTEGRATION.md)
 - **Anti-Patterns**: See GITHUB-ACTIONS-INTEGRATION.md for anti-patterns to avoid
@@ -1447,9 +1447,9 @@ This will run gwm checks on every PR."
 
 ## Next Steps
 
-1. **Install gwm**: `npm install -g @littlebearapps/git-workflow-manager`
+1. **Install gpm**: `npm install -g @littlebearapps/git-pr-manager`
 2. **Set up token**: `export GITHUB_TOKEN="ghp_..."`
-3. **Test integration**: Have your AI agent run `gwm status --json`
+3. **Test integration**: Have your AI agent run `gpm status --json`
 4. **Build workflows**: Implement the patterns above in your AI agent
 5. **Monitor usage**: Track API calls and optimize caching
 

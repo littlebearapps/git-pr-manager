@@ -22,16 +22,16 @@ interface CheckUpdateOptions {
  * @example
  * ```bash
  * # Check for updates (human-readable)
- * gwm check-update
+ * gpm check-update
  *
  * # Check for updates (machine-readable JSON)
- * gwm check-update --json
+ * gpm check-update --json
  *
  * # Clear cache and force fresh check
- * gwm check-update --clear-cache
+ * gpm check-update --clear-cache
  *
  * # Check specific channel
- * gwm check-update --channel next
+ * gpm check-update --channel next
  * ```
  */
 export async function checkUpdateCommand(options: CheckUpdateOptions): Promise<void> {

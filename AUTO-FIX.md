@@ -38,7 +38,7 @@ The Auto-Fix feature automatically attempts to resolve common CI failures by det
 ### Enable Auto-Fix
 
 ```yaml
-# .gwm.yml
+# .gpm.yml
 autoFix:
   enabled: true              # Enable auto-fix globally
   maxAttempts: 2             # Max fix attempts per error type
@@ -55,7 +55,7 @@ Auto-fix is automatically invoked when CI checks fail:
 
 ```bash
 # Standard workflow - auto-fix activates on CI failures
-gwm ship
+gpm ship
 
 # Auto-fix will attempt to:
 # 1. Detect error types from CI check failures
@@ -70,7 +70,7 @@ gwm ship
 Test fixes without making changes:
 
 ```yaml
-# .gwm.yml
+# .gpm.yml
 autoFix:
   enabled: true
   enableDryRun: true         # Enable dry-run mode
@@ -402,8 +402,8 @@ autoFix.resetMetrics();
 
 **Check configuration:**
 ```bash
-# Verify .gwm.yml exists and has autoFix section
-cat .gwm.yml | grep -A 7 "autoFix:"
+# Verify .gpm.yml exists and has autoFix section
+cat .gpm.yml | grep -A 7 "autoFix:"
 ```
 
 **Expected output:**
@@ -634,7 +634,7 @@ Future enhancements planned:
 
 For issues or questions about auto-fix:
 
-1. Check [GitHub Issues](https://github.com/littlebearapps/git-workflow-manager/issues)
+1. Check [GitHub Issues](https://github.com/littlebearapps/git-pr-manager/issues)
 2. Review logs with `--verbose` flag
 3. Export metrics and share with support
 4. Contact: nathan@littlebearapps.com

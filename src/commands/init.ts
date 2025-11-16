@@ -9,7 +9,7 @@ interface InitOptions {
 }
 
 /**
- * Initialize .gwm.yml configuration
+ * Initialize .gpm.yml configuration
  */
 export async function initCommand(options: InitOptions): Promise<void> {
   let template = options.template || 'basic';
@@ -104,21 +104,21 @@ export async function initCommand(options: InitOptions): Promise<void> {
       // Output JSON error if in JSON mode
       logger.outputJsonResult(false, null, {
         code: 'ERROR',
-        message: '.gwm.yml already exists',
+        message: '.gpm.yml already exists',
         suggestions: ['Delete the existing file or use --force flag to overwrite']
       });
 
       // Human-readable error (only displays if not in JSON mode)
-      logger.warn('.gwm.yml already exists');
+      logger.warn('.gpm.yml already exists');
       logger.info('Delete the existing file or use a different template');
       process.exit(1);
     }
 
-    spinner.start(`Initializing .gwm.yml with ${template} template...`);
+    spinner.start(`Initializing .gpm.yml with ${template} template...`);
 
     await configService.init(template as 'basic' | 'standard' | 'strict');
 
-    spinner.succeed(`Created .gwm.yml with ${template} template`);
+    spinner.succeed(`Created .gpm.yml with ${template} template`);
 
     // Show what was created
     const config = await configService.getConfig();
@@ -127,7 +127,7 @@ export async function initCommand(options: InitOptions): Promise<void> {
     const jsonData = {
       created: true,
       template,
-      filePath: '.gwm.yml',
+      filePath: '.gpm.yml',
       config
     };
 
@@ -143,21 +143,21 @@ export async function initCommand(options: InitOptions): Promise<void> {
     logger.success('Workflow configuration initialized successfully!');
     logger.blank();
     logger.section('Next Steps');
-    logger.info('1. Review configuration: cat .gwm.yml');
-    logger.info('2. Set up GitHub Actions: gwm docs --guide=GITHUB-ACTIONS-INTEGRATION');
-    logger.info('3. Configure branch protection: gwm protect');
+    logger.info('1. Review configuration: cat .gpm.yml');
+    logger.info('2. Set up GitHub Actions: gpm docs --guide=GITHUB-ACTIONS-INTEGRATION');
+    logger.info('3. Configure branch protection: gpm protect');
     logger.blank();
     logger.section('Optional Enhancements');
     logger.info('🎯 Git Hooks (Recommended for AI Agents):');
-    logger.info('   gwm install-hooks     # Get reminded before every push');
-    logger.info('   • Never miss gwm in your workflow');
+    logger.info('   gpm install-hooks     # Get reminded before every push');
+    logger.info('   • Never miss gpm in your workflow');
     logger.info('   • 100% optional - you choose when to enable');
     logger.blank();
     logger.section('Documentation');
-    logger.info('• AI Agent Integration: gwm docs --guide=AI-AGENT-INTEGRATION');
-    logger.info('• Full documentation: gwm docs');
+    logger.info('• AI Agent Integration: gpm docs --guide=AI-AGENT-INTEGRATION');
+    logger.info('• Full documentation: gpm docs');
     logger.blank();
-    logger.info('💡 Tip: Run \'gwm docs\' anytime to see available guides');
+    logger.info('💡 Tip: Run \'gpm docs\' anytime to see available guides');
   } catch (error: any) {
     spinner.fail('Failed to initialize configuration');
     logger.error(error.message);

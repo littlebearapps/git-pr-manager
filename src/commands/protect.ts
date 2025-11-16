@@ -69,9 +69,9 @@ export async function protectCommand(options: ProtectOptions = {}): Promise<void
         logger.warn('Branch protection is NOT enabled');
         logger.blank();
         logger.info('Enable protection with:');
-        logger.log(`  ${chalk.cyan('gwm protect --preset basic')}    # Basic protection`);
-        logger.log(`  ${chalk.cyan('gwm protect --preset standard')} # Recommended`);
-        logger.log(`  ${chalk.cyan('gwm protect --preset strict')}   # Maximum protection`);
+        logger.log(`  ${chalk.cyan('gpm protect --preset basic')}    # Basic protection`);
+        logger.log(`  ${chalk.cyan('gpm protect --preset standard')} # Recommended`);
+        logger.log(`  ${chalk.cyan('gpm protect --preset strict')}   # Maximum protection`);
         return;
       }
 
@@ -108,7 +108,7 @@ export async function protectCommand(options: ProtectOptions = {}): Promise<void
 
       logger.blank();
       logger.info('Update protection with:');
-      logger.log(`  ${chalk.cyan(`gwm protect --preset standard --branch ${branch}`)}`);
+      logger.log(`  ${chalk.cyan(`gpm protect --preset standard --branch ${branch}`)}`);
 
       return;
     }
@@ -161,7 +161,7 @@ export async function protectCommand(options: ProtectOptions = {}): Promise<void
 
     logger.blank();
     logger.info('Verify protection:');
-    logger.log(`  ${chalk.cyan('gwm protect --show')}`);
+    logger.log(`  ${chalk.cyan('gpm protect --show')}`);
 
   } catch (error: any) {
     spinner.fail('Failed to configure branch protection');

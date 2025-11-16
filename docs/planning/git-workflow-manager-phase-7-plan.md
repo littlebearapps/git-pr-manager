@@ -11,7 +11,7 @@
 
 ## Executive Summary
 
-Phase 7 will add intelligent auto-update notifications to git-workflow-manager, ensuring users and AI agents stay informed about new versions without compromising performance or user experience. This plan implements a lightweight, npm-first approach with smart suppression for CI/automation environments.
+Phase 7 will add intelligent auto-update notifications to git-pr-manager, ensuring users and AI agents stay informed about new versions without compromising performance or user experience. This plan implements a lightweight, npm-first approach with smart suppression for CI/automation environments.
 
 **Key Objectives**:
 1. **Zero-friction updates** - Notify users of available updates with clear upgrade path
@@ -31,10 +31,10 @@ Phase 7 will add intelligent auto-update notifications to git-workflow-manager, 
 ### Distribution & Versioning (v1.4.0)
 
 **npm Package**:
-- Published as: `@littlebearapps/git-workflow-manager`
+- Published as: `@littlebearapps/git-pr-manager`
 - Current version: v1.4.0-beta.1
-- Binary: `gwm`
-- Install: `npm install -g @littlebearapps/git-workflow-manager`
+- Binary: `gpm`
+- Install: `npm install -g @littlebearapps/git-pr-manager`
 
 **GitHub Repository**:
 - ❌ **NOT YET CREATED** - Currently local-only development
@@ -64,10 +64,10 @@ Phase 7 will add intelligent auto-update notifications to git-workflow-manager, 
 
 ### Phase 7.1: GitHub Repository Setup (PREREQUISITE)
 
-**Objective**: Create private GitHub repository for git-workflow-manager
+**Objective**: Create private GitHub repository for git-pr-manager
 
 **Tasks**:
-1. Create private GitHub repo: `littlebearapps/git-workflow-manager`
+1. Create private GitHub repo: `littlebearapps/git-pr-manager`
 2. Initialize with current codebase
 3. Set up GitHub Actions CI/CD:
    - Test workflow (run on PR/push)
@@ -146,9 +146,9 @@ export async function maybeNotifyUpdate(options: {
 
 **Implementation** (provided by zen analysis):
 - Auto-detect channel based on version (prerelease → `next`, stable → `latest`)
-- Environment variable overrides: `GWM_UPDATE_CHANNEL`
+- Environment variable overrides: `GPM_UPDATE_CHANNEL`
 - Suppression logic:
-  - `GWM_DISABLE_UPDATE_CHECK=1`
+  - `GPM_DISABLE_UPDATE_CHECK=1`
   - `NO_UPDATE_NOTIFIER=1`
   - `process.env.CI`
   - `process.env.GITHUB_ACTIONS`
@@ -156,12 +156,12 @@ export async function maybeNotifyUpdate(options: {
   - `!process.stderr.isTTY`
 
 **Cache Strategy**:
-- Location: `os.tmpdir()/gwm-update-cache.json`
-- TTL: 7 days (configurable via `GWM_UPDATE_CHECK_INTERVAL_MS`)
+- Location: `os.tmpdir()/gpm-update-cache.json`
+- TTL: 7 days (configurable via `GPM_UPDATE_CHECK_INTERVAL_MS`)
 - Structure:
   ```json
   {
-    "packageName": "@littlebearapps/git-workflow-manager",
+    "packageName": "@littlebearapps/git-pr-manager",
     "channel": "latest",
     "latest": "1.5.0",
     "timestamp": 1699881234567
@@ -191,7 +191,7 @@ async function main(argv: string[]) {
 
 **Notification Format** (stderr only):
 ```
-Update available: @littlebearapps/git-workflow-manager 1.4.0 -> 1.5.0 (stable). Run: npm i -g @littlebearapps/git-workflow-manager@latest
+Update available: @littlebearapps/git-pr-manager 1.4.0 -> 1.5.0 (stable). Run: npm i -g @littlebearapps/git-pr-manager@latest
 ```
 
 **Time Estimate**: 30 minutes
@@ -215,7 +215,7 @@ Update available: @littlebearapps/git-workflow-manager 1.4.0 -> 1.5.0 (stable). 
 **Implementation**:
 ```typescript
 export async function run(argv: string[]) {
-  const channel = process.env.GWM_UPDATE_CHANNEL;
+  const channel = process.env.GPM_UPDATE_CHANNEL;
   const res = await checkForUpdate({
     packageName: pkg.name,
     currentVersion: pkg.version,
@@ -361,7 +361,7 @@ gh release create v1.5.0 --notes "See CHANGELOG.md"
 
 **Test Coverage**:
 - ✅ Command outputs valid JSON
-- ✅ Respects GWM_UPDATE_CHANNEL env var
+- ✅ Respects GPM_UPDATE_CHANNEL env var
 - ✅ Handles network failures gracefully
 - ✅ Returns correct updateType values
 
@@ -378,9 +378,9 @@ gh release create v1.5.0 --notes "See CHANGELOG.md"
 2. Up-to-date version → no notification
 3. CI environment → silent
 4. `--json` flag → silent
-5. `gwm check-update` → JSON output
-6. `GWM_DISABLE_UPDATE_CHECK=1` → no check
-7. `GWM_UPDATE_CHANNEL=next` → checks prerelease
+5. `gpm check-update` → JSON output
+6. `GPM_DISABLE_UPDATE_CHECK=1` → no check
+7. `GPM_UPDATE_CHANNEL=next` → checks prerelease
 
 **Time Estimate**: 1 hour
 
@@ -398,7 +398,7 @@ gh release create v1.5.0 --notes "See CHANGELOG.md"
 
 **Content**:
 - How update checks work
-- How to check for updates (`gwm check-update`)
+- How to check for updates (`gpm check-update`)
 - Environment variables for control
 - AI agent integration
 
@@ -443,10 +443,10 @@ gh release create v1.5.0 --notes "See CHANGELOG.md"
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `GWM_DISABLE_UPDATE_CHECK` | `0` | Set to `1` to disable all update checks |
-| `GWM_UPDATE_CHANNEL` | `latest` or `next` | Force specific dist-tag (auto-detected from version) |
-| `GWM_UPDATE_CHECK_INTERVAL_MS` | `604800000` | Cache TTL (7 days default) |
-| `GWM_UPDATE_TIMEOUT_MS` | `1000` | Network timeout for npm registry check |
+| `GPM_DISABLE_UPDATE_CHECK` | `0` | Set to `1` to disable all update checks |
+| `GPM_UPDATE_CHANNEL` | `latest` or `next` | Force specific dist-tag (auto-detected from version) |
+| `GPM_UPDATE_CHECK_INTERVAL_MS` | `604800000` | Cache TTL (7 days default) |
+| `GPM_UPDATE_TIMEOUT_MS` | `1000` | Network timeout for npm registry check |
 | `NO_UPDATE_NOTIFIER` | - | Standard env var to disable update checks (respected) |
 
 ---
@@ -563,7 +563,7 @@ gh release create v1.5.0 --notes-file CHANGELOG.md
 **When**: If/when repository becomes public
 
 **Features**:
-- `gwm release-notes` command to open release page
+- `gpm release-notes` command to open release page
 - Display release notes in notification
 - Link to GitHub Releases for full changelog
 
@@ -573,7 +573,7 @@ gh release create v1.5.0 --notes-file CHANGELOG.md
 
 ### Optional: Auto-Update Command
 
-**Feature**: `gwm update` command that runs npm install
+**Feature**: `gpm update` command that runs npm install
 
 **Rationale**: Convenience for users (but risky for automation)
 
@@ -635,7 +635,7 @@ See zen analysis response for complete code (20+ lines).
 - Can make public when polished and ready
 
 **Setup Checklist**:
-- [ ] Create repo: `littlebearapps/git-workflow-manager`
+- [ ] Create repo: `littlebearapps/git-pr-manager`
 - [ ] Set to Private
 - [ ] Push current codebase
 - [ ] Set up branch protection on `main`

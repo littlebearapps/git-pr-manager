@@ -105,7 +105,7 @@ export async function featureCommand(
     logger.info('Next steps:');
     logger.log('  1. Make your changes');
     logger.log('  2. Commit your changes');
-    logger.log(`  3. Run ${chalk.cyan('gwm ship')} to create PR and merge`);
+    logger.log(`  3. Run ${chalk.cyan('gpm ship')} to create PR and merge`);
 
   } catch (error: any) {
     spinner.fail('Failed to create feature branch');

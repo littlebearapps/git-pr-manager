@@ -8,7 +8,7 @@
 
 ## Overview
 
-Phase 4 successfully implements comprehensive test coverage and production-ready workflow templates. The git-workflow-manager now has 180 passing tests (152 unit + 28 integration) covering all services from Phases 1-3, plus complete GitHub Actions workflows, configuration presets, and integration guides for Node.js and Python projects.
+Phase 4 successfully implements comprehensive test coverage and production-ready workflow templates. The git-pr-manager now has 180 passing tests (152 unit + 28 integration) covering all services from Phases 1-3, plus complete GitHub Actions workflows, configuration presets, and integration guides for Node.js and Python projects.
 
 ---
 
@@ -64,7 +64,7 @@ npm run test:coverage # Coverage report
 - Error handling for invalid repos
 
 **tests/services/ConfigService.test.ts** (12 tests)
-- Config file loading (.gwm.yml)
+- Config file loading (.gpm.yml)
 - Config file creation with templates
 - Default values handling
 - Missing file handling
@@ -226,7 +226,7 @@ npm run test:coverage # Coverage report
 
 **Features**:
 - ✅ Runs on PR events (opened, synchronize, reopened, ready_for_review)
-- ✅ Installs gwm CLI automatically
+- ✅ Installs gpm CLI automatically
 - ✅ Environment-specific configurations
 - ✅ Automatic PR comments with results
 - ✅ GitHub token authentication
@@ -242,7 +242,7 @@ npm run test:coverage # Coverage report
 - ✅ Language detection (Node.js/Python)
 - ✅ Dependency installation and caching
 - ✅ Basic verification (test, lint, build)
-- ✅ PR validation with gwm CLI
+- ✅ PR validation with gpm CLI
 - ✅ Lightweight and fast execution
 
 #### templates/github-actions/setup-protection.yml (95 lines)
@@ -254,7 +254,7 @@ npm run test:coverage # Coverage report
 - ✅ Input parameters (branch, preset, dry_run)
 - ✅ Protection preset selection (basic, standard, strict)
 - ✅ Dry run mode for preview
-- ✅ gwm CLI integration
+- ✅ gpm CLI integration
 - ✅ Protection verification
 - ✅ GitHub token authentication
 
@@ -327,7 +327,7 @@ npm run test:coverage # Coverage report
 
 **Sections**:
 1. **Installation**: npm install instructions
-2. **Configuration**: .gwm.yml setup
+2. **Configuration**: .gpm.yml setup
 3. **Package.json Scripts**: npm script integration
 4. **GitHub Actions**: Complete workflow example
 5. **Pre-commit Hooks**: Husky setup
@@ -339,7 +339,7 @@ npm run test:coverage # Coverage report
 - TypeScript project setup
 - Jest testing integration
 - ESLint and Prettier
-- npm scripts for gwm commands
+- npm scripts for gpm commands
 - Husky pre-commit hooks
 - GitHub Actions with Node.js
 - Error handling guidance
@@ -350,7 +350,7 @@ npm run test:coverage # Coverage report
 
 **Sections**:
 1. **Installation**: pip install instructions
-2. **Configuration**: .gwm.yml setup
+2. **Configuration**: .gpm.yml setup
 3. **Verification Script**: verify.sh template
 4. **Tox Configuration**: tox.ini example
 5. **GitHub Actions**: Python workflow
@@ -421,7 +421,7 @@ All TypeScript strict mode checks pass with tests included:
 
 ```bash
 $ npm run build
-> git-workflow-manager@1.3.0 build
+> git-pr-manager@1.3.0 build
 > tsc
 
 # Success - 0 errors
@@ -430,7 +430,7 @@ $ npm run build
 **Test Compilation**:
 ```bash
 $ npm test
-> git-workflow-manager@1.3.0 test
+> git-pr-manager@1.3.0 test
 > jest
 
 # All tests pass - 0 compilation errors
@@ -530,15 +530,15 @@ git push
 
 ```bash
 # Initialize with standard preset
-gwm config init --preset standard
+gpm config init --preset standard
 
 # Or manually copy and customize
-cp templates/configs/standard.yml .gwm.yml
+cp templates/configs/standard.yml .gpm.yml
 
-# Edit .gwm.yml to match your project needs
+# Edit .gpm.yml to match your project needs
 # Commit to repository
-git add .gwm.yml
-git commit -m "chore: add git-workflow-manager config"
+git add .gpm.yml
+git commit -m "chore: add git-pr-manager config"
 ```
 
 ### 3. Following Integration Guides
@@ -549,10 +549,10 @@ git commit -m "chore: add git-workflow-manager config"
 cat templates/examples/node-project.md
 
 # Follow installation steps
-npm install --save-dev @your-org/git-workflow-manager
+npm install --save-dev @your-org/git-pr-manager
 
 # Copy configuration
-cp templates/configs/standard.yml .gwm.yml
+cp templates/configs/standard.yml .gpm.yml
 
 # Add npm scripts (see guide for examples)
 # Setup pre-commit hooks with Husky
@@ -565,7 +565,7 @@ cp templates/configs/standard.yml .gwm.yml
 cat templates/examples/python-project.md
 
 # Follow installation steps
-pip install git-workflow-manager
+pip install git-pr-manager
 
 # Create verify.sh script (template in guide)
 # Setup tox configuration (template in guide)
@@ -676,7 +676,7 @@ describe('Complete workflow', () => {
 - [ ] CLI usability improvements (interactive mode)
 - [ ] Plugin system for custom checks
 - [ ] Advanced features (rollback, release automation)
-- [ ] Package as npm module (@your-org/git-workflow-manager)
+- [ ] Package as npm module (@your-org/git-pr-manager)
 - [ ] Create installation script
 - [ ] Publish to npm registry
 

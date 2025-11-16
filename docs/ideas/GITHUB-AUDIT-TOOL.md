@@ -9,9 +9,9 @@
 
 ## 📋 Executive Summary
 
-Add a comprehensive repository audit tool to `gwm` that analyzes GitHub repository settings, CI/CD configuration, security posture, and code quality tooling. The tool would leverage the same GitHub token used by gwm for PR operations to provide an actionable assessment with prioritized recommendations.
+Add a comprehensive repository audit tool to `gpm` that analyzes GitHub repository settings, CI/CD configuration, security posture, and code quality tooling. The tool would leverage the same GitHub token used by gpm for PR operations to provide an actionable assessment with prioritized recommendations.
 
-**Key Value Proposition**: Transform gwm from a "PR workflow manager" into a "GitHub repository health and security tool" that helps developers ensure their repositories follow best practices.
+**Key Value Proposition**: Transform gpm from a "PR workflow manager" into a "GitHub repository health and security tool" that helps developers ensure their repositories follow best practices.
 
 ---
 
@@ -35,7 +35,7 @@ Add a comprehensive repository audit tool to `gwm` that analyzes GitHub reposito
 
 ### High Feasibility - Existing Infrastructure
 
-gwm already has 40% of the required infrastructure:
+gpm already has 40% of the required infrastructure:
 
 | Component | Status | Coverage | Notes |
 |-----------|--------|----------|-------|
@@ -159,7 +159,7 @@ export class RepoAuditor {
   private async auditLinting(): Promise<LintingAuditResult> {
     // Read package.json for lint/format scripts
     // Check for config files: .eslintrc*, .prettierrc*, pyproject.toml, etc.
-    // Detect pre-commit hooks (gwm already has hooks integration!)
+    // Detect pre-commit hooks (gpm already has hooks integration!)
     // Analyze by language: JS/TS, Python, Go, Rust, Java, etc.
   }
 
@@ -340,7 +340,7 @@ function displayAuditReport(report: AuditReport, detailed: boolean): void {
 ▸ Repository Audit Report
 ────────────────────────────────────────────────────────────────────────────────
 
-Repository: littlebearapps/git-workflow-manager
+Repository: littlebearapps/git-pr-manager
 Timestamp:  2025-11-14T10:30:00Z
 
 ────────────────────────────────────────────────────────────────────────────────
@@ -375,9 +375,9 @@ Top Recommendations
 
 ────────────────────────────────────────────────────────────────────────────────
 
-Run 'gwm audit --detailed' for full report
-Run 'gwm audit --json' for machine-readable output
-Run 'gwm audit --output report.json' to save results
+Run 'gpm audit --detailed' for full report
+Run 'gpm audit --json' for machine-readable output
+Run 'gpm audit --output report.json' to save results
 ```
 
 ### Terminal Output (Detailed Mode)
@@ -407,7 +407,7 @@ Issues:
   • Security scans only run on schedule, not on PR
 
 Recommendations:
-  • Add 'gwm security' step to test.yml for PR validation
+  • Add 'gpm security' step to test.yml for PR validation
   • Enable Dependabot for automated dependency updates
   • Add npm audit check to CI
 
@@ -420,7 +420,7 @@ Recommendations:
 {
   "repository": {
     "owner": "littlebearapps",
-    "repo": "git-workflow-manager"
+    "repo": "git-pr-manager"
   },
   "timestamp": "2025-11-14T10:30:00Z",
   "ci": {
@@ -469,8 +469,8 @@ Recommendations:
         "effort": "low",
         "category": "ci",
         "title": "Add security scan to PR workflow",
-        "description": "Add 'gwm security' step to test.yml",
-        "actionable": "Add step: - name: Security scan\n  run: gwm security"
+        "description": "Add 'gpm security' step to test.yml",
+        "actionable": "Add step: - name: Security scan\n  run: gpm security"
       }
     ]
   },
@@ -671,8 +671,8 @@ Recommendations:
 
 **Deliverables**:
 ```bash
-gwm audit  # Branch protection + secrets + basic security
-gwm audit --json
+gpm audit  # Branch protection + secrets + basic security
+gpm audit --json
 ```
 
 **Test Coverage**: >80% for new code (RepoAuditor, audit command)
@@ -692,8 +692,8 @@ gwm audit --json
 
 **Deliverables**:
 ```bash
-gwm audit --check=ci           # Just CI analysis
-gwm audit --check=ci --detailed  # Full CI breakdown
+gpm audit --check=ci           # Just CI analysis
+gpm audit --check=ci --detailed  # Full CI breakdown
 ```
 
 **Test Coverage**: >80% for CIAnalyzer
@@ -713,8 +713,8 @@ gwm audit --check=ci --detailed  # Full CI breakdown
 
 **Deliverables**:
 ```bash
-gwm audit --check=linting
-gwm audit --check=linting --detailed
+gpm audit --check=linting
+gpm audit --check=linting --detailed
 ```
 
 **Test Coverage**: >80% for LintConfigDetector
@@ -733,8 +733,8 @@ gwm audit --check=linting --detailed
 
 **Deliverables**:
 ```bash
-gwm audit --baseline baseline.json  # Compare against baseline
-gwm audit --output audit-report.json  # Save for baseline
+gpm audit --baseline baseline.json  # Compare against baseline
+gpm audit --output audit-report.json  # Save for baseline
 ```
 
 **Scoring Weights** (proposed):
@@ -762,19 +762,19 @@ gwm audit --output audit-report.json  # Save for baseline
 **Deliverables**:
 - All tests passing
 - Coverage >80%
-- README updated with `gwm audit` examples
+- README updated with `gpm audit` examples
 - CLAUDE.md updated with audit command reference
 
 ---
 
 ## 📚 Integration Points
 
-### 1. Extend `gwm doctor`
+### 1. Extend `gpm doctor`
 
 Add repository audit to health check:
 
 ```bash
-gwm doctor --repo  # Include repo audit in health check
+gpm doctor --repo  # Include repo audit in health check
 ```
 
 **Output**:
@@ -793,17 +793,17 @@ gwm doctor --repo  # Include repo audit in health check
 
 Overall: 84/100 (B)
 
-Run 'gwm audit' for full report
+Run 'gpm audit' for full report
 ```
 
 ---
 
-### 2. Smart `gwm init`
+### 2. Smart `gpm init`
 
 Run audit first, suggest template based on findings:
 
 ```bash
-gwm init --audit
+gpm init --audit
 ```
 
 **Behavior**:
@@ -819,9 +819,9 @@ gwm init --audit
 ### 3. Continuous Monitoring (Future)
 
 ```bash
-gwm audit --watch  # Re-run audit on file changes
-gwm audit --baseline baseline.json  # Save current state
-gwm audit --compare baseline.json  # Compare against baseline
+gpm audit --watch  # Re-run audit on file changes
+gpm audit --baseline baseline.json  # Save current state
+gpm audit --compare baseline.json  # Compare against baseline
 ```
 
 ---
@@ -841,11 +841,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install gwm
-        run: npm install -g @littlebearapps/git-workflow-manager
+      - name: Install gpm
+        run: npm install -g @littlebearapps/git-pr-manager
 
       - name: Run audit
-        run: gwm audit --json > audit-report.json
+        run: gpm audit --json > audit-report.json
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -868,7 +868,7 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 title: `Repository audit score: ${audit.overall.score}/100 (${audit.overall.grade})`,
-                body: `## Audit Results\n\n${audit.overall.summary}\n\n### Top Recommendations\n\n${audit.overall.topRecommendations.map(r => `- ${r.title}`).join('\n')}\n\nRun \`gwm audit\` for full report.`,
+                body: `## Audit Results\n\n${audit.overall.summary}\n\n### Top Recommendations\n\n${audit.overall.topRecommendations.map(r => `- ${r.title}`).join('\n')}\n\nRun \`gpm audit\` for full report.`,
                 labels: ['maintenance', 'security']
               });
             }
@@ -907,7 +907,7 @@ jobs:
 - ✅ Use existing `GitHubService` caching (ETag support)
 - ✅ Use existing rate limit handling
 - Show progress spinner during audit
-- Allow selective audits: `gwm audit --check=security` (fewer API calls)
+- Allow selective audits: `gpm audit --check=security` (fewer API calls)
 - Cache audit results for 5 minutes (optional)
 
 **Estimated API Calls**:
@@ -938,7 +938,7 @@ jobs:
 - Implement timeout (30 seconds default)
 - Parallel API requests where possible
 - Show progress: "Analyzing workflows... (2/5)"
-- Allow skipping slow checks: `gwm audit --quick` (skip workflow parsing)
+- Allow skipping slow checks: `gpm audit --quick` (skip workflow parsing)
 
 ---
 
@@ -948,7 +948,7 @@ jobs:
 
 **Solutions**:
 - Conservative detection (only flag clear cases)
-- Allow configuration overrides in `.gwm.yml`:
+- Allow configuration overrides in `.gpm.yml`:
   ```yaml
   audit:
     ci:
@@ -963,7 +963,7 @@ jobs:
 ## 🎯 Success Metrics
 
 ### Quantitative
-- **Adoption**: >50% of gwm users run audit within 30 days of v1.5 release
+- **Adoption**: >50% of gpm users run audit within 30 days of v1.5 release
 - **Performance**: Audit completes in <30 seconds for typical repository
 - **Coverage**: >80% test coverage for new code
 - **API Efficiency**: <25 API calls per full audit (leverage caching)
@@ -980,7 +980,7 @@ jobs:
 ### Phase 6: Auto-Fix (Future)
 
 ```bash
-gwm audit --fix  # Automatically create PRs to fix issues
+gpm audit --fix  # Automatically create PRs to fix issues
 ```
 
 **Auto-fixable issues**:
@@ -993,11 +993,11 @@ gwm audit --fix  # Automatically create PRs to fix issues
 
 ### Phase 7: Trend Tracking (Future)
 
-Store audit history in `.gwm-audit-history.json`:
+Store audit history in `.gpm-audit-history.json`:
 
 ```bash
-gwm audit --track  # Append to history
-gwm audit --history  # Show trend over time
+gpm audit --track  # Append to history
+gpm audit --history  # Show trend over time
 ```
 
 **Output**:
@@ -1029,9 +1029,9 @@ Issues:
 Pre-configured audit profiles for compliance frameworks:
 
 ```bash
-gwm audit --profile=pci-dss  # PCI DSS compliance
-gwm audit --profile=soc2     # SOC 2 compliance
-gwm audit --profile=gdpr     # GDPR compliance
+gpm audit --profile=pci-dss  # PCI DSS compliance
+gpm audit --profile=soc2     # SOC 2 compliance
+gpm audit --profile=gdpr     # GDPR compliance
 ```
 
 ---
@@ -1041,8 +1041,8 @@ gwm audit --profile=gdpr     # GDPR compliance
 Compare against other repositories:
 
 ```bash
-gwm audit --benchmark  # Compare to public repos
-gwm audit --benchmark=team  # Compare to org repos
+gpm audit --benchmark  # Compare to public repos
+gpm audit --benchmark=team  # Compare to org repos
 ```
 
 **Output**:
@@ -1066,16 +1066,16 @@ You're above average! 🎉
 Add new section:
 
 ```markdown
-### `gwm audit` - Repository Health Check
+### `gpm audit` - Repository Health Check
 
 Audit your repository's security posture, CI/CD setup, and code quality tooling.
 
 **Usage:**
 ```bash
-gwm audit                     # Full audit
-gwm audit --check=security    # Security only
-gwm audit --json              # JSON output
-gwm audit --detailed          # Detailed report
+gpm audit                     # Full audit
+gpm audit --check=security    # Security only
+gpm audit --json              # JSON output
+gpm audit --detailed          # Detailed report
 ```
 
 **What it checks:**
@@ -1152,9 +1152,9 @@ To proceed with implementation:
 1. **Scope**: Start with Phase 1 only, or commit to all 5 phases?
 2. **Scoring weights**: Agree on category weights (Security: 40%, Branch: 25%, CI: 20%, Linting: 15%)?
 3. **Output format**: Terminal output design approval needed?
-4. **Integration**: Should this be `gwm audit` or extend `gwm doctor --repo`?
+4. **Integration**: Should this be `gpm audit` or extend `gpm doctor --repo`?
 5. **Token scopes**: Acceptable to require `security_events` scope, or graceful degradation only?
-6. **Baselines**: Store baselines in `.gwm-audit-baseline.json` or separate directory?
+6. **Baselines**: Store baselines in `.gpm-audit-baseline.json` or separate directory?
 
 ---
 
@@ -1173,10 +1173,10 @@ To proceed with implementation:
 **Decision**: CLI-first for v1.5, GitHub App for future if demand exists
 
 ### Approach 3: Separate CLI Tool
-**Idea**: Build as standalone tool (`gh-audit`) instead of gwm feature
+**Idea**: Build as standalone tool (`gh-audit`) instead of gpm feature
 **Pros**: Focused tool, independent versioning
 **Cons**: Duplicate infrastructure (GitHubService, auth, etc.)
-**Decision**: Integrate into gwm - synergy with existing code, unified developer experience
+**Decision**: Integrate into gpm - synergy with existing code, unified developer experience
 
 ---
 

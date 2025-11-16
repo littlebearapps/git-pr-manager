@@ -146,7 +146,7 @@ describe('ConfigService', () => {
         lineWidth: 0
       });
       expect(mockedFsWriteFile).toHaveBeenCalledWith(
-        '/test/dir/.gwm.yml',
+        '/test/dir/.gpm.yml',
         'yaml content',
         'utf-8'
       );
@@ -196,7 +196,7 @@ describe('ConfigService', () => {
       const savedYaml = mockedFsWriteFile.mock.calls[0][1];
       expect(savedYaml).toContain('enabled: false'); // branchProtection.enabled
       expect(savedYaml).toContain('💡 AI Agent Guidance'); // Contains AI guidance comments
-      expect(savedYaml).toContain('gwm ship'); // Contains workflow suggestions
+      expect(savedYaml).toContain('gpm ship'); // Contains workflow suggestions
     });
 
     it('should initialize with standard template', async () => {
