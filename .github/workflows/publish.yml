@@ -63,6 +63,16 @@ jobs:
           echo "tag=${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT
           echo "Publishing with tag '${{ github.event.inputs.tag }}' (manual trigger)"
 
+      - name: Debug OIDC environment
+        run: |
+          echo "=== OIDC Debug Information ==="
+          echo "ACTIONS_ID_TOKEN_REQUEST_URL: ${ACTIONS_ID_TOKEN_REQUEST_URL:-NOT SET}"
+          echo "ACTIONS_ID_TOKEN_REQUEST_TOKEN: ${ACTIONS_ID_TOKEN_REQUEST_TOKEN:+SET}"
+          echo "CI: ${CI:-NOT SET}"
+          echo "GITHUB_ACTIONS: ${GITHUB_ACTIONS:-NOT SET}"
+          echo "=== Permissions Check ==="
+          echo "id-token permission should allow OIDC token requests"
+
       - name: Publish to npm
         run: |
           if [ "${{ github.event_name }}" == "release" ]; then
