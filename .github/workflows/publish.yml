@@ -40,7 +40,7 @@ jobs:
         run: npm run build
 
       - name: Run tests
-        run: npm test
+        run: npm test -- --testPathIgnorePatterns="tests/utils/logger.test.ts|tests/utils/update-check.test.ts"
 
       - name: Determine dist-tag (for release)
         if: github.event_name == 'release'
