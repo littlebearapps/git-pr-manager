@@ -64,6 +64,29 @@ function main() {
     }
   }
 
+  // Internal telemetry setup (Nathan only - private)
+  try {
+    const os = require('os');
+    const path = require('path');
+    const fs = require('fs');
+
+    const username = os.userInfo().username;
+    if (username === 'nathanschram') {
+      const telemetryPath = path.join(__dirname, '../../telemetry');
+
+      if (fs.existsSync(telemetryPath)) {
+        console.log('🔧 Setting up internal telemetry...');
+        execSync('npm install', {
+          cwd: telemetryPath,
+          stdio: 'inherit'
+        });
+        console.log('✅ Internal telemetry ready\n');
+      }
+    }
+  } catch (error) {
+    // Silently fail - telemetry is optional internal tooling
+  }
+
   // Show quick start guide
   console.log('📖 Quick Start:');
   console.log('   gpm init              - Initialize .gpm.yml configuration');

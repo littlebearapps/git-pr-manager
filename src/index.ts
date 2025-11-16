@@ -25,6 +25,28 @@ maybeNotifyUpdate({ pkg, argv: process.argv }).catch(() => {
   // Silently fail - update check is non-critical
 });
 
+// Internal telemetry (optional - Nathan only, private)
+let telemetry: any = null;
+(async () => {
+  try {
+    const os = await import('os');
+    const username = os.userInfo().username;
+
+    if (username === 'nathanschram') {
+      // @ts-ignore - Optional internal telemetry module (no types needed)
+      const { initTelemetry, captureBreadcrumb, captureError } = await import('../telemetry/src/telemetry.js');
+      telemetry = {
+        init: () => initTelemetry('git-pr-manager', pkg.version),
+        breadcrumb: captureBreadcrumb,
+        error: captureError
+      };
+      telemetry.init();
+    }
+  } catch {
+    // Telemetry not available - gracefully degrade
+  }
+})();
+
 const program = new Command();
 
 program
@@ -37,6 +59,12 @@ program
   .option('--verbose', 'Verbose mode (detailed output)')
   .hook('preAction', (thisCommand) => {
     const opts = thisCommand.opts();
+
+    // Capture command execution breadcrumb
+    telemetry?.breadcrumb(`command:${thisCommand.name()}`, {
+      args: thisCommand.args,
+      options: Object.keys(opts)
+    });
 
     // Configure logger based on flags
     if (opts.json) {
@@ -178,6 +206,7 @@ worktree
 // Global error handler
 process.on('uncaughtException', (error) => {
   logger.error(`Uncaught exception: ${error.message}`);
+  telemetry?.error(error, { type: 'uncaughtException' });
   if (process.env.DEBUG) {
     console.error(error);
   }
@@ -186,6 +215,8 @@ process.on('uncaughtException', (error) => {
 
 process.on('unhandledRejection', (reason) => {
   logger.error(`Unhandled rejection: ${reason}`);
+  const error = reason instanceof Error ? reason : new Error(String(reason));
+  telemetry?.error(error, { type: 'unhandledRejection' });
   if (process.env.DEBUG) {
     console.error(reason);
   }
