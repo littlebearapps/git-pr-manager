@@ -49,3 +49,4 @@ CLAUDE.local.md
 *.key
 *.pem
 .env.production
+telemetry/
