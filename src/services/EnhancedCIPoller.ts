@@ -352,6 +352,10 @@ export class EnhancedCIPoller {
   }
 
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise(resolve => {
+      const timer = setTimeout(resolve, ms);
+      // Prevent timer from keeping Node.js process alive
+      timer.unref();
+    });
   }
 }
