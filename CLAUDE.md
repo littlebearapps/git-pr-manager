@@ -1,8 +1,8 @@
 # Git PR Manager - Claude Code Context
 
 **Last Updated**: 2025-11-16
-**Version**: 1.4.0
-**Status**: Production-ready npm package (ready for publishing)
+**Version**: 1.4.1
+**Status**: Production-ready npm package (CloakPipe telemetry integrated)
 
 ---
 
@@ -11,9 +11,9 @@
 Production-ready git workflow automation for GitHub with Claude Code integration. Streamlines feature development with intelligent CI polling, comprehensive error reporting, automated PR workflows, git hooks integration, and git worktree management.
 
 **Repository**: https://github.com/littlebearapps/git-pr-manager
-**npm Package**: @littlebearapps/git-pr-manager (⚠️ Not yet published to npm)
+**npm Package**: @littlebearapps/git-pr-manager
 **License**: MIT
-**Status**: v1.4.0 - Release Ready 🎉
+**Status**: v1.4.1 - Production Ready 🎉
 
 ### Release 1.4.0 - ✅ COMPLETE (2025-11-15)
 
@@ -338,27 +338,40 @@ npm publish --tag latest  # Stable
 ## CloakPipe Telemetry (Internal)
 
 **What**: Private error logging for Nathan-only development debugging
-**Status**: Automatically excluded from all public releases (npm/Homebrew)
+**Status**: ✅ Production (v1.4.1) - Automatically excluded from all public releases
 
-### How It Works
+### Configuration
+- **Product Name**: `gitprmanager` (normalized for CloakPipe)
+- **Worker URL**: `https://cloakpipe-worker-prod.littlebearapps.workers.dev`
+- **HMAC Key**: `CLOAKPIPE_HMAC_KEY` environment variable (stored in keychain)
 - **Activation**: Username detection (`os.userInfo().username === 'nathanschram'`)
-- **Location**: Git submodule at `./telemetry/` (private repo, not in package)
-- **External Users**: Zero impact - code not present, gracefully degrades
+- **Location**: `./telemetry/` directory (git cloned on Nathan's machine only)
+
+### Testing Verified
+- ✅ End-to-end test successful ([Issue #11](https://github.com/littlebearapps/git-pr-manager/issues/11))
+- ✅ Error capture and GitHub issue creation working
+- ✅ HMAC authentication validated
+- ✅ PII sanitization confirmed
 
 ### Release Process (npm/Homebrew)
 
 **✅ No Action Required** - Automatic exclusion via:
-1. `.npmignore` excludes `telemetry/` and `.gitmodules`
-2. Package verification: `npm pack --dry-run 2>&1 | grep telemetry` (no output = excluded)
-3. Package size: ~325 KB (telemetry would add ~50 KB if included)
+1. `.gitignore` excludes `telemetry/` directory
+2. `.npmignore` excludes `telemetry/` and `.gitmodules`
+3. Package verification: `npm pack --dry-run 2>&1 | grep telemetry` (no output = excluded)
 
 ### Implementation Pattern
 ```typescript
-// src/index.ts - Username detection with graceful degradation
+// src/index.ts - Username detection with graceful degradation (lines 29-48)
 if (username === 'nathanschram') {
   const { initTelemetry, captureBreadcrumb, captureError } =
     await import('../telemetry/src/telemetry.js');
-  // Initialize and use with optional chaining: telemetry?.method()
+  telemetry = {
+    init: () => initTelemetry('gitprmanager', pkg.version),
+    breadcrumb: captureBreadcrumb,
+    error: captureError
+  };
+  telemetry.init();
 }
 ```
 

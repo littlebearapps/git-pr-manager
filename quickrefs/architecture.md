@@ -365,7 +365,7 @@ let telemetry: any = null;
         await import('../telemetry/src/telemetry.js');
 
       telemetry = {
-        init: () => initTelemetry('git-pr-manager', pkg.version),
+        init: () => initTelemetry('gitprmanager', pkg.version),
         breadcrumb: captureBreadcrumb,
         error: captureError
       };
