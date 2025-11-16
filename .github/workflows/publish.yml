@@ -70,7 +70,7 @@ jobs:
             TAG="${{ steps.tag-manual.outputs.tag }}"
           fi
           echo "Publishing with dist-tag: $TAG"
-          npm publish --tag $TAG --provenance
+          npm publish --tag $TAG --provenance --access public
         # OIDC authentication - no token needed!
         # npm will automatically use OIDC when NODE_AUTH_TOKEN is not provided
 
