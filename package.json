@@ -1,6 +1,6 @@
 {
   "name": "@littlebearapps/git-pr-manager",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "Production-ready git workflow automation for GitHub with Claude Code integration",
   "main": "dist/index.js",
   "bin": {
