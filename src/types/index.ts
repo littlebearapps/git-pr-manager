@@ -355,3 +355,99 @@ export interface WorktreeConflict {
   branchName: string;
   worktrees: string[];   // Paths where branch is checked out
 }
+
+// Phase 1a: Multi-Language Support Types
+
+/**
+ * Supported programming languages
+ */
+export type Language = 'python' | 'nodejs' | 'go' | 'rust';
+
+/**
+ * Supported package managers by language
+ */
+export type PackageManager =
+  // Python
+  | 'poetry'
+  | 'pipenv'
+  | 'uv'
+  | 'pip'
+  // Node.js
+  | 'pnpm'
+  | 'yarn'
+  | 'bun'
+  | 'npm'
+  // Go (single package manager)
+  | 'go-mod'
+  // Rust (single package manager)
+  | 'cargo';
+
+/**
+ * Detected language information
+ */
+export interface DetectedLanguage {
+  primary: Language;           // Main language of the project
+  additional: Language[];      // Additional languages (for monorepos)
+  confidence: number;          // Detection confidence (0-100)
+  sources: string[];          // Files that led to detection
+}
+
+/**
+ * Detected package manager information
+ */
+export interface DetectedPackageManager {
+  packageManager: PackageManager;
+  lockFile: string | null;     // Path to lock file (if exists)
+  confidence: number;          // Detection confidence (0-100)
+}
+
+/**
+ * Tool commands for a specific language/task
+ */
+export interface ToolCommands {
+  lint: string[];              // Lint commands (fallback chain)
+  test: string[];              // Test commands (fallback chain)
+  typecheck?: string[];        // Type check commands (optional)
+  format?: string[];           // Format commands (optional)
+  build?: string[];            // Build commands (optional)
+  install?: string[];          // Install commands (optional)
+}
+
+/**
+ * Language detection configuration
+ */
+export interface LanguageConfig {
+  primary?: Language;          // Explicit language override
+  additional?: Language[];     // Additional languages for monorepos
+  autoDetect?: boolean;        // Enable auto-detection (default: true)
+  packageManager?: PackageManager; // Explicit package manager override
+}
+
+/**
+ * Verification configuration
+ */
+export interface VerificationConfig {
+  language?: LanguageConfig;
+
+  // Custom command overrides
+  commands?: {
+    lint?: string;
+    test?: string;
+    typecheck?: string;
+    format?: string;
+    build?: string;
+  };
+
+  // Makefile integration
+  preferMakefile?: boolean;    // Prefer Makefile targets (default: true)
+  makefileTargets?: {
+    lint?: string;
+    test?: string;
+    typecheck?: string;
+    format?: string;
+    build?: string;
+  };
+
+  // Detection
+  detectionEnabled?: boolean;  // Enable language detection (default: true)
+}
