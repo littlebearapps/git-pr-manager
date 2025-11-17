@@ -47,10 +47,19 @@ jobs:
         # Ensure package builds successfully
 
       - name: Release
+        id: release
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # NO NPM_TOKEN NEEDED - OIDC handles npm authentication
         run: npx semantic-release
+
+      - name: Verify publication (handles E409 packument errors)
+        if: steps.release.outcome == 'failure'
+        run: |
+          chmod +x .github/scripts/publish-with-retry.sh
+          PACKAGE_NAME=$(node -p "require('./package.json').name")
+          ./.github/scripts/publish-with-retry.sh "$PACKAGE_NAME"
 
       - name: Verify release
         if: success()
