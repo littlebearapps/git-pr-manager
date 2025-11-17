@@ -1,8 +1,8 @@
 # Git PR Manager - Claude Code Context
 
-**Last Updated**: 2025-11-16
+**Last Updated**: 2025-11-17
 **Version**: 1.4.3
-**Status**: Production-ready npm package (⚠️ OIDC publishing setup in progress)
+**Status**: Production-ready with automated semantic-release and OIDC publishing ✅
 
 ---
 
@@ -13,9 +13,27 @@ Production-ready git workflow automation for GitHub with Claude Code integration
 **Repository**: https://github.com/littlebearapps/git-pr-manager
 **npm Package**: @littlebearapps/git-pr-manager
 **License**: MIT
-**Status**: v1.4.2 - Production Ready 🎉
+**Status**: v1.4.3 - Production Ready with Automated Publishing 🎉
 
-### Release 1.4.0 - ✅ COMPLETE (2025-11-15)
+### Release 1.4.3 - ✅ COMPLETE (2025-11-17)
+
+**Automated Publishing Infrastructure**
+- ✅ semantic-release integration for automated version management
+- ✅ OIDC (OpenID Connect) authentication with npm (tokenless publishing)
+- ✅ Provenance attestations for enhanced package security
+- ✅ Repository made public to support provenance
+- ✅ Automated changelog generation from conventional commits
+- ✅ GitHub releases created automatically on push to main
+- ✅ No manual npm tokens or version bumping required
+
+**Publishing Workflow**
+- Push conventional commit (feat:, fix:, docs:, refactor:, perf:) to main
+- semantic-release analyzes commits and determines version bump
+- Package published to npm with cryptographic attestations
+- GitHub release created with auto-generated changelog
+- All automated via GitHub Actions with OIDC
+
+### Release 1.4.0-1.4.2 - ✅ COMPLETE (2025-11-15)
 
 **Phase 2: Git Hooks Integration**
 - ✅ Non-blocking reminder hooks (pre-push, post-commit)
@@ -47,14 +65,6 @@ Production-ready git workflow automation for GitHub with Claude Code integration
 - ✅ JSON output schemas for worktree commands
 
 ### Known Issues
-
-#### 🔴 Critical
-- **OIDC Publishing Setup Required**: v1.4.3 prepared for OIDC publishing but needs npmjs.com configuration
-  - **Error**: `npm error code ENEEDAUTH` (Workflow run 19403947509)
-  - **Root cause**: npm Trusted Publisher not configured on npmjs.com
-  - **Action**: Configure trusted publisher on npmjs.com (see `docs/OIDC-VERIFICATION-CHECKLIST.md`)
-  - **Status**: Workflow ready, waiting for npmjs.com configuration
-  - **Details**: All workflow issues fixed (6 iterations), OIDC requires web portal setup
 
 #### ℹ️ Enhancement Opportunities
 - Add `--force` flag to `gpminit` for intentional config overwrites

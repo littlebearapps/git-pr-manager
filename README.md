@@ -8,12 +8,19 @@ Production-ready git workflow automation for GitHub with Claude Code integration
 
 ## ✨ What's New in v1.4.3
 
-### Security Enhancement
-- **npm Trusted Publishers with OIDC** - Migrated from token-based authentication to OpenID Connect for secure, token-less publishing from GitHub Actions
+### Automated Publishing Infrastructure
+- **semantic-release Integration** - Fully automated version management and publishing
+  - Automatic version determination from conventional commits (feat:, fix:, docs:, etc.)
+  - Auto-generated changelogs based on commit history
+  - GitHub releases created automatically on push to main
+  - Zero manual version bumping or changelog maintenance
+
+- **npm OIDC Publishing** - Secure, tokenless authentication with npm
   - Zero credential management - no NPM_TOKEN secret needed
   - Short-lived tokens auto-generated per workflow run
-  - Cryptographic provenance attestation for published packages
-  - See `docs/NPM-TRUSTED-PUBLISHER-SETUP.md` for complete setup guide
+  - Cryptographic provenance attestations for enhanced security
+  - Public repository with full transparency
+  - See `docs/NPM-TRUSTED-PUBLISHER-SETUP.md` for setup details
 
 ### Previous Release (v1.4.0-1.4.2)
 
