@@ -146,6 +146,7 @@ program
   .option('--skip-typecheck', 'Skip TypeScript type check')
   .option('--skip-test', 'Skip test suite')
   .option('--skip-build', 'Skip build step')
+  .option('--skip-install', 'Skip dependency installation')
   .action(verifyCommand);
 
 program
