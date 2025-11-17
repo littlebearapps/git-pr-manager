@@ -121,9 +121,10 @@ describe('doctor command', () => {
       }) as any);
 
       // Keychain helper exists
-      mockedExistsSync.mockImplementation((path: any) => {
-        const pathStr = path.toString();
-        if (pathStr.includes('bin/kc.sh')) return true;
+      mockedExistsSync.mockImplementation((checkPath: any) => {
+        const pathStr = checkPath.toString();
+        // Check for keychain helper with platform-agnostic path separators
+        if (pathStr.includes('bin') && pathStr.includes('kc.sh')) return true;
         return false;
       });
     });

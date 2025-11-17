@@ -1,6 +1,7 @@
 import { getGitHooksDir, fileExists, isGpmHook } from '../../src/utils/git-hooks';
 import * as fs from 'fs/promises';
 import { execSync } from 'child_process';
+import * as path from 'path';
 
 // Mock dependencies
 jest.mock('fs/promises');
@@ -20,43 +21,47 @@ describe('git-hooks utility', () => {
         // Mock git rev-parse returning .git
         mockedExecSync.mockReturnValue('.git');
 
-        const result = await getGitHooksDir('/test/repo');
+        const testRepo = path.resolve('/test/repo');
+        const result = await getGitHooksDir(testRepo);
 
         expect(mockedExecSync).toHaveBeenCalledWith(
           'git rev-parse --git-common-dir',
           expect.objectContaining({
-            cwd: '/test/repo',
+            cwd: testRepo,
             encoding: 'utf-8'
           })
         );
 
-        expect(result).toBe('/test/repo/.git/hooks');
+        expect(result).toBe(path.join(testRepo, '.git', 'hooks'));
       });
 
       it('should use git rev-parse for worktree', async () => {
         // Mock git rev-parse returning path to bare repo (absolute path)
-        mockedExecSync.mockReturnValue('/test/.bare');
+        const testBare = path.resolve('/test/.bare');
+        mockedExecSync.mockReturnValue(testBare);
 
-        const result = await getGitHooksDir('/test/repo/main');
+        const testRepoMain = path.resolve('/test/repo/main');
+        const result = await getGitHooksDir(testRepoMain);
 
         expect(mockedExecSync).toHaveBeenCalledWith(
           'git rev-parse --git-common-dir',
           expect.objectContaining({
-            cwd: '/test/repo/main'
+            cwd: testRepoMain
           })
         );
 
         // When git rev-parse returns absolute path, path.resolve uses it directly
-        expect(result).toBe('/test/.bare/hooks');
+        expect(result).toBe(path.join(testBare, 'hooks'));
       });
 
       it('should handle relative path from git rev-parse', async () => {
         // Mock git rev-parse returning relative path
         mockedExecSync.mockReturnValue('../.bare');
 
-        const result = await getGitHooksDir('/test/repo/main');
+        const testRepoMain = path.resolve('/test/repo/main');
+        const result = await getGitHooksDir(testRepoMain);
 
-        expect(result).toBe('/test/repo/.bare/hooks');
+        expect(result).toBe(path.resolve(testRepoMain, '..', '.bare', 'hooks'));
       });
     });
 
@@ -74,9 +79,10 @@ describe('git-hooks utility', () => {
           isFile: () => false
         } as any);
 
-        const result = await getGitHooksDir('/test/repo');
+        const testRepo = path.resolve('/test/repo');
+        const result = await getGitHooksDir(testRepo);
 
-        expect(result).toBe('/test/repo/.git/hooks');
+        expect(result).toBe(path.join(testRepo, '.git', 'hooks'));
       });
 
       it('should handle worktree .git file', async () => {
@@ -85,14 +91,16 @@ describe('git-hooks utility', () => {
           isFile: () => true
         } as any);
 
+        const testRepoBare = path.resolve('/test/repo/.bare');
         mockedFs.readFile.mockResolvedValue(
-          'gitdir: /test/repo/.bare/worktrees/main\n'
+          `gitdir: ${path.join(testRepoBare, 'worktrees', 'main')}\n`
         );
 
-        const result = await getGitHooksDir('/test/repo/main');
+        const testRepoMain = path.resolve('/test/repo/main');
+        const result = await getGitHooksDir(testRepoMain);
 
         // Should navigate from .bare/worktrees/main -> .bare/hooks
-        expect(result).toBe('/test/repo/.bare/hooks');
+        expect(result).toBe(path.join(testRepoBare, 'hooks'));
       });
 
       it('should handle worktree .git file with relative path', async () => {
@@ -105,15 +113,17 @@ describe('git-hooks utility', () => {
           'gitdir: ../.bare/worktrees/main\n'
         );
 
-        const result = await getGitHooksDir('/test/repo/main');
+        const testRepoMain = path.resolve('/test/repo/main');
+        const result = await getGitHooksDir(testRepoMain);
 
-        expect(result).toBe('/test/repo/.bare/hooks');
+        expect(result).toBe(path.resolve(testRepoMain, '..', '.bare', 'hooks'));
       });
 
       it('should throw error when not in git repo', async () => {
         mockedFs.stat.mockRejectedValue(new Error('ENOENT'));
 
-        await expect(getGitHooksDir('/test/not-a-repo')).rejects.toThrow(
+        const testNotRepo = path.resolve('/test/not-a-repo');
+        await expect(getGitHooksDir(testNotRepo)).rejects.toThrow(
           'Not a git repository'
         );
       });
@@ -126,7 +136,8 @@ describe('git-hooks utility', () => {
 
         mockedFs.readFile.mockResolvedValue('invalid content');
 
-        await expect(getGitHooksDir('/test/repo')).rejects.toThrow(
+        const testRepo = path.resolve('/test/repo');
+        await expect(getGitHooksDir(testRepo)).rejects.toThrow(
           'Not a git repository'
         );
       });
@@ -137,16 +148,18 @@ describe('git-hooks utility', () => {
     it('should return true when file exists', async () => {
       mockedFs.access.mockResolvedValue(undefined);
 
-      const result = await fileExists('/test/file.txt');
+      const testFile = path.resolve('/test/file.txt');
+      const result = await fileExists(testFile);
 
       expect(result).toBe(true);
-      expect(mockedFs.access).toHaveBeenCalledWith('/test/file.txt');
+      expect(mockedFs.access).toHaveBeenCalledWith(testFile);
     });
 
     it('should return false when file does not exist', async () => {
       mockedFs.access.mockRejectedValue(new Error('ENOENT'));
 
-      const result = await fileExists('/test/missing.txt');
+      const testMissing = path.resolve('/test/missing.txt');
+      const result = await fileExists(testMissing);
 
       expect(result).toBe(false);
     });
@@ -160,7 +173,8 @@ describe('git-hooks utility', () => {
 `;
       mockedFs.readFile.mockResolvedValue(hookContent);
 
-      const result = await isGpmHook('/test/.git/hooks/pre-push');
+      const hookPath = path.resolve('/test/.git/hooks/pre-push');
+      const result = await isGpmHook(hookPath);
 
       expect(result).toBe(true);
     });
@@ -172,7 +186,8 @@ describe('git-hooks utility', () => {
 `;
       mockedFs.readFile.mockResolvedValue(hookContent);
 
-      const result = await isGpmHook('/test/.git/hooks/post-commit');
+      const hookPath = path.resolve('/test/.git/hooks/post-commit');
+      const result = await isGpmHook(hookPath);
 
       expect(result).toBe(true);
     });
@@ -184,7 +199,8 @@ describe('git-hooks utility', () => {
 `;
       mockedFs.readFile.mockResolvedValue(hookContent);
 
-      const result = await isGpmHook('/test/.git/hooks/pre-push');
+      const hookPath = path.resolve('/test/.git/hooks/pre-push');
+      const result = await isGpmHook(hookPath);
 
       expect(result).toBe(false);
     });
@@ -192,7 +208,8 @@ describe('git-hooks utility', () => {
     it('should return false when hook file cannot be read', async () => {
       mockedFs.readFile.mockRejectedValue(new Error('ENOENT'));
 
-      const result = await isGpmHook('/test/.git/hooks/pre-push');
+      const hookPath = path.resolve('/test/.git/hooks/pre-push');
+      const result = await isGpmHook(hookPath);
 
       expect(result).toBe(false);
     });

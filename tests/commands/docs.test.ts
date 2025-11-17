@@ -12,6 +12,7 @@ jest.mock('../../src/utils/logger', () => ({
 import { docsCommand } from '../../src/commands/docs';
 import { logger } from '../../src/utils/logger';
 import { existsSync, readFileSync } from 'fs';
+import * as path from 'path';
 
 describe('docs command', () => {
   let consoleLogSpy: jest.SpyInstance;
@@ -180,15 +181,18 @@ describe('docs command', () => {
     });
 
     it('should check docs/guides directory first', async () => {
-      (existsSync as jest.Mock).mockImplementation(((path: any) => {
-        return String(path).includes('docs/guides');
+      (existsSync as jest.Mock).mockImplementation(((checkPath: any) => {
+        // Check for both Unix (docs/guides) and Windows (docs\guides) paths
+        const pathStr = String(checkPath);
+        return pathStr.includes('docs') && pathStr.includes('guides');
       }) as any);
       (readFileSync as jest.Mock).mockReturnValue('Content');
 
       await docsCommand({ guide: 'AI-AGENT-INTEGRATION' });
 
       const firstCall = (existsSync as jest.Mock).mock.calls[0][0];
-      expect(firstCall).toContain('docs/guides');
+      const firstCallStr = String(firstCall);
+      expect(firstCallStr.includes('docs') && firstCallStr.includes('guides')).toBe(true);
     });
   });
 
