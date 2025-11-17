@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question or Discussion
+    url: https://github.com/littlebearapps/git-pr-manager/discussions
+    about: Ask questions or start discussions about the project
+  - name: Security Vulnerability
+    url: https://github.com/littlebearapps/git-pr-manager/security/advisories/new
+    about: Report security vulnerabilities privately (preferred method - see SECURITY.md)
