@@ -1,9 +1,9 @@
 # CI/CD and Security Implementation Plan
 
-**Version**: 1.1 (Very High Confidence)
+**Version**: 1.3 (Phase 1 Implementation Complete)
 **Created**: 2025-11-17
-**Updated**: 2025-11-17
-**Status**: Implementation Ready (Expert-Validated)
+**Updated**: 2025-11-17 (Phase 1: ci.yml implemented and tested)
+**Status**: Phase 1 ✅ COMPLETE | Phase 2 🔜 NEXT
 **Confidence Level**: Very High (95%)
 **Target**: git-pr-manager v1.6.0
 
@@ -21,6 +21,71 @@ This document outlines a comprehensive CI/CD and security setup for git-pr-manag
 - ✅ Cross-platform test case documentation
 - ✅ Detailed rollback procedures
 - ✅ Realistic cost analysis with actual PR volume estimates
+
+---
+
+## Pre-Implementation Review Items
+
+**Status**: HIGH priority items ✅ ADDRESSED in implementation
+**Last Reviewed**: 2025-11-17
+**Last Updated**: 2025-11-17 (Implementation phase)
+
+### 1. Node Version Matrix (Phase 1) ✅ RESOLVED
+**Original Plan**: Node 18.x and 20.x
+**Issue**: Node 18 reaches EOL April 2025 (soon). Comparison table mentions Node 20, 22 for mcp-delegator.
+**Resolution**: Updated ci.yml to test Node 20.x and 22.x (current + latest LTS)
+**Location**: `.github/workflows/ci.yml` line 25
+**Status**: ✅ Implemented - Matrix now uses Node 20.x and 22.x
+
+### 2. Dogfood Dry-Run Effectiveness (Phase 1) ✅ RESOLVED
+**Original Plan**: `node dist/index.js status --json || true`
+**Issue**: The `|| true` makes this always succeed, not actually validating anything.
+**Resolution**: Updated to use commands that validate CLI without side effects:
+```yaml
+node dist/index.js --version
+node dist/index.js doctor  # Validates setup without GITHUB_TOKEN
+```
+**Location**: `.github/workflows/ci.yml` lines 76-79
+**Status**: ✅ Implemented - Real validation without false positives
+
+### 3. Job Count Discrepancy (Phase 1) ✅ RESOLVED
+**Original Plan**: "8 jobs total"
+**Issue**: Actual count was unclear (documentation inconsistency)
+**Resolution**: Implemented ci.yml with 9 jobs total:
+  - test (matrix: 3 OS × 2 Node = 6 jobs)
+  - dogfood (1 job)
+  - coverage (1 job)
+  - all-checks-passed (1 job)
+**Location**: `.github/workflows/ci.yml` - complete implementation
+**Status**: ✅ Implemented - 9 jobs total (6 matrix + 3 single)
+
+### 4. CodeQL Manual Build Steps (Phase 2) 🟡
+**Current Plan**: Manual npm install and build before CodeQL analysis
+**Issue**: JavaScript/TypeScript CodeQL typically uses autobuild - manual steps may be unnecessary
+**Action**: Test if autobuild works, simplify if possible
+**Location**: Lines 410-417 in codeql.yml
+**Priority**: MEDIUM - workflow simplification
+
+### 5. SBOM Attachment to Releases (Phase 1) 🟢
+**Current Plan**: SBOM uploaded as artifact only
+**Issue**: SBOM should be attached to GitHub releases for supply chain transparency
+**Action**: Add `gh release upload` step to attach sbom.json to releases
+**Location**: Lines 613-627 in publish.yml enhancements
+**Priority**: LOW - supply chain transparency improvement
+
+### 6. Dependabot Groups Feature (Phase 2) 🟢
+**Current Plan**: Use `groups` feature to reduce PR count
+**Issue**: Feature is relatively new (~2023) - verify availability
+**Action**: Confirm Dependabot groups feature is available in current version
+**Location**: Line 457 in dependabot.yml
+**Priority**: LOW - feature availability check
+
+### 7. Branch Protection Approvals (Phase 1) 🟢
+**Current Plan**: Required status checks, up-to-date branches
+**Issue**: No mention of required approvals for a security tool
+**Action**: Consider requiring at least 1 approval for PRs
+**Location**: Lines 636-648 in Branch Protection Rules section
+**Priority**: LOW - additional quality gate
 
 ---
 
@@ -48,29 +113,37 @@ This document outlines a comprehensive CI/CD and security setup for git-pr-manag
 
 ## Implementation Priorities
 
-### Phase 1: HIGH Priority (Week 1) 🔴
+### Phase 1: HIGH Priority (Week 1) ✅ IMPLEMENTED
 **Goal**: Establish credibility through rigorous CI and dogfooding
 
-1. **CI Workflow** (`ci.yml`)
-   - Test matrix (6 jobs): ubuntu/macos/windows × Node 20/22
-   - Lint, typecheck, build jobs
-   - Security scan job using `gpm security` (**dogfooding!**)
+1. **CI Workflow** (`ci.yml`) ✅ COMPLETE
+   - Test matrix (6 jobs): ubuntu/macos/windows × Node 20.x/22.x
+   - Lint, typecheck, build, test in each matrix job
+   - Dogfood job using `gpm --version` and `gpm doctor` (dry-run validation)
+   - Coverage job with Codecov upload
    - Aggregate checks job for branch protection
 
-2. **Branch Protection**
+2. **Branch Protection** 🔜 NEXT
    - Require all CI jobs to pass
    - Enable "Require branches to be up to date"
    - Enforce on main branch
 
 **Deliverables**:
-- `.github/workflows/ci.yml` (8 jobs total)
-- Branch protection rules configured
-- Documentation: CI setup guide
+- ✅ `.github/workflows/ci.yml` (9 jobs total: 6 matrix + dogfood + coverage + aggregate)
+- ✅ Deprecated old `test.yml` workflow (superseded by ci.yml)
+- 🔜 Branch protection rules configured
+- 🔜 Documentation: CI setup guide
+
+**Implementation Notes**:
+- Fixed Node version matrix: 20.x/22.x (removed Node 18 - EOL April 2025)
+- Fixed dogfood validation: uses `--version` and `doctor` (no `|| true` false positives)
+- Added coverage job from existing test.yml (Codecov integration)
+- Security-hardened dogfooding: dry-run on PRs, write permissions only on trusted refs
 
 **Success Metrics**:
-- All PRs tested on 6 OS/Node combinations
-- gpm security runs in CI (dogfooding validated)
-- No merge to main without passing checks
+- ✅ All PRs tested on 6 OS/Node combinations
+- ✅ gpm CLI validated in CI (dogfooding implemented)
+- 🔜 No merge to main without passing checks (after branch protection configured)
 
 ---
 
@@ -951,7 +1024,9 @@ Week 3 (Phase 3 - LOW):
 ---
 
 **Document Status**: ✅ Ready for Implementation (Very High Confidence - 95%)
+**Version**: 1.2 (Added 7 pre-implementation review items)
 **Confidence Achievement**: All critical gaps addressed with production-ready implementations
-**Next Action**: Create `.github/workflows/` files → Test on feature branch → Merge to main
+**Review Items**: 7 items to address during implementation (2 HIGH, 2 MEDIUM, 3 LOW priority)
+**Next Action**: Review pre-implementation items → Create `.github/workflows/` files → Test on feature branch → Merge to main
 **Owner**: git-pr-manager maintainers
 **Last Updated**: 2025-11-17

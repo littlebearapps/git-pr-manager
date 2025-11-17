@@ -1,0 +1,142 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  # Core tests (runs on all platforms/Node versions)
+  test:
+    name: Test (${{ matrix.os }} | Node ${{ matrix.node }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
+        node: [ '20.x', '22.x' ]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm test -- --ci
+
+  # Dogfooding: Use gpm to validate itself
+  # SECURITY: Dry-run on PRs, write permissions only on trusted refs
+  dogfood:
+    name: Dogfood (gpm validates itself)
+    runs-on: ubuntu-latest
+    needs: test
+    if: always() && needs.test.result == 'success'
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: npm
+
+      - name: Install and build gpm
+        run: |
+          npm ci
+          npm run build
+
+      - name: Dogfood - CLI validation (PR dry-run)
+        if: github.event_name == 'pull_request'
+        run: |
+          # Validate CLI works without side effects
+          node dist/index.js --version
+          node dist/index.js doctor
+
+      - name: Dogfood - Security scan (trusted write)
+        if: >
+          github.event_name != 'pull_request' &&
+          (github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch')
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Execute security scan with write permissions on trusted contexts
+          node dist/index.js security
+
+  # Coverage reporting (runs on ubuntu-latest only to avoid duplicate uploads)
+  coverage:
+    name: Code Coverage
+    runs-on: ubuntu-latest
+    needs: test
+    if: always() && needs.test.result == 'success'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Run tests with coverage
+        run: npm run test:coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage/coverage-final.json
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+
+  # Aggregate job for branch protection (easier than requiring all matrix jobs)
+  all-checks-passed:
+    name: All Checks Passed
+    runs-on: ubuntu-latest
+    needs: [test, dogfood, coverage]
+    if: always()
+    steps:
+      - name: Check all jobs succeeded
+        run: |
+          if [ "${{ needs.test.result }}" != "success" ] || \
+             [ "${{ needs.dogfood.result }}" != "success" ] || \
+             [ "${{ needs.coverage.result }}" != "success" ]; then
+            echo "One or more jobs failed"
+            exit 1
+          fi
+          echo "All checks passed!"
