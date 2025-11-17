@@ -1,111 +1,60 @@
-name: Publish to npm
+name: Release
 
 on:
-  release:
-    types: [published]
+  push:
+    branches:
+      - main
   workflow_dispatch:
-    inputs:
-      tag:
-        description: 'Dist-tag to publish (latest or next)'
-        required: true
-        default: 'latest'
-        type: choice
-        options:
-          - latest
-          - next
+
+permissions:
+  contents: read # for checkout
 
 jobs:
-  publish:
-    name: Publish to npm
+  release:
+    name: Release
     runs-on: ubuntu-latest
-    # No environment specified - matches npm trusted publisher config (blank environment)
     permissions:
-      id-token: write  # Required for OIDC authentication with npm
-      contents: read   # Required to checkout code
+      contents: write # to publish a GitHub release
+      issues: write # to comment on released issues
+      pull-requests: write # to comment on released pull requests
+      id-token: write # CRITICAL: for OIDC authentication with npm
 
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all history for semantic-release
+          persist-credentials: false # Don't persist credentials
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          # Note: registry-url is intentionally omitted to allow OIDC authentication
-          # Setting registry-url would create NODE_AUTH_TOKEN which prevents OIDC
+          node-version: 'lts/*' # Use latest LTS
+          cache: 'npm'
 
       - name: Install dependencies
-        run: npm install --ignore-scripts
+        run: npm clean-install
 
-      - name: Build
-        run: npm run build
+      - name: Verify integrity of provenance attestations
+        run: npm audit signatures
 
       - name: Run tests
         run: npm test -- --testPathIgnorePatterns="tests/utils/logger.test.ts|tests/utils/update-check.test.ts"
+        # Ensure tests pass before releasing
 
-      - name: Determine dist-tag (for release)
-        if: github.event_name == 'release'
-        id: tag-release
-        run: |
-          VERSION=$(node -p "require('./package.json').version")
-          if [[ $VERSION == *"-"* ]]; then
-            echo "tag=next" >> $GITHUB_OUTPUT
-            echo "Publishing prerelease version $VERSION with tag 'next'"
-          else
-            echo "tag=latest" >> $GITHUB_OUTPUT
-            echo "Publishing stable version $VERSION with tag 'latest'"
-          fi
+      - name: Build package
+        run: npm run build
+        # Ensure package builds successfully
 
-      - name: Set dist-tag (for manual dispatch)
-        if: github.event_name == 'workflow_dispatch'
-        id: tag-manual
-        run: |
-          echo "tag=${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT
-          echo "Publishing with tag '${{ github.event.inputs.tag }}' (manual trigger)"
+      - name: Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # NO NPM_TOKEN NEEDED - OIDC handles npm authentication
+        run: npx semantic-release
 
-      - name: Debug OIDC environment
+      - name: Verify release
+        if: success()
         run: |
-          echo "=== OIDC Debug Information ==="
-          echo "ACTIONS_ID_TOKEN_REQUEST_URL: ${ACTIONS_ID_TOKEN_REQUEST_URL:-NOT SET}"
-          echo "ACTIONS_ID_TOKEN_REQUEST_TOKEN: ${ACTIONS_ID_TOKEN_REQUEST_TOKEN:+SET}"
-          echo "CI: ${CI:-NOT SET}"
-          echo "GITHUB_ACTIONS: ${GITHUB_ACTIONS:-NOT SET}"
-          echo ""
-          echo "=== GitHub Context ==="
-          echo "Repository: ${{ github.repository }}"
-          echo "Workflow: ${{ github.workflow }}"
-          echo "Job: ${{ github.job }}"
-          echo "Environment: ${{ github.environment || 'NONE' }}"
-          echo "Event: ${{ github.event_name }}"
-          echo ""
-          echo "=== Permissions Check ==="
-          echo "id-token permission should allow OIDC token requests"
-          echo ""
-          echo "=== npm Configuration ==="
-          npm config list
-          echo ""
-          echo "=== npm Whoami (should use OIDC) ==="
-          npm whoami || echo "Not authenticated (expected - will use OIDC for publish)"
-
-      - name: Publish to npm
-        run: |
-          if [ "${{ github.event_name }}" == "release" ]; then
-            TAG="${{ steps.tag-release.outputs.tag }}"
-          else
-            TAG="${{ steps.tag-manual.outputs.tag }}"
-          fi
-          echo "Publishing with dist-tag: $TAG"
-          npm publish --tag $TAG --provenance --access public
-        # OIDC authentication - no token needed!
-        # npm will automatically use OIDC when NODE_AUTH_TOKEN is not provided
-
-      - name: Publish summary
-        run: |
-          VERSION=$(node -p "require('./package.json').version")
-          if [ "${{ github.event_name }}" == "release" ]; then
-            TAG="${{ steps.tag-release.outputs.tag }}"
-          else
-            TAG="${{ steps.tag-manual.outputs.tag }}"
-          fi
-          echo "✅ Published @littlebearapps/git-pr-manager@$VERSION (dist-tag: $TAG)" >> $GITHUB_STEP_SUMMARY
-          echo "📦 View on npm: https://www.npmjs.com/package/@littlebearapps/git-pr-manager" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Release workflow completed successfully"
+          echo "Check npm: https://www.npmjs.com/package/@littlebearapps/git-pr-manager"
+          echo "Check GitHub releases: ${{ github.server_url }}/${{ github.repository }}/releases"
