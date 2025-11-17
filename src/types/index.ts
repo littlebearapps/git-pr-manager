@@ -436,6 +436,7 @@ export interface VerificationConfig {
     typecheck?: string;
     format?: string;
     build?: string;
+    install?: string;
   };
 
   // Makefile integration
@@ -446,6 +447,7 @@ export interface VerificationConfig {
     typecheck?: string;
     format?: string;
     build?: string;
+    install?: string;
   };
 
   // Detection
