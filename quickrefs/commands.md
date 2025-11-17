@@ -1,6 +1,6 @@
 # Common Commands Reference
 
-**Last Updated**: 2025-11-15
+**Last Updated**: 2025-11-17
 
 ---
 
@@ -134,40 +134,83 @@ cat .git/hooks/pre-push | head -3  # Should show gpm signature
 
 ## Package Publishing
 
-### Version Management
+### ⚠️ AUTOMATED via semantic-release
+**Publishing is fully automated** - no manual version bumping or npm publish needed!
+
+### Publishing Flow (semantic-release)
+**Trigger**: Push conventional commit to main branch
+
 ```bash
-# Bump version
-npm version patch              # 1.4.0 → 1.4.1
-npm version minor              # 1.4.0 → 1.5.0
-npm version major              # 1.4.0 → 2.0.0
-npm version prerelease --preid=beta  # 1.4.0 → 1.4.1-beta.0
+# 1. Create feature branch and make changes
+git checkout -b feature/my-feature
+# ... make changes ...
+
+# 2. Commit with conventional commit message
+git commit -m "feat: add new feature"    # → minor bump (1.5.0 → 1.6.0)
+git commit -m "fix: fix bug"             # → patch bump (1.5.0 → 1.5.1)
+git commit -m "docs: update docs"        # → patch bump (1.5.0 → 1.5.1)
+
+# 3. Push feature branch and create PR
+git push origin feature/my-feature
+gh pr create
+
+# 4. Get user approval to merge PR
+
+# 5. Merge PR to main → GitHub Actions → semantic-release → npm
+# ✅ Version auto-determined from commits
+# ✅ Changelog auto-generated
+# ✅ npm package published with OIDC + provenance
+# ✅ GitHub release created
+```
+
+### Conventional Commit Types
+```bash
+feat:     # New feature (minor version bump: 1.5.0 → 1.6.0)
+fix:      # Bug fix (patch version bump: 1.5.0 → 1.5.1)
+docs:     # Documentation (patch version bump: 1.5.0 → 1.5.1)
+refactor: # Code refactoring (patch version bump: 1.5.0 → 1.5.1)
+perf:     # Performance improvement (patch version bump: 1.5.0 → 1.5.1)
+test:     # Test changes (no version bump)
+chore:    # Maintenance (no version bump)
+
+# Breaking change (major version bump: 1.5.0 → 2.0.0)
+feat!: breaking change
+# OR
+feat: breaking change
+
+BREAKING CHANGE: description in footer
+```
+
+### Version Management (DEPRECATED - use semantic-release)
+```bash
+# ❌ DON'T manually bump versions anymore
+# npm version patch/minor/major
+
+# ✅ DO use conventional commits instead
+git commit -m "feat: add feature"  # semantic-release handles version
 
 # View current version
 npm version
 ```
 
-### Publishing to npm
+### Verification
 ```bash
-# Build and test first
-npm run build
-npm test
+# Check published version on npm
+npm view @littlebearapps/git-pr-manager version
 
-# Publish (manual)
-npm publish --tag latest      # Stable release
-npm publish --tag next        # Prerelease (beta)
+# View GitHub release
+gh release view v1.5.0
 
-# OR trigger GitHub Actions
-git tag v1.4.0-beta.1
-git push --tags
-# Creates GitHub release → auto-publishes to npm
+# Check workflow run
+gh run list --limit 1
 ```
 
-### Publishing Flow (Automated)
-1. Update version: `npm version prerelease --preid=beta`
-2. Commit: `git commit -am "chore: bump version to 1.4.0-beta.2"`
-3. Tag: `git tag v1.4.0-beta.2`
-4. Push: `git push && git push --tags`
-5. Create GitHub release (triggers `.github/workflows/publish.yml`)
+### Workflow Configuration
+- **File**: `.github/workflows/publish.yml`
+- **Trigger**: Push to main (conventional commits only)
+- **Steps**: Install → Test → Build → semantic-release → npm publish (OIDC)
+- **E409 Handling**: Retry verification script (`.github/scripts/publish-with-retry.sh`)
+- **Provenance**: Enabled (Sigstore attestations)
 
 ---
 

@@ -97,6 +97,69 @@ Production-ready git workflow automation for GitHub with Claude Code integration
 
 ---
 
+## 🚨 CRITICAL: Release & Publishing Rules
+
+### User Approval Required
+**NEVER perform these actions without explicit user approval**:
+1. ❌ Merge a PR to main branch
+2. ❌ Trigger npm package publication
+3. ❌ Create or modify GitHub releases
+4. ❌ Delete or modify git tags
+5. ❌ Update README.md content (except version numbers/dates - see below)
+
+### Automated Publishing Workflow
+**Process**: Merging to main → GitHub Actions → semantic-release → npm publish
+- semantic-release automatically determines version from commit messages
+- Publishing happens automatically on push to main (conventional commits only)
+- **Always ask user before merging PR that will trigger publish**
+
+### Version Management Requirements
+**Before merging any PR to main, ensure ALL files are updated**:
+
+#### Files with Version Numbers (update all):
+1. **package.json** - `version` field (line 3)
+2. **CLAUDE.md** - Top metadata (lines 3-5, 16) + release section header
+3. **README.md** - "What's New" section (update version, date, features)
+4. **docs/TESTS.md** - "Last Updated", "Current Coverage" header
+
+#### README.md Update Policy:
+- ✅ **Auto-update allowed**: Version numbers, dates in "What's New" section
+- ❌ **User approval required**: New features, descriptions, examples, documentation
+- **Rationale**: README.md is public-facing (GitHub + npm) - content changes need review
+
+### Pre-Merge Checklist
+Before requesting approval to merge PR:
+```bash
+✅ All tests passing (npm test)
+✅ Build successful (npm run build)
+✅ Coverage maintained (npm run test:coverage)
+✅ Version updated in: package.json, CLAUDE.md, README.md, docs/TESTS.md
+✅ README.md "What's New" section updated with version/date/features
+✅ Conventional commit messages for semantic-release
+✅ Documentation reflects new features/changes
+```
+
+### NPM Publishing (Automated via semantic-release)
+**Trigger**: Push to main with conventional commit (feat:, fix:, docs:, etc.)
+- **feat:** → minor version bump (1.5.0 → 1.6.0)
+- **fix:** → patch version bump (1.5.0 → 1.5.1)
+- **BREAKING CHANGE:** → major version bump (1.5.0 → 2.0.0)
+- **docs:, refactor:, perf:** → patch version bump (configured in .releaserc.json)
+
+**Workflow**: `.github/workflows/publish.yml`
+- Runs tests, builds package, publishes to npm with OIDC
+- Includes E409 error handling (retry verification)
+- Creates GitHub release with auto-generated changelog
+- Publishes with provenance attestations (Sigstore)
+
+**Verification**:
+```bash
+npm view @littlebearapps/git-pr-manager version  # Check published version
+gh release view v1.5.0                           # View GitHub release
+```
+
+---
+
 ## Core Commands
 
 ### Development
