@@ -10,6 +10,9 @@ describe('Logger', () => {
   beforeEach(() => {
     consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
     consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+    // Clean up environment variables BEFORE each test (for CI compatibility)
+    delete process.env.CI;
+    delete process.env.GITHUB_ACTIONS;
   });
 
   afterEach(() => {

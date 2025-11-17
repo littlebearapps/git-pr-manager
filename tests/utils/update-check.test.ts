@@ -19,6 +19,11 @@ describe('Update Checker', () => {
   beforeEach(async () => {
     jest.clearAllMocks();
     process.env = { ...originalEnv };
+    // Remove CI-related env vars for clean test environment (CI compatibility)
+    delete process.env.CI;
+    delete process.env.GITHUB_ACTIONS;
+    delete process.env.CONTINUOUS_INTEGRATION;
+    delete process.env.NO_UPDATE_NOTIFIER;
     // Clear cache before each test
     await clearUpdateCache();
   });
