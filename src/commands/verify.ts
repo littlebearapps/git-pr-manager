@@ -6,6 +6,7 @@ import { LanguageDetectionService } from '../services/LanguageDetectionService';
 import { CommandResolver } from '../services/CommandResolver';
 import { ConfigService } from '../services/ConfigService';
 import chalk from 'chalk';
+import prompts from 'prompts';
 
 const execAsync = promisify(exec);
 
@@ -15,6 +16,7 @@ interface VerifyOptions {
   skipTest?: boolean;
   skipBuild?: boolean;
   skipInstall?: boolean;
+  allowInstall?: boolean;  // Phase 1b: Opt-in install support
   json?: boolean;
 }
 
@@ -81,14 +83,18 @@ export async function verifyCommand(options: VerifyOptions = {}): Promise<void> 
     // Get Makefile targets
     const makefileTargets = await languageDetector.getMakefileTargets();
 
-    // Step 0: Install dependencies (if needed)
-    if (!options.skipInstall) {
-      const installResult = await resolveAndRun(
-        'install',
-        'Install Dependencies',
+    // Step 0: Install dependencies (Phase 1b: opt-in with prompt)
+    // Only run install if:
+    // 1. allowInstall flag is set OR verification.allowInstall is true
+    // 2. AND skipInstall is not set
+    const shouldInstall = (options.allowInstall || verificationConfig?.allowInstall) && !options.skipInstall;
+
+    if (shouldInstall) {
+      const installResult = await resolveAndRunInstall(
         commandResolver,
         detectedLanguage.primary,
         detectedPkgManager.packageManager,
+        detectedPkgManager.lockFile,
         makefileTargets,
         verificationConfig,
         jsonMode
@@ -340,6 +346,107 @@ async function runStep(
       output: (error.stdout || '') + (error.stderr || '')
     };
   }
+}
+
+/**
+ * Resolve and run install step with user prompt (Phase 1b)
+ */
+async function resolveAndRunInstall(
+  resolver: CommandResolver,
+  language: any,
+  packageManager: any,
+  lockFile: string | null,
+  makefileTargets: string[],
+  verificationConfig: any,
+  jsonMode: boolean
+): Promise<VerifyStepResult | null> {
+  // Resolve install command
+  const resolved = await resolver.resolve({
+    task: 'install',
+    language,
+    packageManager,
+    makefileTargets,
+    config: verificationConfig
+  });
+
+  // If command not found, skip
+  if (resolved.source === 'not-found') {
+    const result: VerifyStepResult = {
+      step: 'Install Dependencies',
+      passed: true,
+      duration: 0,
+      skipped: true,
+      reason: `install command not available for ${language}`
+    };
+
+    if (!jsonMode) {
+      logger.info('ℹ️  Install Dependencies: skipped (not available)');
+    }
+
+    return result;
+  }
+
+  // Check for missing lock file
+  if (!lockFile && !jsonMode) {
+    logger.warn(`⚠️  Warning: No lock file found for ${packageManager}`);
+    logger.warn('   Consider creating a lock file for reproducible installs:');
+
+    // Show lock file creation command based on package manager
+    const lockFileCommands: Record<string, string> = {
+      poetry: 'poetry lock',
+      pipenv: 'pipenv lock',
+      uv: 'uv lock',
+      pip: 'pip freeze > requirements.txt',
+      pnpm: 'pnpm install',
+      yarn: 'yarn install',
+      bun: 'bun install',
+      npm: 'npm install',
+      'go-mod': 'go mod tidy',
+      cargo: 'cargo update'
+    };
+
+    const lockCommand = lockFileCommands[packageManager || ''];
+    if (lockCommand) {
+      logger.warn(`   ${chalk.cyan(lockCommand)}`);
+    }
+    logger.blank();
+  }
+
+  // Prompt for confirmation (unless JSON mode or CI environment)
+  if (!jsonMode && !process.env.CI) {
+    logger.info(`📦 About to run install command:`);
+    logger.info(`   ${chalk.cyan(resolved.command)}`);
+    logger.blank();
+
+    const response = await prompts({
+      type: 'confirm',
+      name: 'proceed',
+      message: 'Proceed with installation?',
+      initial: true
+    });
+
+    if (!response.proceed) {
+      const result: VerifyStepResult = {
+        step: 'Install Dependencies',
+        passed: true,
+        duration: 0,
+        skipped: true,
+        reason: 'user cancelled'
+      };
+
+      logger.info('ℹ️  Install cancelled by user');
+      return result;
+    }
+
+    logger.blank();
+  } else if (!jsonMode) {
+    // In CI or automated mode, just show what we're about to run
+    logger.info(`📦 Running install command: ${chalk.cyan(resolved.command)}`);
+    logger.blank();
+  }
+
+  // Run the install step
+  return runStep('Install Dependencies', resolved.command, jsonMode);
 }
 
 /**

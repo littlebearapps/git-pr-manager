@@ -10,6 +10,7 @@ import { CommandResolver } from '../../src/services/CommandResolver';
 import { ConfigService } from '../../src/services/ConfigService';
 import { logger } from '../../src/utils/logger';
 import * as childProcess from 'child_process';
+import prompts from 'prompts';
 
 // Mock dependencies
 jest.mock('../../src/services/LanguageDetectionService');
@@ -34,22 +35,30 @@ jest.mock('../../src/utils/spinner', () => ({
   }))
 }));
 
+// Mock prompts for install confirmation (Phase 1b)
+jest.mock('prompts', () => jest.fn());
+
 const MockedLanguageDetectionService = LanguageDetectionService as jest.MockedClass<typeof LanguageDetectionService>;
 const MockedCommandResolver = CommandResolver as jest.MockedClass<typeof CommandResolver>;
 const MockedConfigService = ConfigService as jest.MockedClass<typeof ConfigService>;
 const mockedExec = childProcess.exec as jest.MockedFunction<typeof childProcess.exec>;
+const mockedPrompts = prompts as jest.MockedFunction<typeof prompts>;
 
 describe('verify command - multi-language integration', () => {
   let mockLanguageDetector: jest.Mocked<LanguageDetectionService>;
   let mockCommandResolver: jest.Mocked<CommandResolver>;
   let mockConfigService: jest.Mocked<ConfigService>;
   let consoleLogSpy: jest.SpiedFunction<typeof console.log>;
+  let mockExit: jest.SpiedFunction<typeof process.exit>;
 
   beforeEach(() => {
     jest.clearAllMocks();
 
     // Mock console.log to capture JSON output
     consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+
+    // Mock process.exit to prevent tests from actually exiting
+    mockExit = jest.spyOn(process, 'exit').mockImplementation((() => {}) as any);
 
     // Create mock instances
     mockLanguageDetector = {
@@ -107,6 +116,7 @@ describe('verify command - multi-language integration', () => {
 
   afterEach(() => {
     consoleLogSpy.mockRestore();
+    mockExit.mockRestore();
   });
 
   describe('Node.js project with npm', () => {
@@ -366,6 +376,153 @@ describe('verify command - multi-language integration', () => {
       expect(mockExit).toHaveBeenCalledWith(1);
 
       mockExit.mockRestore();
+    });
+  });
+
+  // Phase 1b: Install Step Support Tests
+  describe('Install step (Phase 1b)', () => {
+    beforeEach(() => {
+      // Mock prompts to always proceed
+      mockedPrompts.mockResolvedValue({ proceed: true });
+
+      // Mock CI environment variable
+      delete process.env.CI;
+    });
+
+    it('should run install when --allow-install flag is set', async () => {
+      mockCommandResolver.resolve
+        .mockResolvedValueOnce({ command: 'npm ci', source: 'package-manager', language: 'nodejs', packageManager: 'npm' })
+        .mockResolvedValueOnce({ command: 'npm run lint', source: 'package-manager', language: 'nodejs', packageManager: 'npm' })
+        .mockResolvedValueOnce({ command: 'npx tsc --noEmit', source: 'package-manager', language: 'nodejs', packageManager: 'npm' })
+        .mockResolvedValueOnce({ command: 'npm test', source: 'package-manager', language: 'nodejs', packageManager: 'npm' })
+        .mockResolvedValueOnce({ command: 'npm run build', source: 'package-manager', language: 'nodejs', packageManager: 'npm' });
+
+      await verifyCommand({ allowInstall: true, skipInstall: false });
+
+      // Verify install command was resolved
+      expect(mockCommandResolver.resolve).toHaveBeenCalledWith(
+        expect.objectContaining({
+          task: 'install',
+          language: 'nodejs',
+          packageManager: 'npm'
+        })
+      );
+    });
+
+    it('should run install when verification.allowInstall config is true', async () => {
+      mockConfigService.load.mockResolvedValue({
+        branchProtection: { enabled: false },
+        verification: {
+          detectionEnabled: true,
+          preferMakefile: true,
+          allowInstall: true
+        }
+      } as any);
+
+      mockCommandResolver.resolve
+        .mockResolvedValueOnce({ command: 'npm ci', source: 'package-manager', language: 'nodejs', packageManager: 'npm' })
+        .mockResolvedValueOnce({ command: 'npm run lint', source: 'package-manager', language: 'nodejs', packageManager: 'npm' })
+        .mockResolvedValueOnce({ command: 'npx tsc --noEmit', source: 'package-manager', language: 'nodejs', packageManager: 'npm' })
+        .mockResolvedValueOnce({ command: 'npm test', source: 'package-manager', language: 'nodejs', packageManager: 'npm' })
+        .mockResolvedValueOnce({ command: 'npm run build', source: 'package-manager', language: 'nodejs', packageManager: 'npm' });
+
+      await verifyCommand({ skipInstall: false });
+
+      // Verify install command was resolved
+      expect(mockCommandResolver.resolve).toHaveBeenCalledWith(
+        expect.objectContaining({
+          task: 'install'
+        })
+      );
+    });
+
+    it('should skip install when allowInstall is false (default)', async () => {
+      mockCommandResolver.resolve
+        .mockResolvedValueOnce({ command: 'npm run lint', source: 'package-manager', language: 'nodejs', packageManager: 'npm' })
+        .mockResolvedValueOnce({ command: 'npx tsc --noEmit', source: 'package-manager', language: 'nodejs', packageManager: 'npm' })
+        .mockResolvedValueOnce({ command: 'npm test', source: 'package-manager', language: 'nodejs', packageManager: 'npm' })
+        .mockResolvedValueOnce({ command: 'npm run build', source: 'package-manager', language: 'nodejs', packageManager: 'npm' });
+
+      await verifyCommand({ skipInstall: false });
+
+      // Verify install command was NOT resolved
+      expect(mockCommandResolver.resolve).not.toHaveBeenCalledWith(
+        expect.objectContaining({ task: 'install' })
+      );
+    });
+
+    it('should skip install when --skip-install flag is set', async () => {
+      mockCommandResolver.resolve
+        .mockResolvedValueOnce({ command: 'npm run lint', source: 'package-manager', language: 'nodejs', packageManager: 'npm' })
+        .mockResolvedValueOnce({ command: 'npx tsc --noEmit', source: 'package-manager', language: 'nodejs', packageManager: 'npm' })
+        .mockResolvedValueOnce({ command: 'npm test', source: 'package-manager', language: 'nodejs', packageManager: 'npm' })
+        .mockResolvedValueOnce({ command: 'npm run build', source: 'package-manager', language: 'nodejs', packageManager: 'npm' });
+
+      await verifyCommand({ allowInstall: true, skipInstall: true });
+
+      // Verify install command was NOT resolved
+      expect(mockCommandResolver.resolve).not.toHaveBeenCalledWith(
+        expect.objectContaining({ task: 'install' })
+      );
+    });
+
+    it('should handle missing lock file gracefully', async () => {
+      // Mock package manager with no lock file
+      mockLanguageDetector.detectPackageManager.mockResolvedValue({
+        packageManager: 'poetry',
+        lockFile: null,
+        confidence: 95
+      });
+
+      mockLanguageDetector.detectLanguage.mockResolvedValue({
+        primary: 'python',
+        additional: [],
+        confidence: 95,
+        sources: ['pyproject.toml']
+      });
+
+      mockCommandResolver.resolve
+        .mockResolvedValueOnce({ command: 'poetry install', source: 'package-manager', language: 'python', packageManager: 'poetry' })
+        .mockResolvedValueOnce({ command: 'poetry run ruff check .', source: 'package-manager', language: 'python', packageManager: 'poetry' })
+        .mockResolvedValueOnce({ command: 'poetry run mypy .', source: 'package-manager', language: 'python', packageManager: 'poetry' })
+        .mockResolvedValueOnce({ command: 'poetry run pytest', source: 'package-manager', language: 'python', packageManager: 'poetry' })
+        .mockResolvedValueOnce({ command: '', source: 'not-found', language: 'python', packageManager: 'poetry' });
+
+      await verifyCommand({ allowInstall: true, skipInstall: false });
+
+      // Should still proceed with install despite missing lock file
+      expect(mockCommandResolver.resolve).toHaveBeenCalledWith(
+        expect.objectContaining({
+          task: 'install',
+          language: 'python',
+          packageManager: 'poetry'
+        })
+      );
+
+      // Verify warning was logged (logger.warn should be called)
+      expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('No lock file found'));
+    });
+
+    it('should skip install when user declines prompt', async () => {
+      // Mock user declining the prompt
+      mockedPrompts.mockResolvedValueOnce({ proceed: false });
+
+      mockCommandResolver.resolve
+        .mockResolvedValueOnce({ command: 'npm ci', source: 'package-manager', language: 'nodejs', packageManager: 'npm' })
+        .mockResolvedValueOnce({ command: 'npm run lint', source: 'package-manager', language: 'nodejs', packageManager: 'npm' })
+        .mockResolvedValueOnce({ command: 'npx tsc --noEmit', source: 'package-manager', language: 'nodejs', packageManager: 'npm' })
+        .mockResolvedValueOnce({ command: 'npm test', source: 'package-manager', language: 'nodejs', packageManager: 'npm' })
+        .mockResolvedValueOnce({ command: 'npm run build', source: 'package-manager', language: 'nodejs', packageManager: 'npm' });
+
+      await verifyCommand({ allowInstall: true, skipInstall: false });
+
+      // Verify prompt was called
+      expect(mockedPrompts).toHaveBeenCalled();
+
+      // Verify install command was resolved but not executed (exec not called with npm ci)
+      expect(mockCommandResolver.resolve).toHaveBeenCalledWith(
+        expect.objectContaining({ task: 'install' })
+      );
     });
   });
 });

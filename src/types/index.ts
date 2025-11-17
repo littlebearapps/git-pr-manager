@@ -455,4 +455,7 @@ export interface VerificationConfig {
 
   // Detection
   detectionEnabled?: boolean;  // Enable language detection (default: true)
+
+  // Phase 1b: Install step support
+  allowInstall?: boolean;      // Allow automatic dependency installation (default: false)
 }
