@@ -23,7 +23,7 @@
     "lint": "eslint src tests --ext .ts",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run build",
-    "postinstall": "node dist/scripts/postinstall.js"
+    "postinstall": "test -f dist/scripts/postinstall.js && node dist/scripts/postinstall.js || exit 0"
   },
   "keywords": [
     "git",

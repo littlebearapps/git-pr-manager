@@ -1,0 +1,48 @@
+version: 2
+updates:
+  # npm dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "nathanschram"
+    labels:
+      - "dependencies"
+      - "automated"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    # Group development dependencies together
+    groups:
+      dev-dependencies:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
+      production-dependencies:
+        dependency-type: "production"
+        update-types:
+          - "patch"
+
+  # GitHub Actions dependencies
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "nathanschram"
+    labels:
+      - "dependencies"
+      - "github-actions"
+      - "automated"
+    commit-message:
+      prefix: "chore"

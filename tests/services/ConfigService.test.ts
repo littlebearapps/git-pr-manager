@@ -1,6 +1,7 @@
 import { ConfigService } from '../../src/services/ConfigService';
 import * as fs from 'fs/promises';
 import * as yaml from 'yaml';
+import * as path from 'path';
 
 // Mock dependencies
 jest.mock('fs/promises');
@@ -14,10 +15,11 @@ const mockedYamlStringify = yaml.stringify as jest.MockedFunction<typeof yaml.st
 
 describe('ConfigService', () => {
   let configService: ConfigService;
+  const testDir = path.resolve('/test/dir');
 
   beforeEach(() => {
     jest.clearAllMocks();
-    configService = new ConfigService('/test/dir');
+    configService = new ConfigService(testDir);
   });
 
   describe('load', () => {
@@ -146,7 +148,7 @@ describe('ConfigService', () => {
         lineWidth: 0
       });
       expect(mockedFsWriteFile).toHaveBeenCalledWith(
-        '/test/dir/.gpm.yml',
+        path.join(testDir, '.gpm.yml'),
         'yaml content',
         'utf-8'
       );

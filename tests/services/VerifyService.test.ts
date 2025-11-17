@@ -1,6 +1,7 @@
 import { VerifyService } from '../../src/services/VerifyService';
 import * as child_process from 'child_process';
 import * as fs from 'fs/promises';
+import * as path from 'path';
 
 // Mock dependencies
 jest.mock('child_process');
@@ -13,6 +14,7 @@ const mockedFsReadFile = fs.readFile as jest.MockedFunction<typeof fs.readFile>;
 
 describe('VerifyService', () => {
   let verifyService: VerifyService;
+  const testDir = path.resolve('/test/dir');
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -23,7 +25,7 @@ describe('VerifyService', () => {
       throw new Error('command not found');
     });
 
-    verifyService = new VerifyService('/test/dir');
+    verifyService = new VerifyService(testDir);
   });
 
   describe('runChecks', () => {
@@ -54,7 +56,7 @@ describe('VerifyService', () => {
 
       expect(result.success).toBe(true);
       expect(mockedExec).toHaveBeenCalledWith(
-        'bash /test/dir/verify.sh',
+        `bash ${path.join(testDir, 'verify.sh')}`,
         expect.any(Object)
       );
     });
@@ -422,7 +424,7 @@ error { prNumber: 1 }
 
       const command = await verifyService.getVerifyCommand();
 
-      expect(command).toBe('bash /test/dir/verify.sh');
+      expect(command).toBe(`bash ${path.join(testDir, 'verify.sh')}`);
     });
 
     it('should return npm command for package.json script', async () => {

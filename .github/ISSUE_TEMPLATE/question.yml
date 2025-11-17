@@ -1,0 +1,55 @@
+name: Question
+description: Ask a question about usage or features
+title: "[Question]: "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Thanks for asking a question!
+        Please provide details below to help us answer effectively.
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: What would you like to know?
+      placeholder: "Example: How do I configure gpm to wait for specific CI checks before merging?"
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: What are you trying to accomplish? What have you tried so far?
+      placeholder: |
+        - Goal: Auto-merge PRs only after specific checks pass
+        - Tried: Reading .gpm.yml documentation
+        - Issue: Not clear how to specify which checks to wait for
+    validations:
+      required: false
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment (if relevant)
+      description: What environment are you using?
+      placeholder: |
+        - OS: macOS 14.0
+        - Node.js: v20.10.0
+        - gpm: 1.4.0
+      render: markdown
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      description: Please confirm before submitting
+      options:
+        - label: I have checked the README and documentation
+          required: true
+        - label: I have searched existing issues for similar questions
+          required: true

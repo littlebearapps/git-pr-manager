@@ -1,0 +1,125 @@
+name: Bug Report
+description: Report a bug or unexpected behavior
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Thanks for reporting a bug!
+        Please fill out the sections below to help us reproduce and fix the issue.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is.
+      placeholder: "Example: gpm ship fails with 'Authentication failed' error"
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: How can we reproduce this issue?
+      placeholder: |
+        1. Run 'gpm init --template strict'
+        2. Run 'gpm ship'
+        3. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+      placeholder: "Example: PR should be created and merged successfully"
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened?
+      placeholder: "Example: Command fails with 'GitHubAPIError: Authentication failed'"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      description: How severe is this bug?
+      options:
+        - Critical (Cannot use gpm at all)
+        - High (Major feature broken)
+        - Medium (Workaround exists)
+        - Low (Minor issue)
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: What environment are you using?
+      placeholder: |
+        - OS: macOS 14.0 / Ubuntu 22.04 / Windows 11
+        - Node.js: v20.10.0 (run `node --version`)
+        - npm: 10.2.3 (run `npm --version`)
+        - gpm: 1.4.0 (run `gpm --version`)
+        - Shell: zsh / bash / PowerShell
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error Logs
+      description: Please paste the full error output (run with --verbose for detailed logs)
+      placeholder: |
+        $ gpm ship --verbose
+        [paste full output here]
+      render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Configuration
+      description: If applicable, paste your .gpm.yml configuration (remove any sensitive data)
+      placeholder: |
+        branchProtection:
+          enabled: true
+        ci:
+          waitForChecks: true
+      render: yaml
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Add any other context about the problem here.
+      placeholder: "Example: This only happens with private repositories, or when using SSH URLs"
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      description: Please confirm before submitting
+      options:
+        - label: I have searched existing issues to ensure this isn't a duplicate
+          required: true
+        - label: I have provided all the information requested above
+          required: true
+        - label: I can reproduce this bug consistently
+          required: false
