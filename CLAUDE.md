@@ -1,8 +1,8 @@
 # Git PR Manager - Claude Code Context
 
 **Last Updated**: 2025-11-17
-**Version**: 1.4.3
-**Status**: Production-ready with automated semantic-release and OIDC publishing ✅
+**Version**: 1.5.0
+**Status**: Production-ready with automated semantic-release, OIDC publishing, and E409 error handling ✅
 
 ---
 
@@ -13,11 +13,19 @@ Production-ready git workflow automation for GitHub with Claude Code integration
 **Repository**: https://github.com/littlebearapps/git-pr-manager
 **npm Package**: @littlebearapps/git-pr-manager
 **License**: MIT
-**Status**: v1.4.3 - Production Ready with Automated Publishing 🎉
+**Status**: v1.5.0 - Production Ready 🎉
 
-### Release 1.4.3 - ✅ COMPLETE (2025-11-17)
+### Release 1.5.0 - ✅ COMPLETE (2025-11-17)
 
-**Automated Publishing Infrastructure**
+**E409 Packument Error Handling**
+- ✅ Implemented retry mechanism for npm publish E409 conflicts
+- ✅ Based on CKEditor/mcp-delegator solution
+- ✅ Verifies package publication even when semantic-release reports errors
+- ✅ Polls npm registry for up to 60 seconds to confirm package exists
+- ✅ Handles known npm registry race condition during publishing
+- ✅ See: https://github.com/ckeditor/ckeditor5/issues/16625
+
+**Automated Publishing Infrastructure** (from v1.4.3)
 - ✅ semantic-release integration for automated version management
 - ✅ OIDC (OpenID Connect) authentication with npm (tokenless publishing)
 - ✅ Provenance attestations for enhanced package security
@@ -29,6 +37,7 @@ Production-ready git workflow automation for GitHub with Claude Code integration
 **Publishing Workflow**
 - Push conventional commit (feat:, fix:, docs:, refactor:, perf:) to main
 - semantic-release analyzes commits and determines version bump
+- If npm publish fails with E409, retry script verifies package exists
 - Package published to npm with cryptographic attestations
 - GitHub release created with auto-generated changelog
 - All automated via GitHub Actions with OIDC
