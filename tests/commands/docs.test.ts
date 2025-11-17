@@ -12,7 +12,6 @@ jest.mock('../../src/utils/logger', () => ({
 import { docsCommand } from '../../src/commands/docs';
 import { logger } from '../../src/utils/logger';
 import { existsSync, readFileSync } from 'fs';
-import * as path from 'path';
 
 describe('docs command', () => {
   let consoleLogSpy: jest.SpyInstance;
