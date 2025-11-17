@@ -266,6 +266,160 @@ All commands support output control flags:
 --verbose   # Detailed output
 ```
 
+## 🌍 Multi-Language Support
+
+`gpm verify` automatically detects your project language and package manager, running appropriate verification commands for each ecosystem.
+
+### Supported Languages & Package Managers
+
+| Language | Package Managers | Auto-Detection |
+|----------|-----------------|----------------|
+| **Python** | poetry, pipenv, uv, pip | `pyproject.toml`, `Pipfile`, `requirements.txt` |
+| **Node.js** | pnpm, yarn, bun, npm | `package.json`, lock files |
+| **Go** | go modules | `go.mod` |
+| **Rust** | cargo | `Cargo.toml` |
+
+### How It Works
+
+When you run `gpm verify`, it automatically:
+
+1. **Detects your language** from project markers (e.g., `pyproject.toml`, `package.json`)
+2. **Detects your package manager** from lock files and config
+3. **Resolves appropriate commands** for lint, typecheck, test, and build
+4. **Runs verification** with language-specific tools
+
+### Examples
+
+#### Python with Poetry
+
+```bash
+# Auto-detects poetry from poetry.lock
+gpm verify
+
+# Runs:
+# ✓ poetry run ruff check .     (lint)
+# ✓ poetry run mypy .            (typecheck)
+# ✓ poetry run pytest            (test)
+```
+
+#### Node.js with npm
+
+```bash
+# Auto-detects npm from package-lock.json
+gpm verify
+
+# Runs:
+# ✓ npm run lint       (lint)
+# ✓ npx tsc --noEmit   (typecheck)
+# ✓ npm test           (test)
+# ✓ npm run build      (build)
+```
+
+#### Node.js with yarn
+
+```bash
+# Auto-detects yarn from yarn.lock
+gpm verify
+
+# Runs:
+# ✓ yarn lint          (lint)
+# ✓ yarn typecheck     (typecheck)
+# ✓ yarn test          (test)
+# ✓ yarn build         (build)
+```
+
+#### Go Project
+
+```bash
+# Auto-detects Go from go.mod
+gpm verify
+
+# Runs:
+# ✓ golangci-lint run  (lint)
+# ✓ go test ./...      (test)
+# ✓ go build           (build)
+```
+
+#### Rust Project
+
+```bash
+# Auto-detects Rust from Cargo.toml
+gpm verify
+
+# Runs:
+# ✓ cargo clippy       (lint)
+# ✓ cargo test         (test)
+# ✓ cargo build        (build)
+```
+
+### Makefile Integration
+
+If your project has a `Makefile`, `gpm` will prefer Makefile targets:
+
+```makefile
+# Makefile
+lint:
+    ruff check .
+    mypy .
+
+test:
+    pytest tests/
+
+build:
+    python setup.py build
+```
+
+```bash
+gpm verify
+# Runs:
+# ✓ make lint
+# ✓ make test
+# ✓ make build
+```
+
+### Customization
+
+Override language detection or commands in `.gpm.yml`:
+
+```yaml
+# .gpm.yml
+verification:
+  # Disable auto-detection
+  detectionEnabled: false
+
+  # Prefer Makefile targets over package manager (default: true)
+  preferMakefile: true
+
+  # Override specific commands
+  commands:
+    lint: "make lint"
+    test: "make test"
+    typecheck: "mypy src/"
+    build: "python -m build"
+```
+
+### Command Resolution Priority
+
+`gpm` resolves commands in this order:
+
+1. **Custom commands** from `.gpm.yml`
+2. **Makefile targets** (if `preferMakefile: true`)
+3. **Package manager scripts** (e.g., `npm run lint`, `poetry run ruff`)
+4. **Native tools** (e.g., `npx eslint`, `ruff check`)
+5. **Not found** (step skipped gracefully)
+
+### Skip Options
+
+Skip specific verification steps:
+
+```bash
+gpm verify --skip-lint          # Skip linting
+gpm verify --skip-typecheck     # Skip type checking
+gpm verify --skip-test          # Skip tests
+gpm verify --skip-build         # Skip build
+gpm verify --skip-install       # Skip dependency installation
+```
+
 ## 🔧 CI/CD & Automation
 
 ### GitHub Actions Integration

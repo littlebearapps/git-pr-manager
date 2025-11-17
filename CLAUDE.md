@@ -1,19 +1,49 @@
 # Git PR Manager - Claude Code Context
 
 **Last Updated**: 2025-11-17
-**Version**: 1.5.0
-**Status**: Production-ready with automated semantic-release, OIDC publishing, and E409 error handling ✅
+**Version**: 1.6.0-beta.1
+**Status**: Beta - Multi-Language Support (Phase 1a) ✅
 
 ---
 
 ## Project Overview
 
-Production-ready git workflow automation for GitHub with Claude Code integration. Streamlines feature development with intelligent CI polling, comprehensive error reporting, automated PR workflows, git hooks integration, and git worktree management.
+Production-ready git workflow automation for GitHub with Claude Code integration. Streamlines feature development with intelligent CI polling, comprehensive error reporting, automated PR workflows, git hooks integration, git worktree management, and **multi-language support for Python, Node.js, Go, and Rust**.
 
 **Repository**: https://github.com/littlebearapps/git-pr-manager
 **npm Package**: @littlebearapps/git-pr-manager
 **License**: MIT
-**Status**: v1.5.0 - Production Ready 🎉
+**Status**: v1.6.0-beta.1 - Beta with Multi-Language Support 🎉
+
+### Release 1.6.0-beta.1 - Phase 1a: Multi-Language Support ✅ (2025-11-17)
+
+**🌍 Multi-Language Verification**
+- ✅ Automatic language detection (Python, Node.js, Go, Rust)
+- ✅ Package manager detection (poetry/pipenv/uv/pip, npm/yarn/pnpm/bun, go-mod, cargo)
+- ✅ Intelligent command resolution with fallback chains
+- ✅ Makefile integration (prefers Makefile targets when available)
+- ✅ Graceful degradation (skips unavailable tools)
+- ✅ Backward compatible (existing Node.js projects work without changes)
+
+**📦 Package Manager Support**
+- Python: poetry, pipenv, uv, pip (auto-detected from lock files)
+- Node.js: pnpm, yarn, bun, npm (auto-detected from lock files)
+- Go: go modules (auto-detected from go.mod)
+- Rust: cargo (auto-detected from Cargo.toml)
+
+**🔧 Configuration**
+- New `verification` section in `.gpm.yml`
+- `detectionEnabled`: Enable/disable auto-detection (default: true)
+- `preferMakefile`: Prefer Makefile targets over package manager (default: true)
+- `commands`: Override specific commands (lint, test, typecheck, build, install)
+
+**🧪 Testing**
+- 751 tests passing (+17 new tests for Phase 1a)
+- ConfigService verification config tests (5 tests)
+- verify command integration tests (12 tests)
+- Real project integration testing (Node.js + npm validated)
+
+**See**: docs/debugging/multi-language-support-implementation-plan.md for full implementation details
 
 ### Release 1.5.0 - ✅ COMPLETE (2025-11-17)
 
