@@ -142,6 +142,9 @@ export interface WorkflowConfig {
       reminder?: boolean;        // Show reminder message (default: true)
     };
   };
+
+  // Phase 1a: Multi-language verification settings
+  verification?: VerificationConfig;
 }
 
 export interface GitServiceOptions {
