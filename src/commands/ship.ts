@@ -10,6 +10,7 @@ import { OutputFormatter } from '../utils/OutputFormatter';
 import { logger } from '../utils/logger';
 import { spinner, withSpinner } from '../utils/spinner';
 import chalk from 'chalk';
+import { ExecutionTracker } from '../utils/ExecutionTracker';
 
 interface ShipOptions {
   wait?: boolean;
@@ -36,7 +37,9 @@ export async function shipCommand(options: ShipOptions = {}): Promise<void> {
     process.exit(1);
   }
 
+  let tracker: ExecutionTracker | null = null;
   try {
+    tracker = new ExecutionTracker();
     // Initialize services
     const gitService = new GitService({ workingDir: process.cwd() });
     const configService = new ConfigService();
@@ -94,17 +97,21 @@ export async function shipCommand(options: ShipOptions = {}): Promise<void> {
         }
 
         spinner.succeed(`Verification checks passed (${verifyResult.duration}ms)`);
+        tracker.logCompleted('verification', verifyResult.duration);
       } else {
         logger.warn('No verification script found (skipping)');
+        tracker.logSkipped('verification', 'no verification script');
       }
     } else {
       logger.warn('Skipping verification checks (--skip-verify)');
+      tracker.logSkipped('verification', '--skip-verify flag');
     }
 
     // Step 2b: Run security scan
     if (!options.skipSecurity) {
       logger.blank();
       spinner.start('Running security scan...');
+      const securityStart = Date.now();
 
       const securityScanner = new SecurityScanner(process.cwd());
       const securityResult = await securityScanner.scan();
@@ -131,12 +138,14 @@ export async function shipCommand(options: ShipOptions = {}): Promise<void> {
       }
 
       spinner.succeed('Security scan passed');
+      tracker.logCompleted('security', Date.now() - securityStart);
 
       if (securityResult.warnings.length > 0) {
         securityResult.warnings.forEach(warning => logger.warn(`  ${warning}`));
       }
     } else {
       logger.warn('Skipping security scan (--skip-security)');
+      tracker.logSkipped('security', '--skip-security flag');
     }
 
     // Step 3: Check if PR already exists
@@ -152,15 +161,20 @@ export async function shipCommand(options: ShipOptions = {}): Promise<void> {
       logger.info(`Found existing PR #${existingPR.number}`);
       prNumber = existingPR.number;
       prUrl = existingPR.html_url;
+      // Skip push/create-pr when PR already exists
+      tracker.logSkipped('push', 'PR already exists');
+      tracker.logSkipped('create-pr', 'PR already exists');
     } else {
       // Step 4: Push branch
       logger.blank();
+      const pushStart = Date.now();
       await withSpinner(
         'Pushing branch to remote...',
         async () => {
           await gitService.push('origin', currentBranch, true);
         }
       );
+      tracker.logCompleted('push', Date.now() - pushStart);
 
       // Step 5: Create PR
       logger.blank();
@@ -181,6 +195,7 @@ export async function shipCommand(options: ShipOptions = {}): Promise<void> {
 
       spinner.succeed(`Created PR #${prNumber}`);
       logger.info(`URL: ${chalk.blue(prUrl)}`);
+      tracker.logCompleted('create-pr');
     }
 
     // Step 6: Wait for CI checks
@@ -203,15 +218,25 @@ export async function shipCommand(options: ShipOptions = {}): Promise<void> {
           failFast,
           retryFlaky,
           onProgress: (progress) => {
-            const formatted = formatter.formatProgress(progress);
-            logger.log(formatted);
+            // Special formatting for no-checks scenario
+            if (progress.total === 0) {
+              logger.warn('No CI checks configured');
+            } else {
+              const formatted = formatter.formatProgress(progress);
+              logger.log(formatted);
+            }
           }
         });
 
         logger.blank();
 
         if (result.success) {
-          logger.success('All CI checks passed!');
+          if (result.summary.total === 0) {
+            logger.success('No CI checks to wait for - proceeding with merge');
+          } else {
+            logger.success('All CI checks passed!');
+          }
+          tracker.logCompleted('wait-ci', result.duration);
         } else {
           logger.error('CI checks failed');
           logger.blank();
@@ -266,19 +291,24 @@ export async function shipCommand(options: ShipOptions = {}): Promise<void> {
         }
       } catch (error: any) {
         logger.error(`CI check polling failed: ${error.message}`);
+        // Track as unknown failure
+        try { (tracker as ExecutionTracker).logFailed('unknown', error.message); } catch {}
         process.exit(1);
       }
     } else {
       if (options.skipCi) {
         logger.warn('Skipping CI checks (--skip-ci)');
+        tracker.logSkipped('wait-ci', '--skip-ci flag');
       } else {
         logger.warn('CI waiting disabled in config');
+        tracker.logSkipped('wait-ci', 'ci.waitForChecks disabled');
       }
     }
 
     // Step 7: Merge PR
     logger.blank();
     spinner.start('Merging pull request...');
+    const mergeStart = Date.now();
 
     const mergeResult = await prService.mergePR(prNumber, {
       method: 'merge',
@@ -291,6 +321,7 @@ export async function shipCommand(options: ShipOptions = {}): Promise<void> {
     }
 
     spinner.succeed('Pull request merged!');
+    tracker.logCompleted('merge', Date.now() - mergeStart);
 
     if (deleteBranch) {
       logger.success('Remote branch deleted');
@@ -301,9 +332,12 @@ export async function shipCommand(options: ShipOptions = {}): Promise<void> {
       await gitService.deleteBranch(currentBranch, true);
 
       logger.success('Local branch deleted');
+      tracker.logCompleted('cleanup');
+    } else {
+      tracker.logSkipped('cleanup', '--no-delete-branch flag');
     }
 
-    // Output JSON for successful ship
+    // Output JSON for successful ship (include execution metadata)
     logger.outputJsonResult(true, {
       success: true,
       merged: true,
@@ -311,7 +345,8 @@ export async function shipCommand(options: ShipOptions = {}): Promise<void> {
       prUrl,
       branch: currentBranch,
       defaultBranch,
-      branchDeleted: deleteBranch
+      branchDeleted: deleteBranch,
+      execution: tracker.getSummary()
     });
 
     // Final success message
@@ -326,6 +361,7 @@ export async function shipCommand(options: ShipOptions = {}): Promise<void> {
     if (process.env.DEBUG) {
       console.error(error);
     }
+    try { (tracker as ExecutionTracker)?.logFailed('unknown', error.message); } catch {}
     process.exit(1);
   }
 }

@@ -1,4 +1,5 @@
 import { CheckSummary, ProgressUpdate, ErrorType } from '../types';
+import chalk from 'chalk';
 
 /**
  * OutputFormatter - Formats CI check results for console output
@@ -73,6 +74,11 @@ export class OutputFormatter {
     const minutes = Math.floor(elapsed / 60);
     const seconds = elapsed % 60;
     const timeStr = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+    // Special case: no checks configured
+    if (progress.total === 0) {
+      return `${chalk.gray(`[${timeStr}]`)} ${chalk.yellow('⚠️  No CI checks configured')}`;
+    }
 
     const lines: string[] = [];
     lines.push(`[${timeStr}] ${progress.passed + progress.failed}/${progress.total} checks completed`);
