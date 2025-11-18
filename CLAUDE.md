@@ -162,6 +162,37 @@ Production-ready git workflow automation for GitHub with Claude Code integration
 4. ❌ Delete or modify git tags
 5. ❌ Update README.md content (except version numbers/dates - see below)
 
+### 🚫 MANDATORY: Using gpm ship Command
+
+**CRITICAL RULE**: When using `gpm ship`, **ALWAYS use `--draft` flag**
+
+```bash
+# ✅ CORRECT - Creates draft PR for user review
+npm run dev -- ship --draft
+gpm ship --draft
+
+# ❌ FORBIDDEN - Auto-merges without approval
+npm run dev -- ship
+gpm ship
+```
+
+**Why `--draft` is mandatory**:
+- Draft PRs **cannot** be auto-merged (GitHub API restriction)
+- Forces manual review before merge
+- Prevents accidental npm package publication
+- User retains full control over merge timing
+
+**Exception**: Only use `gpm ship` without `--draft` if user explicitly says:
+- "merge this PR now"
+- "ship this to production"
+- "publish this to npm"
+- Or similar explicit merge approval
+
+**Before ANY merge to main**:
+1. ✅ Ask user: "Ready to merge PR #X to main? This will trigger npm publish."
+2. ✅ Wait for explicit "yes" / "merge it" / "ship it" response
+3. ✅ Only then run `gpm ship` without `--draft` flag
+
 ### Automated Publishing Workflow
 **Process**: Merging to main → GitHub Actions → semantic-release → npm publish
 - semantic-release automatically determines version from commit messages
@@ -239,6 +270,7 @@ npm test -- tests/commands/                          # Test all commands
 ### Local CLI Testing
 ```bash
 npm run dev -- feature my-feature    # Test feature command
+npm run dev -- ship --draft          # Test ship command (ALWAYS use --draft!)
 npm run dev -- auto --json           # Test auto workflow with JSON
 npm run dev -- check-update          # Test update checker
 npm run dev -- install-hooks         # Test hooks installation
