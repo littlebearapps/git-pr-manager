@@ -14,13 +14,12 @@ Production-ready git workflow automation for GitHub with Claude Code integration
 - ✅ Optional secret scanning guidance now documents `detect-secrets` as an add-on while clarifying that `gpm security` still runs `npm audit` even when Python tooling is absent.
 
 ### Sprint 2 – Reliability & Observability
-- ✅ ExecutionTracker utility instruments `gpm ship` with per-phase timing + structured metadata for JSON output (Issue #5).
-- ✅ CI polling hardened: the “0/0 checks” race condition is handled gracefully with smarter EnhancedCIPoller messaging (Issue #4).
+- ✅ npm vulnerability remediation ensures dependencies install cleanly on fresh machines (Issue #1).
 - ✅ JSON output standardization keeps machine-readable logs consistent across commands via the shared logger refactor (Issue #3).
 
-### Sprint 1 – Security Stabilization
-- ✅ npm vulnerability remediation ensures dependencies install cleanly on fresh machines (Issue #1).
-- ✅ Security scanning pathway tightened up with clearer guidance in `gpm security` and documentation-level callouts for best practices.
+### Sprint 1 – AI Agent Enablement
+- ✅ ExecutionTracker utility instruments `gpm ship` with per-phase timing + structured metadata for JSON output (Issue #5).
+- ✅ CI polling hardened: the "0/0 checks" race condition is handled gracefully with smarter EnhancedCIPoller messaging (Issue #4).
 
 ## 🚀 Quick Start
 
