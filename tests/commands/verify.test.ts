@@ -333,6 +333,7 @@ describe('verify command - multi-language integration', () => {
       (logger.isJsonMode as jest.Mock).mockReturnValue(true);
 
       mockCommandResolver.resolve
+        .mockResolvedValueOnce({ command: 'prettier --check .', source: 'package-manager', language: 'nodejs', packageManager: 'npm' })
         .mockResolvedValueOnce({ command: 'npm run lint', source: 'package-manager', language: 'nodejs', packageManager: 'npm' })
         .mockResolvedValueOnce({ command: 'npx tsc --noEmit', source: 'package-manager', language: 'nodejs', packageManager: 'npm' })
         .mockResolvedValueOnce({ command: 'npm test', source: 'package-manager', language: 'nodejs', packageManager: 'npm' })
@@ -522,6 +523,85 @@ describe('verify command - multi-language integration', () => {
       // Verify install command was resolved but not executed (exec not called with npm ci)
       expect(mockCommandResolver.resolve).toHaveBeenCalledWith(
         expect.objectContaining({ task: 'install' })
+      );
+    });
+  });
+
+  // Phase 1b: Error message enhancement tests
+  describe('Phase 1b: Better error messages', () => {
+    it('should show helpful suggestions when Makefile exists but is missing target', async () => {
+      mockLanguageDetector.getMakefileTargets.mockResolvedValue(['build', 'test', 'deploy']);
+
+      mockCommandResolver.resolve
+        .mockResolvedValueOnce({ command: 'prettier --check .', source: 'package-manager', language: 'nodejs', packageManager: 'npm' })
+        .mockResolvedValueOnce({ command: '', source: 'not-found', language: 'nodejs', packageManager: 'npm' })
+        .mockResolvedValueOnce({ command: 'npx tsc --noEmit', source: 'package-manager', language: 'nodejs', packageManager: 'npm' })
+        .mockResolvedValueOnce({ command: 'npm test', source: 'package-manager', language: 'nodejs', packageManager: 'npm' })
+        .mockResolvedValueOnce({ command: 'npm run build', source: 'package-manager', language: 'nodejs', packageManager: 'npm' });
+
+      await verifyCommand({ skipInstall: true });
+
+      // Verify logger.info was called with skip message
+      expect(logger.info).toHaveBeenCalledWith(expect.stringContaining('skipped'));
+
+      // Verify logger.log was called with suggestions
+      expect(logger.log).toHaveBeenCalledWith(expect.stringContaining('Suggestions:'));
+      expect(logger.log).toHaveBeenCalledWith(expect.stringContaining('Available Makefile targets: build, test, deploy'));
+      expect(logger.log).toHaveBeenCalledWith(expect.stringContaining("Add 'lint' target to Makefile"));
+      expect(logger.log).toHaveBeenCalledWith(expect.stringContaining('makefileAliases'));
+      expect(logger.log).toHaveBeenCalledWith(expect.stringContaining('preferMakefile: false'));
+    });
+
+    it('should show tool installation suggestion when no Makefile exists', async () => {
+      mockLanguageDetector.getMakefileTargets.mockResolvedValue([]);
+
+      mockCommandResolver.resolve
+        .mockResolvedValueOnce({ command: 'prettier --check .', source: 'package-manager', language: 'nodejs', packageManager: 'npm' })
+        .mockResolvedValueOnce({ command: '', source: 'not-found', language: 'nodejs', packageManager: 'npm' })
+        .mockResolvedValueOnce({ command: 'npx tsc --noEmit', source: 'package-manager', language: 'nodejs', packageManager: 'npm' })
+        .mockResolvedValueOnce({ command: 'npm test', source: 'package-manager', language: 'nodejs', packageManager: 'npm' })
+        .mockResolvedValueOnce({ command: 'npm run build', source: 'package-manager', language: 'nodejs', packageManager: 'npm' });
+
+      await verifyCommand({ skipInstall: true });
+
+      // Verify suggestions include custom command override and tool installation
+      expect(logger.log).toHaveBeenCalledWith(expect.stringContaining('Override with custom command'));
+      expect(logger.log).toHaveBeenCalledWith(expect.stringContaining('Install eslint: npm install -D eslint'));
+    });
+
+    it('should suggest makefileAliases when similar target exists', async () => {
+      // Use 'check' target which has substring match with 'typecheck'
+      mockLanguageDetector.getMakefileTargets.mockResolvedValue(['check', 'build', 'deploy']);
+
+      mockCommandResolver.resolve
+        .mockResolvedValueOnce({ command: '', source: 'not-found', language: 'python', packageManager: 'poetry' })
+        .mockResolvedValueOnce({ command: '', source: 'not-found', language: 'python', packageManager: 'poetry' })
+        .mockResolvedValueOnce({ command: 'poetry run pytest', source: 'package-manager', language: 'python', packageManager: 'poetry' })
+        .mockResolvedValueOnce({ command: '', source: 'not-found', language: 'python', packageManager: 'poetry' });
+
+      await verifyCommand({ skipInstall: true, skipLint: true });
+
+      // Verify suggestion includes makefileAliases with similar target (check → typecheck)
+      expect(logger.log).toHaveBeenCalledWith(expect.stringContaining('makefileAliases: { check: "typecheck" }'));
+    });
+
+    it('should truncate long Makefile target lists in suggestions', async () => {
+      mockLanguageDetector.getMakefileTargets.mockResolvedValue([
+        'build', 'test', 'deploy', 'clean', 'install',
+        'verify', 'format', 'typecheck', 'docker', 'docs'
+      ]);
+
+      mockCommandResolver.resolve
+        .mockResolvedValueOnce({ command: '', source: 'not-found', language: 'nodejs', packageManager: 'npm' })
+        .mockResolvedValueOnce({ command: 'npx tsc --noEmit', source: 'package-manager', language: 'nodejs', packageManager: 'npm' })
+        .mockResolvedValueOnce({ command: 'npm test', source: 'package-manager', language: 'nodejs', packageManager: 'npm' })
+        .mockResolvedValueOnce({ command: 'npm run build', source: 'package-manager', language: 'nodejs', packageManager: 'npm' });
+
+      await verifyCommand({ skipInstall: true });
+
+      // Verify target list is truncated to first 5 and shows count
+      expect(logger.log).toHaveBeenCalledWith(
+        expect.stringContaining('Available Makefile targets: build, test, deploy, clean, install (and 5 more)')
       );
     });
   });

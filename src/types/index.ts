@@ -453,9 +453,17 @@ export interface VerificationConfig {
     install?: string;
   };
 
+  // Phase 1b: Makefile target name aliases
+  makefileAliases?: Record<string, 'lint' | 'test' | 'typecheck' | 'format' | 'build' | 'install'>;  // Map actual target names to tasks (e.g., { check: 'test', verify: 'lint' })
+
   // Detection
   detectionEnabled?: boolean;  // Enable language detection (default: true)
 
   // Phase 1b: Install step support
   allowInstall?: boolean;      // Allow automatic dependency installation (default: false)
+
+  // Phase 1c: Verification task ordering and control
+  tasks?: ('lint' | 'test' | 'typecheck' | 'format' | 'build' | 'install')[];  // Task execution order (default: ['format', 'lint', 'typecheck', 'test', 'build'])
+  skipTasks?: ('lint' | 'test' | 'typecheck' | 'format' | 'build' | 'install')[];  // Tasks to skip
+  stopOnFirstFailure?: boolean;  // Stop verification on first failure (default: true)
 }

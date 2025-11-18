@@ -1,7 +1,7 @@
 # git-pr-manager - Quick Reference
 
-**Version**: 0.2.0
-**Updated**: 2025-10-18
+**Version**: 1.6.0-beta.1
+**Updated**: 2025-11-18
 
 ---
 
@@ -23,7 +23,7 @@ git commit -m "feat: my feature description"
 User: "Use git-pr-manager to ship this feature"
 
 # What happens:
-# 1. Runs verify.sh (lint, typecheck, tests, build)
+# 1. Runs multi-language verification (format, lint, typecheck, test, build)
 # 2. Pushes feature branch to GitHub
 # 3. Creates PR (feature → main)
 # 4. Waits for CI checks to pass
@@ -51,6 +51,7 @@ User: "Use git-pr-manager to check status"
 | Command | When to Use | What It Does |
 |---------|-------------|--------------|
 | **gpm ship** | Ready to merge feature | Complete PR workflow |
+| **gpm verify** | Before committing | Run verification checks (format, lint, typecheck, test, build) |
 | **gpm feature** | Starting new work | Creates feature branch from main (with worktree conflict detection) |
 | **gpm status** | Check current state | Shows branch, PR, CI status |
 | **gpm abort** | Need to cancel feature | Deletes feature branch safely |
@@ -90,6 +91,37 @@ gpm feature my-feature --from develop
 # Note: Automatically detects worktree conflicts
 # If branch exists in another worktree, provides helpful error with suggestions
 ```
+
+### gpm verify
+
+```bash
+# Run all verification checks (auto-detects language)
+gpm verify
+
+# Skip specific checks
+gpm verify --skip-format        # Skip format verification
+gpm verify --skip-lint          # Skip linting
+gpm verify --skip-typecheck     # Skip type checking
+gpm verify --skip-test          # Skip tests
+gpm verify --skip-build         # Skip build step
+
+# Skip dependency installation prompt
+gpm verify --skip-install
+
+# Continue on failures (run all checks)
+gpm verify --no-stop-on-first-failure
+
+# JSON output for CI/automation
+gpm verify --json
+```
+
+**Supported Languages**:
+- Python (poetry, pipenv, uv, pip)
+- Node.js (pnpm, yarn, bun, npm)
+- Go (go modules)
+- Rust (cargo)
+
+**Default verification order**: format → lint → typecheck → test → build
 
 ---
 
@@ -181,15 +213,19 @@ Solution:
 6. Re-run gpm ship
 ```
 
-### "verify.sh failed"
+### "Verification failed"
 ```
-❌ verify.sh failed: [test/lint/typecheck/build]
+❌ Verification failed: [format/lint/typecheck/test/build]
 
 Solution:
-1. Run locally: bash scripts/phase-2/verify.sh
-2. Fix issues reported
+1. Run locally: gpm verify
+2. Fix issues reported (tool suggestions provided)
 3. Commit fixes
 4. Re-run gpm ship
+
+# For specific task failures:
+gpm verify --skip-format      # Skip format to isolate other issues
+gpm verify --skip-build       # Skip build if not applicable
 ```
 
 ### "Branch checked out in another worktree"
@@ -367,20 +403,49 @@ Solution:
 
 ---
 
-## Integration with Phase 2
+## Multi-Language Verification (Phase 1a-1c)
 
-### If verify.sh exists
+### Auto-Detection
 ```bash
-# gpm ship automatically runs:
-bash scripts/phase-2/verify.sh
+# gpm ship automatically runs multi-language verification
+# Detects: Python, Node.js, Go, Rust
 
-# Checks:
-- Linting (eslint/ruff)
-- Type checking (tsc/mypy)
-- Tests (npm test/pytest)
-- Build (npm run build)
+# Verification steps (in order):
+# 1. Format check (non-destructive: --check, --diff, -l flags)
+# 2. Linting (eslint, ruff, golangci-lint, clippy)
+# 3. Type checking (tsc, mypy, go vet)
+# 4. Tests (jest, pytest, go test, cargo test)
+# 5. Build (optional: npm build, go build, cargo build)
 
-# Skip with: gpm ship --no-verify
+# Skip verification: gpm ship --no-verify
+```
+
+### Configuration (.gpm.yml)
+```yaml
+verification:
+  # Override detected language
+  language: python
+  packageManager: poetry
+
+  # Custom task order
+  tasks: ['lint', 'typecheck', 'test', 'build', 'format']
+
+  # Skip specific tasks
+  skipTasks: ['build']  # Build not needed for this project
+
+  # Stop on first failure (default: true)
+  stopOnFirstFailure: false  # Run all checks even if one fails
+
+  # Allow automatic dependency installation
+  allowInstall: true  # Prompt to run install command if dependencies missing
+
+  # Custom command overrides
+  commands:
+    lint: 'make lint'
+    test: 'make test'
+
+  # Prefer Makefile targets (default: true)
+  preferMakefile: true
 ```
 
 ### If GitHub Actions configured

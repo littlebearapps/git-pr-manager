@@ -1,9 +1,9 @@
 # Test Documentation - git-pr-manager
 
-**Last Updated**: 2025-11-14
+**Last Updated**: 2025-11-18
 **Current Coverage**: 89.67% statements, 82.82% branches, 95.11% functions, 89.61% lines
 **Target Coverage**: 80% (all metrics) - ✅ **EXCEEDED!** 🎉
-**Total Tests**: 622 (594 unit + 28 integration)
+**Total Tests**: 807 (777 unit + 13 Phase 1b integration + 17 Phase 1c integration)
 
 ---
 
@@ -21,10 +21,10 @@
 ### Test Suite Summary
 
 ```
-✅ All 622 tests passing
+✅ All 807 tests passing
 ✅ Zero failures
-✅ 594 unit tests
-✅ 28 integration tests
+✅ 777 unit tests
+✅ 30 integration tests (13 Phase 1b + 17 Phase 1c)
 ✅ Coverage target exceeded (80% → 89.67%)
 ✅ All priorities complete (+420 tests, +19.35% total coverage improvement)
 ```
@@ -511,6 +511,91 @@ jest.useRealTimers();
 
 ---
 
+## ✅ Integration Tests
+
+### Phase 1b: Install Support + Makefile Enhancements + Workspace Detection - **13 tests** ✅
+
+**Coverage Impact**: Comprehensive integration testing for Phase 1b features
+**File**: `tests/integration/phase1b.integration.test.ts`
+
+**Test Coverage**:
+- ✅ Task 1b.1: Install Step Integration (3 tests)
+  - Resolve install command for npm when lock file exists
+  - Resolve install command for different package managers (pnpm, yarn)
+  - Resolve Python install commands (poetry, pipenv, uv, pip)
+
+- ✅ Task 1b.2: Makefile Enhancements Integration (3 tests)
+  - Use Makefile custom target mapping
+  - Use Makefile aliases for similar targets
+  - Fall back to native tools when Makefile target not found
+
+- ✅ Task 1b.3: Workspace Detection Integration (6 tests)
+  - Detect npm workspace and display workspace root
+  - Detect Yarn workspace from .yarnrc.yml
+  - Detect pnpm workspace from pnpm-workspace.yaml
+  - Show workspace root in detection summary
+  - Not show workspace root when not in a workspace
+  - Handle workspace detection errors gracefully
+
+- ✅ Phase 1b: Cross-Feature Integration (1 test)
+  - Combine install step, Makefile aliases, and workspace detection
+
+---
+
+### Phase 1c: Enhanced Verification Pipeline - **17 tests** ✅
+
+**Coverage Impact**: Comprehensive integration testing for Phase 1c features
+**File**: `tests/integration/phase1c.integration.test.ts`
+
+**Test Coverage**:
+- ✅ Task 1c.1: Format Command Integration (5 tests)
+  - Resolve format command for Python (black check mode)
+  - Resolve format command for Node.js (prettier check mode)
+  - Resolve format command for Go (gofmt list mode)
+  - Resolve format command for Rust (cargo fmt check mode)
+  - Prefer Makefile format target over native tools
+
+- ✅ Task 1c.2: Build Command Integration (5 tests)
+  - Resolve build command for Node.js projects
+  - Mark build as optional when no build command exists
+  - Resolve build command for Go projects
+  - Resolve build command for Rust projects
+  - Prefer Makefile build target over native tools
+
+- ✅ Task 1c.3: Verification Order Configuration (4 tests)
+  - Use default task order when no config provided
+  - Use custom task order from config
+  - Skip tasks from config skipTasks list
+  - Support stopOnFirstFailure configuration
+
+- ✅ Phase 1c: Cross-Feature Integration (3 tests)
+  - Combine format, build, and custom task ordering
+  - Handle Python project with format check + optional build
+  - Handle Go project with format check + build
+
+**Key Testing Patterns**:
+```typescript
+// Format command verification (check mode, not fix mode)
+expect(result.command).toContain('--check');
+
+// Build command optional handling
+expect(result.optional).toBe(true);
+
+// Task ordering configuration
+const config = {
+  tasks: ['format', 'lint', 'typecheck', 'test', 'build'] as ('lint' | 'test' | 'typecheck' | 'format' | 'build' | 'install')[]
+};
+```
+
+**Coverage Achievements**:
+- All 17 tests passing
+- Format commands use check mode (non-destructive verification)
+- Build tasks marked as optional when not found
+- Custom task ordering fully functional
+- Cross-feature integration validated
+
+---
+
 ## 🗂️ Test Organization
 
 ### Directory Structure
@@ -539,7 +624,9 @@ tests/
 │   └── spinner.test.ts             🔜 Priority 3
 │
 └── integration/                 # Integration tests
-    └── pr-workflow.integration.test.ts ✅ 28 tests
+    ├── pr-workflow.integration.test.ts ✅ 28 tests
+    ├── phase1b.integration.test.ts     ✅ 13 tests (Phase 1b features)
+    └── phase1c.integration.test.ts     ✅ 17 tests (Phase 1c features) ⭐ NEW
 ```
 
 ---

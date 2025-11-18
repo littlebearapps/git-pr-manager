@@ -207,7 +207,7 @@ describe('LanguageDetectionService', () => {
       expect(commands.lint).toContain('ruff check .');
       expect(commands.test).toContain('pytest tests/');
       expect(commands.typecheck).toContain('mypy .');
-      expect(commands.format).toContain('ruff format .');
+      expect(commands.format).toContain('ruff format --check .');
     });
 
     it('should return Node.js tool commands', async () => {
@@ -351,6 +351,105 @@ install-dev:
 
       expect(targets).toEqual([]);
     });
+
+    // Phase 1b: Enhanced Makefile parsing tests
+    it('should extract targets from .PHONY declarations', async () => {
+      const makefileContent = `.PHONY: lint test build
+lint:
+\techo "Linting..."
+`;
+      mockReadFile.mockResolvedValue(makefileContent as any);
+
+      const targets = await service.getMakefileTargets();
+
+      expect(targets).toContain('lint');
+      expect(targets).toContain('test');
+      expect(targets).toContain('build');
+    });
+
+    it('should handle targets with dependencies', async () => {
+      const makefileContent = `
+test: build lint
+\tpytest tests/
+
+build:
+\tpython -m build
+
+lint:
+\truff check .
+`;
+      mockReadFile.mockResolvedValue(makefileContent as any);
+
+      const targets = await service.getMakefileTargets();
+
+      expect(targets).toContain('test');
+      expect(targets).toContain('build');
+      expect(targets).toContain('lint');
+      expect(targets).toHaveLength(3);
+    });
+
+    it('should skip commented targets', async () => {
+      const makefileContent = `
+# This is a comment
+lint:
+\techo "Linting..."
+
+# test:
+#\techo "Testing..."
+
+build:
+\techo "Building..."
+`;
+      mockReadFile.mockResolvedValue(makefileContent as any);
+
+      const targets = await service.getMakefileTargets();
+
+      expect(targets).toContain('lint');
+      expect(targets).toContain('build');
+      expect(targets).not.toContain('test');
+      expect(targets).toHaveLength(2);
+    });
+
+    it('should return sorted targets', async () => {
+      const makefileContent = `
+test:
+\techo "Testing..."
+
+build:
+\techo "Building..."
+
+lint:
+\techo "Linting..."
+
+clean:
+\techo "Cleaning..."
+`;
+      mockReadFile.mockResolvedValue(makefileContent as any);
+
+      const targets = await service.getMakefileTargets();
+
+      expect(targets).toEqual(['build', 'clean', 'lint', 'test']);
+    });
+
+    it('should deduplicate targets from .PHONY and definitions', async () => {
+      const makefileContent = `.PHONY: test lint build
+
+test:
+\tpytest tests/
+
+lint:
+\truff check .
+
+build:
+\tpython -m build
+`;
+      mockReadFile.mockResolvedValue(makefileContent as any);
+
+      const targets = await service.getMakefileTargets();
+
+      // Should not have duplicates
+      expect(targets).toEqual(['build', 'lint', 'test']);
+    });
   });
 
   describe('checkToolAvailable', () => {
@@ -401,6 +500,125 @@ install-dev:
       const result2 = await service.checkToolAvailable('nonexistent');
       expect(result2).toBe(false);
       expect(mockExecSync).toHaveBeenCalledTimes(1); // Not called again
+    });
+  });
+
+  // Phase 1b: Workspace detection tests
+  describe('detectWorkspaceRoot', () => {
+    it('should detect Node.js workspace from package.json with workspaces field', async () => {
+      const packageJsonPath = '/test/project/package.json';
+      const packageJsonContent = JSON.stringify({
+        name: 'my-workspace',
+        workspaces: ['packages/*']
+      });
+
+      mockExistsSync.mockReturnValue(false);
+      mockReadFile.mockImplementation(async (path: any) => {
+        if (path.toString() === packageJsonPath) {
+          return packageJsonContent as any;
+        }
+        throw new Error('File not found');
+      });
+
+      const result = await service.detectWorkspaceRoot();
+
+      expect(result).toBe('/test/project');
+    });
+
+    it('should detect Yarn workspace from .yarnrc.yml', async () => {
+      mockExistsSync.mockImplementation((path: any) => {
+        const pathStr = path.toString();
+        return pathStr.includes('.yarnrc.yml') || pathStr.includes('package.json');
+      });
+
+      const result = await service.detectWorkspaceRoot();
+
+      expect(result).toBe('/test/project');
+    });
+
+    it('should detect pnpm workspace from pnpm-workspace.yaml', async () => {
+      mockExistsSync.mockImplementation((path: any) => {
+        const pathStr = path.toString();
+        return pathStr.includes('pnpm-workspace.yaml') || pathStr.includes('package.json');
+      });
+
+      const result = await service.detectWorkspaceRoot();
+
+      expect(result).toBe('/test/project');
+    });
+
+    it('should return null when no workspace is detected', async () => {
+      mockExistsSync.mockReturnValue(false);
+      mockReadFile.mockRejectedValue(new Error('File not found'));
+
+      const result = await service.detectWorkspaceRoot();
+
+      expect(result).toBeNull();
+    });
+
+    it('should find workspace root in parent directory', async () => {
+      const childService = new LanguageDetectionService('/test/project/packages/app');
+      const parentPackageJsonPath = '/test/project/package.json';
+      const packageJsonContent = JSON.stringify({
+        name: 'my-workspace',
+        workspaces: ['packages/*']
+      });
+
+      mockExistsSync.mockReturnValue(false);
+      mockReadFile.mockImplementation(async (path: any) => {
+        if (path.toString() === parentPackageJsonPath) {
+          return packageJsonContent as any;
+        }
+        throw new Error('File not found');
+      });
+
+      const result = await childService.detectWorkspaceRoot();
+
+      expect(result).toBe('/test/project');
+    });
+
+    it('should not detect workspace when package.json has no workspaces field', async () => {
+      const packageJsonPath = '/test/project/package.json';
+      const packageJsonContent = JSON.stringify({
+        name: 'my-app',
+        version: '1.0.0'
+      });
+
+      mockExistsSync.mockReturnValue(false);
+      mockReadFile.mockImplementation(async (path: any) => {
+        if (path.toString() === packageJsonPath) {
+          return packageJsonContent as any;
+        }
+        throw new Error('File not found');
+      });
+
+      const result = await service.detectWorkspaceRoot();
+
+      expect(result).toBeNull();
+    });
+
+    it('should require package.json alongside .yarnrc.yml', async () => {
+      mockExistsSync.mockImplementation((path: any) => {
+        const pathStr = path.toString();
+        // Only .yarnrc.yml exists, no package.json
+        return pathStr.includes('.yarnrc.yml') && !pathStr.includes('package.json');
+      });
+
+      const result = await service.detectWorkspaceRoot();
+
+      expect(result).toBeNull();
+    });
+
+    it('should require package.json alongside pnpm-workspace.yaml', async () => {
+      mockExistsSync.mockImplementation((path: any) => {
+        const pathStr = path.toString();
+        // Only pnpm-workspace.yaml exists, no package.json
+        return pathStr.includes('pnpm-workspace.yaml') && !pathStr.includes('package.json');
+      });
+
+      const result = await service.detectWorkspaceRoot();
+
+      expect(result).toBeNull();
     });
   });
 });

@@ -1,8 +1,8 @@
 # Git PR Manager - Claude Code Context
 
-**Last Updated**: 2025-11-17
+**Last Updated**: 2025-11-18
 **Version**: 1.6.0-beta.1
-**Status**: Beta - Multi-Language Support (Phase 1a) ✅
+**Status**: Beta - Multi-Language Support (Phase 1a-1c Complete) ✅
 
 ---
 
@@ -15,15 +15,31 @@ Production-ready git workflow automation for GitHub with Claude Code integration
 **License**: MIT
 **Status**: v1.6.0-beta.1 - Beta with Multi-Language Support 🎉
 
-### Release 1.6.0-beta.1 - Phase 1a: Multi-Language Support ✅ (2025-11-17)
+### Release 1.6.0-beta.1 - Phase 1a-1c: Multi-Language Support ✅ (2025-11-17 to 2025-11-18)
 
-**🌍 Multi-Language Verification**
+**Phase 1a: Foundation** ✅
 - ✅ Automatic language detection (Python, Node.js, Go, Rust)
 - ✅ Package manager detection (poetry/pipenv/uv/pip, npm/yarn/pnpm/bun, go-mod, cargo)
 - ✅ Intelligent command resolution with fallback chains
 - ✅ Makefile integration (prefers Makefile targets when available)
 - ✅ Graceful degradation (skips unavailable tools)
 - ✅ Backward compatible (existing Node.js projects work without changes)
+
+**Phase 1b: Install Step & Makefile Aliases** ✅
+- ✅ Install command support with user prompts (poetry install, npm ci, etc.)
+- ✅ `allowInstall` config flag (default: false for safety)
+- ✅ `--skip-install` CLI flag to skip installation
+- ✅ Makefile alias support (map actual target names to tasks)
+- ✅ Example: `{check: 'test', verify: 'lint'}` maps Makefile targets
+
+**Phase 1c: Format & Build Steps + Task Ordering** ✅
+- ✅ Format verification (non-destructive: --check, --diff, -l flags)
+- ✅ Build command support (marked as optional when not found)
+- ✅ Custom task ordering via `tasks` config array
+- ✅ `skipTasks` config to permanently skip tasks
+- ✅ `stopOnFirstFailure` config for fail-fast control
+- ✅ CLI flags: --skip-format, --skip-build, --no-stop-on-first-failure
+- ✅ Default order: format → lint → typecheck → test → build (5 tasks)
 
 **📦 Package Manager Support**
 - Python: poetry, pipenv, uv, pip (auto-detected from lock files)
@@ -35,15 +51,24 @@ Production-ready git workflow automation for GitHub with Claude Code integration
 - New `verification` section in `.gpm.yml`
 - `detectionEnabled`: Enable/disable auto-detection (default: true)
 - `preferMakefile`: Prefer Makefile targets over package manager (default: true)
-- `commands`: Override specific commands (lint, test, typecheck, build, install)
+- `commands`: Override specific commands (format, lint, test, typecheck, build, install)
+- `tasks`: Custom task execution order (Phase 1c)
+- `skipTasks`: Permanently skip tasks (Phase 1c)
+- `stopOnFirstFailure`: Fail-fast control (Phase 1c)
+- `allowInstall`: Allow dependency installation prompts (Phase 1b)
+- `makefileAliases`: Map Makefile target names to tasks (Phase 1b)
 
 **🧪 Testing**
-- 751 tests passing (+17 new tests for Phase 1a)
-- ConfigService verification config tests (5 tests)
-- verify command integration tests (12 tests)
-- Real project integration testing (Node.js + npm validated)
+- 807 tests passing (+56 new tests for Phase 1a-1c)
+- Phase 1a: 17 integration tests
+- Phase 1b: 22 integration tests
+- Phase 1c: 17 integration tests
+- All tests passing, 89.67% coverage
 
-**See**: docs/debugging/multi-language-support-implementation-plan.md for full implementation details
+**See**:
+- docs/PHASE-1A-COMPLETION-SUMMARY.md
+- docs/PHASE-1B-COMPLETION-SUMMARY.md
+- docs/PHASE-1C-COMPLETION-SUMMARY.md
 
 ### Release 1.5.0 - ✅ COMPLETE (2025-11-17)
 

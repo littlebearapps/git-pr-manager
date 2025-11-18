@@ -28,7 +28,11 @@ describe('CommandResolver', () => {
       getMakefileTargets: jest.fn(),
       detectLanguage: jest.fn(),
       detectPackageManager: jest.fn(),
+      detectWorkspaceRoot: jest.fn(),
     } as any;
+
+    // Configure default return values
+    mockLanguageDetector.detectWorkspaceRoot.mockResolvedValue(null);
 
     // Mock constructor to return our mock instance
     MockedLanguageDetectionService.mockImplementation(() => mockLanguageDetector);
@@ -122,6 +126,97 @@ describe('CommandResolver', () => {
         command: 'make check',
         source: 'makefile',
         language: 'python',
+        packageManager: undefined
+      });
+    });
+
+    // Phase 1b: Makefile alias tests
+    it('should use Makefile alias when target name differs', async () => {
+      const config = {
+        preferMakefile: true,
+        makefileAliases: {
+          check: 'test' as const,
+          verify: 'lint' as const
+        }
+      };
+
+      // Looking for 'test' task, but Makefile has 'check'
+      const result = await resolver.resolve({
+        task: 'test',
+        language: 'python',
+        config,
+        makefileTargets: ['check', 'verify', 'build']
+      });
+
+      expect(result).toEqual({
+        command: 'make check',
+        source: 'makefile',
+        language: 'python',
+        packageManager: undefined
+      });
+    });
+
+    it('should prefer default target name over alias', async () => {
+      const config = {
+        preferMakefile: true,
+        makefileAliases: {
+          check: 'test' as const
+        }
+      };
+
+      // Makefile has both 'test' and 'check', should prefer direct match
+      const result = await resolver.resolve({
+        task: 'test',
+        language: 'python',
+        config,
+        makefileTargets: ['test', 'check', 'build']
+      });
+
+      expect(result).toEqual({
+        command: 'make test',
+        source: 'makefile',
+        language: 'python',
+        packageManager: undefined
+      });
+    });
+
+    it('should handle multiple aliases correctly', async () => {
+      const config = {
+        preferMakefile: true,
+        makefileAliases: {
+          check: 'test' as const,
+          verify: 'lint' as const,
+          compile: 'build' as const
+        }
+      };
+
+      // Test lint task with verify alias
+      const lintResult = await resolver.resolve({
+        task: 'lint',
+        language: 'nodejs',
+        config,
+        makefileTargets: ['verify', 'check', 'compile']
+      });
+
+      expect(lintResult).toEqual({
+        command: 'make verify',
+        source: 'makefile',
+        language: 'nodejs',
+        packageManager: undefined
+      });
+
+      // Test build task with compile alias
+      const buildResult = await resolver.resolve({
+        task: 'build',
+        language: 'nodejs',
+        config,
+        makefileTargets: ['verify', 'check', 'compile']
+      });
+
+      expect(buildResult).toEqual({
+        command: 'make compile',
+        source: 'makefile',
+        language: 'nodejs',
         packageManager: undefined
       });
     });
@@ -255,7 +350,8 @@ describe('CommandResolver', () => {
         command: '',
         source: 'not-found',
         language: 'python',
-        packageManager: undefined
+        packageManager: undefined,
+        optional: false
       });
     });
 
@@ -275,7 +371,8 @@ describe('CommandResolver', () => {
         command: '',
         source: 'not-found',
         language: 'python',
-        packageManager: undefined
+        packageManager: undefined,
+        optional: false
       });
     });
 

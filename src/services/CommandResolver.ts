@@ -27,6 +27,7 @@ export interface ResolvedCommand {
   source: 'config' | 'makefile' | 'package-manager' | 'native' | 'not-found';
   language: Language;
   packageManager?: PackageManager;
+  optional?: boolean;  // Task is optional (e.g., build when no build script exists)
 }
 
 /**
@@ -51,12 +52,27 @@ export interface ResolveOptions {
  * 2. Makefile targets (if preferMakefile is true)
  * 3. Package manager commands
  * 4. Native tool fallbacks
+ *
+ * Phase 1b: Supports Node.js workspaces - prefers root-level Makefile and commands
  */
 export class CommandResolver {
   private languageDetector: LanguageDetectionService;
+  private workspaceRoot: string | null = null;
+  private workspaceRootDetected: boolean = false;
 
   constructor(workingDir: string = process.cwd()) {
     this.languageDetector = new LanguageDetectionService(workingDir);
+  }
+
+  /**
+   * Phase 1b: Get workspace root if in a workspace
+   */
+  async getWorkspaceRoot(): Promise<string | null> {
+    if (!this.workspaceRootDetected) {
+      this.workspaceRoot = await this.languageDetector.detectWorkspaceRoot();
+      this.workspaceRootDetected = true;
+    }
+    return this.workspaceRoot;
   }
 
   /**
@@ -122,11 +138,15 @@ export class CommandResolver {
     }
 
     // 5. No command found
+    // Build task is optional - mark it so verify command can skip it gracefully
+    const isOptional = task === 'build';
+
     return {
       command: '',
       source: 'not-found',
       language,
-      packageManager
+      packageManager,
+      optional: isOptional
     };
   }
 
@@ -139,15 +159,25 @@ export class CommandResolver {
     makefileTargets: string[],
     config?: VerificationConfig
   ): string | null {
-    // Check for custom Makefile target mapping in config
+    // 1. Check for custom Makefile target mapping in config
     const customTarget = config?.makefileTargets?.[task];
     if (customTarget && makefileTargets.includes(customTarget)) {
       return `make ${customTarget}`;
     }
 
-    // Check for default target name
+    // 2. Check for default target name
     if (makefileTargets.includes(task)) {
       return `make ${task}`;
+    }
+
+    // 3. Phase 1b: Check for aliased target names
+    // Example: if Makefile has 'check' and config has { check: 'test' }, use 'make check' for test task
+    if (config?.makefileAliases) {
+      for (const [actualTarget, mappedTask] of Object.entries(config.makefileAliases)) {
+        if (mappedTask === task && makefileTargets.includes(actualTarget)) {
+          return `make ${actualTarget}`;
+        }
+      }
     }
 
     return null;
@@ -195,6 +225,7 @@ export class CommandResolver {
 
   /**
    * Get detection summary for dry-run mode
+   * Phase 1b: Includes workspace information when detected
    */
   async getDetectionSummary(
     language: Language,
@@ -208,6 +239,12 @@ export class CommandResolver {
 
     if (packageManager) {
       lines.push(`Package Manager: ${packageManager}`);
+    }
+
+    // Phase 1b: Show workspace information
+    const workspaceRoot = await this.getWorkspaceRoot();
+    if (workspaceRoot) {
+      lines.push(`Workspace Root: ${workspaceRoot}`);
     }
 
     // Get Makefile targets
