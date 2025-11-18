@@ -1,4 +1,4 @@
-# Git Workflow Manager v1.6.0-beta.1
+# Git Workflow Manager v1.7.0
 
 Production-ready git workflow automation for GitHub with Claude Code integration. Streamlines feature development with intelligent CI polling, comprehensive error reporting, automated PR workflows, and **multi-language verification** (Python, Node.js, Go, Rust).
 
@@ -6,7 +6,7 @@ Production-ready git workflow automation for GitHub with Claude Code integration
 [![Node.js CI](https://github.com/littlebearapps/git-pr-manager/workflows/Test/badge.svg)](https://github.com/littlebearapps/git-pr-manager/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## ✨ What's New in v1.6.0-beta.1
+## ✨ What's New in v1.7.0
 
 ### Sprint 3 – Output Polish & Documentation (Nov 2025)
 - ✅ Cross-command spacing review: redundant `logger.blank()` → `logger.section()` pairs removed so sections render with a single intentional spacer everywhere.

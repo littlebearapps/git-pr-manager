@@ -1,6 +1,6 @@
 # git-pr-manager - Quick Reference
 
-**Version**: 1.6.0-beta.1
+**Version**: 1.7.0
 **Updated**: 2025-11-18
 
 ---

@@ -1,6 +1,6 @@
 # Sprint 1: AI Agent Enablement — Dogfooding Issues Fix
 
-Version: v1.6.0-beta.1
+Version: v1.7.0
 Branch: `docs/dogfooding-fix-plan`
 
 ## What Was Implemented

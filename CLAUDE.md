@@ -1,8 +1,8 @@
 # Git PR Manager - Claude Code Context
 
 **Last Updated**: 2025-11-18 (Sprint 3)
-**Version**: 1.6.0-beta.1
-**Status**: Beta - Multi-Language Support (Phase 1a-1c Complete) ✅
+**Version**: 1.7.0
+**Status**: Production - Multi-Language Support (Phase 1a-1c Complete) ✅
 **Current Focus**: Sprint 3 – Output Polish & Documentation ✅
 
 ---
@@ -18,9 +18,9 @@ Production-ready git workflow automation for GitHub with Claude Code integration
 **Repository**: https://github.com/littlebearapps/git-pr-manager
 **npm Package**: @littlebearapps/git-pr-manager
 **License**: MIT
-**Status**: v1.6.0-beta.1 - Beta with Multi-Language Support 🎉
+**Status**: v1.7.0 - Production with Multi-Language Support 🎉
 
-### Release 1.6.0-beta.1 - Phase 1a-1c: Multi-Language Support ✅ (2025-11-17 to 2025-11-18)
+### Release 1.7.0 - Phase 1a-1c: Multi-Language Support ✅ (2025-11-17 to 2025-11-18)
 
 **Phase 1a: Foundation** ✅
 - ✅ Automatic language detection (Python, Node.js, Go, Rust)

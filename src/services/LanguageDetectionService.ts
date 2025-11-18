@@ -112,11 +112,15 @@ const INSTALL_COMMANDS: Record<PackageManager, string> = {
  *
  * Provides language detection, package manager detection, and tool command mapping.
  */
+interface CachedToolAvailability {
+  available: boolean;
+  timestamp: number;
+}
+
 export class LanguageDetectionService {
   private workingDir: string;
-  private toolAvailabilityCache: Map<string, boolean> = new Map();
-  // TODO: Implement cache expiry based on TTL
-  // private cacheExpiry: number = 60 * 60 * 1000; // 1 hour TTL
+  private toolAvailabilityCache: Map<string, CachedToolAvailability> = new Map();
+  private cacheExpiry: number = 60 * 60 * 1000; // 1 hour TTL
 
   constructor(workingDir: string = process.cwd()) {
     this.workingDir = workingDir;
@@ -312,16 +316,22 @@ export class LanguageDetectionService {
     // Check cache first
     const cached = this.toolAvailabilityCache.get(tool);
     if (cached !== undefined) {
-      return cached;
+      // Check if cache is still valid (not expired)
+      const now = Date.now();
+      if (now - cached.timestamp < this.cacheExpiry) {
+        return cached.available;
+      }
+      // Cache expired, remove it
+      this.toolAvailabilityCache.delete(tool);
     }
 
     try {
       // Use 'command -v' which is POSIX-compliant
       execSync(`command -v ${tool}`, { stdio: 'ignore' });
-      this.toolAvailabilityCache.set(tool, true);
+      this.toolAvailabilityCache.set(tool, { available: true, timestamp: Date.now() });
       return true;
     } catch {
-      this.toolAvailabilityCache.set(tool, false);
+      this.toolAvailabilityCache.set(tool, { available: false, timestamp: Date.now() });
       return false;
     }
   }

@@ -1,7 +1,7 @@
 # gpm Dogfooding Issues - Fix & Implementation Plan
 
 **Date**: 2025-11-18
-**Version**: 1.6.0-beta.1
+**Version**: 1.7.0
 **Context**: Issues identified during dogfooding test (PR #28)
 
 ---

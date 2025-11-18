@@ -38,4 +38,4 @@ npm run build   # PASS
 ## Release Readiness
 - Documentation now explains Sprint 1‑3 outcomes and optional tooling.
 - Command output styling confirmed consistent across status/help flows.
-- Tests and build succeed, so v1.6.0-beta.1 is ready for dogfooding and beta sign-off.
+- Tests and build succeed, so v1.7.0 is ready for production release.

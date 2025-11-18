@@ -1,6 +1,6 @@
 # Sprint 2: Stability and Standardization — Completion Summary
 
-Version: v1.6.0-beta.1 (branch: `docs/dogfooding-fix-plan`)
+Version: v1.7.0 (branch: `docs/dogfooding-fix-plan`)
 
 This document summarizes the implementation work for Sprint 2 per `docs/DOGFOODING-ISSUES-FIX-PLAN.md`.
 

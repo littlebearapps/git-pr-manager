@@ -6,6 +6,7 @@ import { VerifyService } from '../services/VerifyService';
 import { SecurityScanner } from '../services/SecurityScanner';
 import { EnhancedCIPoller } from '../services/EnhancedCIPoller';
 import { BranchProtectionChecker } from '../services/BranchProtectionChecker';
+import { ExecutionTracker } from '../utils/ExecutionTracker';
 import { logger } from '../utils/logger';
 import { spinner } from '../utils/spinner';
 import chalk from 'chalk';
@@ -33,6 +34,9 @@ export async function autoCommand(options: AutoOptions = {}): Promise<void> {
     );
     process.exit(1);
   }
+
+  // Initialize execution tracker
+  const tracker = new ExecutionTracker();
 
   try {
     logger.section('🚀 Auto Workflow');
@@ -98,15 +102,22 @@ export async function autoCommand(options: AutoOptions = {}): Promise<void> {
         }
 
         spinner.succeed(`Verification checks passed (${verifyResult.duration}ms)`);
+        tracker.logCompleted('verification', verifyResult.duration);
+      } else {
+        tracker.logSkipped('verification', 'no verify script found');
       }
     } else if (options.skipVerify) {
       logger.warn('Skipping verification checks (--skip-verify)');
+      tracker.logSkipped('verification', 'skipped by user (--skip-verify)');
+    } else {
+      tracker.logSkipped('verification', 'working directory is clean');
     }
 
     // Step 3: Security scan
     if (!options.skipSecurity && config.security?.scanSecrets) {
       spinner.start('Running security scan...');
 
+      const securityStart = Date.now();
       const securityResult = await securityScanner.scan();
 
       if (!securityResult.passed) {
@@ -117,14 +128,19 @@ export async function autoCommand(options: AutoOptions = {}): Promise<void> {
       }
 
       spinner.succeed('Security scan passed');
+      tracker.logCompleted('security', Date.now() - securityStart);
     } else if (options.skipSecurity) {
       logger.warn('Skipping security scan (--skip-security)');
+      tracker.logSkipped('security', 'skipped by user (--skip-security)');
+    } else {
+      tracker.logSkipped('security', 'scanSecrets disabled in config');
     }
 
     // Step 4: Push changes
     logger.info('Pushing changes to remote...');
     await gitService.push();
     logger.success('Pushed to remote');
+    tracker.logCompleted('push');
 
     // Step 5: Create or find PR
     spinner.start('Checking for existing PR...');
@@ -148,9 +164,11 @@ export async function autoCommand(options: AutoOptions = {}): Promise<void> {
 
       prNumber = prResult.number;
       spinner.succeed(`PR created: ${chalk.cyan(prResult.url)}`);
+      tracker.logCompleted('create-pr');
     } else {
       prNumber = pr.number;
       spinner.succeed(`Found existing PR #${pr.number}: ${chalk.cyan(pr.html_url)}`);
+      tracker.logSkipped('create-pr', 'PR already exists');
     }
 
     // Step 6: Wait for CI checks
@@ -208,8 +226,10 @@ export async function autoCommand(options: AutoOptions = {}): Promise<void> {
       }
 
       logger.success(`✅ All CI checks passed (${Math.floor(checkResult.duration / 1000)}s)`);
+      tracker.logCompleted('wait-ci', checkResult.duration);
     } else {
       logger.warn('Skipping CI checks (waitForChecks: false)');
+      tracker.logSkipped('wait-ci', 'waitForChecks disabled in config');
     }
 
     // Step 7: Validate and merge PR
@@ -241,12 +261,15 @@ export async function autoCommand(options: AutoOptions = {}): Promise<void> {
 
       // Merge PR
       spinner.start('Merging PR...');
+      const mergeStart = Date.now();
       await prService.mergePR(prNumber, { deleteBranch: true });
       spinner.succeed('PR merged successfully');
+      tracker.logCompleted('merge', Date.now() - mergeStart);
 
       // Switch back to default branch
       await gitService.checkout(defaultBranch);
       await gitService.pull();
+      tracker.logCompleted('cleanup');
 
       logger.blank();
       logger.success(`🎉 Feature shipped! Merged PR #${prNumber}`);
@@ -259,11 +282,15 @@ export async function autoCommand(options: AutoOptions = {}): Promise<void> {
         prNumber,
         prUrl: prDetails.html_url,
         branch: currentBranch,
-        defaultBranch
+        defaultBranch,
+        execution: tracker.getSummary()
       });
     } else {
       logger.blank();
       logger.success(`✅ Workflow complete (--no-merge flag set)`);
+      tracker.logSkipped('merge', 'no-merge flag set');
+      tracker.logSkipped('cleanup', 'no-merge flag set');
+
       const prDetails = await githubService.getPR(prNumber);
       logger.info(`PR is ready to merge: ${prDetails.html_url}`);
 
@@ -273,7 +300,8 @@ export async function autoCommand(options: AutoOptions = {}): Promise<void> {
         prNumber,
         prUrl: prDetails.html_url,
         branch: currentBranch,
-        defaultBranch
+        defaultBranch,
+        execution: tracker.getSummary()
       });
     }
   } catch (error: any) {

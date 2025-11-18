@@ -1,6 +1,6 @@
 # git-pr-manager: Complete Workflow Documentation
 
-**Version**: 1.6.0-beta.1
+**Version**: 1.7.0
 **Last Updated**: 2025-11-18
 **Status**: ✅ Production Ready with Multi-Language Support
 

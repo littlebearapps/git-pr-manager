@@ -1,14 +1,14 @@
-# Migration Guide: v1.5.x → v1.6.0-beta.1
+# Migration Guide: v1.5.x → v1.7.0
 
-**Version**: 1.6.0-beta.1
-**Date**: 2025-11-17
-**Status**: Beta
+**Version**: 1.7.0
+**Date**: 2025-11-18
+**Status**: Production
 
 ---
 
 ## Overview
 
-Version 1.6.0-beta.1 introduces **multi-language support** to `gpm verify`, enabling automatic detection and verification of Python, Node.js, Go, and Rust projects.
+Version 1.7.0 introduces **multi-language support** to `gpm verify`, enabling automatic detection and verification of Python, Node.js, Go, and Rust projects.
 
 ### What Changed
 
@@ -337,7 +337,7 @@ gpm verify --json
 If you encounter issues and need to rollback:
 
 ```bash
-# Uninstall v1.6.0-beta.1
+# Uninstall v1.7.0
 npm uninstall -g @littlebearapps/git-pr-manager
 
 # Reinstall v1.5.0
