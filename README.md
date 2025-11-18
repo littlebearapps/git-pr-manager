@@ -8,93 +8,19 @@ Production-ready git workflow automation for GitHub with Claude Code integration
 
 ## ✨ What's New in v1.6.0-beta.1
 
-### Phase 1c: Enhanced Verification Pipeline
-- **Format Command Support** - Automatic code formatting verification (check mode only)
-  - Python: `black --check`, `ruff format --check`, `autopep8 --diff`
-  - Node.js: `prettier --check`, `biome check --formatter-enabled=true`
-  - Go: `gofmt -l`, `goimports -l`
-  - Rust: `cargo fmt --check`
-  - Ensures formatting is verified without modifying files
+### Sprint 3 – Output Polish & Documentation (Nov 2025)
+- ✅ Cross-command spacing review: redundant `logger.blank()` → `logger.section()` pairs removed so sections render with a single intentional spacer everywhere.
+- ✅ CLI docs polish: README, CLAUDE.md, quickrefs, and the new `docs/SPRINT-3-COMPLETION-SUMMARY.md` all explain Sprint 1‑3 deliverables and optional tooling.
+- ✅ Optional secret scanning guidance now documents `detect-secrets` as an add-on while clarifying that `gpm security` still runs `npm audit` even when Python tooling is absent.
 
-- **Build Command Detection** - Optional build step with graceful fallback
-  - Node.js: `npm run build`, `npx tsc`
-  - Go: `go build`, `go build ./...`
-  - Rust: `cargo build`
-  - Python: No build step (marked as optional)
-  - Build is skipped gracefully when no build command exists
+### Sprint 2 – Reliability & Observability
+- ✅ ExecutionTracker utility instruments `gpm ship` with per-phase timing + structured metadata for JSON output (Issue #5).
+- ✅ CI polling hardened: the “0/0 checks” race condition is handled gracefully with smarter EnhancedCIPoller messaging (Issue #4).
+- ✅ JSON output standardization keeps machine-readable logs consistent across commands via the shared logger refactor (Issue #3).
 
-- **Verification Task Ordering** - Full control over verification workflow
-  - Configure custom task execution order
-  - Skip specific tasks (lint, test, typecheck, format, build, install)
-  - Control fail-fast behavior (stop on first failure or run all)
-  - Default order: format → lint → typecheck → test → build
-
-**Configuration Example**:
-```yaml
-# .gpm.yml
-verification:
-  # Custom task execution order
-  tasks: ['format', 'lint', 'typecheck', 'test', 'build']
-
-  # Skip specific tasks
-  skipTasks: ['build']  # Skip build step
-
-  # Control failure behavior
-  stopOnFirstFailure: true  # Stop on first error (default: true)
-```
-
-**Usage Examples**:
-```bash
-# Run all verification tasks in custom order
-gpm verify
-
-# Skip format check
-gpm verify --skip-format
-
-# Skip build step
-gpm verify --skip-build
-
-# Continue through all tasks even if some fail
-gpm verify --no-stop-on-first-failure
-```
-
-### Previous Release (v1.4.3)
-
-### Automated Publishing Infrastructure
-- **semantic-release Integration** - Fully automated version management and publishing
-  - Automatic version determination from conventional commits (feat:, fix:, docs:, etc.)
-  - Auto-generated changelogs based on commit history
-  - GitHub releases created automatically on push to main
-  - Zero manual version bumping or changelog maintenance
-
-- **npm OIDC Publishing** - Secure, tokenless authentication with npm
-  - Zero credential management - no NPM_TOKEN secret needed
-  - Short-lived tokens auto-generated per workflow run
-  - Cryptographic provenance attestations for enhanced security
-  - Public repository with full transparency
-  - See `docs/NPM-TRUSTED-PUBLISHER-SETUP.md` for setup details
-
-### Previous Release (v1.4.0-1.4.2)
-
-### Performance & Efficiency
-- **40-60% reduction in API calls** through intelligent LRU caching with ETag support
-- **30-40% faster CI wait times** with exponential backoff polling (5s → 30s adaptive intervals)
-- **40-50% faster PR validation** through parallel API request batching
-- **98% reduction in config load time** with TTL-based file caching
-
-### Enhanced UX
-- **Auto-update notifications** - Automatic update checks with smart suppression (CI-aware, 7-day cache)
-- **`gpm auto`** - One-command automated workflow (detect → verify → security → PR → CI → merge)
-- **Interactive mode** - `gpm init --interactive` with preset selection and preview
-- **Machine-readable output** - `--json` flag for all commands (CI/automation-friendly)
-- **Verbosity control** - `--quiet`, `--silent`, `--verbose` flags with auto-detection for CI environments
-- **Structured errors** - Error codes, details, and actionable suggestions for every failure
-
-### Developer Experience
-- **Zero configuration for 80% of use cases** - Smart defaults from `.gpm.yml`
-- **Post-install guidance** - Automatic setup help and quick start guide
-- **Cross-platform tested** - macOS, Linux, Windows × Node.js 18, 20, 22
-- **Production-ready** - npm package, MIT license, comprehensive documentation
+### Sprint 1 – Security Stabilization
+- ✅ npm vulnerability remediation ensures dependencies install cleanly on fresh machines (Issue #1).
+- ✅ Security scanning pathway tightened up with clearer guidance in `gpm security` and documentation-level callouts for best practices.
 
 ## 🚀 Quick Start
 
@@ -157,6 +83,21 @@ gpm install-hooks
 # Or install both pre-push and post-commit hooks
 gpm install-hooks --post-commit
 ```
+
+#### 4. Optional Security Enhancements
+
+**Secret Scanning (detect-secrets)**  
+`gpm security` already runs `npm audit`, but you can enable richer secret detection if you have Python available:
+
+```bash
+pip install detect-secrets
+```
+
+- Adds regex-based scanning for API keys/tokens
+- Supports `.secrets.baseline` files to manage known findings
+- Integrates nicely with `gpm security` output and pre-commit hooks
+
+> ℹ️ Missing `detect-secrets` only skips the secrets portion of the scan. Dependency checks (npm audit) still run, so gpm works perfectly without this optional tool.
 
 ### Basic Usage
 

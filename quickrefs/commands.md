@@ -1,6 +1,6 @@
 # Common Commands Reference
 
-**Last Updated**: 2025-11-17
+**Last Updated**: 2025-11-18
 
 ---
 
@@ -54,6 +54,20 @@ npm test -- tests/commands/auto.test.ts
 npm run lint                   # Run ESLint
 npm run lint -- --fix          # Auto-fix ESLint issues
 ```
+
+---
+
+## Optional Security Enhancements
+
+### Secret Scanning (detect-secrets)
+```bash
+pip install detect-secrets
+detect-secrets scan --baseline .secrets.baseline  # optional baseline management
+```
+
+- Python-based secret detector that plugs into `gpm security`
+- Adds regex-based scanning and baseline workflows on top of the default `npm audit`
+- Safe to skip—`gpm security` still runs dependency checks even if `detect-secrets` is not installed
 
 ---
 

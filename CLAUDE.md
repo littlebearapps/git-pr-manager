@@ -1,14 +1,19 @@
 # Git PR Manager - Claude Code Context
 
-**Last Updated**: 2025-11-18
+**Last Updated**: 2025-11-18 (Sprint 3)
 **Version**: 1.6.0-beta.1
 **Status**: Beta - Multi-Language Support (Phase 1a-1c Complete) ✅
+**Current Focus**: Sprint 3 – Output Polish & Documentation ✅
 
 ---
 
 ## Project Overview
 
 Production-ready git workflow automation for GitHub with Claude Code integration. Streamlines feature development with intelligent CI polling, comprehensive error reporting, automated PR workflows, git hooks integration, git worktree management, and **multi-language support for Python, Node.js, Go, and Rust**.
+
+**Optional Security Enhancements**
+- `detect-secrets` secret scanning is optional—install with `pip install detect-secrets` for regex-based leak detection plus `.secrets.baseline` workflows.
+- When it is not installed, `gpm security` still performs `npm audit` so dependency scanning continues without errors.
 
 **Repository**: https://github.com/littlebearapps/git-pr-manager
 **npm Package**: @littlebearapps/git-pr-manager
