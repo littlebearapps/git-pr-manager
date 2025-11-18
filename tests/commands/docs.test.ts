@@ -5,6 +5,7 @@ jest.mock('../../src/utils/logger', () => ({
     error: jest.fn(),
     info: jest.fn(),
     outputJsonResult: jest.fn(),
+    isJsonMode: jest.fn(() => false),
   }
 }));
 

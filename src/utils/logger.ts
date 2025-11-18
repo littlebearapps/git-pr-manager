@@ -273,7 +273,8 @@ export class Logger {
       },
     };
 
-    console.log(JSON.stringify(fullResponse, null, 2));
+    // Emit a single-line JSON object followed by a newline (stdout)
+    process.stdout.write(JSON.stringify(fullResponse) + '\n');
   }
 
   /**

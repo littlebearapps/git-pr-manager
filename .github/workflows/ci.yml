@@ -44,6 +44,9 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Validate semantic-release
+        run: npx semantic-release --dry-run
+
       - name: Test
         run: npm test -- --ci
 

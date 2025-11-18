@@ -49,6 +49,7 @@ describe('verify command - multi-language integration', () => {
   let mockCommandResolver: jest.Mocked<CommandResolver>;
   let mockConfigService: jest.Mocked<ConfigService>;
   let consoleLogSpy: jest.SpiedFunction<typeof console.log>;
+  let stdoutWriteSpy: jest.SpiedFunction<typeof process.stdout.write>;
   let mockExit: jest.SpiedFunction<typeof process.exit>;
 
   beforeEach(() => {
@@ -56,6 +57,9 @@ describe('verify command - multi-language integration', () => {
 
     // Mock console.log to capture JSON output
     consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+
+    // Mock process.stdout.write to capture JSON output
+    stdoutWriteSpy = jest.spyOn(process.stdout, 'write').mockImplementation(() => true);
 
     // Mock process.exit to prevent tests from actually exiting
     mockExit = jest.spyOn(process, 'exit').mockImplementation((() => {}) as any);
@@ -112,10 +116,20 @@ describe('verify command - multi-language integration', () => {
 
     // Mock logger to not throw
     (logger.isJsonMode as jest.Mock).mockReturnValue(false);
+
+    // Mock logger.outputJsonResult to write JSON to stdout when in JSON mode
+    (logger.outputJsonResult as jest.Mock).mockImplementation((...args: any[]) => {
+      if ((logger.isJsonMode as jest.Mock)()) {
+        const [success, data, error] = args;
+        const jsonOutput = JSON.stringify({ success, data, error });
+        process.stdout.write(jsonOutput + '\n');
+      }
+    });
   });
 
   afterEach(() => {
     consoleLogSpy.mockRestore();
+    stdoutWriteSpy.mockRestore();
     mockExit.mockRestore();
   });
 
@@ -342,10 +356,10 @@ describe('verify command - multi-language integration', () => {
       await verifyCommand({ skipInstall: true, json: true });
 
       // Verify JSON was output with language and packageManager
-      expect(consoleLogSpy).toHaveBeenCalledWith(
+      expect(stdoutWriteSpy).toHaveBeenCalledWith(
         expect.stringContaining('"language"')
       );
-      expect(consoleLogSpy).toHaveBeenCalledWith(
+      expect(stdoutWriteSpy).toHaveBeenCalledWith(
         expect.stringContaining('"packageManager"')
       );
     });

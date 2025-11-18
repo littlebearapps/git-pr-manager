@@ -60,7 +60,6 @@ export async function initCommand(options: InitOptions): Promise<void> {
 
     // Show preview if requested
     if (answers.preview) {
-      logger.blank();
       logger.section('Configuration Preview');
       const configService = new ConfigService();
       const previewConfig = configService.getTemplateConfig(template as 'basic' | 'standard' | 'strict');
@@ -135,24 +134,19 @@ export async function initCommand(options: InitOptions): Promise<void> {
     logger.outputJsonResult(true, jsonData);
 
     // Human-readable output below (will only output if jsonMode disabled)
-    logger.blank();
     logger.section('Configuration');
     logger.log(JSON.stringify(config, null, 2));
 
-    logger.blank();
     logger.success('Workflow configuration initialized successfully!');
-    logger.blank();
     logger.section('Next Steps');
     logger.info('1. Review configuration: cat .gpm.yml');
     logger.info('2. Set up GitHub Actions: gpm docs --guide=GITHUB-ACTIONS-INTEGRATION');
     logger.info('3. Configure branch protection: gpm protect');
-    logger.blank();
     logger.section('Optional Enhancements');
     logger.info('🎯 Git Hooks (Recommended for AI Agents):');
     logger.info('   gpm install-hooks     # Get reminded before every push');
     logger.info('   • Never miss gpm in your workflow');
     logger.info('   • 100% optional - you choose when to enable');
-    logger.blank();
     logger.section('Documentation');
     logger.info('• AI Agent Integration: gpm docs --guide=AI-AGENT-INTEGRATION');
     logger.info('• Full documentation: gpm docs');

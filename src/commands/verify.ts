@@ -179,13 +179,15 @@ export async function verifyCommand(options: VerifyOptions = {}): Promise<void> 
     }
   } catch (error: any) {
     if (jsonMode) {
-      console.log(JSON.stringify({
+      const payload: VerifyResult = {
         success: false,
-        error: error.message,
         steps: results,
         totalDuration: Date.now() - startTime,
-        failedSteps
-      }, null, 2));
+        failedSteps,
+        language: 'unknown',
+        packageManager: undefined
+      };
+      logger.outputJsonResult(false, payload, { code: 'ERROR', message: error.message });
     } else {
       logger.error(`Verification failed: ${error.message}`);
     }
@@ -610,7 +612,8 @@ function outputResults(
       language,
       packageManager
     };
-    console.log(JSON.stringify(result, null, 2));
+    // Emit single-line JSON via logger
+    logger.outputJsonResult(success, result);
   } else {
     logger.blank();
     if (success) {

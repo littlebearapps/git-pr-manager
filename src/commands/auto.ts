@@ -255,7 +255,6 @@ export async function autoCommand(options: AutoOptions = {}): Promise<void> {
       // Output JSON for successful merge
       const prDetails = await githubService.getPR(prNumber);
       logger.outputJsonResult(true, {
-        success: true,
         merged: true,
         prNumber,
         prUrl: prDetails.html_url,
@@ -270,7 +269,6 @@ export async function autoCommand(options: AutoOptions = {}): Promise<void> {
 
       // Output JSON for no-merge completion
       logger.outputJsonResult(true, {
-        success: true,
         merged: false,
         prNumber,
         prUrl: prDetails.html_url,

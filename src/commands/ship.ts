@@ -200,7 +200,6 @@ export async function shipCommand(options: ShipOptions = {}): Promise<void> {
 
     // Step 6: Wait for CI checks
     if (waitForChecks && !options.skipCi) {
-      logger.blank();
       logger.section(`Waiting for CI Checks - PR #${prNumber}`);
 
       const poller = new EnhancedCIPoller({
@@ -246,7 +245,6 @@ export async function shipCommand(options: ShipOptions = {}): Promise<void> {
 
           // Phase 6: Auto-fix on CI failure
           if (!options.skipAutoFix && result.summary.failed > 0) {
-            logger.blank();
             logger.section('🔧 Attempting Auto-Fix');
 
             const autoFixService = new AutoFixService(gitService, githubService);
@@ -339,7 +337,6 @@ export async function shipCommand(options: ShipOptions = {}): Promise<void> {
 
     // Output JSON for successful ship (include execution metadata)
     logger.outputJsonResult(true, {
-      success: true,
       merged: true,
       prNumber,
       prUrl,
@@ -350,7 +347,6 @@ export async function shipCommand(options: ShipOptions = {}): Promise<void> {
     });
 
     // Final success message
-    logger.blank();
     logger.section('✨ Feature Shipped Successfully!');
     logger.log(`PR #${prNumber}: ${chalk.blue(prUrl)}`);
     logger.log(`Branch: ${chalk.cyan(currentBranch)} → ${chalk.cyan(defaultBranch)}`);
