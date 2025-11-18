@@ -2,15 +2,22 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import { logger } from '../utils/logger';
 import { spinner } from '../utils/spinner';
+import { LanguageDetectionService } from '../services/LanguageDetectionService';
+import { CommandResolver } from '../services/CommandResolver';
+import { ConfigService } from '../services/ConfigService';
 import chalk from 'chalk';
+import prompts from 'prompts';
 
 const execAsync = promisify(exec);
 
 interface VerifyOptions {
+  skipFormat?: boolean;  // Phase 1c
   skipLint?: boolean;
   skipTypecheck?: boolean;
   skipTest?: boolean;
   skipBuild?: boolean;
+  skipInstall?: boolean;
+  allowInstall?: boolean;  // Phase 1b: Opt-in install support
   json?: boolean;
 }
 
@@ -20,6 +27,8 @@ interface VerifyStepResult {
   duration: number;
   output?: string;
   error?: string;
+  skipped?: boolean;
+  reason?: string;
 }
 
 interface VerifyResult {
@@ -27,11 +36,18 @@ interface VerifyResult {
   steps: VerifyStepResult[];
   totalDuration: number;
   failedSteps: string[];
+  language: string;
+  packageManager?: string;
 }
 
 /**
  * Run pre-commit verification checks
- * Executes lint, typecheck, tests, and build
+ * Executes lint, typecheck, tests, and build using language-specific commands
+ *
+ * Phase 1a: Multi-language support
+ * - Auto-detects project language (Python, Node.js, Go, Rust)
+ * - Resolves appropriate commands for each language
+ * - Respects verification config from .gpm.yml
  */
 export async function verifyCommand(options: VerifyOptions = {}): Promise<void> {
   const startTime = Date.now();
@@ -45,73 +61,337 @@ export async function verifyCommand(options: VerifyOptions = {}): Promise<void> 
     logger.section('Running Verification Checks');
   }
 
-  // Step 1: ESLint
-  if (!options.skipLint) {
-    const lintResult = await runStep('Lint (ESLint)', 'npm run lint', jsonMode);
-    results.push(lintResult);
-    if (!lintResult.passed) {
-      failedSteps.push('lint');
-    }
-  }
+  // Initialize services
+  const languageDetector = new LanguageDetectionService();
+  const commandResolver = new CommandResolver();
+  const configService = new ConfigService();
 
-  // Step 2: TypeScript type checking
-  if (!options.skipTypecheck) {
-    const typecheckResult = await runStep(
-      'Type Check (TypeScript)',
-      'npx tsc --noEmit',
-      jsonMode
-    );
-    results.push(typecheckResult);
-    if (!typecheckResult.passed) {
-      failedSteps.push('typecheck');
-    }
-  }
+  try {
+    // Detect language and package manager
+    const detectedLanguage = await languageDetector.detectLanguage();
+    const detectedPkgManager = await languageDetector.detectPackageManager(detectedLanguage.primary);
+    const config = await configService.load();
+    const verificationConfig = config.verification;
 
-  // Step 3: Tests
-  if (!options.skipTest) {
-    const testResult = await runStep('Tests (Jest)', 'npm test', jsonMode);
-    results.push(testResult);
-    if (!testResult.passed) {
-      failedSteps.push('test');
-    }
-  }
-
-  // Step 4: Build
-  if (!options.skipBuild) {
-    const buildResult = await runStep('Build (TypeScript)', 'npm run build', jsonMode);
-    results.push(buildResult);
-    if (!buildResult.passed) {
-      failedSteps.push('build');
-    }
-  }
-
-  const totalDuration = Date.now() - startTime;
-  const success = failedSteps.length === 0;
-
-  // Output results
-  if (jsonMode) {
-    const result: VerifyResult = {
-      success,
-      steps: results,
-      totalDuration,
-      failedSteps
-    };
-    console.log(JSON.stringify(result, null, 2));
-  } else {
-    logger.blank();
-    if (success) {
-      logger.success(`✅ All verification checks passed! (${formatDuration(totalDuration)})`);
-    } else {
-      logger.error(`❌ Verification failed (${failedSteps.length}/${results.length} steps failed)`);
+    if (!jsonMode) {
+      logger.info(`Detected language: ${detectedLanguage.primary}`);
+      if (detectedPkgManager.packageManager) {
+        logger.info(`Package manager: ${detectedPkgManager.packageManager}`);
+      }
       logger.blank();
-      logger.log('Failed steps:');
-      failedSteps.forEach(step => logger.log(`  • ${step}`));
     }
-  }
 
-  if (!success) {
+    // Get Makefile targets
+    const makefileTargets = await languageDetector.getMakefileTargets();
+
+    // Phase 1c: Get task order from config (default: format → lint → typecheck → test → build)
+    const defaultTaskOrder: ('format' | 'lint' | 'typecheck' | 'test' | 'build' | 'install')[] =
+      ['format', 'lint', 'typecheck', 'test', 'build'];
+    const taskOrder = verificationConfig?.tasks || defaultTaskOrder;
+
+    // Phase 1c: Get skip list from config and merge with CLI flags
+    const configSkipTasks = verificationConfig?.skipTasks || [];
+    const cliSkipTasks: string[] = [];
+    if (options.skipFormat) cliSkipTasks.push('format');
+    if (options.skipLint) cliSkipTasks.push('lint');
+    if (options.skipTypecheck) cliSkipTasks.push('typecheck');
+    if (options.skipTest) cliSkipTasks.push('test');
+    if (options.skipBuild) cliSkipTasks.push('build');
+    if (options.skipInstall) cliSkipTasks.push('install');
+    const skipTasks = [...new Set([...configSkipTasks, ...cliSkipTasks])];
+
+    // Phase 1c: Fail-fast mode (default: true)
+    const stopOnFirstFailure = verificationConfig?.stopOnFirstFailure !== false;
+
+    // Handle install step separately (Phase 1b: opt-in with prompt)
+    const shouldInstall = (options.allowInstall || verificationConfig?.allowInstall) && !skipTasks.includes('install');
+
+    if (shouldInstall) {
+      const installResult = await resolveAndRunInstall(
+        commandResolver,
+        detectedLanguage.primary,
+        detectedPkgManager.packageManager,
+        detectedPkgManager.lockFile,
+        makefileTargets,
+        verificationConfig,
+        jsonMode
+      );
+
+      if (installResult) {
+        results.push(installResult);
+        if (!installResult.passed && !installResult.skipped) {
+          failedSteps.push('install');
+          if (stopOnFirstFailure) {
+            // Exit early on failure with fail-fast
+            const totalDuration = Date.now() - startTime;
+            outputResults(results, failedSteps, totalDuration, detectedLanguage.primary, detectedPkgManager.packageManager, jsonMode);
+            process.exit(1);
+          }
+        }
+      }
+    }
+
+    // Execute verification tasks in configured order
+    for (const task of taskOrder) {
+      // Skip if in skip list
+      if (skipTasks.includes(task)) {
+        if (!jsonMode) {
+          logger.info(`⏭️  ${getTaskDisplayName(task)}: Skipping (configured)`);
+        }
+        continue;
+      }
+
+      // Resolve and run task
+      const taskResult = await resolveAndRun(
+        task,
+        getTaskDisplayName(task),
+        commandResolver,
+        detectedLanguage.primary,
+        detectedPkgManager.packageManager,
+        makefileTargets,
+        verificationConfig,
+        jsonMode
+      );
+
+      if (taskResult) {
+        results.push(taskResult);
+        if (!taskResult.passed && !taskResult.skipped) {
+          failedSteps.push(task);
+
+          // Phase 1c: Fail-fast mode - exit on first failure
+          if (stopOnFirstFailure) {
+            const totalDuration = Date.now() - startTime;
+            outputResults(results, failedSteps, totalDuration, detectedLanguage.primary, detectedPkgManager.packageManager, jsonMode);
+            process.exit(1);
+          }
+        }
+      }
+    }
+
+    const totalDuration = Date.now() - startTime;
+    const success = failedSteps.length === 0;
+
+    // Output results
+    outputResults(results, failedSteps, totalDuration, detectedLanguage.primary, detectedPkgManager.packageManager, jsonMode);
+
+    if (!success) {
+      process.exit(1);
+    }
+  } catch (error: any) {
+    if (jsonMode) {
+      console.log(JSON.stringify({
+        success: false,
+        error: error.message,
+        steps: results,
+        totalDuration: Date.now() - startTime,
+        failedSteps
+      }, null, 2));
+    } else {
+      logger.error(`Verification failed: ${error.message}`);
+    }
     process.exit(1);
   }
+}
+
+/**
+ * Resolve command for a task and run it
+ */
+async function resolveAndRun(
+  task: 'format' | 'lint' | 'typecheck' | 'test' | 'build' | 'install',
+  name: string,
+  resolver: CommandResolver,
+  language: any,
+  packageManager: any,
+  makefileTargets: string[],
+  verificationConfig: any,
+  jsonMode: boolean
+): Promise<VerifyStepResult | null> {
+  // Resolve command
+  const resolved = await resolver.resolve({
+    task,
+    language,
+    packageManager,
+    makefileTargets,
+    config: verificationConfig
+  });
+
+  // If command not found, check if task is optional (Phase 1c: build is optional)
+  if (resolved.source === 'not-found') {
+    // For optional tasks (build), skip gracefully without suggestions
+    if (resolved.optional) {
+      const result: VerifyStepResult = {
+        step: name,
+        passed: true,
+        duration: 0,
+        skipped: true,
+        reason: `${task} command not available (optional)`
+      };
+
+      if (!jsonMode) {
+        logger.info(`ℹ️  ${name}: skipped (no ${task} command found)`);
+      }
+
+      return result;
+    }
+
+    // For required tasks, provide helpful suggestions
+    const suggestions = generateCommandNotFoundSuggestions(
+      task,
+      language,
+      packageManager,
+      makefileTargets,
+      verificationConfig
+    );
+
+    const result: VerifyStepResult = {
+      step: name,
+      passed: true,
+      duration: 0,
+      skipped: true,
+      reason: `${task} command not available for ${language}${suggestions.length > 0 ? '. ' + suggestions.join('. ') : ''}`
+    };
+
+    if (!jsonMode) {
+      logger.info(`ℹ️  ${name}: skipped (not available for ${language})`);
+
+      // Show suggestions in non-JSON mode
+      if (suggestions.length > 0) {
+        logger.blank();
+        logger.log(chalk.dim('Suggestions:'));
+        suggestions.forEach(suggestion => {
+          logger.log(chalk.dim(`  • ${suggestion}`));
+        });
+        logger.blank();
+      }
+    }
+
+    return result;
+  }
+
+  // Display command source in verbose mode
+  if (!jsonMode && logger.getLevel() >= 3) {
+    logger.debug(`${name} command: ${resolved.command} (source: ${resolved.source})`);
+  }
+
+  // Run the command
+  return runStep(name, resolved.command, jsonMode);
+}
+
+/**
+ * Generate helpful suggestions when a command is not found
+ * Phase 1b: Better error messages for missing Makefile targets and tools
+ */
+function generateCommandNotFoundSuggestions(
+  task: string,
+  language: string,
+  packageManager: string | undefined,
+  makefileTargets: string[],
+  verificationConfig: any
+): string[] {
+  const suggestions: string[] = [];
+  const preferMakefile = verificationConfig?.preferMakefile !== false; // Default: true
+
+  // Case 1: Makefile exists but is missing the target
+  if (preferMakefile && makefileTargets.length > 0) {
+    // Show available targets
+    if (makefileTargets.length <= 5) {
+      suggestions.push(`Available Makefile targets: ${makefileTargets.join(', ')}`);
+    } else {
+      const first5 = makefileTargets.slice(0, 5);
+      suggestions.push(`Available Makefile targets: ${first5.join(', ')} (and ${makefileTargets.length - 5} more)`);
+    }
+
+    // Suggest adding the missing target
+    suggestions.push(`Add '${task}' target to Makefile`);
+
+    // Suggest using makefileAliases if a similar target exists
+    const similarTargets = makefileTargets.filter(target =>
+      target.includes(task) || task.includes(target)
+    );
+
+    if (similarTargets.length > 0) {
+      const example = similarTargets[0];
+      suggestions.push(
+        `Use makefileAliases in .gpm.yml: makefileAliases: { ${example}: "${task}" }`
+      );
+    } else {
+      suggestions.push(
+        `Use makefileAliases in .gpm.yml if Makefile uses different target name`
+      );
+    }
+
+    // Suggest disabling preferMakefile
+    suggestions.push(
+      `Set preferMakefile: false in .gpm.yml to use package manager commands`
+    );
+  }
+
+  // Case 2: No Makefile, suggest tool installation or config override
+  else {
+    // Suggest custom command override
+    suggestions.push(
+      `Override with custom command in .gpm.yml: commands: { ${task}: "your-command" }`
+    );
+
+    // Suggest common tool installation for this language/task
+    const installSuggestion = getToolInstallSuggestion(task, language, packageManager);
+    if (installSuggestion) {
+      suggestions.push(installSuggestion);
+    }
+  }
+
+  return suggestions;
+}
+
+/**
+ * Get tool installation suggestion for a specific task and language
+ */
+function getToolInstallSuggestion(
+  task: string,
+  language: string,
+  _packageManager?: string  // Reserved for future package-manager-specific suggestions
+): string | null {
+  // Map of task + language to common tools and install commands
+  const toolSuggestions: Record<string, Record<string, { tool: string; install: string }>> = {
+    lint: {
+      python: { tool: 'ruff', install: 'pip install ruff' },
+      nodejs: { tool: 'eslint', install: 'npm install -D eslint' },
+      go: { tool: 'golangci-lint', install: 'go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest' },
+      rust: { tool: 'clippy', install: 'rustup component add clippy' }
+    },
+    test: {
+      python: { tool: 'pytest', install: 'pip install pytest' },
+      nodejs: { tool: 'jest', install: 'npm install -D jest' },
+      go: { tool: 'go test', install: 'built-in (no install needed)' },
+      rust: { tool: 'cargo test', install: 'built-in (no install needed)' }
+    },
+    typecheck: {
+      python: { tool: 'mypy', install: 'pip install mypy' },
+      nodejs: { tool: 'tsc', install: 'npm install -D typescript' }
+    },
+    format: {
+      python: { tool: 'black', install: 'pip install black' },
+      nodejs: { tool: 'prettier', install: 'npm install -D prettier' },
+      go: { tool: 'gofmt', install: 'built-in (no install needed)' },
+      rust: { tool: 'rustfmt', install: 'rustup component add rustfmt' }
+    }
+  };
+
+  const taskTools = toolSuggestions[task];
+  if (!taskTools) {
+    return null;
+  }
+
+  const suggestion = taskTools[language];
+  if (!suggestion) {
+    return null;
+  }
+
+  if (suggestion.install === 'built-in (no install needed)') {
+    return `${suggestion.tool} is built-in for ${language}`;
+  }
+
+  return `Install ${suggestion.tool}: ${suggestion.install}`;
 }
 
 /**
@@ -176,6 +456,107 @@ async function runStep(
 }
 
 /**
+ * Resolve and run install step with user prompt (Phase 1b)
+ */
+async function resolveAndRunInstall(
+  resolver: CommandResolver,
+  language: any,
+  packageManager: any,
+  lockFile: string | null,
+  makefileTargets: string[],
+  verificationConfig: any,
+  jsonMode: boolean
+): Promise<VerifyStepResult | null> {
+  // Resolve install command
+  const resolved = await resolver.resolve({
+    task: 'install',
+    language,
+    packageManager,
+    makefileTargets,
+    config: verificationConfig
+  });
+
+  // If command not found, skip
+  if (resolved.source === 'not-found') {
+    const result: VerifyStepResult = {
+      step: 'Install Dependencies',
+      passed: true,
+      duration: 0,
+      skipped: true,
+      reason: `install command not available for ${language}`
+    };
+
+    if (!jsonMode) {
+      logger.info('ℹ️  Install Dependencies: skipped (not available)');
+    }
+
+    return result;
+  }
+
+  // Check for missing lock file
+  if (!lockFile && !jsonMode) {
+    logger.warn(`⚠️  Warning: No lock file found for ${packageManager}`);
+    logger.warn('   Consider creating a lock file for reproducible installs:');
+
+    // Show lock file creation command based on package manager
+    const lockFileCommands: Record<string, string> = {
+      poetry: 'poetry lock',
+      pipenv: 'pipenv lock',
+      uv: 'uv lock',
+      pip: 'pip freeze > requirements.txt',
+      pnpm: 'pnpm install',
+      yarn: 'yarn install',
+      bun: 'bun install',
+      npm: 'npm install',
+      'go-mod': 'go mod tidy',
+      cargo: 'cargo update'
+    };
+
+    const lockCommand = lockFileCommands[packageManager || ''];
+    if (lockCommand) {
+      logger.warn(`   ${chalk.cyan(lockCommand)}`);
+    }
+    logger.blank();
+  }
+
+  // Prompt for confirmation (unless JSON mode or CI environment)
+  if (!jsonMode && !process.env.CI) {
+    logger.info(`📦 About to run install command:`);
+    logger.info(`   ${chalk.cyan(resolved.command)}`);
+    logger.blank();
+
+    const response = await prompts({
+      type: 'confirm',
+      name: 'proceed',
+      message: 'Proceed with installation?',
+      initial: true
+    });
+
+    if (!response.proceed) {
+      const result: VerifyStepResult = {
+        step: 'Install Dependencies',
+        passed: true,
+        duration: 0,
+        skipped: true,
+        reason: 'user cancelled'
+      };
+
+      logger.info('ℹ️  Install cancelled by user');
+      return result;
+    }
+
+    logger.blank();
+  } else if (!jsonMode) {
+    // In CI or automated mode, just show what we're about to run
+    logger.info(`📦 Running install command: ${chalk.cyan(resolved.command)}`);
+    logger.blank();
+  }
+
+  // Run the install step
+  return runStep('Install Dependencies', resolved.command, jsonMode);
+}
+
+/**
  * Format duration in human-readable format
  */
 function formatDuration(ms: number): string {
@@ -187,5 +568,58 @@ function formatDuration(ms: number): string {
     const minutes = Math.floor(ms / 60000);
     const seconds = Math.floor((ms % 60000) / 1000);
     return `${minutes}m ${seconds}s`;
+  }
+}
+
+/**
+ * Get display name for a task
+ * Phase 1c: Helper function for task display names
+ */
+function getTaskDisplayName(task: string): string {
+  const displayNames: Record<string, string> = {
+    format: 'Format',
+    lint: 'Lint',
+    typecheck: 'Type Check',
+    test: 'Tests',
+    build: 'Build',
+    install: 'Install Dependencies'
+  };
+  return displayNames[task] || task;
+}
+
+/**
+ * Output verification results
+ * Phase 1c: Centralized output function for success and failure cases
+ */
+function outputResults(
+  results: VerifyStepResult[],
+  failedSteps: string[],
+  totalDuration: number,
+  language: string,
+  packageManager: string | undefined,
+  jsonMode: boolean
+): void {
+  const success = failedSteps.length === 0;
+
+  if (jsonMode) {
+    const result: VerifyResult = {
+      success,
+      steps: results,
+      totalDuration,
+      failedSteps,
+      language,
+      packageManager
+    };
+    console.log(JSON.stringify(result, null, 2));
+  } else {
+    logger.blank();
+    if (success) {
+      logger.success(`✅ All verification checks passed! (${formatDuration(totalDuration)})`);
+    } else {
+      logger.error(`❌ Verification failed (${failedSteps.length}/${results.length} steps failed)`);
+      logger.blank();
+      logger.log('Failed steps:');
+      failedSteps.forEach(step => logger.log(`  • ${step}`));
+    }
   }
 }

@@ -1,8 +1,8 @@
 # git-pr-manager: Complete Workflow Documentation
 
-**Version**: 0.1.0 MVP
-**Last Updated**: 2025-10-17
-**Status**: ✅ Production Ready
+**Version**: 1.6.0-beta.1
+**Last Updated**: 2025-11-18
+**Status**: ✅ Production Ready with Multi-Language Support
 
 ---
 
@@ -48,31 +48,42 @@ gh auth status                           # Check GitHub CLI auth
 
 ---
 
-#### Step 2: Run verify.sh (Optional) 🔍
+#### Step 2: Run Multi-Language Verification 🔍
 
 **What It Does**:
-- Runs project verification script (lint, typecheck, tests, build)
-- Uses file locking to prevent conflicts
-- Skips if verify.sh doesn't exist (like in minimal test projects)
+- Auto-detects project language (Python, Node.js, Go, Rust)
+- Auto-detects package manager (poetry, npm, pnpm, cargo, etc.)
+- Runs verification pipeline: format → lint → typecheck → test → build
+- Skips unavailable tools gracefully
+- Prefers Makefile targets when available
 
 **Commands Executed**:
 ```bash
-bash scripts/phase-2/verify.sh          # Run verification
-# OR skip if not present
+gpm verify                               # Run multi-language verification
+# OR skip with: gpm ship --no-verify
 ```
 
-**Real Example (env-validator)**:
+**Real Example (Node.js project)**:
 ```
-⚠️  verify.sh not found - skipping (minimal test project)
+🔍 Running multi-language verification...
+  → Detected: nodejs (npm)
+  → Format... ✅ (prettier --check .)
+  → Lint... ✅ (npm run lint)
+  → Typecheck... ✅ (npx tsc --noEmit)
+  → Tests... ✅ (npm test - 807 passed)
+  → Build... ✅ (npm run build)
+✅ Verification passed
 ```
 
-**Production Example** (would show):
+**Python Example** (would show):
 ```
-🔍 Running verification checks...
-  → Lint... ✅
-  → Typecheck... ✅
-  → Tests... ✅ (11 passed)
-  → Build... ✅
+🔍 Running multi-language verification...
+  → Detected: python (poetry)
+  → Format... ✅ (ruff format --check .)
+  → Lint... ✅ (ruff check .)
+  → Typecheck... ✅ (mypy .)
+  → Tests... ✅ (pytest)
+  → Build... ⏭️  (skipped - not applicable)
 ✅ Verification passed
 ```
 
@@ -333,7 +344,7 @@ Dev worktree:
 
 Summary:
   ✅ Precondition checks passed
-  ✅ verify.sh skipped (not present)
+  ✅ Multi-language verification passed
   ✅ PR #2 created and merged
   ✅ main worktree synced to 885b7f8
   ✅ dev worktree synced to 7527512
@@ -445,7 +456,9 @@ git remote get-url origin
 gh auth status
 # Output: ✓ Logged in to github.com as littlebearapps
 
-# Step 2: Skip verify.sh (not present)
+# Step 2: Run multi-language verification
+gpm verify
+# Output: ✅ All verification checks passed (format, lint, typecheck, test, build)
 
 # Step 3: Push dev
 git push origin dev
@@ -493,7 +506,7 @@ Based on integration test (env-validator):
 | Step | Duration | Notes |
 |------|----------|-------|
 | Precondition checks | <1s | Fast validation |
-| verify.sh | 0s | Skipped (not present) |
+| Multi-language verification | 5-30s | Depends on project size (format, lint, typecheck, test, build) |
 | Push dev | ~2s | Network dependent |
 | Create PR | ~3s | GitHub API call |
 | Merge PR | ~2s | GitHub API call |
@@ -557,13 +570,21 @@ Commit or stash before creating PR:
   git commit -m "your message"
 ```
 
-### 2. verify.sh Failure
+### 2. Verification Failure
 ```
-❌ Verification failed
+❌ Multi-language verification failed
 
 Failed checks:
-  ❌ Lint (3 errors)
-  ❌ Tests (2 failures)
+  ✅ Format check passed
+  ❌ Lint failed (3 errors in src/file.ts)
+  ✅ Typecheck passed
+  ❌ Tests failed (2 failures in test/suite.test.ts)
+  ⏭️  Build skipped (previous failures)
+
+Suggestions:
+  • Fix lint errors: npm run lint -- --fix
+  • Run tests locally: npm test
+  • Skip specific checks: gpm verify --skip-lint
 
 Fix issues before creating PR
 ```
@@ -610,7 +631,7 @@ Check:
 ## 📈 Success Criteria (All Met)
 
 ✅ **Preconditions validated** - Checked branch, uncommitted changes, remote config
-✅ **verify.sh handled** - Gracefully skipped when not present
+✅ **Multi-language verification passed** - Format, lint, typecheck, test, build checks
 ✅ **PR created successfully** - PR #2 opened on GitHub
 ✅ **PR merged cleanly** - Squash merge completed
 ✅ **Main worktree synced** - Pulled latest from origin/main
@@ -627,7 +648,7 @@ Check:
 
 ### What Worked Perfectly
 
-1. **Missing Infrastructure Handling**: Gracefully skipped verify.sh
+1. **Multi-Language Verification**: Auto-detected language and package manager, ran appropriate checks
 2. **Worktree Coordination**: Perfect sync between main and dev
 3. **Squash Merge Strategy**: Correctly handled squash + dev merge
 4. **Error Prevention**: No force-push, no data loss
@@ -635,9 +656,9 @@ Check:
 
 ### What Would Improve (Phase 2)
 
-1. **Dry-run mode**: Preview actions before execution
-2. **Skip flags**: `--skip-verify` for projects without verify.sh
-3. **CI status check**: Wait for GitHub Actions before merge
+1. **Dry-run mode**: Preview actions before execution ✅ (Implemented in Phase 1c)
+2. **Skip flags**: `--skip-format`, `--skip-lint`, `--skip-typecheck`, `--skip-test`, `--skip-build` ✅ (Implemented in Phase 1c)
+3. **CI status check**: Wait for GitHub Actions before merge ✅ (Already implemented)
 4. **Conflict detection**: Predict merge conflicts before attempting
 
 ---

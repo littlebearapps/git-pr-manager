@@ -405,4 +405,104 @@ describe('ConfigService', () => {
       expect(config).toHaveProperty('pr');
     });
   });
+
+  // Phase 1a: Multi-language verification config tests
+  describe('verification config', () => {
+    it('should include verification config in default config', async () => {
+      mockedFsAccess.mockRejectedValue(new Error('not found'));
+
+      const config = await configService.load();
+
+      expect(config.verification).toBeDefined();
+      expect(config.verification?.detectionEnabled).toBe(true);
+      expect(config.verification?.preferMakefile).toBe(true);
+    });
+
+    it('should merge verification config from file', async () => {
+      const mockConfig = {
+        branchProtection: {
+          enabled: false,
+          requireReviews: 0,
+          requireStatusChecks: [],
+          enforceAdmins: false
+        },
+        verification: {
+          detectionEnabled: false,
+          preferMakefile: false,
+          commands: {
+            lint: 'custom-lint',
+            test: 'custom-test'
+          }
+        }
+      };
+
+      mockedFsAccess.mockResolvedValue(undefined);
+      mockedFsReadFile.mockResolvedValue('yaml content');
+      mockedYamlParse.mockReturnValue(mockConfig);
+
+      const config = await configService.load();
+
+      expect(config.verification?.detectionEnabled).toBe(false);
+      expect(config.verification?.preferMakefile).toBe(false);
+      expect(config.verification?.commands?.lint).toBe('custom-lint');
+      expect(config.verification?.commands?.test).toBe('custom-test');
+    });
+
+    it('should include verification in generated YAML', async () => {
+      mockedFsAccess.mockRejectedValue(new Error('not found'));
+      mockedYamlStringify.mockReturnValue('yaml content');
+      mockedFsWriteFile.mockResolvedValue(undefined);
+
+      await configService.init('basic');
+
+      // Verify writeFile was called
+      expect(mockedFsWriteFile).toHaveBeenCalled();
+
+      // Get the YAML content that was written
+      const yamlContent = mockedFsWriteFile.mock.calls[0][1] as string;
+
+      // Verify verification section is included
+      expect(yamlContent).toContain('# Multi-Language Verification (Phase 1a)');
+      expect(yamlContent).toContain('verification:');
+      expect(yamlContent).toContain('detectionEnabled:');
+      expect(yamlContent).toContain('preferMakefile:');
+    });
+
+    it('should allow verification config set/get', async () => {
+      mockedFsAccess.mockRejectedValue(new Error('not found'));
+      mockedYamlStringify.mockReturnValue('yaml content');
+      mockedFsWriteFile.mockResolvedValue(undefined);
+
+      // Set verification config
+      await configService.set('verification', {
+        detectionEnabled: false,
+        preferMakefile: true,
+        commands: {
+          lint: 'make lint',
+          test: 'make test'
+        }
+      });
+
+      // Get verification config
+      const verification = await configService.get('verification');
+
+      expect(verification?.detectionEnabled).toBe(false);
+      expect(verification?.preferMakefile).toBe(true);
+      expect(verification?.commands?.lint).toBe('make lint');
+    });
+
+    it('should return full config with verification', async () => {
+      mockedFsAccess.mockRejectedValue(new Error('not found'));
+
+      const config = await configService.getConfig();
+
+      expect(config).toHaveProperty('branchProtection');
+      expect(config).toHaveProperty('ci');
+      expect(config).toHaveProperty('security');
+      expect(config).toHaveProperty('pr');
+      expect(config).toHaveProperty('verification');
+      expect(config.verification).toHaveProperty('detectionEnabled');
+      expect(config.verification).toHaveProperty('preferMakefile');
+    });
+  });
 });

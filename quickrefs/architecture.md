@@ -1,6 +1,6 @@
 # Architecture & Code Patterns
 
-**Last Updated**: 2025-11-16
+**Last Updated**: 2025-11-17
 
 ---
 
@@ -339,6 +339,337 @@ describe('featureCommand', () => {
   });
 });
 ```
+
+---
+
+## Multi-Language Support Pattern (v1.6.0+)
+
+### Purpose
+Automatic detection and support for Python, Node.js, Go, and Rust projects with intelligent command resolution and package manager detection.
+
+### Architecture Overview
+
+**Core Services**:
+- **LanguageDetectionService**: Detects project language and package manager
+- **CommandResolver**: Resolves verification commands with fallback chains
+- **ConfigService**: Supports verification configuration overrides
+
+### Language Detection Pattern
+
+**Location**: `src/services/LanguageDetectionService.ts`
+
+```typescript
+// Auto-detect language from marker files
+const detection = await languageDetector.detectLanguage();
+
+// Result structure
+interface DetectedLanguage {
+  primary: 'python' | 'nodejs' | 'go' | 'rust';
+  additional: Language[];  // For monorepos
+  confidence: number;      // 0-100%
+  sources: string[];      // Files that led to detection
+}
+```
+
+**Detection Rules**:
+
+| Language | Marker Files | Priority |
+|----------|-------------|----------|
+| **Python** | `pyproject.toml`, `Pipfile`, `requirements.txt` | 1st |
+| **Node.js** | `package.json` | 2nd |
+| **Go** | `go.mod` | 3rd |
+| **Rust** | `Cargo.toml` | 4th |
+
+**Override**: Config file (.gpm.yml) always takes precedence:
+```yaml
+verification:
+  language: python  # Override auto-detection
+```
+
+### Package Manager Detection Pattern
+
+**Location**: `src/services/LanguageDetectionService.ts:detectPackageManager()`
+
+```typescript
+// Detect package manager from lock files
+const pkgMgr = await languageDetector.detectPackageManager('python');
+
+// Result structure
+interface PackageManagerInfo {
+  packageManager: string;  // 'poetry', 'npm', 'pnpm', etc.
+  lockFile: string;       // 'poetry.lock', 'package-lock.json', etc.
+  confidence: number;     // 0-100%
+}
+```
+
+**Detection Rules**:
+
+**Python**:
+- `poetry.lock` → poetry
+- `Pipfile.lock` → pipenv
+- `uv.lock` → uv
+- `requirements.txt` → pip (fallback)
+
+**Node.js**:
+- `pnpm-lock.yaml` → pnpm
+- `yarn.lock` → yarn
+- `bun.lockb` → bun
+- `package-lock.json` → npm (fallback)
+
+**Go**: `go.sum` → go modules (single package manager)
+
+**Rust**: `Cargo.lock` → cargo (single package manager)
+
+### Command Resolution Pattern
+
+**Location**: `src/services/CommandResolver.ts`
+
+```typescript
+// Resolve verification command with fallback chain
+const resolved = await commandResolver.resolve({
+  task: 'lint',
+  language: 'python',
+  packageManager: 'poetry',
+  makefileTargets: ['lint', 'test'],
+  config: verificationConfig,
+  preferMakefile: true
+});
+
+// Result structure
+interface ResolvedCommand {
+  command: string;              // 'poetry run ruff check .'
+  source: 'config' | 'makefile' | 'package-manager' | 'native' | 'not-found';
+  language: Language;
+  packageManager?: string;
+}
+```
+
+**Resolution Priority** (5 levels):
+
+```typescript
+1. Custom commands from .gpm.yml → verification.commands
+   Example: { lint: 'make lint' }
+
+2. Makefile targets (if preferMakefile: true)
+   Example: 'make lint' if Makefile has 'lint:' target
+
+3. Package manager scripts
+   Python: 'poetry run ruff check .'
+   Node.js: 'npm run lint'
+
+4. Native tools (direct tool invocation)
+   Example: 'ruff check .'
+
+5. Not found (step skipped gracefully)
+```
+
+### Tool Command Mapping
+
+**Location**: `src/services/LanguageDetectionService.ts:getToolCommands()`
+
+**Python**:
+```typescript
+{
+  lint: ['poetry run ruff check .', 'ruff check .', 'flake8 .'],
+  test: ['poetry run pytest', 'pytest tests/', 'python -m pytest'],
+  typecheck: ['poetry run mypy .', 'mypy .', 'pyright .'],
+  build: [] // No build step typically
+}
+```
+
+**Node.js**:
+```typescript
+{
+  lint: ['npm run lint', 'npx eslint .'],
+  test: ['npm test', 'npx jest', 'npx vitest'],
+  typecheck: ['npm run typecheck', 'npx tsc --noEmit'],
+  build: ['npm run build', 'npx tsc']
+}
+```
+
+**Go**:
+```typescript
+{
+  lint: ['make lint', 'golangci-lint run'],
+  test: ['make test', 'go test ./...'],
+  format: ['gofmt -w .', 'goimports -w .'],
+  build: ['make build', 'go build ./...']
+}
+```
+
+**Rust**:
+```typescript
+{
+  lint: ['make lint', 'cargo clippy'],
+  test: ['make test', 'cargo test'],
+  format: ['cargo fmt'],
+  build: ['make build', 'cargo build']
+}
+```
+
+### Makefile Integration Pattern
+
+**Parse Makefile targets**:
+```typescript
+// LanguageDetectionService.ts
+async getMakefileTargets(): Promise<string[]> {
+  // Parse Makefile for targets (simple regex: /^([a-zA-Z0-9_-]+):/gm)
+  // Return array of target names: ['lint', 'test', 'build']
+}
+```
+
+**Prefer Makefile when available**:
+```yaml
+# .gpm.yml
+verification:
+  preferMakefile: true  # Default: true
+```
+
+**Resolution example**:
+```typescript
+// If Makefile has 'lint:' target and preferMakefile: true
+// → 'make lint' (source: 'makefile')
+
+// Otherwise fall back to package manager
+// → 'poetry run ruff check .' (source: 'package-manager')
+```
+
+### Configuration Override Pattern
+
+**Location**: `src/types/config.ts`, `src/services/ConfigService.ts`
+
+```yaml
+# .gpm.yml
+verification:
+  # Enable/disable auto-detection
+  detectionEnabled: true  # Default: true
+
+  # Prefer Makefile targets over package manager
+  preferMakefile: true    # Default: true
+
+  # Override detected language
+  language: python        # Optional
+
+  # Override detected package manager
+  packageManager: poetry  # Optional
+
+  # Override specific commands (highest priority)
+  commands:
+    lint: 'make lint'
+    test: 'poetry run pytest tests/ --cov=src'
+    typecheck: 'mypy src/'
+```
+
+### Usage Pattern (verify command)
+
+**Location**: `src/commands/verify.ts`
+
+```typescript
+async function verifyCommand(options: VerifyOptions): Promise<void> {
+  // 1. Load config
+  const config = await configService.load();
+
+  // 2. Detect language (unless disabled)
+  const detection = await languageDetector.detectLanguage();
+
+  // 3. Detect package manager
+  const pkgMgr = await languageDetector.detectPackageManager(detection.primary);
+
+  // 4. Get Makefile targets
+  const makefileTargets = await languageDetector.getMakefileTargets();
+
+  // 5. Resolve each verification step
+  for (const task of ['lint', 'typecheck', 'test', 'build']) {
+    if (options[`skip${capitalize(task)}`]) continue;
+
+    const resolved = await commandResolver.resolve({
+      task,
+      language: detection.primary,
+      packageManager: pkgMgr.packageManager,
+      makefileTargets,
+      config: config.verification
+    });
+
+    if (resolved.source === 'not-found') {
+      logger.warn(`${task} command not found - skipping`);
+      continue;
+    }
+
+    // 6. Execute resolved command
+    await executeCommand(resolved.command);
+  }
+}
+```
+
+### Testing Pattern
+
+**Mock services**:
+```typescript
+jest.mock('../../src/services/LanguageDetectionService');
+jest.mock('../../src/services/CommandResolver');
+
+const mockLanguageDetector = {
+  detectLanguage: jest.fn().mockResolvedValue({
+    primary: 'python',
+    additional: [],
+    confidence: 95,
+    sources: ['pyproject.toml']
+  }),
+  detectPackageManager: jest.fn().mockResolvedValue({
+    packageManager: 'poetry',
+    lockFile: 'poetry.lock',
+    confidence: 95
+  }),
+  getMakefileTargets: jest.fn().mockResolvedValue(['lint', 'test'])
+};
+```
+
+**Test language detection**:
+```typescript
+it('should detect Python project with poetry', async () => {
+  const result = await languageDetector.detectLanguage();
+
+  expect(result.primary).toBe('python');
+  expect(result.sources).toContain('pyproject.toml');
+  expect(result.confidence).toBeGreaterThanOrEqual(95);
+});
+```
+
+**Test command resolution**:
+```typescript
+it('should resolve lint command for Python project', async () => {
+  const resolved = await commandResolver.resolve({
+    task: 'lint',
+    language: 'python',
+    packageManager: 'poetry'
+  });
+
+  expect(resolved.command).toBe('poetry run ruff check .');
+  expect(resolved.source).toBe('package-manager');
+});
+```
+
+### Backward Compatibility
+
+**Node.js fallback**:
+```typescript
+// If no language detected, fallback to Node.js
+// Ensures existing Node.js projects work without changes
+if (!detection.primary) {
+  return {
+    primary: 'nodejs',
+    additional: [],
+    confidence: 50,
+    sources: ['fallback']
+  };
+}
+```
+
+**No breaking changes**:
+- All new config fields are optional
+- Existing `.gpm.yml` files work unchanged
+- Node.js + npm is default fallback
+- All verification flags work as before (--skip-lint, --skip-test, etc.)
 
 ---
 

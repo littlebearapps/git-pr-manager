@@ -1,12 +1,64 @@
-# Git Workflow Manager v1.4.3
+# Git Workflow Manager v1.6.0-beta.1
 
-Production-ready git workflow automation for GitHub with Claude Code integration. Streamlines feature development with intelligent CI polling, comprehensive error reporting, and automated PR workflows.
+Production-ready git workflow automation for GitHub with Claude Code integration. Streamlines feature development with intelligent CI polling, comprehensive error reporting, automated PR workflows, and **multi-language verification** (Python, Node.js, Go, Rust).
 
 [![npm version](https://badge.fury.io/js/%40littlebearapps%2Fgit-pr-manager.svg)](https://www.npmjs.com/package/@littlebearapps/git-pr-manager)
 [![Node.js CI](https://github.com/littlebearapps/git-pr-manager/workflows/Test/badge.svg)](https://github.com/littlebearapps/git-pr-manager/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## ✨ What's New in v1.4.3
+## ✨ What's New in v1.6.0-beta.1
+
+### Phase 1c: Enhanced Verification Pipeline
+- **Format Command Support** - Automatic code formatting verification (check mode only)
+  - Python: `black --check`, `ruff format --check`, `autopep8 --diff`
+  - Node.js: `prettier --check`, `biome check --formatter-enabled=true`
+  - Go: `gofmt -l`, `goimports -l`
+  - Rust: `cargo fmt --check`
+  - Ensures formatting is verified without modifying files
+
+- **Build Command Detection** - Optional build step with graceful fallback
+  - Node.js: `npm run build`, `npx tsc`
+  - Go: `go build`, `go build ./...`
+  - Rust: `cargo build`
+  - Python: No build step (marked as optional)
+  - Build is skipped gracefully when no build command exists
+
+- **Verification Task Ordering** - Full control over verification workflow
+  - Configure custom task execution order
+  - Skip specific tasks (lint, test, typecheck, format, build, install)
+  - Control fail-fast behavior (stop on first failure or run all)
+  - Default order: format → lint → typecheck → test → build
+
+**Configuration Example**:
+```yaml
+# .gpm.yml
+verification:
+  # Custom task execution order
+  tasks: ['format', 'lint', 'typecheck', 'test', 'build']
+
+  # Skip specific tasks
+  skipTasks: ['build']  # Skip build step
+
+  # Control failure behavior
+  stopOnFirstFailure: true  # Stop on first error (default: true)
+```
+
+**Usage Examples**:
+```bash
+# Run all verification tasks in custom order
+gpm verify
+
+# Skip format check
+gpm verify --skip-format
+
+# Skip build step
+gpm verify --skip-build
+
+# Continue through all tasks even if some fail
+gpm verify --no-stop-on-first-failure
+```
+
+### Previous Release (v1.4.3)
 
 ### Automated Publishing Infrastructure
 - **semantic-release Integration** - Fully automated version management and publishing
@@ -178,12 +230,14 @@ gpm protect --branch main --preset strict
 # Security scanning
 gpm security                    # Run security scan
 
-# Pre-commit verification
-gpm verify                      # Run all checks (lint, typecheck, test, build)
-gpm verify --skip-lint          # Skip ESLint
-gpm verify --skip-typecheck     # Skip TypeScript type check
+# Pre-commit verification (Phase 1c: Enhanced Pipeline)
+gpm verify                      # Run all checks (format, lint, typecheck, test, build)
+gpm verify --skip-format        # Skip code formatting check
+gpm verify --skip-lint          # Skip linting
+gpm verify --skip-typecheck     # Skip type checking
 gpm verify --skip-test          # Skip tests
 gpm verify --skip-build         # Skip build
+gpm verify --no-stop-on-first-failure  # Continue through all tasks
 
 # System health check
 gpm doctor                      # Check requirements & dependencies
@@ -264,6 +318,250 @@ All commands support output control flags:
 --quiet     # Errors only
 --silent    # No output (exit codes only)
 --verbose   # Detailed output
+```
+
+## 🌍 Multi-Language Support
+
+`gpm verify` automatically detects your project language and package manager, running appropriate verification commands for each ecosystem.
+
+### Supported Languages & Package Managers
+
+| Language | Package Managers | Auto-Detection |
+|----------|-----------------|----------------|
+| **Python** | poetry, pipenv, uv, pip | `pyproject.toml`, `Pipfile`, `requirements.txt` |
+| **Node.js** | pnpm, yarn, bun, npm | `package.json`, lock files |
+| **Go** | go modules | `go.mod` |
+| **Rust** | cargo | `Cargo.toml` |
+
+### How It Works
+
+When you run `gpm verify`, it automatically:
+
+1. **Detects your language** from project markers (e.g., `pyproject.toml`, `package.json`)
+2. **Detects your package manager** from lock files and config
+3. **Resolves appropriate commands** for lint, typecheck, test, and build
+4. **Runs verification** with language-specific tools
+
+### Examples
+
+#### Python with Poetry
+
+```bash
+# Auto-detects poetry from poetry.lock
+gpm verify
+
+# Runs:
+# ✓ black --check .              (format)
+# ✓ poetry run ruff check .      (lint)
+# ✓ poetry run mypy .            (typecheck)
+# ✓ poetry run pytest            (test)
+# (build skipped - optional for Python)
+```
+
+#### Node.js with npm
+
+```bash
+# Auto-detects npm from package-lock.json
+gpm verify
+
+# Runs:
+# ✓ prettier --check .     (format)
+# ✓ npm run lint           (lint)
+# ✓ npx tsc --noEmit       (typecheck)
+# ✓ npm test               (test)
+# ✓ npm run build          (build)
+```
+
+#### Node.js with yarn
+
+```bash
+# Auto-detects yarn from yarn.lock
+gpm verify
+
+# Runs:
+# ✓ prettier --check .     (format)
+# ✓ yarn lint              (lint)
+# ✓ yarn typecheck         (typecheck)
+# ✓ yarn test              (test)
+# ✓ yarn build             (build)
+```
+
+#### Go Project
+
+```bash
+# Auto-detects Go from go.mod
+gpm verify
+
+# Runs:
+# ✓ gofmt -l .         (format)
+# ✓ golangci-lint run  (lint)
+# ✓ go test ./...      (test)
+# ✓ go build           (build)
+```
+
+#### Rust Project
+
+```bash
+# Auto-detects Rust from Cargo.toml
+gpm verify
+
+# Runs:
+# ✓ cargo fmt --check  (format)
+# ✓ cargo clippy       (lint)
+# ✓ cargo test         (test)
+# ✓ cargo build        (build)
+```
+
+### Makefile Integration
+
+If your project has a `Makefile`, `gpm` will prefer Makefile targets:
+
+```makefile
+# Makefile
+format:
+    black --check .
+
+lint:
+    ruff check .
+    mypy .
+
+test:
+    pytest tests/
+
+build:
+    python setup.py build
+```
+
+```bash
+gpm verify
+# Runs:
+# ✓ make format
+# ✓ make lint
+# ✓ make test
+# ✓ make build
+```
+
+**Phase 1b Enhancement: Makefile Customization**
+
+Customize Makefile integration with aliases and custom mappings:
+
+```yaml
+# .gpm.yml
+makefile:
+  preferMakefile: true           # Default: true
+
+  # Custom task → target mapping
+  makefileTargets:
+    lint: check                  # Use 'make check' for lint task
+    test: verify                 # Use 'make verify' for test task
+
+  # Target → task mapping (aliases)
+  makefileAliases:
+    check: lint                  # 'check' target maps to 'lint' task
+    verify: test                 # 'verify' target maps to 'test' task
+    compile: build               # 'compile' target maps to 'build' task
+```
+
+**Use cases**:
+- **Custom target names**: Your Makefile uses `check` instead of `lint`
+- **Standardization**: Map project-specific targets to standard tasks
+- **Legacy support**: Adapt existing Makefiles without renaming targets
+
+### Install Step (Phase 1b)
+
+Automatically install dependencies before verification:
+
+```bash
+# Allow install (will run npm ci, poetry install, etc.)
+gpm verify --allow-install
+
+# Skip install (default behavior)
+gpm verify --skip-install
+```
+
+Supported package managers:
+- **Node.js**: `npm ci`, `pnpm install --frozen-lockfile`, `yarn install --frozen-lockfile`, `bun install`
+- **Python**: `poetry install`, `pipenv install`, `uv sync`, `pip install -r requirements.txt`
+- **Go**: `go mod download`
+- **Rust**: `cargo fetch`
+
+### Workspace Detection (Phase 1b)
+
+Automatically detects and uses workspace root for Node.js projects:
+
+```bash
+# Workspace structure
+my-workspace/
+├── package.json          # Workspace root (workspaces: ["packages/*"])
+├── packages/
+│   ├── app/
+│   │   └── package.json
+│   └── lib/
+│       └── package.json
+```
+
+**Supported workspace types**:
+- **npm/yarn**: `package.json` with `workspaces` field
+- **Yarn 2+**: `.yarnrc.yml` in workspace root
+- **pnpm**: `pnpm-workspace.yaml` in workspace root
+
+```bash
+# Run from any package directory
+cd packages/app
+gpm status
+# ℹ Workspace Root: /my-workspace
+# ℹ Package Manager: pnpm
+# ℹ Makefile Targets: lint, test, build
+```
+
+### Customization
+
+Override language detection or commands in `.gpm.yml`:
+
+```yaml
+# .gpm.yml
+verification:
+  # Disable auto-detection
+  detectionEnabled: false
+
+  # Prefer Makefile targets over package manager (default: true)
+  preferMakefile: true
+
+  # Override specific commands
+  commands:
+    format: "black --check ."
+    lint: "make lint"
+    test: "make test"
+    typecheck: "mypy src/"
+    build: "python -m build"
+
+  # Phase 1c: Task ordering and control
+  tasks: ['format', 'lint', 'typecheck', 'test', 'build']  # Custom execution order
+  skipTasks: ['build']                                     # Skip specific tasks
+  stopOnFirstFailure: true                                 # Stop on first error (default: true)
+```
+
+### Command Resolution Priority
+
+`gpm` resolves commands in this order:
+
+1. **Custom commands** from `.gpm.yml`
+2. **Makefile targets** (if `preferMakefile: true`)
+3. **Package manager scripts** (e.g., `npm run lint`, `poetry run ruff`)
+4. **Native tools** (e.g., `npx eslint`, `ruff check`)
+5. **Not found** (step skipped gracefully)
+
+### Skip Options
+
+Skip specific verification steps:
+
+```bash
+gpm verify --skip-format        # Skip code formatting check
+gpm verify --skip-lint          # Skip linting
+gpm verify --skip-typecheck     # Skip type checking
+gpm verify --skip-test          # Skip tests
+gpm verify --skip-build         # Skip build
+gpm verify --skip-install       # Skip dependency installation
 ```
 
 ## 🔧 CI/CD & Automation
@@ -420,6 +718,24 @@ autoFix:
   enableDryRun: false            # Enable dry-run mode by default
   autoMerge: false               # Auto-merge fix PRs if checks pass
   createPR: true                 # Create PR for fixes (vs direct commit)
+
+# Phase 1b: Advanced Features
+install:
+  enabled: true                  # Enable install step
+  skipByDefault: false           # Skip install unless --allow-install is set
+
+makefile:
+  preferMakefile: true           # Prefer Makefile targets over native tools
+  makefileTargets:               # Custom task → target mapping
+    lint: check                  # Use 'make check' for lint task
+    test: verify                 # Use 'make verify' for test task
+  makefileAliases:               # Target → task mapping (reverse)
+    check: lint                  # 'check' target maps to 'lint' task
+    verify: test                 # 'verify' target maps to 'test' task
+
+workspace:
+  autoDetect: true               # Auto-detect Node.js workspaces
+  preferRoot: true               # Run commands from workspace root
 ```
 
 ### Configuration Presets

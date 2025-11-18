@@ -46,6 +46,11 @@ const DEFAULT_CONFIG: WorkflowConfig = {
       enabled: false,
       reminder: true
     }
+  },
+  // Phase 1a: Multi-language verification defaults
+  verification: {
+    detectionEnabled: true,
+    preferMakefile: true
   }
 };
 
@@ -208,6 +213,7 @@ export class ConfigService {
     const pr = config.pr || DEFAULT_CONFIG.pr;
     const autoFix = config.autoFix || DEFAULT_CONFIG.autoFix;
     const hooks = config.hooks || DEFAULT_CONFIG.hooks;
+    const verification = config.verification || DEFAULT_CONFIG.verification;
 
     // Build YAML with inline comments that guide AI agents
     const yaml = `# .gpm.yml - Git PR Manager Configuration
@@ -286,6 +292,14 @@ hooks:
   postCommit:
     enabled: ${hooks!.postCommit!.enabled}
     reminder: ${hooks!.postCommit!.reminder}
+
+# Multi-Language Verification (Phase 1a)
+# detectionEnabled: true  = auto-detect language from project markers
+# preferMakefile: true    = prefer Makefile targets over package manager commands
+# For advanced configuration, see: gpm docs --guide=MULTI-LANGUAGE-SUPPORT
+verification:
+  detectionEnabled: ${verification!.detectionEnabled}
+  preferMakefile: ${verification!.preferMakefile}
 
 # 📚 Documentation:
 #   gpm docs                                  - View all guides
@@ -385,6 +399,11 @@ hooks:
           ...DEFAULT_CONFIG.hooks!.postCommit,
           ...parsed.hooks?.postCommit
         }
+      },
+      // Phase 1a: Merge verification config
+      verification: {
+        ...DEFAULT_CONFIG.verification,
+        ...parsed.verification
       }
     };
   }
