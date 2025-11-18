@@ -290,7 +290,9 @@ export async function shipCommand(options: ShipOptions = {}): Promise<void> {
       } catch (error: any) {
         logger.error(`CI check polling failed: ${error.message}`);
         // Track as unknown failure
-        try { (tracker as ExecutionTracker).logFailed('unknown', error.message); } catch {}
+        try { (tracker as ExecutionTracker).logFailed('unknown', error.message); } catch {
+          // Ignore tracker errors - don't let telemetry failures crash the command
+        }
         process.exit(1);
       }
     } else {
@@ -357,7 +359,9 @@ export async function shipCommand(options: ShipOptions = {}): Promise<void> {
     if (process.env.DEBUG) {
       console.error(error);
     }
-    try { (tracker as ExecutionTracker)?.logFailed('unknown', error.message); } catch {}
+    try { (tracker as ExecutionTracker)?.logFailed('unknown', error.message); } catch {
+      // Ignore tracker errors - don't let telemetry failures crash the command
+    }
     process.exit(1);
   }
 }
