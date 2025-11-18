@@ -9,6 +9,7 @@ import { LanguageDetectionService } from '../../src/services/LanguageDetectionSe
 import { CommandResolver } from '../../src/services/CommandResolver';
 import * as fs from 'fs/promises';
 import { existsSync } from 'fs';
+import * as path from 'path';
 
 // Mock file system
 jest.mock('fs/promises');
@@ -276,15 +277,15 @@ describe('Phase 1b: Integration Tests', () => {
   describe('Task 1b.3: Workspace Detection Integration', () => {
     it('should detect npm workspace and display workspace root', async () => {
       // Setup: npm workspace (package.json with workspaces field)
-      const workingDir = '/test/workspace/packages/app';
-      const workspaceRoot = '/test/workspace';
+      const workingDir = path.normalize('/test/workspace/packages/app');
+      const workspaceRoot = path.normalize('/test/workspace');
 
       const languageDetector = new LanguageDetectionService(workingDir);
 
       // Mock file system for workspace detection
-      mockedFs.readFile.mockImplementation(async (path: any) => {
-        const pathStr = path.toString();
-        if (pathStr === `${workspaceRoot}/package.json`) {
+      mockedFs.readFile.mockImplementation(async (filePath: any) => {
+        const pathStr = filePath.toString();
+        if (pathStr === path.join(workspaceRoot, 'package.json')) {
           return JSON.stringify({
             name: 'my-workspace',
             workspaces: ['packages/*']
@@ -303,20 +304,20 @@ describe('Phase 1b: Integration Tests', () => {
     });
 
     it('should detect Yarn workspace from .yarnrc.yml', async () => {
-      const workingDir = '/test/workspace/packages/app';
-      const workspaceRoot = '/test/workspace';
+      const workingDir = path.normalize('/test/workspace/packages/app');
+      const workspaceRoot = path.normalize('/test/workspace');
 
       const languageDetector = new LanguageDetectionService(workingDir);
 
       // Mock file system for Yarn workspace - need to simulate directory traversal
-      mockedExistsSync.mockImplementation((path: any) => {
-        const pathStr = path.toString();
+      mockedExistsSync.mockImplementation((filePath: any) => {
+        const pathStr = filePath.toString();
         // .yarnrc.yml exists at workspace root
-        if (pathStr === `${workspaceRoot}/.yarnrc.yml`) {
+        if (pathStr === path.join(workspaceRoot, '.yarnrc.yml')) {
           return true;
         }
         // package.json exists at workspace root
-        if (pathStr === `${workspaceRoot}/package.json`) {
+        if (pathStr === path.join(workspaceRoot, 'package.json')) {
           return true;
         }
         return false;
@@ -330,20 +331,20 @@ describe('Phase 1b: Integration Tests', () => {
     });
 
     it('should detect pnpm workspace from pnpm-workspace.yaml', async () => {
-      const workingDir = '/test/workspace/packages/app';
-      const workspaceRoot = '/test/workspace';
+      const workingDir = path.normalize('/test/workspace/packages/app');
+      const workspaceRoot = path.normalize('/test/workspace');
 
       const languageDetector = new LanguageDetectionService(workingDir);
 
       // Mock file system for pnpm workspace - need to simulate directory traversal
-      mockedExistsSync.mockImplementation((path: any) => {
-        const pathStr = path.toString();
+      mockedExistsSync.mockImplementation((filePath: any) => {
+        const pathStr = filePath.toString();
         // pnpm-workspace.yaml exists at workspace root
-        if (pathStr === `${workspaceRoot}/pnpm-workspace.yaml`) {
+        if (pathStr === path.join(workspaceRoot, 'pnpm-workspace.yaml')) {
           return true;
         }
         // package.json exists at workspace root
-        if (pathStr === `${workspaceRoot}/package.json`) {
+        if (pathStr === path.join(workspaceRoot, 'package.json')) {
           return true;
         }
         return false;

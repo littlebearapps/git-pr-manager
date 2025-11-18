@@ -89,7 +89,6 @@ export async function featureCommand(
 
     // Output JSON for successful branch creation
     logger.outputJsonResult(true, {
-      success: true,
       branch: branchName,
       baseBranch,
       created: true

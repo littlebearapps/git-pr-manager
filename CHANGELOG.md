@@ -8,13 +8,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Nothing yet
+- **ExecutionTracker Utility** (Sprint 1) - Comprehensive execution metadata tracking for `gpm ship` workflow
+  - Per-phase timing (verification, security, push, create-pr, wait-ci, merge, cleanup)
+  - Skip/failure reason tracking with structured metadata
+  - JSON output integration via `execution` field in ship command
+  - Enables observability and performance analysis for AI agents
+
+- **Optional Security Tools Documentation** (Sprint 3) - Clear guidance on optional vs required security tooling
+  - `detect-secrets` documented as optional Python enhancement
+  - Installation instructions and benefits explained
+  - Clarified `gpm security` continues with `npm audit` when Python tools unavailable
+  - Added to README.md, CLAUDE.md, and quickrefs/commands.md
 
 ### Changed
-- Nothing yet
+- **JSON Output Standardization** (Sprint 2) - Consistent machine-readable output across all commands
+  - Logger refactored to use `process.stdout.write()` for clean single-line JSON
+  - Shared JsonOutput utility ensures consistent structure: `{success, data, error, metadata}`
+  - Metadata includes timestamp, duration, version in all JSON responses
+  - Human-readable output preserved on stderr, JSON on stdout
+
+- **Console Output Polish** (Sprint 3) - Cleaner section spacing throughout all commands
+  - Removed redundant `logger.blank()` calls before `logger.section()`
+  - Consistent 1-2 blank lines between sections (not 3-4)
+  - Improved visual clarity in status, ship, security, and other commands
+
+- **Documentation Updates** (Sprint 3) - Comprehensive Sprint 1-3 documentation
+  - README.md streamlined with concise Sprint summaries
+  - CLAUDE.md updated with Sprint 3 metadata and optional tooling guidance
+  - docs/TESTS.md marked with Sprint 3 completion
+  - Added docs/SPRINT-3-COMPLETION-SUMMARY.md for reference
 
 ### Fixed
-- Nothing yet
+- **CI Checks Race Condition** (Sprint 1) - Robust handling of "0/0 checks" scenario
+  - EnhancedCIPoller now handles zero check count gracefully
+  - Clear messaging: "No CI checks configured" vs "All checks passed"
+  - Prevents "All 0 checks passed" confusing output
+  - Ship workflow proceeds correctly when no CI checks configured
+
+- **npm Vulnerabilities** (Sprint 2) - Production dependency vulnerabilities resolved
+  - Applied npm overrides for transitive dependencies: glob >=11.0.4, tar >=7.6.0, js-yaml >=4.1.1
+  - Zero vulnerabilities in production dependencies (verified with `npm audit --omit=dev`)
+  - Enhanced CI validation with semantic-release dry-run step
+  - Added GitHub Actions workflow to verify release process
 
 ---
 

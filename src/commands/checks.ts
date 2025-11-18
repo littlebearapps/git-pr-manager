@@ -59,7 +59,6 @@ export async function checksCommand(prNumberStr: string, options: ChecksOptions)
     logger.outputJsonResult(summary.overallStatus === 'success', jsonData);
 
     // Human-readable output below (will only output if jsonMode disabled)
-    logger.blank();
     logger.section(`CI Check Status - PR #${prNumber}`);
 
     if (options.files) {
@@ -79,7 +78,6 @@ export async function checksCommand(prNumberStr: string, options: ChecksOptions)
       logger.log(output);
 
       if (options.details && summary.failureDetails.length > 0) {
-        logger.blank();
         logger.section('Detailed Annotations');
 
         for (const failure of summary.failureDetails) {

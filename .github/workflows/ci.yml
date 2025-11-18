@@ -44,6 +44,10 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Validate semantic-release
+        if: matrix.node != '20.x'
+        run: npx semantic-release --dry-run
+
       - name: Test
         run: npm test -- --ci
 

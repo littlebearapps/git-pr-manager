@@ -9,6 +9,7 @@ import { LanguageDetectionService } from '../../src/services/LanguageDetectionSe
 import * as fs from 'fs';
 import * as fsPromises from 'fs/promises';
 import { execSync } from 'child_process';
+import * as path from 'path';
 
 // Mock modules
 jest.mock('fs');
@@ -21,7 +22,8 @@ const mockExecSync = execSync as jest.MockedFunction<typeof execSync>;
 
 describe('LanguageDetectionService', () => {
   let service: LanguageDetectionService;
-  const testDir = '/test/project';
+  // Use platform-agnostic absolute path (works on Windows, macOS, Linux)
+  const testDir = path.resolve('test-project');
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -506,7 +508,7 @@ build:
   // Phase 1b: Workspace detection tests
   describe('detectWorkspaceRoot', () => {
     it('should detect Node.js workspace from package.json with workspaces field', async () => {
-      const packageJsonPath = '/test/project/package.json';
+      const packageJsonPath = path.join(testDir, 'package.json');
       const packageJsonContent = JSON.stringify({
         name: 'my-workspace',
         workspaces: ['packages/*']
@@ -522,7 +524,7 @@ build:
 
       const result = await service.detectWorkspaceRoot();
 
-      expect(result).toBe('/test/project');
+      expect(result).toBe(testDir);
     });
 
     it('should detect Yarn workspace from .yarnrc.yml', async () => {
@@ -533,7 +535,7 @@ build:
 
       const result = await service.detectWorkspaceRoot();
 
-      expect(result).toBe('/test/project');
+      expect(result).toBe(testDir);
     });
 
     it('should detect pnpm workspace from pnpm-workspace.yaml', async () => {
@@ -544,7 +546,7 @@ build:
 
       const result = await service.detectWorkspaceRoot();
 
-      expect(result).toBe('/test/project');
+      expect(result).toBe(testDir);
     });
 
     it('should return null when no workspace is detected', async () => {
@@ -557,8 +559,9 @@ build:
     });
 
     it('should find workspace root in parent directory', async () => {
-      const childService = new LanguageDetectionService('/test/project/packages/app');
-      const parentPackageJsonPath = '/test/project/package.json';
+      const childDir = path.join(testDir, 'packages', 'app');
+      const childService = new LanguageDetectionService(childDir);
+      const parentPackageJsonPath = path.join(testDir, 'package.json');
       const packageJsonContent = JSON.stringify({
         name: 'my-workspace',
         workspaces: ['packages/*']
@@ -574,11 +577,11 @@ build:
 
       const result = await childService.detectWorkspaceRoot();
 
-      expect(result).toBe('/test/project');
+      expect(result).toBe(testDir);
     });
 
     it('should not detect workspace when package.json has no workspaces field', async () => {
-      const packageJsonPath = '/test/project/package.json';
+      const packageJsonPath = path.join(testDir, 'package.json');
       const packageJsonContent = JSON.stringify({
         name: 'my-app',
         version: '1.0.0'

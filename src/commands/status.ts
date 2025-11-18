@@ -106,8 +106,6 @@ export async function statusCommand(): Promise<void> {
       logger.info('Run `gpm init` to create .gpm.yml');
     }
 
-    logger.blank();
-
     // ✨ Next Steps - Context-aware suggestions for AI agents and developers
     logger.section('💡 Next Steps');
 

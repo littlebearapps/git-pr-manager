@@ -1,8 +1,9 @@
 # Git PR Manager - Claude Code Context
 
-**Last Updated**: 2025-11-18
-**Version**: 1.6.0-beta.1
-**Status**: Beta - Multi-Language Support (Phase 1a-1c Complete) ✅
+**Last Updated**: 2025-11-18 (Sprint 3)
+**Version**: 1.7.0
+**Status**: Production - Multi-Language Support (Phase 1a-1c Complete) ✅
+**Current Focus**: Sprint 3 – Output Polish & Documentation ✅
 
 ---
 
@@ -10,12 +11,16 @@
 
 Production-ready git workflow automation for GitHub with Claude Code integration. Streamlines feature development with intelligent CI polling, comprehensive error reporting, automated PR workflows, git hooks integration, git worktree management, and **multi-language support for Python, Node.js, Go, and Rust**.
 
+**Optional Security Enhancements**
+- `detect-secrets` secret scanning is optional—install with `pip install detect-secrets` for regex-based leak detection plus `.secrets.baseline` workflows.
+- When it is not installed, `gpm security` still performs `npm audit` so dependency scanning continues without errors.
+
 **Repository**: https://github.com/littlebearapps/git-pr-manager
 **npm Package**: @littlebearapps/git-pr-manager
 **License**: MIT
-**Status**: v1.6.0-beta.1 - Beta with Multi-Language Support 🎉
+**Status**: v1.7.0 - Production with Multi-Language Support 🎉
 
-### Release 1.6.0-beta.1 - Phase 1a-1c: Multi-Language Support ✅ (2025-11-17 to 2025-11-18)
+### Release 1.7.0 - Phase 1a-1c: Multi-Language Support ✅ (2025-11-17 to 2025-11-18)
 
 **Phase 1a: Foundation** ✅
 - ✅ Automatic language detection (Python, Node.js, Go, Rust)
@@ -162,6 +167,37 @@ Production-ready git workflow automation for GitHub with Claude Code integration
 4. ❌ Delete or modify git tags
 5. ❌ Update README.md content (except version numbers/dates - see below)
 
+### 🚫 MANDATORY: Using gpm ship Command
+
+**CRITICAL RULE**: When using `gpm ship`, **ALWAYS use `--draft` flag**
+
+```bash
+# ✅ CORRECT - Creates draft PR for user review
+npm run dev -- ship --draft
+gpm ship --draft
+
+# ❌ FORBIDDEN - Auto-merges without approval
+npm run dev -- ship
+gpm ship
+```
+
+**Why `--draft` is mandatory**:
+- Draft PRs **cannot** be auto-merged (GitHub API restriction)
+- Forces manual review before merge
+- Prevents accidental npm package publication
+- User retains full control over merge timing
+
+**Exception**: Only use `gpm ship` without `--draft` if user explicitly says:
+- "merge this PR now"
+- "ship this to production"
+- "publish this to npm"
+- Or similar explicit merge approval
+
+**Before ANY merge to main**:
+1. ✅ Ask user: "Ready to merge PR #X to main? This will trigger npm publish."
+2. ✅ Wait for explicit "yes" / "merge it" / "ship it" response
+3. ✅ Only then run `gpm ship` without `--draft` flag
+
 ### Automated Publishing Workflow
 **Process**: Merging to main → GitHub Actions → semantic-release → npm publish
 - semantic-release automatically determines version from commit messages
@@ -239,6 +275,7 @@ npm test -- tests/commands/                          # Test all commands
 ### Local CLI Testing
 ```bash
 npm run dev -- feature my-feature    # Test feature command
+npm run dev -- ship --draft          # Test ship command (ALWAYS use --draft!)
 npm run dev -- auto --json           # Test auto workflow with JSON
 npm run dev -- check-update          # Test update checker
 npm run dev -- install-hooks         # Test hooks installation

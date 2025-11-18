@@ -6,10 +6,12 @@ jest.mock('simple-git');
 describe('Logger', () => {
   let consoleLogSpy: jest.SpyInstance;
   let consoleErrorSpy: jest.SpyInstance;
+  let stdoutWriteSpy: jest.SpyInstance;
 
   beforeEach(() => {
     consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
     consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+    stdoutWriteSpy = jest.spyOn(process.stdout, 'write').mockImplementation();
     // Clean up environment variables BEFORE each test (for CI compatibility)
     delete process.env.CI;
     delete process.env.GITHUB_ACTIONS;
@@ -18,6 +20,7 @@ describe('Logger', () => {
   afterEach(() => {
     consoleLogSpy.mockRestore();
     consoleErrorSpy.mockRestore();
+    stdoutWriteSpy.mockRestore();
     // Clean up environment variables
     delete process.env.CI;
     delete process.env.GITHUB_ACTIONS;
@@ -47,8 +50,8 @@ describe('Logger', () => {
 
       logger.success('test', { foo: 'bar' });
 
-      expect(consoleLogSpy).toHaveBeenCalled();
-      const output = consoleLogSpy.mock.calls[0][0];
+      expect(stdoutWriteSpy).toHaveBeenCalled();
+      const output = stdoutWriteSpy.mock.calls[0][0];
       expect(() => JSON.parse(output)).not.toThrow();
     });
 
@@ -434,8 +437,8 @@ describe('Logger', () => {
 
       logger.success('Success message', { result: 'test' });
 
-      expect(consoleLogSpy).toHaveBeenCalled();
-      const output = JSON.parse(consoleLogSpy.mock.calls[0][0]);
+      expect(stdoutWriteSpy).toHaveBeenCalled();
+      const output = JSON.parse(stdoutWriteSpy.mock.calls[0][0]);
       expect(output.success).toBe(true);
       expect(output.data).toEqual({ result: 'test' });
       expect(output.metadata).toBeDefined();
@@ -446,8 +449,8 @@ describe('Logger', () => {
 
       logger.error('Error message', 'ERR_TEST', { detail: 'info' }, ['Fix 1', 'Fix 2']);
 
-      expect(consoleLogSpy).toHaveBeenCalled();
-      const output = JSON.parse(consoleLogSpy.mock.calls[0][0]);
+      expect(stdoutWriteSpy).toHaveBeenCalled();
+      const output = JSON.parse(stdoutWriteSpy.mock.calls[0][0]);
       expect(output.success).toBe(false);
       expect(output.error).toEqual({
         code: 'ERR_TEST',
@@ -462,7 +465,7 @@ describe('Logger', () => {
 
       logger.success('Success', { data: 'test' });
 
-      const output = JSON.parse(consoleLogSpy.mock.calls[0][0]);
+      const output = JSON.parse(stdoutWriteSpy.mock.calls[0][0]);
       expect(output.metadata).toHaveProperty('timestamp');
       expect(output.metadata).toHaveProperty('duration');
       expect(output.metadata).toHaveProperty('version');
@@ -485,8 +488,8 @@ describe('Logger', () => {
 
       logger.outputJsonResult(true, { result: 'data' });
 
-      expect(consoleLogSpy).toHaveBeenCalled();
-      const output = JSON.parse(consoleLogSpy.mock.calls[0][0]);
+      expect(stdoutWriteSpy).toHaveBeenCalled();
+      const output = JSON.parse(stdoutWriteSpy.mock.calls[0][0]);
       expect(output.success).toBe(true);
       expect(output.data).toEqual({ result: 'data' });
     });
@@ -500,8 +503,8 @@ describe('Logger', () => {
         suggestions: ['Try again']
       });
 
-      expect(consoleLogSpy).toHaveBeenCalled();
-      const output = JSON.parse(consoleLogSpy.mock.calls[0][0]);
+      expect(stdoutWriteSpy).toHaveBeenCalled();
+      const output = JSON.parse(stdoutWriteSpy.mock.calls[0][0]);
       expect(output.success).toBe(false);
       expect(output.error).toEqual({
         code: 'ERR_FAIL',
@@ -534,8 +537,8 @@ describe('Logger', () => {
       logger.setJsonMode(true);
       logger.success('Test', { data: 'value' });
 
-      expect(consoleLogSpy).toHaveBeenCalled();
-      const output = consoleLogSpy.mock.calls[0][0];
+      expect(stdoutWriteSpy).toHaveBeenCalled();
+      const output = stdoutWriteSpy.mock.calls[0][0];
       expect(() => JSON.parse(output)).not.toThrow();
     });
 

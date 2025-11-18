@@ -13,6 +13,7 @@ import {
 } from '../types';
 import { ErrorClassifier } from '../utils/ErrorClassifier';
 import { SuggestionEngine } from '../utils/SuggestionEngine';
+import { logger } from '../utils/logger';
 
 /**
  * EnhancedCIPoller - Intelligent CI status polling with rich error reporting
@@ -216,9 +217,47 @@ export class EnhancedCIPoller {
     let previousStatus: CheckSummary | null = null;
     let retryCount = 0;
     let currentInterval = pollStrategy.initialInterval ?? pollInterval;
+    let registrationPolls = 0;
 
     while (Date.now() - startTime < timeout) {
       const status = await this.getDetailedCheckStatus(prNumber);
+
+      // Race condition handling: checks not yet registered
+      if (status.total === 0) {
+        const elapsed = Date.now() - startTime;
+        const MAX_WAIT_FOR_REGISTRATION = 20000; // 20 seconds
+
+        if (elapsed < MAX_WAIT_FOR_REGISTRATION) {
+          const waitTime = Math.min(5000, 1000 * Math.pow(2, registrationPolls));
+          registrationPolls++;
+          await this.sleep(waitTime);
+          // Do not emit progress spam for repeated 0/0 states
+          previousStatus = status;
+          continue;
+        }
+
+        // After grace period, treat as no checks configured
+        onProgress?.({
+          timestamp: new Date(),
+          elapsed,
+          total: 0,
+          passed: 0,
+          failed: 0,
+          pending: 0,
+          newFailures: [],
+          newPasses: []
+        });
+
+        logger.warn('No CI checks configured for this repository');
+        logger.info('Skipping CI check wait - no checks to monitor');
+
+        return {
+          success: true,
+          summary: status,
+          duration: Date.now() - startTime,
+          retriesUsed: retryCount + registrationPolls
+        };
+      }
 
       // Report progress if status changed
       if (this.hasStatusChanged(previousStatus, status)) {

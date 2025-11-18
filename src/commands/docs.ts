@@ -89,8 +89,10 @@ async function showGuide(guideName: string, basePath: string): Promise<void> {
   // Output JSON if in JSON mode (will only output if jsonMode enabled)
   logger.outputJsonResult(true, jsonData);
 
-  // Human-readable output below (will only output if jsonMode disabled)
-  console.log(content);
+  // Human-readable output below (only when NOT in JSON mode)
+  if (!logger.isJsonMode()) {
+    console.log(content);
+  }
 }
 
 /**

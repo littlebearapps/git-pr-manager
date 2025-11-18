@@ -1,7 +1,7 @@
 # Repository Security Guide
 
-**Version**: 1.4.0
-**Last Updated**: 2025-11-14
+**Version**: 1.7.0
+**Last Updated**: 2025-11-18
 
 ---
 
