@@ -756,6 +756,28 @@ Next Steps:
 - **gh** (GitHub CLI): Enhances PR operations with additional GitHub features. Not required but recommended.
 - **npm**: Used for JavaScript dependency scanning in `gpm security`. Already installed if you're using gpm.
 
+### Pre-Release Validation
+
+Use `gpm doctor --pre-release` to validate your repository is ready for publishing (part of Alternative D release strategy):
+
+```bash
+gpm doctor --pre-release
+```
+
+**7 Automated Checks**:
+- ✅ Required workflow files exist (`.github/workflows/ci.yml`, `publish.yml`)
+- ✅ README badge URLs match actual workflow names
+- ⚠️ `package.json` version is `0.0.0-development` (warning only)
+- ⚠️ `@semantic-release/git` plugin NOT present in `.releaserc.json` (warning only)
+- ✅ Working directory is clean (no uncommitted changes)
+- ✅ Currently on main branch
+- ⚠️ All CI checks passed for HEAD commit (warning if gh CLI unavailable)
+
+**When to use**:
+- Before publishing to npm (integrated into publish workflow)
+- Validates release readiness automatically
+- Catches configuration issues before semantic-release runs
+
 ### Environment Variables
 
 #### Required for GitHub API Operations

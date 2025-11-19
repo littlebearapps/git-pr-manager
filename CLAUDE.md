@@ -75,6 +75,41 @@ Production-ready git workflow automation for GitHub with Claude Code integration
 - docs/PHASE-1B-COMPLETION-SUMMARY.md
 - docs/PHASE-1C-COMPLETION-SUMMARY.md
 
+### Alternative D: Release Validation Strategy - ✅ Phase 1 & 2 COMPLETE (2025-11-19)
+
+**Single Source of Truth Architecture**
+- ✅ package.json version: `0.0.0-development` (placeholder)
+- ✅ npm registry as sole version authority
+- ✅ Smart CLI version detection via git tags
+- ✅ semantic-release without @semantic-release/git plugin
+
+**Phase 1: Core Implementation** ✅
+- ✅ Remove @semantic-release/git plugin from .releaserc.json
+- ✅ Set package.json version to 0.0.0-development
+- ✅ Update getVersion() to check git tags first
+- ✅ Pre-release validation checks (7 checks)
+- ✅ Post-publish version verification
+
+**Phase 2: Pre-Release Validation** ✅
+- ✅ `gpm doctor --pre-release` command with 7 automated checks:
+  - Workflow files exist (ci.yml, publish.yml)
+  - Badge URLs match actual workflows
+  - package.json version is placeholder (warning)
+  - @semantic-release/git plugin NOT present (warning)
+  - Working directory clean
+  - On main branch
+  - All CI checks passed (warning if gh CLI unavailable)
+- ✅ Integrated into publish workflow (.github/workflows/publish.yml)
+- ✅ 21 comprehensive tests (845 total tests passing)
+
+**Benefits**
+- Zero version drift (npm is single source of truth)
+- Prevents .secrets.baseline timestamp-only changes
+- Automated pre-release validation catches issues before publish
+- Simpler workflow (no git commits during release)
+
+**See**: docs/RELEASE-VALIDATION-STRATEGY.md
+
 ### Release 1.5.0 - ✅ COMPLETE (2025-11-17)
 
 **E409 Packument Error Handling**

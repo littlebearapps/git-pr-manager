@@ -574,6 +574,38 @@ Use `gpm doctor` to verify your CI environment has all required and optional too
 
 **Note**: `gpm doctor` works without GITHUB_TOKEN, making it safe to run in any CI environment.
 
+### Pre-Release Validation
+
+Use `gpm doctor --pre-release` to validate your repository is ready for publishing:
+
+```yaml
+- name: Pre-release validation
+  run: |
+    npm install -g .
+    gpm doctor --pre-release
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
+
+**Automated Checks** (7 validations):
+- ✅ Required workflow files exist (ci.yml, publish.yml)
+- ✅ README badge URLs match actual workflow names
+- ⚠️ package.json version is `0.0.0-development` (warning only)
+- ⚠️ @semantic-release/git plugin NOT present (warning only)
+- ✅ Working directory is clean (no uncommitted changes)
+- ✅ On main branch (releases must be from main)
+- ⚠️ All CI checks passed for HEAD commit (warning if gh CLI unavailable)
+
+**When to use**:
+- Before npm publish in release workflows
+- Part of Alternative D release validation strategy
+- Catches configuration issues before semantic-release runs
+- Prevents publishing with uncommitted changes or wrong branch
+
+**Exit codes**:
+- `0` - All checks passed (or only warnings)
+- `1` - One or more critical checks failed
+
 ### Issue: "No GitHub token found"
 
 **Solution**: Ensure GITHUB_TOKEN is set:
