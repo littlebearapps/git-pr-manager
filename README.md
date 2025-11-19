@@ -6,6 +6,54 @@ Production-ready git workflow automation for GitHub with Claude Code integration
 [![Node.js CI](https://github.com/littlebearapps/git-pr-manager/workflows/CI/badge.svg)](https://github.com/littlebearapps/git-pr-manager/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+## ⚡ TL;DR
+
+**Get started in 30 seconds:**
+
+```bash
+# Install
+npm install -g @littlebearapps/git-pr-manager
+
+# Set GitHub token (get from: https://github.com/settings/tokens)
+export GITHUB_TOKEN="ghp_your_token_here"
+
+# Initialize
+gpm init --interactive
+
+# Use it!
+gpm auto  # Full automated PR workflow: verify → security scan → PR → CI → merge
+```
+
+**What it does**: Automates your entire GitHub PR workflow—create feature branches, run security scans, create PRs, wait for CI checks, and auto-merge—all in one command. Supports Python, Node.js, Go, and Rust projects with automatic language detection.
+
+**For AI agents**: Machine-readable JSON output (`--json` flag) on all commands. See [AI Agent Integration Guide](docs/guides/AI-AGENT-INTEGRATION.md).
+
+---
+
+## 📖 Table of Contents
+
+- [⚡ TL;DR](#-tldr) - Get started in 30 seconds
+- [🚀 Quick Start](#-quick-start) - Installation, setup, basic usage
+- [📖 Commands](#-commands) - Full command reference
+  - [Workflow Automation](#workflow-automation) - `gpm auto`, `gpm ship`, `gpm feature`
+  - [CI & Status](#ci--status) - `gpm checks`, `gpm status`
+  - [Configuration & Security](#configuration--security) - `gpm init`, `gpm security`, `gpm doctor`
+  - [Git Hooks](#git-hooks) - `gpm install-hooks`, `gpm uninstall-hooks`
+  - [Git Worktree Management](#git-worktree-management) - `gpm worktree list`, `gpm worktree prune`
+- [🌍 Multi-Language Support](#-multi-language-support) - Python, Node.js, Go, Rust auto-detection
+- [🔧 CI/CD & Automation](#-cicd--automation) - GitHub Actions, AI agents
+- [🎯 Key Features](#-key-features) - Security, CI polling, branch protection, performance
+- [📋 Configuration](#-configuration) - `.gpm.yml` examples and presets
+- [🏗️ Architecture](#-architecture) - Project structure and design
+- [📊 Performance Metrics](#-performance-metrics) - Speed improvements
+- [🧪 Testing](#-testing) - 593 tests, 89.67% coverage
+- [📚 Documentation](#-documentation) - Guides, architecture, planning docs
+- [✨ What's New](#-whats-new) - Latest features and updates
+- [📝 Changelog](#-changelog) - Version history
+- [📄 License](#-license) - MIT License
+
+---
+
 ## ✨ What's New
 
 ### Release Validation Strategy (Alternative D) - Nov 2025
