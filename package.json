@@ -22,6 +22,7 @@
     "test:coverage": "jest --coverage",
     "dev": "ts-node src/index.ts",
     "lint": "eslint src tests --ext .ts",
+    "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run build",
     "postinstall": "test -f dist/scripts/postinstall.js && node dist/scripts/postinstall.js || exit 0"
