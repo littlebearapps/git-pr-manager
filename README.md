@@ -33,6 +33,10 @@ gpm auto  # Full automated PR workflow: verify → security scan → PR → CI �
 ## 📖 Table of Contents
 
 - [⚡ TL;DR](#-tldr) - Get started in 30 seconds
+- [🔍 API Reference](#-api-reference) - All commands with JSON schemas
+- [🎨 Common Workflows](#-common-workflows) - Real-world usage patterns
+  - [For Human Developers](#for-human-developers) - Daily workflows, code review, hotfixes
+  - [For AI Agents / CLI Tools](#for-ai-agents--cli-tools) - Python, JavaScript, Go examples
 - [🚀 Quick Start](#-quick-start) - Installation, setup, basic usage
 - [📖 Commands](#-commands) - Full command reference
   - [Workflow Automation](#workflow-automation) - `gpm auto`, `gpm ship`, `gpm feature`
@@ -51,6 +55,201 @@ gpm auto  # Full automated PR workflow: verify → security scan → PR → CI �
 - [✨ What's New](#-whats-new) - Latest features and updates
 - [📝 Changelog](#-changelog) - Version history
 - [📄 License](#-license) - MIT License
+
+---
+
+## 🔍 API Reference
+
+Quick reference for all commands with JSON output schemas:
+
+| Command | Purpose | Key Flags | JSON Output Schema |
+|---------|---------|-----------|-------------------|
+| `gpm auto` | Full automated workflow | `--draft`, `--no-merge`, `--skip-security`, `--skip-verify` | `{prNumber, url, ciStatus, merged}` |
+| `gpm ship` | Manual PR workflow | `--no-wait`, `--draft`, `--title`, `--template` | `{prNumber, url, ciStatus}` |
+| `gpm feature <name>` | Create feature branch | `--from <branch>` | `{branch, created}` |
+| `gpm checks <pr>` | CI status for PR | `--details`, `--files` | `{total, passed, failed, pending, overallStatus}` |
+| `gpm status` | Git/workflow status | - | `{branch, clean, ahead, behind, hooks}` |
+| `gpm security` | Security scanning | - | `{passed, secretsFound, vulnerabilities}` |
+| `gpm init` | Initialize config | `--template <preset>`, `--interactive` | `{created, template, config}` |
+| `gpm protect` | Branch protection | `--show`, `--preset <type>`, `--branch` | `{enabled, requirements}` |
+| `gpm doctor` | System health check | `--pre-release` | `{token, tools, checks}` |
+| `gpm install-hooks` | Install git hooks | `--post-commit`, `--force` | `{installed, hooks}` |
+| `gpm uninstall-hooks` | Remove git hooks | - | `{removed}` |
+| `gpm worktree list` | List worktrees | - | `{worktrees: [{path, branch, commit}]}` |
+| `gpm worktree prune` | Clean stale data | `--dry-run` | `{pruned, count}` |
+| `gpm verify` | Pre-commit checks | `--skip-format`, `--skip-lint`, `--skip-test` | `{passed, tasks: [{name, status}]}` |
+| `gpm check-update` | Check for updates | `--channel <next\|latest>`, `--clear-cache` | `{updateAvailable, currentVersion, latestVersion}` |
+| `gpm docs` | View documentation | `--guide=<name>` | `{guide, found, content}` |
+
+**Note**: Add `--json` flag to any command for machine-readable output. All commands support `--quiet`, `--silent`, and `--verbose` flags for output control.
+
+**Complete schemas**: See [JSON Output Schemas Guide](docs/guides/JSON-OUTPUT-SCHEMAS.md) for detailed field descriptions and examples.
+
+---
+
+## 🎨 Common Workflows
+
+### For Human Developers
+
+**Daily Feature Development:**
+```bash
+# Morning: Start new feature
+gpm feature add-user-profile
+
+# ... code changes ...
+
+# Afternoon: Ship it
+gpm auto  # Handles everything: verify → security → PR → CI → merge
+```
+
+**Code Review Workflow:**
+```bash
+# Check PR status
+gpm checks 47
+
+# Review changes locally
+git fetch origin pull/47/head:pr-47
+git checkout pr-47
+
+# Run security scan
+gpm security
+
+# Approve and auto-merge
+gh pr review 47 --approve
+# (PR merges automatically after CI passes)
+```
+
+**Emergency Hotfix:**
+```bash
+# Create hotfix branch from main
+gpm feature hotfix-critical-bug --from main
+
+# ... fix the bug ...
+
+# Fast-track PR (skip some checks if needed)
+gpm ship --skip-verify --no-wait
+```
+
+**Multi-Repo Maintenance:**
+```bash
+# Check system health
+gpm doctor
+
+# Verify all tools installed
+gpm doctor --json | jq '.tools[] | select(.found==false)'
+
+# Update gpm itself
+gpm check-update
+npm install -g @littlebearapps/git-pr-manager@latest
+```
+
+### For AI Agents / CLI Tools
+
+**Automated PR Creation (Python):**
+```python
+import subprocess
+import json
+
+# Execute gpm with JSON output
+result = subprocess.run(
+    ['gpm', 'auto', '--json'],
+    capture_output=True,
+    text=True,
+    env={'GITHUB_TOKEN': 'ghp_...'}
+)
+
+# Parse structured output
+data = json.loads(result.stdout)
+pr_number = data['prNumber']
+pr_url = data['url']
+
+print(f"✅ Created PR #{pr_number}: {pr_url}")
+```
+
+**CI Status Monitoring (JavaScript):**
+```javascript
+const { execSync } = require('child_process');
+
+// Check PR status with JSON output
+const output = execSync('gpm checks 47 --json', { encoding: 'utf-8' });
+const status = JSON.parse(output);
+
+if (status.overallStatus === 'success') {
+  console.log('✅ All checks passed!');
+} else if (status.failed > 0) {
+  console.log(`❌ ${status.failed} checks failed`);
+  status.failureDetails.forEach(failure => {
+    console.log(`- ${failure.checkName}: ${failure.errorType}`);
+  });
+}
+```
+
+**Repository Health Check (Go):**
+```go
+package main
+
+import (
+    "encoding/json"
+    "os/exec"
+)
+
+type DoctorResult struct {
+    Token struct {
+        Found  bool   `json:"found"`
+        Source string `json:"source"`
+    } `json:"token"`
+    Tools []struct {
+        Name    string `json:"name"`
+        Found   bool   `json:"found"`
+        Version string `json:"version"`
+    } `json:"tools"`
+}
+
+func main() {
+    cmd := exec.Command("gpm", "doctor", "--json")
+    output, _ := cmd.Output()
+
+    var result DoctorResult
+    json.Unmarshal(output, &result)
+
+    if !result.Token.Found {
+        panic("GitHub token not configured")
+    }
+}
+```
+
+**Multi-Language Project Setup:**
+```bash
+# AI agent detects project type and initializes
+gpm doctor --json | jq -r '.tools[] | select(.name=="detect-secrets") | .found'
+
+# If not found, install optional tools
+pip install detect-secrets
+
+# Initialize with appropriate template
+gpm init --template standard
+
+# Run verification (auto-detects language: Python/Node.js/Go/Rust)
+gpm verify --json
+```
+
+**Batch PR Status Check (Shell Script):**
+```bash
+#!/bin/bash
+# Check status of multiple PRs
+
+for pr in 45 46 47 48; do
+  status=$(gpm checks $pr --json | jq -r '.overallStatus')
+  echo "PR #$pr: $status"
+
+  if [ "$status" = "success" ]; then
+    echo "  ✅ Ready to merge"
+  elif [ "$status" = "failure" ]; then
+    # Get failure details
+    gpm checks $pr --json | jq -r '.failureDetails[] | "  ❌ \(.checkName): \(.errorType)"'
+  fi
+done
+```
 
 ---
 
