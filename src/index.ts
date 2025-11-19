@@ -18,6 +18,7 @@ import { uninstallHooksCommand } from './commands/uninstall-hooks';
 import { worktreeListCommand, worktreePruneCommand } from './commands/worktree';
 import { logger, VerbosityLevel } from './utils/logger';
 import { maybeNotifyUpdate } from './utils/update-check';
+import { getVersion } from './utils/version';
 
 // Fire-and-forget update check (non-blocking)
 const pkg = require('../package.json');
@@ -36,7 +37,7 @@ let telemetry: any = null;
       // @ts-expect-error - Optional internal telemetry module (no types needed)
       const { initTelemetry, captureBreadcrumb, captureError } = await import('../telemetry/src/telemetry.js');
       telemetry = {
-        init: () => initTelemetry('gitprmanager', pkg.version),
+        init: () => initTelemetry('gitprmanager', getVersion()),
         breadcrumb: captureBreadcrumb,
         error: captureError
       };
@@ -54,7 +55,7 @@ const program = new Command();
 program
   .name('gpm')
   .description('Git PR Manager - Enhanced git workflow automation with CI integration')
-  .version(pkg.version)
+  .version(getVersion())
   .option('--json', 'Output in JSON format (machine-readable)')
   .option('--quiet', 'Quiet mode (errors/warnings only)')
   .option('--silent', 'Silent mode (no output except exit codes)')

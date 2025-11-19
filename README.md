@@ -3,7 +3,7 @@
 Production-ready git workflow automation for GitHub with Claude Code integration. Streamlines feature development with intelligent CI polling, comprehensive error reporting, automated PR workflows, and **multi-language verification** (Python, Node.js, Go, Rust).
 
 [![npm version](https://badge.fury.io/js/%40littlebearapps%2Fgit-pr-manager.svg)](https://www.npmjs.com/package/@littlebearapps/git-pr-manager)
-[![Node.js CI](https://github.com/littlebearapps/git-pr-manager/workflows/Test/badge.svg)](https://github.com/littlebearapps/git-pr-manager/actions)
+[![Node.js CI](https://github.com/littlebearapps/git-pr-manager/workflows/CI/badge.svg)](https://github.com/littlebearapps/git-pr-manager/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## ✨ What's New in v1.7.0
