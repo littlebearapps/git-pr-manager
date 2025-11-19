@@ -62,7 +62,7 @@
     "provenance": true
   },
   "dependencies": {
-    "@octokit/plugin-throttling": "^8.0.0",
+    "@octokit/plugin-throttling": "^11.0.3",
     "@octokit/rest": "^20.0.2",
     "chalk": "^4.1.2",
     "commander": "^14.0.2",
