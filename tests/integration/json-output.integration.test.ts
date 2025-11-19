@@ -52,14 +52,12 @@ describe("JSON output contract", () => {
       getBranchInfo: jest
         .fn()
         .mockResolvedValue({ current: "feature/test", isClean: true }),
-      getStatus: jest
-        .fn()
-        .mockResolvedValue({
-          modified: [],
-          created: [],
-          deleted: [],
-          not_added: [],
-        }),
+      getStatus: jest.fn().mockResolvedValue({
+        modified: [],
+        created: [],
+        deleted: [],
+        not_added: [],
+      }),
     } as any;
     (GitService as unknown as jest.Mock).mockImplementation(() => mockGit);
 
