@@ -17,10 +17,10 @@ export class WorkflowError extends Error {
     public code: string,
     message: string,
     public details?: any,
-    public suggestions: string[] = []
+    public suggestions: string[] = [],
   ) {
     super(message);
-    this.name = 'WorkflowError';
+    this.name = "WorkflowError";
     Error.captureStackTrace?.(this, this.constructor);
   }
 
@@ -30,7 +30,7 @@ export class WorkflowError extends Error {
       message: this.message,
       details: this.details,
       suggestions: this.suggestions,
-      name: this.name
+      name: this.name,
     };
   }
 }
@@ -44,11 +44,11 @@ export class GitError extends WorkflowError {
     // Add worktree context if available
     const enhancedDetails = {
       ...details,
-      worktree: process.cwd() // Current working directory (worktree path)
+      worktree: process.cwd(), // Current working directory (worktree path)
     };
 
-    super('GIT_ERROR', message, enhancedDetails, suggestions);
-    this.name = 'GitError';
+    super("GIT_ERROR", message, enhancedDetails, suggestions);
+    this.name = "GitError";
   }
 }
 
@@ -57,8 +57,8 @@ export class GitError extends WorkflowError {
  */
 export class GitHubAPIError extends WorkflowError {
   constructor(message: string, details?: any, suggestions: string[] = []) {
-    super('GITHUB_API_ERROR', message, details, suggestions);
-    this.name = 'GitHubAPIError';
+    super("GITHUB_API_ERROR", message, details, suggestions);
+    this.name = "GitHubAPIError";
   }
 }
 
@@ -67,23 +67,23 @@ export class GitHubAPIError extends WorkflowError {
  */
 export class RateLimitError extends WorkflowError {
   constructor(
-    message: string = 'GitHub API rate limit exceeded',
+    message: string = "GitHub API rate limit exceeded",
     details?: { remaining: number; limit: number; resetAt: Date },
-    suggestions: string[] = []
+    suggestions: string[] = [],
   ) {
     const defaultSuggestions = [
-      'Wait for rate limit reset',
-      'Use a GitHub token with higher rate limit',
-      'Enable caching to reduce API calls'
+      "Wait for rate limit reset",
+      "Use a GitHub token with higher rate limit",
+      "Enable caching to reduce API calls",
     ];
 
     super(
-      'RATE_LIMIT_EXCEEDED',
+      "RATE_LIMIT_EXCEEDED",
       message,
       details,
-      suggestions.length > 0 ? suggestions : defaultSuggestions
+      suggestions.length > 0 ? suggestions : defaultSuggestions,
     );
-    this.name = 'RateLimitError';
+    this.name = "RateLimitError";
   }
 }
 
@@ -91,18 +91,13 @@ export class RateLimitError extends WorkflowError {
  * Authentication errors
  */
 export class AuthenticationError extends WorkflowError {
-  constructor(message: string = 'Authentication failed', details?: any) {
-    super(
-      'AUTH_ERROR',
-      message,
-      details,
-      [
-        'Set GITHUB_TOKEN environment variable',
-        'Ensure token has required permissions',
-        'Generate new token at https://github.com/settings/tokens'
-      ]
-    );
-    this.name = 'AuthenticationError';
+  constructor(message: string = "Authentication failed", details?: any) {
+    super("AUTH_ERROR", message, details, [
+      "Set GITHUB_TOKEN environment variable",
+      "Ensure token has required permissions",
+      "Generate new token at https://github.com/settings/tokens",
+    ]);
+    this.name = "AuthenticationError";
   }
 }
 
@@ -112,18 +107,18 @@ export class AuthenticationError extends WorkflowError {
 export class BranchProtectionError extends WorkflowError {
   constructor(message: string, details?: any, suggestions: string[] = []) {
     const defaultSuggestions = [
-      'Check branch protection rules on GitHub',
-      'Ensure all required checks pass',
-      'Get required PR reviews'
+      "Check branch protection rules on GitHub",
+      "Ensure all required checks pass",
+      "Get required PR reviews",
     ];
 
     super(
-      'BRANCH_PROTECTION_ERROR',
+      "BRANCH_PROTECTION_ERROR",
       message,
       details,
-      suggestions.length > 0 ? suggestions : defaultSuggestions
+      suggestions.length > 0 ? suggestions : defaultSuggestions,
     );
-    this.name = 'BranchProtectionError';
+    this.name = "BranchProtectionError";
   }
 }
 
@@ -132,27 +127,27 @@ export class BranchProtectionError extends WorkflowError {
  */
 export class CICheckError extends WorkflowError {
   constructor(
-    message: string = 'CI checks failed',
+    message: string = "CI checks failed",
     details?: {
       failedChecks: string[];
       prNumber: number;
       prUrl: string;
     },
-    suggestions: string[] = []
+    suggestions: string[] = [],
   ) {
     const defaultSuggestions = [
-      'Review failed checks on GitHub',
-      'Fix issues and push changes',
-      'Re-run failed checks if transient'
+      "Review failed checks on GitHub",
+      "Fix issues and push changes",
+      "Re-run failed checks if transient",
     ];
 
     super(
-      'CI_CHECK_FAILED',
+      "CI_CHECK_FAILED",
       message,
       details,
-      suggestions.length > 0 ? suggestions : defaultSuggestions
+      suggestions.length > 0 ? suggestions : defaultSuggestions,
     );
-    this.name = 'CICheckError';
+    this.name = "CICheckError";
   }
 }
 
@@ -160,18 +155,13 @@ export class CICheckError extends WorkflowError {
  * Merge conflict errors
  */
 export class MergeConflictError extends WorkflowError {
-  constructor(message: string = 'Merge conflicts detected', details?: any) {
-    super(
-      'MERGE_CONFLICT',
-      message,
-      details,
-      [
-        'Pull latest changes from base branch',
-        'Resolve conflicts manually',
-        'Run tests after resolving conflicts'
-      ]
-    );
-    this.name = 'MergeConflictError';
+  constructor(message: string = "Merge conflicts detected", details?: any) {
+    super("MERGE_CONFLICT", message, details, [
+      "Pull latest changes from base branch",
+      "Resolve conflicts manually",
+      "Run tests after resolving conflicts",
+    ]);
+    this.name = "MergeConflictError";
   }
 }
 
@@ -182,22 +172,22 @@ export class WorktreeConflictError extends WorkflowError {
   constructor(
     branchName: string,
     worktreePaths: string[],
-    currentPath: string
+    currentPath: string,
   ) {
     const message = `Branch '${branchName}' is already checked out in another worktree`;
     const details = {
       branch: branchName,
       currentWorktree: currentPath,
-      conflictingWorktrees: worktreePaths
+      conflictingWorktrees: worktreePaths,
     };
     const suggestions = [
       `Switch to existing worktree: cd ${worktreePaths[0]}`,
       `Or use a different branch name`,
-      `Or remove the worktree: git worktree remove ${worktreePaths[0]}`
+      `Or remove the worktree: git worktree remove ${worktreePaths[0]}`,
     ];
 
-    super('WORKTREE_CONFLICT', message, details, suggestions);
-    this.name = 'WorktreeConflictError';
+    super("WORKTREE_CONFLICT", message, details, suggestions);
+    this.name = "WorktreeConflictError";
   }
 }
 
@@ -207,18 +197,18 @@ export class WorktreeConflictError extends WorkflowError {
 export class ConfigError extends WorkflowError {
   constructor(message: string, details?: any, suggestions: string[] = []) {
     const defaultSuggestions = [
-      'Run `gpm init` to create config file',
-      'Check .gpm.yml syntax',
-      'Refer to documentation for config options'
+      "Run `gpm init` to create config file",
+      "Check .gpm.yml syntax",
+      "Refer to documentation for config options",
     ];
 
     super(
-      'CONFIG_ERROR',
+      "CONFIG_ERROR",
       message,
       details,
-      suggestions.length > 0 ? suggestions : defaultSuggestions
+      suggestions.length > 0 ? suggestions : defaultSuggestions,
     );
-    this.name = 'ConfigError';
+    this.name = "ConfigError";
   }
 }
 
@@ -227,26 +217,26 @@ export class ConfigError extends WorkflowError {
  */
 export class SecurityError extends WorkflowError {
   constructor(
-    message: string = 'Security scan failed',
+    message: string = "Security scan failed",
     details?: {
       secrets?: string[];
       vulnerabilities?: any[];
     },
-    suggestions: string[] = []
+    suggestions: string[] = [],
   ) {
     const defaultSuggestions = [
-      'Remove secrets from code',
-      'Update vulnerable dependencies',
-      'Review security findings carefully'
+      "Remove secrets from code",
+      "Update vulnerable dependencies",
+      "Review security findings carefully",
     ];
 
     super(
-      'SECURITY_ERROR',
+      "SECURITY_ERROR",
       message,
       details,
-      suggestions.length > 0 ? suggestions : defaultSuggestions
+      suggestions.length > 0 ? suggestions : defaultSuggestions,
     );
-    this.name = 'SecurityError';
+    this.name = "SecurityError";
   }
 }
 
@@ -257,10 +247,10 @@ export class ValidationError extends WorkflowError {
   constructor(
     message: string,
     details?: { issues: string[]; warnings?: string[] },
-    suggestions: string[] = []
+    suggestions: string[] = [],
   ) {
-    super('VALIDATION_ERROR', message, details, suggestions);
-    this.name = 'ValidationError';
+    super("VALIDATION_ERROR", message, details, suggestions);
+    this.name = "ValidationError";
   }
 }
 
@@ -269,23 +259,23 @@ export class ValidationError extends WorkflowError {
  */
 export class TimeoutError extends WorkflowError {
   constructor(
-    message: string = 'Operation timed out',
+    message: string = "Operation timed out",
     details?: { timeout: number; elapsed: number },
-    suggestions: string[] = []
+    suggestions: string[] = [],
   ) {
     const defaultSuggestions = [
-      'Increase timeout in configuration',
-      'Check for long-running tests',
-      'Verify CI is not stuck'
+      "Increase timeout in configuration",
+      "Check for long-running tests",
+      "Verify CI is not stuck",
     ];
 
     super(
-      'TIMEOUT_ERROR',
+      "TIMEOUT_ERROR",
       message,
       details,
-      suggestions.length > 0 ? suggestions : defaultSuggestions
+      suggestions.length > 0 ? suggestions : defaultSuggestions,
     );
-    this.name = 'TimeoutError';
+    this.name = "TimeoutError";
   }
 }
 
@@ -298,10 +288,12 @@ export function toWorkflowError(error: unknown): WorkflowError {
   }
 
   if (error instanceof Error) {
-    return new WorkflowError('UNKNOWN_ERROR', error.message, { originalError: error });
+    return new WorkflowError("UNKNOWN_ERROR", error.message, {
+      originalError: error,
+    });
   }
 
-  return new WorkflowError('UNKNOWN_ERROR', String(error));
+  return new WorkflowError("UNKNOWN_ERROR", String(error));
 }
 
 /**
@@ -314,7 +306,9 @@ export function isRetryableError(error: unknown): boolean {
 
   if (error instanceof WorkflowError) {
     // Network errors, transient failures are retryable
-    return ['NETWORK_ERROR', 'TRANSIENT_ERROR', 'TIMEOUT_ERROR'].includes(error.code);
+    return ["NETWORK_ERROR", "TRANSIENT_ERROR", "TIMEOUT_ERROR"].includes(
+      error.code,
+    );
   }
 
   return false;

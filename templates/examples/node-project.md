@@ -35,9 +35,9 @@ security:
   allowedVulnerabilities: []
 
 pr:
-  templatePath: '.github/PULL_REQUEST_TEMPLATE.md'
-  autoAssign: ['tech-lead']
-  autoLabel: ['needs-review']
+  templatePath: ".github/PULL_REQUEST_TEMPLATE.md"
+  autoAssign: ["tech-lead"]
+  autoLabel: ["needs-review"]
 ```
 
 ## Package.json Scripts
@@ -77,8 +77,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: "20"
+          cache: "npm"
 
       - run: npm ci
       - run: npm run verify

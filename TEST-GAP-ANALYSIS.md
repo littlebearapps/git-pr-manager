@@ -12,6 +12,7 @@
 The test suite has **212 tests** with good coverage of recent features (Phase 6 auto-fix, Phase 3 security, Phase 4 PR workflows). However, **critical infrastructure services from Phases 1-2 have minimal or no test coverage**, creating significant risk.
 
 **Critical Gaps** (immediate priority):
+
 1. **GitHubService**: 11.7% coverage - Core GitHub API operations untested
 2. **GitService**: 3.03% coverage - Git operations untested
 3. **EnhancedCIPoller**: 0% coverage (no test file) - CI polling logic untested
@@ -32,6 +33,7 @@ The test suite has **212 tests** with good coverage of recent features (Phase 6 
 **Missing Test Coverage**:
 
 #### Authentication & Setup (Lines 15-44)
+
 - ✗ Token validation
 - ✗ Octokit initialization
 - ✗ Rate limit configuration
@@ -39,6 +41,7 @@ The test suite has **212 tests** with good coverage of recent features (Phase 6 
 - ✗ Custom error classes: AuthError, PRExistsError, NotFoundError, MergeBlockedError, MergeConflictError
 
 #### PR Operations (Lines 57-149)
+
 - ✗ `createPR()` - Create pull request
 - ✗ `getPR()` - Get PR details
 - ✗ `listPRs()` - List PRs with filters
@@ -48,71 +51,76 @@ The test suite has **212 tests** with good coverage of recent features (Phase 6 
 - ✗ Merge conflict handling
 
 #### Branch Operations (Lines 150-189)
+
 - ✗ `deleteBranch()` - Delete remote branch
 - ✗ `getBranches()` - List branches
 - ✗ Branch not found error handling
 
 #### Check Operations (Lines 190-250)
+
 - ✗ `getChecks()` - Get check runs and statuses
 - ✗ `getCheckRun()` - Get specific check run details
 - ✗ Check annotation fetching
 - ✗ Commit status handling
 
 #### Repository Operations (Lines 251-300)
+
 - ✗ `getRepo()` - Get repository info
 - ✗ `getDefaultBranch()` - Detect default branch
 - ✗ Repository not found error handling
 
 #### Utility Methods (Lines 301-324)
+
 - ✗ `parseGitUrl()` - Parse SSH/HTTPS git URLs
 - ✗ Owner/repo extraction from URLs
 - ✗ URL validation
 
 **Recommended Tests** (30-40 tests):
+
 ```typescript
-describe('GitHubService', () => {
-  describe('Authentication', () => {
-    it('should initialize with valid token')
-    it('should throw AuthError on invalid token')
-    it('should configure rate limit handling')
+describe("GitHubService", () => {
+  describe("Authentication", () => {
+    it("should initialize with valid token");
+    it("should throw AuthError on invalid token");
+    it("should configure rate limit handling");
   });
 
-  describe('PR Operations', () => {
-    it('should create PR with title and body')
-    it('should throw PRExistsError if PR exists')
-    it('should get PR by number')
-    it('should list PRs with state filter')
-    it('should merge PR when checks pass')
-    it('should throw MergeBlockedError when checks fail')
-    it('should throw MergeConflictError on conflict')
-    it('should handle draft PRs')
+  describe("PR Operations", () => {
+    it("should create PR with title and body");
+    it("should throw PRExistsError if PR exists");
+    it("should get PR by number");
+    it("should list PRs with state filter");
+    it("should merge PR when checks pass");
+    it("should throw MergeBlockedError when checks fail");
+    it("should throw MergeConflictError on conflict");
+    it("should handle draft PRs");
   });
 
-  describe('Branch Operations', () => {
-    it('should delete remote branch')
-    it('should throw NotFoundError for missing branch')
-    it('should list branches')
+  describe("Branch Operations", () => {
+    it("should delete remote branch");
+    it("should throw NotFoundError for missing branch");
+    it("should list branches");
   });
 
-  describe('Check Operations', () => {
-    it('should get check runs for PR')
-    it('should get check statuses for commit')
-    it('should get check run details')
-    it('should fetch annotations')
-    it('should handle pending checks')
+  describe("Check Operations", () => {
+    it("should get check runs for PR");
+    it("should get check statuses for commit");
+    it("should get check run details");
+    it("should fetch annotations");
+    it("should handle pending checks");
   });
 
-  describe('Repository Operations', () => {
-    it('should get repository info')
-    it('should detect default branch')
-    it('should throw NotFoundError for missing repo')
+  describe("Repository Operations", () => {
+    it("should get repository info");
+    it("should detect default branch");
+    it("should throw NotFoundError for missing repo");
   });
 
-  describe('URL Parsing', () => {
-    it('should parse HTTPS git URLs')
-    it('should parse SSH git URLs')
-    it('should extract owner and repo')
-    it('should handle invalid URLs')
+  describe("URL Parsing", () => {
+    it("should parse HTTPS git URLs");
+    it("should parse SSH git URLs");
+    it("should extract owner and repo");
+    it("should handle invalid URLs");
   });
 });
 ```
@@ -128,6 +136,7 @@ describe('GitHubService', () => {
 **Missing Test Coverage**:
 
 #### Branch Operations (Lines 19-124)
+
 - ✗ `getCurrentBranch()` - Get current branch name
 - ✗ `getBranchInfo()` - Get branch status and remotes
 - ✗ `createBranch()` - Create new branch
@@ -137,72 +146,77 @@ describe('GitHubService', () => {
 - ✗ `branchExists()` - Check if branch exists
 
 #### Status Operations (Lines 42-171)
+
 - ✗ `isClean()` - Check if working directory is clean
 - ✗ `getStatus()` - Get git status
 - ✗ `getDiff()` - Get unstaged changes
 - ✗ `getStagedDiff()` - Get staged changes
 
 #### Remote Operations (Lines 74-146)
+
 - ✗ `push()` - Push to remote
 - ✗ `pull()` - Pull from remote
 - ✗ `fetch()` - Fetch from remote
 - ✗ `getRemoteUrl()` - Get remote URL
 
 #### Staging & Commit (Lines 146-178)
+
 - ✗ `add()` - Stage files
 - ✗ `commit()` - Create commit
 - ✗ `getLog()` - Get commit history
 
 #### Stash Operations (Lines 196-234)
+
 - ✗ `stash()` - Stash changes
 - ✗ `stashPop()` - Restore stashed changes
 - ✗ `stashList()` - List stashes
 
 **Recommended Tests** (25-35 tests):
+
 ```typescript
-describe('GitService', () => {
-  describe('Branch Operations', () => {
-    it('should get current branch')
-    it('should get branch info with remotes')
-    it('should create new branch')
-    it('should create branch from base branch')
-    it('should checkout existing branch')
-    it('should delete local branch')
-    it('should force delete branch')
-    it('should list all branches')
-    it('should check if branch exists')
+describe("GitService", () => {
+  describe("Branch Operations", () => {
+    it("should get current branch");
+    it("should get branch info with remotes");
+    it("should create new branch");
+    it("should create branch from base branch");
+    it("should checkout existing branch");
+    it("should delete local branch");
+    it("should force delete branch");
+    it("should list all branches");
+    it("should check if branch exists");
   });
 
-  describe('Status Operations', () => {
-    it('should detect clean working directory')
-    it('should detect uncommitted changes')
-    it('should get status with untracked files')
-    it('should get diff of unstaged changes')
-    it('should get diff of staged changes')
+  describe("Status Operations", () => {
+    it("should detect clean working directory");
+    it("should detect uncommitted changes");
+    it("should get status with untracked files");
+    it("should get diff of unstaged changes");
+    it("should get diff of staged changes");
   });
 
-  describe('Remote Operations', () => {
-    it('should push to remote')
-    it('should push with upstream')
-    it('should pull from remote')
-    it('should fetch from remote')
-    it('should get remote URL')
+  describe("Remote Operations", () => {
+    it("should push to remote");
+    it("should push with upstream");
+    it("should pull from remote");
+    it("should fetch from remote");
+    it("should get remote URL");
   });
 
-  describe('Staging & Commit', () => {
-    it('should stage single file')
-    it('should stage multiple files')
-    it('should stage all changes')
-    it('should create commit')
-    it('should get commit log')
-    it('should get log with options')
+  describe("Staging & Commit", () => {
+    it("should stage single file");
+    it("should stage multiple files");
+    it("should stage all changes");
+    it("should create commit");
+    it("should get commit log");
+    it("should get log with options");
   });
 
-  describe('Stash Operations', () => {
-    it('should stash changes')
-    it('should stash with message')
-    it('should pop stash')
-    it('should list stashes')
+  describe("Stash Operations", () => {
+    it("should stash changes");
+    it("should stash with message");
+    it("should pop stash");
+    it("should list stashes");
   });
 });
 ```
@@ -218,6 +232,7 @@ describe('GitService', () => {
 **Missing Test Coverage**:
 
 #### Check Status (Lines 38-142)
+
 - ✗ `getDetailedCheckStatus()` - Get comprehensive check status
 - ✗ Check run parsing
 - ✗ Commit status parsing
@@ -226,11 +241,13 @@ describe('GitService', () => {
 - ✗ Suggestion engine integration
 
 #### Annotations (Lines 143-195)
+
 - ✗ `getCheckAnnotations()` - Fetch check annotations
 - ✗ Annotation pagination
 - ✗ Annotation parsing
 
 #### Polling Logic (Lines 196-329)
+
 - ✗ `waitForChecks()` - Async polling with exponential backoff
 - ✗ Progress callbacks
 - ✗ Fail-fast mode
@@ -240,42 +257,43 @@ describe('GitService', () => {
 - ✗ Poll interval calculation
 
 **Recommended Tests** (20-30 tests):
+
 ```typescript
-describe('EnhancedCIPoller', () => {
-  describe('Check Status', () => {
-    it('should get detailed check status for PR')
-    it('should parse check runs')
-    it('should parse commit statuses')
-    it('should classify errors')
-    it('should extract affected files')
-    it('should generate fix suggestions')
-    it('should handle pending checks')
-    it('should handle no checks')
+describe("EnhancedCIPoller", () => {
+  describe("Check Status", () => {
+    it("should get detailed check status for PR");
+    it("should parse check runs");
+    it("should parse commit statuses");
+    it("should classify errors");
+    it("should extract affected files");
+    it("should generate fix suggestions");
+    it("should handle pending checks");
+    it("should handle no checks");
   });
 
-  describe('Annotations', () => {
-    it('should fetch check annotations')
-    it('should paginate annotations')
-    it('should parse annotation details')
-    it('should handle missing annotations')
+  describe("Annotations", () => {
+    it("should fetch check annotations");
+    it("should paginate annotations");
+    it("should parse annotation details");
+    it("should handle missing annotations");
   });
 
-  describe('Polling Logic', () => {
-    it('should wait for checks to complete')
-    it('should use exponential backoff')
-    it('should call progress callbacks')
-    it('should fail fast on critical errors')
-    it('should retry flaky tests')
-    it('should timeout after max duration')
-    it('should handle partial completion')
-    it('should detect stuck checks')
+  describe("Polling Logic", () => {
+    it("should wait for checks to complete");
+    it("should use exponential backoff");
+    it("should call progress callbacks");
+    it("should fail fast on critical errors");
+    it("should retry flaky tests");
+    it("should timeout after max duration");
+    it("should handle partial completion");
+    it("should detect stuck checks");
   });
 
-  describe('Strategies', () => {
-    it('should use fixed poll strategy')
-    it('should use exponential poll strategy')
-    it('should respect max interval')
-    it('should calculate intervals correctly')
+  describe("Strategies", () => {
+    it("should use fixed poll strategy");
+    it("should use exponential poll strategy");
+    it("should respect max interval");
+    it("should calculate intervals correctly");
   });
 });
 ```
@@ -291,6 +309,7 @@ describe('EnhancedCIPoller', () => {
 **Missing Test Coverage**:
 
 #### Verbosity Levels (Lines 79-110)
+
 - ✗ SILENT mode (no output)
 - ✗ QUIET mode (errors only)
 - ✗ VERBOSE mode (+ info)
@@ -298,12 +317,14 @@ describe('EnhancedCIPoller', () => {
 - ✗ CI environment auto-detection
 
 #### JSON Output (Lines 111-160)
+
 - ✗ `jsonResponse()` - Structured JSON output
 - ✗ Success responses with data
 - ✗ Error responses with suggestions
 - ✗ Metadata (timestamp, duration, version)
 
 #### Formatted Output (Lines 161-239)
+
 - ✗ `success()` method
 - ✗ `error()` method with suggestions
 - ✗ `warning()` method
@@ -312,31 +333,32 @@ describe('EnhancedCIPoller', () => {
 - ✗ Output filtering by verbosity level
 
 **Recommended Tests** (15-20 tests):
+
 ```typescript
-describe('logger', () => {
-  describe('Verbosity Levels', () => {
-    it('should output nothing in SILENT mode')
-    it('should output only errors in QUIET mode')
-    it('should output errors, warnings, success in NORMAL mode')
-    it('should output info in VERBOSE mode')
-    it('should output debug in DEBUG mode')
-    it('should detect CI environment')
+describe("logger", () => {
+  describe("Verbosity Levels", () => {
+    it("should output nothing in SILENT mode");
+    it("should output only errors in QUIET mode");
+    it("should output errors, warnings, success in NORMAL mode");
+    it("should output info in VERBOSE mode");
+    it("should output debug in DEBUG mode");
+    it("should detect CI environment");
   });
 
-  describe('JSON Output', () => {
-    it('should format success response')
-    it('should format error response')
-    it('should include metadata')
-    it('should include suggestions in errors')
+  describe("JSON Output", () => {
+    it("should format success response");
+    it("should format error response");
+    it("should include metadata");
+    it("should include suggestions in errors");
   });
 
-  describe('Formatted Output', () => {
-    it('should format success messages')
-    it('should format error messages')
-    it('should format warnings')
-    it('should format info messages')
-    it('should format debug messages')
-    it('should respect verbosity level')
+  describe("Formatted Output", () => {
+    it("should format success messages");
+    it("should format error messages");
+    it("should format warnings");
+    it("should format info messages");
+    it("should format debug messages");
+    it("should respect verbosity level");
   });
 });
 ```
@@ -354,32 +376,37 @@ describe('logger', () => {
 **Missing Test Coverage**:
 
 #### Edge Cases (Lines 106-107, 112-113)
+
 - ✗ Missing tool fallbacks (biome when eslint not found)
 - ✗ Language detection edge cases
 
 #### Error Handling (Lines 161-181)
+
 - ✗ Unknown language detection
 - ✗ No fix tool available scenarios
 
 #### Advanced Fix Scenarios (Lines 266-292, 302-376)
+
 - ✗ Complex security fixes
 - ✗ Python-specific fixes
 - ✗ Go language fixes (if added)
 
 #### Metrics Edge Cases (Lines 694-729)
+
 - ✗ Metrics export with empty data
 - ✗ Average duration calculation with no attempts
 
 **Recommended Tests** (8-12 tests):
+
 ```typescript
-describe('AutoFixService - Edge Cases', () => {
-  it('should handle missing primary tool with fallback')
-  it('should handle unknown language gracefully')
-  it('should handle no fix tool available')
-  it('should export metrics with zero attempts')
-  it('should calculate average duration correctly')
-  it('should handle Python security fixes')
-  it('should track rollback reasons accurately')
+describe("AutoFixService - Edge Cases", () => {
+  it("should handle missing primary tool with fallback");
+  it("should handle unknown language gracefully");
+  it("should handle no fix tool available");
+  it("should export metrics with zero attempts");
+  it("should calculate average duration correctly");
+  it("should handle Python security fixes");
+  it("should track rollback reasons accurately");
 });
 ```
 
@@ -396,6 +423,7 @@ describe('AutoFixService - Edge Cases', () => {
 **Missing Test Coverage**:
 
 #### APICache Class (Lines 21-155)
+
 - ✗ LRU eviction policy
 - ✗ TTL expiration
 - ✗ `get()` with TTL
@@ -405,28 +433,29 @@ describe('AutoFixService - Edge Cases', () => {
 - ✗ `getStats()` statistics
 
 **Recommended Tests** (15-20 tests):
+
 ```typescript
-describe('APICache', () => {
-  describe('Basic Operations', () => {
-    it('should cache values with TTL')
-    it('should return cached values')
-    it('should expire after TTL')
-    it('should evict LRU when full')
-    it('should set and get values')
-    it('should delete values')
-    it('should clear cache')
+describe("APICache", () => {
+  describe("Basic Operations", () => {
+    it("should cache values with TTL");
+    it("should return cached values");
+    it("should expire after TTL");
+    it("should evict LRU when full");
+    it("should set and get values");
+    it("should delete values");
+    it("should clear cache");
   });
 
-  describe('ETag Support', () => {
-    it('should cache with ETag')
-    it('should return cached on 304 Not Modified')
-    it('should update on 200 OK')
-    it('should handle missing ETag')
+  describe("ETag Support", () => {
+    it("should cache with ETag");
+    it("should return cached on 304 Not Modified");
+    it("should update on 200 OK");
+    it("should handle missing ETag");
   });
 
-  describe('Statistics', () => {
-    it('should return cache stats')
-    it('should track size correctly')
+  describe("Statistics", () => {
+    it("should return cache stats");
+    it("should track size correctly");
   });
 });
 ```
@@ -442,6 +471,7 @@ describe('APICache', () => {
 **Missing Test Coverage**:
 
 #### Error Classes (Lines 15-252)
+
 - ✗ WorkflowError base class
 - ✗ GitError with git command context
 - ✗ GitHubAPIError with status codes
@@ -456,24 +486,26 @@ describe('APICache', () => {
 - ✗ TimeoutError
 
 #### Utility Functions (Lines 262-280)
+
 - ✗ `toWorkflowError()` conversion
 - ✗ `isRetryableError()` detection
 
 **Recommended Tests** (15-20 tests):
-```typescript
-describe('Error Classes', () => {
-  it('should create WorkflowError with code')
-  it('should create GitError with command context')
-  it('should create GitHubAPIError with status code')
-  it('should create RateLimitError with reset time')
-  it('should create BranchProtectionError with violated rules')
-  it('should create CICheckError with failed checks')
-  it('should serialize to JSON')
 
-  describe('Utility Functions', () => {
-    it('should convert unknown error to WorkflowError')
-    it('should detect retryable errors')
-    it('should not retry non-retryable errors')
+```typescript
+describe("Error Classes", () => {
+  it("should create WorkflowError with code");
+  it("should create GitError with command context");
+  it("should create GitHubAPIError with status code");
+  it("should create RateLimitError with reset time");
+  it("should create BranchProtectionError with violated rules");
+  it("should create CICheckError with failed checks");
+  it("should serialize to JSON");
+
+  describe("Utility Functions", () => {
+    it("should convert unknown error to WorkflowError");
+    it("should detect retryable errors");
+    it("should not retry non-retryable errors");
   });
 });
 ```
@@ -489,20 +521,22 @@ describe('Error Classes', () => {
 **Missing Test Coverage**:
 
 #### Formatting Methods (Lines 1-133)
+
 - ✗ `formatCheckSummary()` - Format check summary
 - ✗ `formatFailureDetails()` - Format failure details
 - ✗ `formatAnnotations()` - Format annotations
 - ✗ `formatProgressUpdate()` - Format progress
 
 **Recommended Tests** (8-12 tests):
+
 ```typescript
-describe('OutputFormatter', () => {
-  it('should format check summary')
-  it('should format failure details')
-  it('should format annotations')
-  it('should format progress updates')
-  it('should handle empty checks')
-  it('should handle no failures')
+describe("OutputFormatter", () => {
+  it("should format check summary");
+  it("should format failure details");
+  it("should format annotations");
+  it("should format progress updates");
+  it("should handle empty checks");
+  it("should handle no failures");
 });
 ```
 
@@ -517,18 +551,20 @@ describe('OutputFormatter', () => {
 **Missing Test Coverage**:
 
 #### Spinner Operations (Lines 1-61)
+
 - ✗ `start()` spinner
 - ✗ `succeed()` with message
 - ✗ `fail()` with message
 - ✗ `stop()` spinner
 
 **Recommended Tests** (4-6 tests):
+
 ```typescript
-describe('spinner', () => {
-  it('should start spinner')
-  it('should succeed with message')
-  it('should fail with message')
-  it('should stop spinner')
+describe("spinner", () => {
+  it("should start spinner");
+  it("should succeed with message");
+  it("should fail with message");
+  it("should stop spinner");
 });
 ```
 
@@ -552,6 +588,7 @@ These areas have excellent test coverage and require minimal additional work:
 ## 📊 Phase-by-Phase Breakdown
 
 ### Phase 1: Core SDK Infrastructure (POOR - 30% average)
+
 - ❌ GitHubService: 11.7%
 - ❌ GitService: 3.03%
 - ❌ EnhancedCIPoller: 0%
@@ -559,37 +596,43 @@ These areas have excellent test coverage and require minimal additional work:
 - ❌ SuggestionEngine: 96.36% ✓
 - ❌ OutputFormatter: 0%
 - ❌ spinner: 0%
-**Priority**: CRITICAL - Foundation services need tests
+  **Priority**: CRITICAL - Foundation services need tests
 
 ### Phase 2: PR Automation (EXCELLENT - 95% average)
+
 - ✅ PRService: 93.22%
 - ✅ PRTemplateService: 100%
-**Priority**: LOW - Well covered
+  **Priority**: LOW - Well covered
 
 ### Phase 3: Security Integration (GOOD - 86% average)
+
 - ✅ SecurityScanner: 86.45%
-**Priority**: LOW - Adequate coverage
+  **Priority**: LOW - Adequate coverage
 
 ### Phase 4: Testing Infrastructure (EXCELLENT - 92% average)
+
 - ✅ VerifyService: 91.56%
 - ✅ ConfigService: 91.46%
-**Priority**: LOW - Well covered
+  **Priority**: LOW - Well covered
 
 ### Phase 5: Performance & UX (POOR - 40% average)
+
 - ❌ cache.ts: 0%
 - ❌ errors.ts: 0%
 - ❌ logger.ts: 25.75%
-**Priority**: MEDIUM - Performance features need validation
+  **Priority**: MEDIUM - Performance features need validation
 
 ### Phase 6: Automated Error Fixing (GOOD - 75% average)
+
 - ✅ AutoFixService: 74.8%
-**Priority**: LOW-MEDIUM - Core functionality covered, edge cases remain
+  **Priority**: LOW-MEDIUM - Core functionality covered, edge cases remain
 
 ---
 
 ## 🎯 Recommended Test Priorities
 
 ### Priority 1: Critical Infrastructure (Weeks 1-2)
+
 **Estimated**: 80-100 tests, 16-20 hours
 
 1. **GitHubService.ts** (30-40 tests)
@@ -615,6 +658,7 @@ These areas have excellent test coverage and require minimal additional work:
 ---
 
 ### Priority 2: Performance & Output (Week 3)
+
 **Estimated**: 35-45 tests, 8-10 hours
 
 4. **logger.ts** (15-20 tests)
@@ -637,6 +681,7 @@ These areas have excellent test coverage and require minimal additional work:
 ---
 
 ### Priority 3: Edge Cases & Polish (Week 4)
+
 **Estimated**: 20-30 tests, 4-6 hours
 
 7. **AutoFixService.ts** edge cases (8-12 tests)
@@ -650,11 +695,13 @@ These areas have excellent test coverage and require minimal additional work:
 ## 📈 Coverage Improvement Roadmap
 
 ### Current State
+
 - **Total Tests**: 212
 - **Coverage**: 70.32% statements
 - **Gap to 80%**: ~10%
 
 ### Target State (After Test Implementation)
+
 - **Total Tests**: ~350-400 (65-88% increase)
 - **Coverage**: 85-90% statements
 - **Time Investment**: 28-36 hours
@@ -662,16 +709,19 @@ These areas have excellent test coverage and require minimal additional work:
 ### By Priority Phase
 
 **After Priority 1** (Weeks 1-2):
+
 - Tests: 212 → 292-312 (+80-100 tests)
 - Coverage: 70% → 85% (+15%)
 - Critical risk eliminated ✅
 
 **After Priority 2** (Week 3):
+
 - Tests: 292-312 → 327-357 (+35-45 tests)
 - Coverage: 85% → 88% (+3%)
 - Phase 5 validated ✅
 
 **After Priority 3** (Week 4):
+
 - Tests: 327-357 → 347-387 (+20-30 tests)
 - Coverage: 88% → 90% (+2%)
 - Comprehensive test suite ✅
@@ -683,6 +733,7 @@ These areas have excellent test coverage and require minimal additional work:
 ### Week 1-2: Critical Infrastructure
 
 **Day 1-3: GitHubService**
+
 ```bash
 # Create test file
 touch tests/services/GitHubService.test.ts
@@ -695,6 +746,7 @@ touch tests/services/GitHubService.test.ts
 ```
 
 **Day 4-6: GitService**
+
 ```bash
 # Create test file
 touch tests/services/GitService.test.ts
@@ -707,6 +759,7 @@ touch tests/services/GitService.test.ts
 ```
 
 **Day 7-10: EnhancedCIPoller**
+
 ```bash
 # Create test file
 touch tests/services/EnhancedCIPoller.test.ts
@@ -721,6 +774,7 @@ touch tests/services/EnhancedCIPoller.test.ts
 ### Week 3: Performance & Output
 
 **Day 11-13: logger, cache, errors**
+
 ```bash
 # Create test files
 touch tests/utils/logger.test.ts
@@ -736,6 +790,7 @@ touch tests/utils/errors.test.ts
 ### Week 4: Edge Cases & Polish
 
 **Day 14-15: AutoFixService edge cases, OutputFormatter, spinner**
+
 ```bash
 # Add edge case tests
 # Create remaining test files
@@ -750,20 +805,22 @@ touch tests/utils/spinner.test.ts
 ### Mock Strategy
 
 **GitHubService**:
+
 ```typescript
-jest.mock('@octokit/rest');
+jest.mock("@octokit/rest");
 const mockOctokit = {
   rest: {
     pulls: { create: jest.fn(), get: jest.fn(), merge: jest.fn() },
     repos: { get: jest.fn(), getBranch: jest.fn() },
-    checks: { listForRef: jest.fn(), get: jest.fn() }
-  }
+    checks: { listForRef: jest.fn(), get: jest.fn() },
+  },
 };
 ```
 
 **GitService**:
+
 ```typescript
-jest.mock('simple-git');
+jest.mock("simple-git");
 const mockGit = {
   branch: jest.fn(),
   checkout: jest.fn(),
@@ -771,16 +828,17 @@ const mockGit = {
   pull: jest.fn(),
   status: jest.fn(),
   diff: jest.fn(),
-  stash: jest.fn()
+  stash: jest.fn(),
 };
 ```
 
 **EnhancedCIPoller**:
+
 ```typescript
 // Mock GitHubService
 const mockGitHub = {
   getChecks: jest.fn(),
-  getCheckRun: jest.fn()
+  getCheckRun: jest.fn(),
 };
 
 // Mock timers for polling
@@ -821,18 +879,21 @@ describe('ServiceName', () => {
 ## ✅ Success Criteria
 
 ### Coverage Targets
+
 - ✅ Overall coverage: 85%+ (from 70%)
 - ✅ Critical services (GitHubService, GitService, EnhancedCIPoller): 80%+
 - ✅ All service files: 75%+
 - ✅ All utility files: 75%+
 
 ### Quality Targets
+
 - ✅ All critical paths tested
 - ✅ Error handling tested
 - ✅ Edge cases covered
 - ✅ Integration scenarios validated
 
 ### Regression Prevention
+
 - ✅ No breaking changes without failing tests
 - ✅ All new features require tests
 - ✅ CI enforces 80% coverage threshold

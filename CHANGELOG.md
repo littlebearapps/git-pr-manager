@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
 - **ExecutionTracker Utility** (Sprint 1) - Comprehensive execution metadata tracking for `gpm ship` workflow
   - Per-phase timing (verification, security, push, create-pr, wait-ci, merge, cleanup)
   - Skip/failure reason tracking with structured metadata
@@ -21,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added to README.md, CLAUDE.md, and quickrefs/commands.md
 
 ### Changed
+
 - **JSON Output Standardization** (Sprint 2) - Consistent machine-readable output across all commands
   - Logger refactored to use `process.stdout.write()` for clean single-line JSON
   - Shared JsonOutput utility ensures consistent structure: `{success, data, error, metadata}`
@@ -39,6 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added docs/SPRINT-3-COMPLETION-SUMMARY.md for reference
 
 ### Fixed
+
 - **CI Checks Race Condition** (Sprint 1) - Robust handling of "0/0 checks" scenario
   - EnhancedCIPoller now handles zero check count gracefully
   - Clear messaging: "No CI checks configured" vs "All checks passed"
@@ -56,6 +59,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.4.3] - 2025-11-16
 
 ### Security
+
 - **npm Trusted Publishers with OIDC** - Migrated from token-based authentication to OpenID Connect
   - Eliminates NPM_TOKEN secret requirement in GitHub Actions
   - Short-lived OIDC tokens auto-generated per workflow run (~15 min validity)
@@ -64,6 +68,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added `docs/NPM-TRUSTED-PUBLISHER-SETUP.md` comprehensive setup guide
 
 ### Changed
+
 - Updated `.github/workflows/publish.yml` to use OIDC authentication
   - Added `permissions: id-token: write` for OIDC token requests
   - Removed `NODE_AUTH_TOKEN` environment variable (NPM_TOKEN secret)
@@ -74,6 +79,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.4.0] - 2025-11-16
 
 ### Fixed
+
 - **Verification Subprocess Issue**: `gpm verify` now works correctly when called from `gpm ship`
   - Root cause: Ora spinner conflicts between parent and subprocess processes
   - Solution: Modified VerifyService to call `gpm verify --json` instead of `gpm verify`
@@ -96,6 +102,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added - Phase 7: JSON Output Implementation & Command Tests
 
 #### JSON Output Support (Session 3)
+
 - **100% JSON Coverage**: All 12 commands now support `--json` flag
   - Commands: auto, checks, docs, feature, init, protect, security, ship, status, verify, install-hooks, uninstall-hooks
   - Consistent response schema across all commands
@@ -114,6 +121,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - All commands: Structured success/error responses with actionable suggestions
 
 #### Automated Tests for Commands (Session 3)
+
 - **Command Test Suite**: 20 new tests for init and docs commands
   - `init.test.ts`: 9 tests covering initialization, templates, and error cases
   - `docs.test.ts`: 11 tests covering index mode, guide mode, and path resolution
@@ -122,6 +130,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Coverage maintained: 89.67% statements
 
 ### Documentation
+
 - **JSON-OUTPUT-SCHEMAS.md**: Complete JSON schema reference for AI agents
   - Schema definitions for all 12 commands
   - TypeScript interfaces for type safety
@@ -133,6 +142,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Links to comprehensive schema documentation
 
 ### Test Coverage
+
 - Total tests increased: 573 → 593 (+20 tests, +3.5%)
 - Unit tests: 545 → 565 (+20 tests)
 - Coverage maintained at 89.67% statements
@@ -141,6 +151,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Technical Details
 
 **Files Modified** (Session 3):
+
 - `src/commands/init.ts`: Added JSON output (lines 105-109, 118-127)
 - `src/commands/docs.ts`: Added JSON output (lines 61-66, 78-89, 129-147)
 - `tests/commands/init.test.ts`: NEW - 9 comprehensive tests (241 lines)
@@ -154,6 +165,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added - Phase 6: Automated Error Fixing
 
 #### AutoFixService (Session 1)
+
 - **AutoFixService Core**: Intelligent error fixing with execution engine (src/services/AutoFixService.ts)
   - Pattern-based error detection and classification
   - Language-specific fix strategies (JavaScript, TypeScript, Python)
@@ -173,6 +185,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Respects configuration limits (maxAttempts, maxChangedLines)
 
 #### Post-Fix Verification & Rollback (Session 2)
+
 - **Post-Fix Verification**: Test execution after fixes
   - VerifyService integration for running tests
   - Configurable via `requireTests` flag (default: true)
@@ -200,6 +213,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - State management edge cases
 
 #### Configuration & Metrics (Session 3)
+
 - **Auto-Fix Configuration Schema**: Complete .gpm.yml integration
   - `autoFix` section in WorkflowConfig
   - 7 configuration options with validation
@@ -227,13 +241,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ```yaml
 autoFix:
-  enabled: true              # Enable/disable auto-fix globally
-  maxAttempts: 2             # Max fix attempts per error type (1-5)
-  maxChangedLines: 1000      # Max lines that can be changed (1-10000)
-  requireTests: true         # Run tests after fix to verify
-  enableDryRun: false        # Enable dry-run mode by default
-  autoMerge: false           # Auto-merge fix PRs if checks pass
-  createPR: true             # Create PR for fixes (vs direct commit)
+  enabled: true # Enable/disable auto-fix globally
+  maxAttempts: 2 # Max fix attempts per error type (1-5)
+  maxChangedLines: 1000 # Max lines that can be changed (1-10000)
+  requireTests: true # Run tests after fix to verify
+  enableDryRun: false # Enable dry-run mode by default
+  autoMerge: false # Auto-merge fix PRs if checks pass
+  createPR: true # Create PR for fixes (vs direct commit)
 ```
 
 ### Fixed Error Types
@@ -279,6 +293,7 @@ autoFix:
 ### Technical Details
 
 **Files Modified**:
+
 - `src/types/index.ts`: AutoFixConfig, AutoFixResult, AutoFixMetrics interfaces
 - `src/services/AutoFixService.ts`: Complete implementation (450+ lines)
 - `src/services/ConfigService.ts`: autoFix configuration support
@@ -287,6 +302,7 @@ autoFix:
 - `.gpm.example.yml`: Example configuration with auto-fix section
 
 **Architecture Enhancements**:
+
 - GitService integration for state management
 - VerifyService integration for post-fix testing
 - GitHubService integration for fix PR creation
@@ -299,6 +315,7 @@ autoFix:
 ### Added
 
 #### Performance & Caching
+
 - **API Response Caching**: LRU cache with ETag support for conditional requests (src/utils/cache.ts)
   - Configurable TTL and max size (default: 100 entries, 5-minute TTL)
   - Reduces API calls by 40-60%
@@ -311,6 +328,7 @@ autoFix:
   - 30-40% reduction in CI wait time
 
 #### Output & UX
+
 - **Machine-Readable Output**: `--json` flag for all commands
   - Structured JSON output with success status, data, errors, metadata
   - Includes timestamp, duration, and version in metadata
@@ -323,6 +341,7 @@ autoFix:
   - Auto-detects CI environments (defaults to QUIET)
 
 #### CLI Commands
+
 - **gpm auto**: Automated workflow command
   - Auto-detect state, run checks, create PR, wait for CI, merge
   - Smart defaults from .gpm.yml config
@@ -334,6 +353,7 @@ autoFix:
   - Confirmation prompts with cancel handling
 
 #### Error Handling
+
 - **Structured Error Classes**: Comprehensive error hierarchy (src/utils/errors.ts)
   - All errors include: code, message, details, suggestions
   - JSON serialization support for --json output mode
@@ -341,18 +361,21 @@ autoFix:
   - Helper functions: toWorkflowError(), isRetryableError()
 
 #### Rate Limit Handling
+
 - **Octokit Throttling Plugin**: Automatic retry on rate limit
   - Max 3 retry attempts with exponential backoff
   - Secondary rate limit handling (always retry)
   - getRateLimitStatus() method with low-quota warnings
 
 #### Request Optimization
+
 - **Parallel API Calls**: Promise.all() for independent requests
   - PR validation: 40-50% faster (from ~800ms to ~380ms)
   - Batched protection, check status, and reviews fetch
   - Parallelized comments fetch (issue + review comments)
 
 #### Distribution
+
 - **npm Package Configuration**: Production-ready setup
   - Scoped package: @littlebearapps/git-pr-manager
   - Repository metadata, bugs URL, homepage
@@ -372,18 +395,21 @@ autoFix:
 - **.npmignore**: Excludes dev files from npm package
 
 ### Changed
+
 - Package name: git-pr-manager → @littlebearapps/git-pr-manager
 - Package description: Updated to emphasize Claude Code integration
 - Keywords: Added claude-code, cli, devops, developer-tools
 - Author: Added email (nathan@littlebearapps.com)
 
 ### Fixed
+
 - Rate limit errors: Now handled gracefully with retry logic
 - Repeated API calls: Eliminated through caching and batching
 - Slow PR validation: Optimized with parallel requests
 - Missing error context: All errors now include actionable suggestions
 
 ### Dependencies Added
+
 - lru-cache: ^10.0.0 (for API response caching)
 - prompts: ^2.4.2 (for interactive mode)
 - @octokit/plugin-throttling: ^8.0.0 (for rate limit handling)
@@ -391,32 +417,36 @@ autoFix:
 
 ### Performance Metrics
 
-| Metric | Before (v1.3.0) | After (v1.4.0) | Improvement |
-|--------|-----------------|----------------|-------------|
-| CI Wait Time | 10 min | 6-7 min | 30-40% ↓ |
-| PR Validation | 800ms | 380ms | 40-50% ↓ |
-| Config Load (cached) | 5ms | 0.1ms | 98% ↓ |
-| API Rate Limit Errors | 5-10/day | 0/day | 100% ↓ |
+| Metric                | Before (v1.3.0) | After (v1.4.0) | Improvement |
+| --------------------- | --------------- | -------------- | ----------- |
+| CI Wait Time          | 10 min          | 6-7 min        | 30-40% ↓    |
+| PR Validation         | 800ms           | 380ms          | 40-50% ↓    |
+| Config Load (cached)  | 5ms             | 0.1ms          | 98% ↓       |
+| API Rate Limit Errors | 5-10/day        | 0/day          | 100% ↓      |
 
 ### Technical Details
 
 #### Session 1: Core Performance & Output
+
 - API Response Caching (LRU + ETag)
 - Machine-Readable Output (--json flag)
 - Quiet & Silent Modes (--quiet, --silent, --verbose)
 - Rate Limit Handling (throttling plugin)
 
 #### Session 2: Smart Polling & Batching
+
 - Exponential Backoff Polling
 - Request Batching & Parallelization
 - Config & File I/O Caching
 
 #### Session 3: Claude Code UX & Workflows
+
 - gpm auto command
 - Structured Error Messages
 - Interactive Mode for init command
 
 #### Session 4: Distribution & Polish
+
 - npm Package Configuration
 - Post-Install Script
 - Cross-Platform Testing (GitHub Actions)

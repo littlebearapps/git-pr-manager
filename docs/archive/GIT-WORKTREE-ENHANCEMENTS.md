@@ -14,12 +14,14 @@ This plan outlines targeted enhancements to improve gpm's user experience for de
 ### Current State
 
 **✅ What Works:**
+
 - Core workflows (feature, ship, auto) function in worktree contexts via simple-git 3.21.0
 - Git hooks properly installed to shared location (`.bare/hooks/`) using `git rev-parse --git-common-dir`
 - All git operations (checkout, push, pull, merge, stash) work correctly in worktrees
 - 15 tests covering worktree hook scenarios
 
 **❌ What's Missing:**
+
 - No detection of branch conflicts across worktrees
 - No worktree management commands
 - Generic error messages don't help worktree users
@@ -38,6 +40,7 @@ fatal: 'my-branch' is already checked out at '/path/to/worktree2'
 ```
 
 **Why This Happens:**
+
 - `feature.ts:42-46` checks `branchExists()` which only queries local branches
 - Doesn't detect if branch is active in another worktree
 - Git's error message is cryptic without context
@@ -46,22 +49,22 @@ fatal: 'my-branch' is already checked out at '/path/to/worktree2'
 
 Three-phase enhancement plan:
 
-| Phase | Focus | Effort | Impact |
-|-------|-------|--------|--------|
+| Phase       | Focus                     | Effort   | Impact                             |
+| ----------- | ------------------------- | -------- | ---------------------------------- |
 | **Phase 1** | Branch Conflict Detection | 2-3 days | **HIGH** - Prevents cryptic errors |
-| **Phase 2** | Enhanced Error Context | 1 day | **MEDIUM** - Better UX |
-| **Phase 3** | Basic Worktree Commands | 2-3 days | **LOW** - Convenience feature |
+| **Phase 2** | Enhanced Error Context    | 1 day    | **MEDIUM** - Better UX             |
+| **Phase 3** | Basic Worktree Commands   | 2-3 days | **LOW** - Convenience feature      |
 
 **Total Effort**: 5-7 days for all phases (3-4 days for essential phases 1-2)
 
 ### Key Benefits
 
-| Aspect | Before | After | Improvement |
-|--------|--------|-------|-------------|
-| **Error Clarity** | ⚠️ "fatal: already checked out" | ✅ "Branch active in: /path/worktree2" | 90% clearer |
-| **Resolution Time** | ⚠️ 5-10 min investigation | ✅ Immediate worktree path shown | 80-90% faster |
-| **Worktree Discovery** | ⚠️ Manual `git worktree list` | ✅ `gpm worktree list` (Phase 3) | Integrated UX |
-| **Branch Safety** | ❌ No pre-checkout validation | ✅ Worktree conflict detection | Prevents errors |
+| Aspect                 | Before                          | After                                  | Improvement     |
+| ---------------------- | ------------------------------- | -------------------------------------- | --------------- |
+| **Error Clarity**      | ⚠️ "fatal: already checked out" | ✅ "Branch active in: /path/worktree2" | 90% clearer     |
+| **Resolution Time**    | ⚠️ 5-10 min investigation       | ✅ Immediate worktree path shown       | 80-90% faster   |
+| **Worktree Discovery** | ⚠️ Manual `git worktree list`   | ✅ `gpm worktree list` (Phase 3)       | Integrated UX   |
+| **Branch Safety**      | ❌ No pre-checkout validation   | ✅ Worktree conflict detection         | Prevents errors |
 
 ---
 
@@ -84,6 +87,7 @@ Three-phase enhancement plan:
 ### Code Locations
 
 **feature.ts:42-46** - Branch existence check (LOCAL only):
+
 ```typescript
 // Check if branch already exists
 const exists = await gitService.branchExists(branchName);
@@ -94,6 +98,7 @@ if (exists) {
 ```
 
 **GitService.ts:124-127** - branchExists implementation:
+
 ```typescript
 async branchExists(branchName: string): Promise<boolean> {
   const branches = await this.git.branch();
@@ -115,11 +120,13 @@ $ git worktree list
 ```
 
 **Output format:**
+
 ```
 <path>    <commit-hash>    [<branch>]
 ```
 
 **Parsing requirements:**
+
 - Split by whitespace
 - Extract path (column 1)
 - Extract branch from `[branch-name]` (column 3)
@@ -131,6 +138,7 @@ $ git worktree list
 ### simple-git Worktree Support
 
 **Research findings:**
+
 - simple-git v3.21.0 does NOT have dedicated worktree methods
 - All operations work in worktree context (uses current working directory)
 - No `git.worktree.list()` or `git.worktree.add()` methods
@@ -161,10 +169,10 @@ $ git worktree list
  * Git worktree information
  */
 export interface WorktreeInfo {
-  path: string;          // Absolute path to worktree
-  commit: string;        // Current commit hash
+  path: string; // Absolute path to worktree
+  commit: string; // Current commit hash
   branch: string | null; // Branch name (null if detached HEAD)
-  isMain: boolean;       // True if this is the main/bare worktree
+  isMain: boolean; // True if this is the main/bare worktree
 }
 
 /**
@@ -172,7 +180,7 @@ export interface WorktreeInfo {
  */
 export interface WorktreeConflict {
   branchName: string;
-  worktrees: string[];   // Paths where branch is checked out
+  worktrees: string[]; // Paths where branch is checked out
 }
 ```
 
@@ -186,22 +194,22 @@ export class WorktreeConflictError extends WorkflowError {
   constructor(
     branchName: string,
     worktreePaths: string[],
-    currentPath: string
+    currentPath: string,
   ) {
     const message = `Branch '${branchName}' is already checked out in another worktree`;
     const details = {
       branch: branchName,
       currentWorktree: currentPath,
-      conflictingWorktrees: worktreePaths
+      conflictingWorktrees: worktreePaths,
     };
     const suggestions = [
       `Switch to existing worktree: cd ${worktreePaths[0]}`,
       `Or use a different branch name`,
-      `Or remove the worktree: git worktree remove ${worktreePaths[0]}`
+      `Or remove the worktree: git worktree remove ${worktreePaths[0]}`,
     ];
 
-    super('WORKTREE_CONFLICT', message, details, suggestions);
-    this.name = 'WorktreeConflictError';
+    super("WORKTREE_CONFLICT", message, details, suggestions);
+    this.name = "WorktreeConflictError";
   }
 }
 ```
@@ -262,7 +270,7 @@ private async getCurrentCommit(): Promise<string> {
 ### Helper Function (src/utils/worktree-parser.ts)
 
 ```typescript
-import { WorktreeInfo } from '../types';
+import { WorktreeInfo } from "../types";
 
 /**
  * Parse `git worktree list --porcelain` output
@@ -278,25 +286,25 @@ import { WorktreeInfo } from '../types';
  */
 export function parseWorktreeList(output: string): WorktreeInfo[] {
   const worktrees: WorktreeInfo[] = [];
-  const entries = output.trim().split('\n\n');
+  const entries = output.trim().split("\n\n");
 
   for (const entry of entries) {
-    const lines = entry.split('\n');
+    const lines = entry.split("\n");
     const info: Partial<WorktreeInfo> = {
       branch: null,
-      isMain: false
+      isMain: false,
     };
 
     for (const line of lines) {
-      if (line.startsWith('worktree ')) {
-        info.path = line.substring('worktree '.length);
-      } else if (line.startsWith('HEAD ')) {
-        info.commit = line.substring('HEAD '.length);
-      } else if (line.startsWith('branch ')) {
-        const branchRef = line.substring('branch '.length);
+      if (line.startsWith("worktree ")) {
+        info.path = line.substring("worktree ".length);
+      } else if (line.startsWith("HEAD ")) {
+        info.commit = line.substring("HEAD ".length);
+      } else if (line.startsWith("branch ")) {
+        const branchRef = line.substring("branch ".length);
         // Extract branch name from refs/heads/branch-name
-        info.branch = branchRef.replace('refs/heads/', '');
-      } else if (line === 'bare') {
+        info.branch = branchRef.replace("refs/heads/", "");
+      } else if (line === "bare") {
         info.isMain = true;
       }
     }
@@ -326,6 +334,7 @@ export function parseWorktreeList(output: string): WorktreeInfo[] {
 **File**: `src/services/GitService.ts`
 
 Add three new methods:
+
 1. `getWorktrees()` - List all worktrees
 2. `getBranchWorktrees(branchName)` - Check where branch is active
 3. `isWorktreeRepository()` - Detect worktree setup
@@ -337,6 +346,7 @@ Add three new methods:
 **File**: `src/utils/worktree-parser.ts` (NEW)
 
 Implement `parseWorktreeList()` function with:
+
 - Porcelain format parsing
 - Branch name extraction from refs
 - Detached HEAD handling
@@ -353,6 +363,7 @@ Add new error class after `MergeConflictError` (line 169)
 **File**: `src/commands/feature.ts`
 
 **Before** (lines 42-46):
+
 ```typescript
 // Check if branch already exists
 const exists = await gitService.branchExists(branchName);
@@ -363,6 +374,7 @@ if (exists) {
 ```
 
 **After**:
+
 ```typescript
 // Check if branch exists locally
 const exists = await gitService.branchExists(branchName);
@@ -376,22 +388,22 @@ const worktrees = await gitService.getBranchWorktrees(branchName);
 if (worktrees.length > 0) {
   const currentPath = process.cwd();
   // Filter out current worktree
-  const otherWorktrees = worktrees.filter(w => w !== currentPath);
+  const otherWorktrees = worktrees.filter((w) => w !== currentPath);
 
   if (otherWorktrees.length > 0) {
     logger.error(
       `Branch ${chalk.cyan(branchName)} is already checked out in another worktree`,
-      'WORKTREE_CONFLICT',
+      "WORKTREE_CONFLICT",
       {
         branch: branchName,
         currentWorktree: currentPath,
-        conflictingWorktrees: otherWorktrees
+        conflictingWorktrees: otherWorktrees,
       },
       [
         `Switch to existing worktree: ${chalk.cyan(`cd ${otherWorktrees[0]}`)}`,
         `Or use a different branch name`,
-        `Or remove the worktree: ${chalk.gray(`git worktree remove ${otherWorktrees[0]}`)}`
-      ]
+        `Or remove the worktree: ${chalk.gray(`git worktree remove ${otherWorktrees[0]}`)}`,
+      ],
     );
     process.exit(1);
   }
@@ -405,9 +417,9 @@ if (worktrees.length > 0) {
 Add test suite for worktree methods:
 
 ```typescript
-describe('Worktree Methods', () => {
-  describe('getWorktrees', () => {
-    it('should parse worktree list output', async () => {
+describe("Worktree Methods", () => {
+  describe("getWorktrees", () => {
+    it("should parse worktree list output", async () => {
       const mockOutput = `worktree /path/to/main
 HEAD abc123
 branch refs/heads/main
@@ -422,18 +434,18 @@ branch refs/heads/feature/test`;
 
       expect(worktrees).toHaveLength(2);
       expect(worktrees[0]).toMatchObject({
-        path: '/path/to/main',
-        commit: 'abc123',
-        branch: 'main'
+        path: "/path/to/main",
+        commit: "abc123",
+        branch: "main",
       });
       expect(worktrees[1]).toMatchObject({
-        path: '/path/to/feature',
-        commit: 'def456',
-        branch: 'feature/test'
+        path: "/path/to/feature",
+        commit: "def456",
+        branch: "feature/test",
       });
     });
 
-    it('should handle detached HEAD', async () => {
+    it("should handle detached HEAD", async () => {
       const mockOutput = `worktree /path/to/detached
 HEAD abc123
 detached`;
@@ -445,8 +457,8 @@ detached`;
       expect(worktrees[0].branch).toBeNull();
     });
 
-    it('should handle non-worktree repository', async () => {
-      mockGit.raw.mockRejectedValue(new Error('not a worktree'));
+    it("should handle non-worktree repository", async () => {
+      mockGit.raw.mockRejectedValue(new Error("not a worktree"));
 
       const worktrees = await gitService.getWorktrees();
 
@@ -455,16 +467,18 @@ detached`;
     });
   });
 
-  describe('getBranchWorktrees', () => {
-    it('should return empty array when branch not checked out', async () => {
-      mockGit.raw.mockResolvedValue('worktree /path/main\nHEAD abc\nbranch refs/heads/main');
+  describe("getBranchWorktrees", () => {
+    it("should return empty array when branch not checked out", async () => {
+      mockGit.raw.mockResolvedValue(
+        "worktree /path/main\nHEAD abc\nbranch refs/heads/main",
+      );
 
-      const paths = await gitService.getBranchWorktrees('feature/test');
+      const paths = await gitService.getBranchWorktrees("feature/test");
 
       expect(paths).toEqual([]);
     });
 
-    it('should return worktree paths where branch is active', async () => {
+    it("should return worktree paths where branch is active", async () => {
       const mockOutput = `worktree /path/worktree1
 HEAD abc123
 branch refs/heads/feature/test
@@ -479,23 +493,25 @@ branch refs/heads/feature/test`;
 
       mockGit.raw.mockResolvedValue(mockOutput);
 
-      const paths = await gitService.getBranchWorktrees('feature/test');
+      const paths = await gitService.getBranchWorktrees("feature/test");
 
-      expect(paths).toEqual(['/path/worktree1', '/path/worktree3']);
+      expect(paths).toEqual(["/path/worktree1", "/path/worktree3"]);
     });
   });
 
-  describe('isWorktreeRepository', () => {
-    it('should return true for worktree repo', async () => {
-      mockGit.raw.mockResolvedValue('worktree /path\nHEAD abc\nbranch refs/heads/main');
+  describe("isWorktreeRepository", () => {
+    it("should return true for worktree repo", async () => {
+      mockGit.raw.mockResolvedValue(
+        "worktree /path\nHEAD abc\nbranch refs/heads/main",
+      );
 
       const isWorktree = await gitService.isWorktreeRepository();
 
       expect(isWorktree).toBe(true);
     });
 
-    it('should return false for standard repo', async () => {
-      mockGit.raw.mockRejectedValue(new Error('not a worktree'));
+    it("should return false for standard repo", async () => {
+      mockGit.raw.mockRejectedValue(new Error("not a worktree"));
 
       const isWorktree = await gitService.isWorktreeRepository();
 
@@ -508,10 +524,10 @@ branch refs/heads/feature/test`;
 **Test file**: `tests/utils/worktree-parser.test.ts` (NEW)
 
 ```typescript
-import { parseWorktreeList } from '../../src/utils/worktree-parser';
+import { parseWorktreeList } from "../../src/utils/worktree-parser";
 
-describe('parseWorktreeList', () => {
-  it('should parse standard worktree output', () => {
+describe("parseWorktreeList", () => {
+  it("should parse standard worktree output", () => {
     const output = `worktree /path/to/main
 HEAD abc123def
 branch refs/heads/main
@@ -524,14 +540,14 @@ branch refs/heads/feature/test`;
 
     expect(worktrees).toHaveLength(2);
     expect(worktrees[0]).toEqual({
-      path: '/path/to/main',
-      commit: 'abc123def',
-      branch: 'main',
-      isMain: false
+      path: "/path/to/main",
+      commit: "abc123def",
+      branch: "main",
+      isMain: false,
     });
   });
 
-  it('should handle detached HEAD', () => {
+  it("should handle detached HEAD", () => {
     const output = `worktree /path/to/detached
 HEAD abc123def
 detached`;
@@ -541,7 +557,7 @@ detached`;
     expect(worktrees[0].branch).toBeNull();
   });
 
-  it('should detect bare repository', () => {
+  it("should detect bare repository", () => {
     const output = `worktree /path/to/.bare
 HEAD 0000000
 bare`;
@@ -558,33 +574,33 @@ bare`;
 Add worktree conflict tests:
 
 ```typescript
-describe('worktree conflict detection', () => {
-  it('should error when branch checked out in another worktree', async () => {
-    mockGit.getBranchInfo.mockResolvedValue({ isClean: true, current: 'main' });
-    mockGit.getDefaultBranch.mockResolvedValue('main');
+describe("worktree conflict detection", () => {
+  it("should error when branch checked out in another worktree", async () => {
+    mockGit.getBranchInfo.mockResolvedValue({ isClean: true, current: "main" });
+    mockGit.getDefaultBranch.mockResolvedValue("main");
     mockGit.branchExists.mockResolvedValue(false);
-    mockGit.getBranchWorktrees.mockResolvedValue(['/path/to/other/worktree']);
+    mockGit.getBranchWorktrees.mockResolvedValue(["/path/to/other/worktree"]);
 
-    await expect(featureCommand('test-feature', {})).rejects.toThrow();
+    await expect(featureCommand("test-feature", {})).rejects.toThrow();
 
     expect(logger.error).toHaveBeenCalledWith(
-      expect.stringContaining('already checked out in another worktree'),
-      'WORKTREE_CONFLICT',
+      expect.stringContaining("already checked out in another worktree"),
+      "WORKTREE_CONFLICT",
       expect.objectContaining({
-        branch: 'feature/test-feature',
-        conflictingWorktrees: ['/path/to/other/worktree']
+        branch: "feature/test-feature",
+        conflictingWorktrees: ["/path/to/other/worktree"],
       }),
-      expect.any(Array)
+      expect.any(Array),
     );
   });
 
-  it('should succeed when branch checked out in current worktree only', async () => {
-    mockGit.getBranchInfo.mockResolvedValue({ isClean: true, current: 'main' });
+  it("should succeed when branch checked out in current worktree only", async () => {
+    mockGit.getBranchInfo.mockResolvedValue({ isClean: true, current: "main" });
     mockGit.branchExists.mockResolvedValue(false);
     mockGit.getBranchWorktrees.mockResolvedValue([process.cwd()]);
 
     // Should not throw
-    await featureCommand('test-feature', {});
+    await featureCommand("test-feature", {});
   });
 });
 ```
@@ -673,11 +689,11 @@ export class GitError extends WorkflowError {
     // Add worktree context if available
     const enhancedDetails = {
       ...details,
-      worktree: process.cwd() // Can be enhanced with branch info
+      worktree: process.cwd(), // Can be enhanced with branch info
     };
 
-    super('GIT_ERROR', message, enhancedDetails, suggestions);
-    this.name = 'GitError';
+    super("GIT_ERROR", message, enhancedDetails, suggestions);
+    this.name = "GitError";
   }
 }
 ```
@@ -687,9 +703,9 @@ export class GitError extends WorkflowError {
 Add tests for error context:
 
 ```typescript
-describe('error context', () => {
-  it('should include worktree path in GitError', () => {
-    const error = new GitError('Test error', { file: 'test.ts' });
+describe("error context", () => {
+  it("should include worktree path in GitError", () => {
+    const error = new GitError("Test error", { file: "test.ts" });
 
     expect(error.details.worktree).toBe(process.cwd());
   });
@@ -718,9 +734,9 @@ describe('error context', () => {
 **File**: `src/commands/worktree.ts` (NEW)
 
 ```typescript
-import { GitService } from '../services/GitService';
-import { logger } from '../utils/logger';
-import chalk from 'chalk';
+import { GitService } from "../services/GitService";
+import { logger } from "../utils/logger";
+import chalk from "chalk";
 
 interface WorktreeListOptions {
   json?: boolean;
@@ -730,7 +746,7 @@ interface WorktreeListOptions {
  * List all worktrees
  */
 export async function worktreeListCommand(
-  options: WorktreeListOptions = {}
+  options: WorktreeListOptions = {},
 ): Promise<void> {
   try {
     const gitService = new GitService({ workingDir: process.cwd() });
@@ -741,18 +757,18 @@ export async function worktreeListCommand(
       return;
     }
 
-    logger.section('Git Worktrees');
+    logger.section("Git Worktrees");
 
     if (worktrees.length === 0) {
-      logger.warn('No worktrees found');
+      logger.warn("No worktrees found");
       return;
     }
 
     for (const worktree of worktrees) {
       const isCurrent = worktree.path === process.cwd();
-      const marker = isCurrent ? chalk.green('*') : ' ';
-      const branch = worktree.branch || chalk.gray('(detached)');
-      const mainTag = worktree.isMain ? chalk.blue('[main]') : '';
+      const marker = isCurrent ? chalk.green("*") : " ";
+      const branch = worktree.branch || chalk.gray("(detached)");
+      const mainTag = worktree.isMain ? chalk.blue("[main]") : "";
 
       logger.log(`${marker} ${chalk.cyan(worktree.path)}`);
       logger.log(`  ${branch} ${mainTag}`);
@@ -760,8 +776,9 @@ export async function worktreeListCommand(
       logger.blank();
     }
 
-    logger.info(`Total: ${worktrees.length} worktree${worktrees.length !== 1 ? 's' : ''}`);
-
+    logger.info(
+      `Total: ${worktrees.length} worktree${worktrees.length !== 1 ? "s" : ""}`,
+    );
   } catch (error: any) {
     logger.error(error.message);
     process.exit(1);
@@ -782,22 +799,21 @@ interface WorktreePruneOptions {
  * Prune stale worktree administrative data
  */
 export async function worktreePruneCommand(
-  options: WorktreePruneOptions = {}
+  options: WorktreePruneOptions = {},
 ): Promise<void> {
   try {
     const gitService = new GitService({ workingDir: process.cwd() });
 
     if (options.dryRun) {
-      logger.info('Dry run - showing what would be pruned:');
-      await gitService.git.raw(['worktree', 'prune', '--dry-run', '--verbose']);
+      logger.info("Dry run - showing what would be pruned:");
+      await gitService.git.raw(["worktree", "prune", "--dry-run", "--verbose"]);
     } else {
-      spinner.start('Pruning stale worktrees...');
-      await gitService.git.raw(['worktree', 'prune', '--verbose']);
-      spinner.succeed('Worktrees pruned');
+      spinner.start("Pruning stale worktrees...");
+      await gitService.git.raw(["worktree", "prune", "--verbose"]);
+      spinner.succeed("Worktrees pruned");
     }
-
   } catch (error: any) {
-    spinner.fail('Failed to prune worktrees');
+    spinner.fail("Failed to prune worktrees");
     logger.error(error.message);
     process.exit(1);
   }
@@ -809,23 +825,23 @@ export async function worktreePruneCommand(
 **File**: `src/index.ts`
 
 ```typescript
-import { worktreeListCommand, worktreePruneCommand } from './commands/worktree';
+import { worktreeListCommand, worktreePruneCommand } from "./commands/worktree";
 
 // Add worktree command group
 const worktree = program
-  .command('worktree')
-  .description('Manage git worktrees');
+  .command("worktree")
+  .description("Manage git worktrees");
 
 worktree
-  .command('list')
-  .description('List all worktrees')
-  .option('--json', 'Output as JSON')
+  .command("list")
+  .description("List all worktrees")
+  .option("--json", "Output as JSON")
   .action(worktreeListCommand);
 
 worktree
-  .command('prune')
-  .description('Prune stale worktree data')
-  .option('--dry-run', 'Show what would be pruned')
+  .command("prune")
+  .description("Prune stale worktree data")
+  .option("--dry-run", "Show what would be pruned")
   .action(worktreePruneCommand);
 ```
 
@@ -834,23 +850,30 @@ worktree
 **Test file**: `tests/commands/worktree.test.ts` (NEW)
 
 ```typescript
-describe('worktree commands', () => {
-  describe('list', () => {
-    it('should display worktree list', async () => {
+describe("worktree commands", () => {
+  describe("list", () => {
+    it("should display worktree list", async () => {
       mockGit.getWorktrees.mockResolvedValue([
-        { path: '/path/main', commit: 'abc123', branch: 'main', isMain: true },
-        { path: '/path/feature', commit: 'def456', branch: 'feature/test', isMain: false }
+        { path: "/path/main", commit: "abc123", branch: "main", isMain: true },
+        {
+          path: "/path/feature",
+          commit: "def456",
+          branch: "feature/test",
+          isMain: false,
+        },
       ]);
 
       await worktreeListCommand({});
 
-      expect(logger.log).toHaveBeenCalledWith(expect.stringContaining('/path/main'));
-      expect(logger.log).toHaveBeenCalledWith(expect.stringContaining('main'));
+      expect(logger.log).toHaveBeenCalledWith(
+        expect.stringContaining("/path/main"),
+      );
+      expect(logger.log).toHaveBeenCalledWith(expect.stringContaining("main"));
     });
 
-    it('should output JSON when requested', async () => {
+    it("should output JSON when requested", async () => {
       const worktrees = [
-        { path: '/path/main', commit: 'abc123', branch: 'main', isMain: true }
+        { path: "/path/main", commit: "abc123", branch: "main", isMain: true },
       ];
       mockGit.getWorktrees.mockResolvedValue(worktrees);
 
@@ -860,21 +883,25 @@ describe('worktree commands', () => {
     });
   });
 
-  describe('prune', () => {
-    it('should prune worktrees', async () => {
+  describe("prune", () => {
+    it("should prune worktrees", async () => {
       await worktreePruneCommand({});
 
-      expect(mockGit.raw).toHaveBeenCalledWith(['worktree', 'prune', '--verbose']);
+      expect(mockGit.raw).toHaveBeenCalledWith([
+        "worktree",
+        "prune",
+        "--verbose",
+      ]);
     });
 
-    it('should support dry-run mode', async () => {
+    it("should support dry-run mode", async () => {
       await worktreePruneCommand({ dryRun: true });
 
       expect(mockGit.raw).toHaveBeenCalledWith([
-        'worktree',
-        'prune',
-        '--dry-run',
-        '--verbose'
+        "worktree",
+        "prune",
+        "--dry-run",
+        "--verbose",
       ]);
     });
   });
@@ -885,20 +912,24 @@ describe('worktree commands', () => {
 
 Update README.md and quickrefs:
 
-```markdown
+````markdown
 ### Worktree Management
 
 **List worktrees:**
+
 ```bash
 gpm worktree list           # Human-readable format
 gpm worktree list --json    # JSON output
 ```
+````
 
 **Prune stale worktrees:**
+
 ```bash
 gpm worktree prune              # Remove stale entries
 gpm worktree prune --dry-run    # Preview what would be removed
 ```
+
 ```
 
 ### Deliverables
@@ -1083,13 +1114,15 @@ Git worktrees allow multiple working directories from a single repository. Each 
 
 **Structure:**
 ```
+
 project/
-├── .bare/              # Bare git repository
-│   └── hooks/          # Shared hooks
-├── main/               # Worktree for main branch
-├── feature-a/          # Worktree for feature-a
-└── feature-b/          # Worktree for feature-b
-```
+├── .bare/ # Bare git repository
+│ └── hooks/ # Shared hooks
+├── main/ # Worktree for main branch
+├── feature-a/ # Worktree for feature-a
+└── feature-b/ # Worktree for feature-b
+
+````
 
 **Common commands:**
 ```bash
@@ -1104,7 +1137,7 @@ git worktree remove path/to/worktree
 
 # Prune stale worktree data
 git worktree prune
-```
+````
 
 ### References
 

@@ -1,10 +1,10 @@
-import { LRUCache } from 'lru-cache';
-import packageJson from 'package-json';
-import semver from 'semver';
-import { promises as fs } from 'fs';
-import { tmpdir } from 'os';
-import { join } from 'path';
-import chalk from 'chalk';
+import { LRUCache } from "lru-cache";
+import packageJson from "package-json";
+import semver from "semver";
+import { promises as fs } from "fs";
+import { tmpdir } from "os";
+import { join } from "path";
+import chalk from "chalk";
 
 /**
  * Result of checking for updates
@@ -17,7 +17,7 @@ export interface UpdateCheckResult {
   /** Latest available version */
   latestVersion: string;
   /** Update channel (latest or next) */
-  channel: 'latest' | 'next';
+  channel: "latest" | "next";
   /** Whether the check was served from cache */
   cached: boolean;
   /** Error message if check failed */
@@ -38,14 +38,14 @@ const updateCache = new LRUCache<string, UpdateCheckResult>({
  * Uses TMPDIR for ephemeral storage
  */
 function getCacheDir(): string {
-  return join(tmpdir(), 'gpm-update-check');
+  return join(tmpdir(), "gpm-update-check");
 }
 
 /**
  * Get the cache file path for a specific package and channel
  */
 function getCacheFilePath(packageName: string, channel: string): string {
-  const safeName = packageName.replace(/[@/]/g, '_');
+  const safeName = packageName.replace(/[@/]/g, "_");
   return join(getCacheDir(), `${safeName}_${channel}.json`);
 }
 
@@ -55,12 +55,14 @@ function getCacheFilePath(packageName: string, channel: string): string {
 async function loadCachedCheck(
   packageName: string,
   channel: string,
-  cacheMs: number
+  cacheMs: number,
 ): Promise<UpdateCheckResult | null> {
   try {
     const cacheFile = getCacheFilePath(packageName, channel);
-    const data = await fs.readFile(cacheFile, 'utf-8');
-    const cached = JSON.parse(data) as UpdateCheckResult & { timestamp: number };
+    const data = await fs.readFile(cacheFile, "utf-8");
+    const cached = JSON.parse(data) as UpdateCheckResult & {
+      timestamp: number;
+    };
 
     // Check if cache is still valid
     if (Date.now() - cached.timestamp < cacheMs) {
@@ -78,7 +80,7 @@ async function loadCachedCheck(
 async function saveCachedCheck(
   packageName: string,
   channel: string,
-  result: UpdateCheckResult
+  result: UpdateCheckResult,
 ): Promise<void> {
   try {
     const cacheDir = getCacheDir();
@@ -86,7 +88,7 @@ async function saveCachedCheck(
 
     const cacheFile = getCacheFilePath(packageName, channel);
     const data = JSON.stringify({ ...result, timestamp: Date.now() }, null, 2);
-    await fs.writeFile(cacheFile, data, 'utf-8');
+    await fs.writeFile(cacheFile, data, "utf-8");
   } catch {
     // Silently fail - cache is non-critical
   }
@@ -114,14 +116,14 @@ async function saveCachedCheck(
 export async function checkForUpdate(options: {
   packageName: string;
   currentVersion: string;
-  channel?: 'latest' | 'next';
+  channel?: "latest" | "next";
   cacheMs?: number;
   timeoutMs?: number;
 }): Promise<UpdateCheckResult> {
   const {
     packageName,
     currentVersion,
-    channel = 'latest',
+    channel = "latest",
     cacheMs = 7 * 24 * 60 * 60 * 1000, // 7 days
     timeoutMs = 5000, // 5 seconds
   } = options;
@@ -149,7 +151,7 @@ export async function checkForUpdate(options: {
     const metadata = await Promise.race([
       packageJson(packageName, { version: channel }),
       new Promise<never>((_, reject) => {
-        timeoutId = setTimeout(() => reject(new Error('Timeout')), timeoutMs);
+        timeoutId = setTimeout(() => reject(new Error("Timeout")), timeoutMs);
         // Prevent timer from keeping Node.js process alive
         timeoutId.unref();
       }),
@@ -182,7 +184,7 @@ export async function checkForUpdate(options: {
       latestVersion: currentVersion,
       channel,
       cached: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: error instanceof Error ? error.message : "Unknown error",
     };
   }
 }
@@ -198,12 +200,15 @@ export async function checkForUpdate(options: {
  */
 export function shouldSuppressNotification(argv: string[]): boolean {
   // Check for CI environment
-  if (process.env.CI === 'true' || process.env.CONTINUOUS_INTEGRATION === 'true') {
+  if (
+    process.env.CI === "true" ||
+    process.env.CONTINUOUS_INTEGRATION === "true"
+  ) {
     return true;
   }
 
   // Check for JSON mode
-  if (argv.includes('--json')) {
+  if (argv.includes("--json")) {
     return true;
   }
 
@@ -213,7 +218,7 @@ export function shouldSuppressNotification(argv: string[]): boolean {
   }
 
   // Check for explicit suppression
-  if (process.env.NO_UPDATE_NOTIFIER === '1') {
+  if (process.env.NO_UPDATE_NOTIFIER === "1") {
     return true;
   }
 
@@ -223,31 +228,44 @@ export function shouldSuppressNotification(argv: string[]): boolean {
 /**
  * Format update notification message
  */
-function formatUpdateMessage(result: UpdateCheckResult, packageName: string): string {
+function formatUpdateMessage(
+  result: UpdateCheckResult,
+  packageName: string,
+): string {
   const lines = [
-    '',
-    chalk.yellow('╭─────────────────────────────────────────────────╮'),
-    chalk.yellow('│') + '  ' + chalk.bold('Update available!') + '                           ' + chalk.yellow('│'),
-    chalk.yellow('│') + '                                                 ' + chalk.yellow('│'),
-    chalk.yellow('│') +
-      '  ' +
+    "",
+    chalk.yellow("╭─────────────────────────────────────────────────╮"),
+    chalk.yellow("│") +
+      "  " +
+      chalk.bold("Update available!") +
+      "                           " +
+      chalk.yellow("│"),
+    chalk.yellow("│") +
+      "                                                 " +
+      chalk.yellow("│"),
+    chalk.yellow("│") +
+      "  " +
       chalk.dim(`${result.currentVersion}`) +
-      ' → ' +
+      " → " +
       chalk.green.bold(result.latestVersion) +
-      '                         ' +
-      chalk.yellow('│'),
-    chalk.yellow('│') + '                                                 ' + chalk.yellow('│'),
-    chalk.yellow('│') +
-      '  Run ' +
+      "                         " +
+      chalk.yellow("│"),
+    chalk.yellow("│") +
+      "                                                 " +
+      chalk.yellow("│"),
+    chalk.yellow("│") +
+      "  Run " +
       chalk.cyan(`npm install -g ${packageName}`) +
-      '   ' +
-      chalk.yellow('│'),
-    chalk.yellow('│') + '  to update.                                      ' + chalk.yellow('│'),
-    chalk.yellow('╰─────────────────────────────────────────────────╯'),
-    '',
+      "   " +
+      chalk.yellow("│"),
+    chalk.yellow("│") +
+      "  to update.                                      " +
+      chalk.yellow("│"),
+    chalk.yellow("╰─────────────────────────────────────────────────╯"),
+    "",
   ];
 
-  return lines.join('\n');
+  return lines.join("\n");
 }
 
 /**
@@ -283,7 +301,7 @@ export async function maybeNotifyUpdate(options: {
 
   try {
     // Determine channel based on version
-    const channel = pkg.version.includes('-') ? 'next' : 'latest';
+    const channel = pkg.version.includes("-") ? "next" : "latest";
 
     // Check for updates
     const result = await checkForUpdate({

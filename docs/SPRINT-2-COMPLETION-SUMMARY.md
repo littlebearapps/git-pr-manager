@@ -109,4 +109,3 @@ npm run build
 ## Ready for Sprint 3
 
 YES — pending successful local/CI validation of audit, tests, build, and `semantic-release --dry-run`.
-

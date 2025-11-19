@@ -26,6 +26,7 @@ This plan extends **Alternative D** (single source of truth architecture) to doc
 **Analysis Conducted**: Three-step zen thinkdeep investigation (VERY HIGH confidence)
 
 **Approaches Evaluated**:
+
 1. npm badges (shields.io) - **✅ Recommended**
 2. semantic-release/git plugin - **❌ Rejected** (violates Alternative D)
 3. Post-release automation scripts - **❌ Rejected** (fragile sync mechanism)
@@ -37,6 +38,7 @@ This plan extends **Alternative D** (single source of truth architecture) to doc
 ### Expert Validation (zen thinkdeep)
 
 **Expert refinements**:
+
 - npm badges are zero-maintenance and perfectly aligned with Alternative D
 - Manual updates during release PRs are acceptable (low frequency: ~weekly)
 - Runtime `getVersion()` already solves the code version problem
@@ -56,12 +58,14 @@ This plan extends **Alternative D** (single source of truth architecture) to doc
 **Mechanism**: shields.io badges that auto-fetch from npm registry
 
 **Benefits**:
+
 - Zero maintenance (updates within minutes of npm publish)
 - No sync mechanisms to fail
 - Industry-standard solution
 - Visually prominent
 
 **Locations**:
+
 - README.md header (primary badge)
 - CLAUDE.md status line (optional)
 
@@ -76,12 +80,14 @@ This plan extends **Alternative D** (single source of truth architecture) to doc
 **Mechanism**: PR template checklist + human verification
 
 **Benefits**:
+
 - Low frequency (1-2 times per week max)
 - High visibility (release PRs already reviewed)
 - No complex automation to maintain
 - Forces conscious decision-making
 
 **Locations**:
+
 - CLAUDE.md metadata header (Last Updated date only)
 - docs/TESTS.md metadata header
 - README.md "What's New" section
@@ -97,12 +103,14 @@ This plan extends **Alternative D** (single source of truth architecture) to doc
 **Mechanism**: `getVersion()` utility with git tags + fallback
 
 **Benefits**:
+
 - Already implemented and tested
 - Works in development (git tags) and production (package.json)
 - No manual updates needed
 - Single source of truth (git tags from semantic-release)
 
 **Locations**:
+
 - CLI `--version` flag
 - `gpm doctor` output
 - Telemetry payloads
@@ -121,6 +129,7 @@ This plan extends **Alternative D** (single source of truth architecture) to doc
 **Location**: README.md header (line 3-5, after title)
 
 **Before**:
+
 ```markdown
 # git-pr-manager
 
@@ -128,6 +137,7 @@ This plan extends **Alternative D** (single source of truth architecture) to doc
 ```
 
 **After**:
+
 ```markdown
 # git-pr-manager
 
@@ -138,6 +148,7 @@ This plan extends **Alternative D** (single source of truth architecture) to doc
 ```
 
 **Badge URL Format**:
+
 ```
 https://img.shields.io/npm/v/@littlebearapps/git-pr-manager.svg
 ```
@@ -151,23 +162,27 @@ https://img.shields.io/npm/v/@littlebearapps/git-pr-manager.svg
 **README.md Changes**:
 
 **Before** (lines ~20-30, "What's New" section):
+
 ```markdown
 ## What's New in v1.8.0
 
 **Alternative D: Release Validation Strategy** (2025-11-19)
+
 - Pre-release validation with `gpm doctor --pre-release`
-...
+  ...
 ```
 
 **After**:
+
 ```markdown
 ## What's New
 
 **Latest Release** (see npm badge above for version):
 
 **Alternative D: Release Validation Strategy** (2025-11-19)
+
 - Pre-release validation with `gpm doctor --pre-release`
-...
+  ...
 ```
 
 **Rationale**: Version number now comes from badge, release date remains for context.
@@ -179,6 +194,7 @@ https://img.shields.io/npm/v/@littlebearapps/git-pr-manager.svg
 **Location**: CLAUDE.md status header (line 3-5)
 
 **Before**:
+
 ```markdown
 **Last Updated**: 2025-11-19 (Alternative D Phase 2)
 **Version**: 1.8.0
@@ -186,6 +202,7 @@ https://img.shields.io/npm/v/@littlebearapps/git-pr-manager.svg
 ```
 
 **After**:
+
 ```markdown
 **Last Updated**: 2025-11-19 (Alternative D Phase 2)
 **Version**: [![npm](https://img.shields.io/npm/v/@littlebearapps/git-pr-manager.svg)](https://www.npmjs.com/package/@littlebearapps/git-pr-manager)
@@ -203,6 +220,7 @@ https://img.shields.io/npm/v/@littlebearapps/git-pr-manager.svg
 **File**: `.github/PULL_REQUEST_TEMPLATE.md`
 
 **Content to Add**:
+
 ```markdown
 ## Release Checklist (for main branch merges only)
 
@@ -215,6 +233,7 @@ https://img.shields.io/npm/v/@littlebearapps/git-pr-manager.svg
 - [ ] **package.json**: No action needed (stays `0.0.0-development`)
 
 **Reminder**: Version numbers are NOT manually updated - they come from:
+
 - npm badge (auto-updates within 5-10 minutes of publish)
 - semantic-release (determines version from commits)
 - `getVersion()` utility (runtime detection via git tags)
@@ -231,6 +250,7 @@ See `/docs/planning/VERSION-MANAGEMENT-IMPLEMENTATION-PLAN.md` for details.
 **File**: `CLAUDE.md` (add to "Quick Reference" or "Development Workflow" section)
 
 **Content**:
+
 ```markdown
 ### Release PR Checklist
 
@@ -261,7 +281,8 @@ When merging a PR to main that will trigger a release (conventional commit):
 **File**: `/docs/architecture/VERSION-MANAGEMENT.md` (new file)
 
 **Content**:
-```markdown
+
+````markdown
 # Version Management Architecture
 
 **Status**: Active (Alternative D Phase 2+)
@@ -282,11 +303,13 @@ git-pr-manager uses a **three-tier version management strategy** that extends Al
 **Authority**: npm registry (`https://registry.npmjs.org/@littlebearapps/git-pr-manager`)
 
 **Why**:
+
 - Updated atomically by semantic-release during publish
 - Public, cacheable, globally distributed
 - Industry-standard source for package versions
 
 **Not Sources of Truth**:
+
 - ❌ package.json (`0.0.0-development` placeholder)
 - ❌ README.md (uses npm badge)
 - ❌ CLAUDE.md (manual dates only)
@@ -303,11 +326,14 @@ git-pr-manager uses a **three-tier version management strategy** that extends Al
 **Mechanism**: shields.io badges fetch version from npm registry
 
 **Example**:
+
 ```markdown
 [![npm version](https://img.shields.io/npm/v/@littlebearapps/git-pr-manager.svg)](https://www.npmjs.com/package/@littlebearapps/git-pr-manager)
 ```
+````
 
 **Locations**:
+
 - README.md header (primary)
 - CLAUDE.md status (optional)
 
@@ -322,11 +348,13 @@ git-pr-manager uses a **three-tier version management strategy** that extends Al
 **Mechanism**: PR template checklist + human verification
 
 **What Gets Updated**:
+
 - CLAUDE.md: "Last Updated" date
 - docs/TESTS.md: "Last Updated" date
 - README.md: "What's New" release notes (date + features)
 
 **What Does NOT Get Updated**:
+
 - Version numbers (from badge)
 - package.json (stays `0.0.0-development`)
 
@@ -341,22 +369,26 @@ git-pr-manager uses a **three-tier version management strategy** that extends Al
 **Mechanism**: `getVersion()` utility (src/utils/version.ts)
 
 **Algorithm**:
+
 1. Try git tags: `git describe --tags --exact-match HEAD`
 2. Fallback: `package.json` version
 
 **Works In**:
+
 - Development: git tags from semantic-release
 - Production: package.json (if built without git)
 - CI: git tags (full clone)
 
 **Usage**:
+
 ```typescript
-import { getVersion } from './utils/version';
+import { getVersion } from "./utils/version";
 
 const version = getVersion(); // "1.8.0" (from git tag or package.json)
 ```
 
 **Locations**:
+
 - CLI `--version` flag
 - `gpm doctor` output
 - Telemetry payloads
@@ -377,6 +409,7 @@ const version = getVersion(); // "1.8.0" (from git tag or package.json)
 ### ❌ Post-Release Automation Scripts
 
 **Why Rejected**:
+
 - Fragile sync mechanism (can fail after publish)
 - Violates "single source of truth" (creates multiple sources)
 - Maintenance overhead
@@ -388,6 +421,7 @@ const version = getVersion(); // "1.8.0" (from git tag or package.json)
 ### ❌ Pre-Build Template Injection
 
 **Why Rejected**:
+
 - Build-time complexity
 - Requires variable replacement in multiple file types
 - Fragile (templates can drift)
@@ -399,6 +433,7 @@ const version = getVersion(); // "1.8.0" (from git tag or package.json)
 ### ❌ Dynamic Documentation (VitePress/Docusaurus)
 
 **Why Rejected**:
+
 - Massive infrastructure overhead (10+ hours setup)
 - Not needed for CLI tool documentation
 - GitHub/npm markdown is sufficient
@@ -495,7 +530,8 @@ gpm doctor
 - **zen thinkdeep Investigation**: (continuation_id: captured in this doc)
 - **shields.io Documentation**: https://shields.io/
 - **semantic-release**: https://github.com/semantic-release/semantic-release
-```
+
+````
 
 ---
 
@@ -538,7 +574,7 @@ module.exports = {
     }
   }
 };
-```
+````
 
 **Note**: This is optional - requires custom ESLint plugin setup. Alternative: Use grep in CI:
 
@@ -564,6 +600,7 @@ module.exports = {
 **File**: `.github/workflows/pr-checks.yml`
 
 **Content**:
+
 ```yaml
 name: PR Checklist Validation
 on:
@@ -608,12 +645,14 @@ jobs:
 ### Before: Manual Version Updates Everywhere
 
 **Problem**:
+
 - Version appears in 5+ places (package.json, README.md, CLAUDE.md, docs/TESTS.md, CLI output)
 - Manual updates required for each release
 - Easy to miss updates → inconsistent versions across docs
 - No single source of truth
 
 **Example Release Process** (before):
+
 1. Update package.json: `1.7.0` → `1.8.0`
 2. Update CLAUDE.md header: `**Version**: 1.8.0`
 3. Update README.md "What's New": `## What's New in v1.8.0`
@@ -629,12 +668,14 @@ jobs:
 ### After: Three-Tier Strategy
 
 **Solution**:
+
 - npm badge auto-updates (Tier 1)
 - Dates updated during release PR review (Tier 2)
 - Runtime `getVersion()` for all code (Tier 3)
 - Single source of truth: npm registry
 
 **Example Release Process** (after):
+
 1. Create feature branch with `feat:` commit
 2. Open PR to main
 3. **During PR review**: Update "Last Updated" dates, add release notes
@@ -647,6 +688,7 @@ jobs:
 **Manual Steps**: Only dates and release notes (3-5 minutes per release)
 
 **Benefits**:
+
 - 80% reduction in manual version updates
 - Zero risk of version number inconsistency
 - npm badge always shows latest version
@@ -689,18 +731,22 @@ jobs:
 ## Implementation Timeline
 
 ### Immediate (5-10 minutes)
+
 - Add npm version badge to README.md header
 - Remove hardcoded "v1.8.0" from README.md "What's New"
 
 ### Short-term (15-20 minutes)
+
 - Create PR template with version checklist
 - Document checklist usage in CLAUDE.md
 
 ### Medium-term (10-15 minutes)
+
 - Create `/docs/architecture/VERSION-MANAGEMENT.md`
 - Document three-tier strategy
 
 ### Optional (15-20 minutes each)
+
 - Add ESLint rule for hardcoded versions (or grep in CI)
 - Add GitHub Actions PR checklist validation
 
@@ -711,17 +757,20 @@ jobs:
 ## Success Metrics
 
 ### Immediate Indicators
+
 - ✅ npm badge displays correct version on README.md
 - ✅ `gpm --version` matches npm registry
 - ✅ No hardcoded version strings in README.md
 
 ### Ongoing Indicators (30 days)
+
 - ✅ PR template checklist followed in ≥90% of release PRs
 - ✅ npm badge updates within 10 minutes of every release
 - ✅ Zero version inconsistency issues reported
 - ✅ Developer feedback: "Less manual work during releases"
 
 ### Long-term Success (90 days)
+
 - ✅ Version management is "invisible" to developers
 - ✅ No maintenance required for version display
 - ✅ Architecture documented and understood by team
@@ -734,6 +783,7 @@ jobs:
 If three-tier strategy doesn't work as expected:
 
 ### Rollback to Manual Updates (Current State)
+
 1. Remove npm badge from README.md
 2. Restore hardcoded version in "What's New" section
 3. Continue manual updates for all version references
@@ -741,6 +791,7 @@ If three-tier strategy doesn't work as expected:
 **Risk**: Low (npm badge is non-invasive, easy to remove)
 
 ### Partial Rollback
+
 1. Keep npm badge (zero risk, high value)
 2. Remove PR template checklist if burdensome
 3. Keep `getVersion()` runtime detection (already working)

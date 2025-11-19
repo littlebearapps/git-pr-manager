@@ -29,8 +29,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 'lts/*' # Use latest LTS
-          cache: 'npm'
+          node-version: "lts/*" # Use latest LTS
+          cache: "npm"
 
       - name: Install dependencies
         run: npm clean-install --ignore-scripts

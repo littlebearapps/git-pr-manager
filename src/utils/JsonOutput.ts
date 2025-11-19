@@ -1,11 +1,11 @@
-import { WorkflowError } from './errors';
+import { WorkflowError } from "./errors";
 
 export class JsonOutput {
   /**
    * Write success result to stdout
    */
   static write(data: unknown): void {
-    process.stdout.write(JSON.stringify(data) + '\n');
+    process.stdout.write(JSON.stringify(data) + "\n");
   }
 
   /**
@@ -21,8 +21,7 @@ export class JsonOutput {
           details: (error as any).details,
           suggestions: (error as any).suggestions,
         },
-      }) + '\n'
+      }) + "\n",
     );
   }
 }
-

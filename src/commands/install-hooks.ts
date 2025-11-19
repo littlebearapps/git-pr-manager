@@ -1,14 +1,14 @@
-import * as fs from 'fs/promises';
-import * as path from 'path';
-import { logger } from '../utils/logger';
-import { ConfigService } from '../services/ConfigService';
-import { getGitHooksDir, fileExists, isGpmHook } from '../utils/git-hooks';
+import * as fs from "fs/promises";
+import * as path from "path";
+import { logger } from "../utils/logger";
+import { ConfigService } from "../services/ConfigService";
+import { getGitHooksDir, fileExists, isGpmHook } from "../utils/git-hooks";
 
 export interface InstallHooksOptions {
-  force?: boolean;       // Overwrite existing hooks
-  json?: boolean;        // JSON output mode
-  prePush?: boolean;     // Install pre-push hook (default: true)
-  postCommit?: boolean;  // Install post-commit hook (default: false)
+  force?: boolean; // Overwrite existing hooks
+  json?: boolean; // JSON output mode
+  prePush?: boolean; // Install pre-push hook (default: true)
+  postCommit?: boolean; // Install post-commit hook (default: false)
 }
 
 const PRE_PUSH_TEMPLATE = `#!/bin/sh
@@ -71,7 +71,9 @@ exit 0
 /**
  * Install git hooks for gpm workflow reminders
  */
-export async function installHooksCommand(options: InstallHooksOptions = {}): Promise<void> {
+export async function installHooksCommand(
+  options: InstallHooksOptions = {},
+): Promise<void> {
   try {
     // Default: install pre-push only unless specified
     const installPrePush = options.prePush !== false; // true by default
@@ -82,14 +84,17 @@ export async function installHooksCommand(options: InstallHooksOptions = {}): Pr
     try {
       hooksDir = await getGitHooksDir();
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Not a git repository';
+      const errorMsg =
+        error instanceof Error ? error.message : "Not a git repository";
       if (options.json) {
-        console.log(JSON.stringify({
-          success: false,
-          error: errorMsg + '. Cannot install hooks.'
-        }));
+        console.log(
+          JSON.stringify({
+            success: false,
+            error: errorMsg + ". Cannot install hooks.",
+          }),
+        );
       } else {
-        logger.error(errorMsg + '. Cannot install hooks.');
+        logger.error(errorMsg + ". Cannot install hooks.");
       }
       process.exit(1);
     }
@@ -101,18 +106,21 @@ export async function installHooksCommand(options: InstallHooksOptions = {}): Pr
 
     // Install pre-push hook
     if (installPrePush) {
-      const prePushPath = path.join(hooksDir, 'pre-push');
+      const prePushPath = path.join(hooksDir, "pre-push");
       const exists = await fileExists(prePushPath);
 
       if (exists && !options.force) {
         const isGpm = await isGpmHook(prePushPath);
         if (!isGpm) {
-          const error = 'pre-push hook already exists (not created by gpm). Use --force to overwrite.';
+          const error =
+            "pre-push hook already exists (not created by gpm). Use --force to overwrite.";
           if (options.json) {
-            console.log(JSON.stringify({
-              success: false,
-              error: error
-            }));
+            console.log(
+              JSON.stringify({
+                success: false,
+                error: error,
+              }),
+            );
           } else {
             logger.error(error);
           }
@@ -121,28 +129,31 @@ export async function installHooksCommand(options: InstallHooksOptions = {}): Pr
       }
 
       // Write hook
-      await fs.writeFile(prePushPath, PRE_PUSH_TEMPLATE, 'utf-8');
+      await fs.writeFile(prePushPath, PRE_PUSH_TEMPLATE, "utf-8");
 
       // Make executable
       await fs.chmod(prePushPath, 0o755);
 
-      installedHooks.push('pre-push');
+      installedHooks.push("pre-push");
     }
 
     // Install post-commit hook
     if (installPostCommit) {
-      const postCommitPath = path.join(hooksDir, 'post-commit');
+      const postCommitPath = path.join(hooksDir, "post-commit");
       const exists = await fileExists(postCommitPath);
 
       if (exists && !options.force) {
         const isGpm = await isGpmHook(postCommitPath);
         if (!isGpm) {
-          const error = 'post-commit hook already exists (not created by gpm). Use --force to overwrite.';
+          const error =
+            "post-commit hook already exists (not created by gpm). Use --force to overwrite.";
           if (options.json) {
-            console.log(JSON.stringify({
-              success: false,
-              error: error
-            }));
+            console.log(
+              JSON.stringify({
+                success: false,
+                error: error,
+              }),
+            );
           } else {
             logger.error(error);
           }
@@ -151,12 +162,12 @@ export async function installHooksCommand(options: InstallHooksOptions = {}): Pr
       }
 
       // Write hook
-      await fs.writeFile(postCommitPath, POST_COMMIT_TEMPLATE, 'utf-8');
+      await fs.writeFile(postCommitPath, POST_COMMIT_TEMPLATE, "utf-8");
 
       // Make executable
       await fs.chmod(postCommitPath, 0o755);
 
-      installedHooks.push('post-commit');
+      installedHooks.push("post-commit");
     }
 
     // Update .gpm.yml config to track installation
@@ -166,7 +177,7 @@ export async function installHooksCommand(options: InstallHooksOptions = {}): Pr
     if (!config.hooks) {
       config.hooks = {
         prePush: { enabled: false, reminder: true },
-        postCommit: { enabled: false, reminder: true }
+        postCommit: { enabled: false, reminder: true },
       };
     }
 
@@ -182,28 +193,34 @@ export async function installHooksCommand(options: InstallHooksOptions = {}): Pr
 
     // Output results
     if (options.json) {
-      console.log(JSON.stringify({
-        success: true,
-        message: 'Git hooks installed successfully',
-        hooks: installedHooks,
-        location: hooksDir
-      }));
+      console.log(
+        JSON.stringify({
+          success: true,
+          message: "Git hooks installed successfully",
+          hooks: installedHooks,
+          location: hooksDir,
+        }),
+      );
     } else {
-      logger.success('Git hooks installed successfully!');
-      installedHooks.forEach(hook => {
+      logger.success("Git hooks installed successfully!");
+      installedHooks.forEach((hook) => {
         logger.info(`  • ${hook} hook: ${path.join(hooksDir, hook)}`);
       });
       logger.blank();
-      logger.info('💡 The hook(s) will remind you about gpm before pushes/commits');
-      logger.info('   Remove with: gpm uninstall-hooks');
+      logger.info(
+        "💡 The hook(s) will remind you about gpm before pushes/commits",
+      );
+      logger.info("   Remove with: gpm uninstall-hooks");
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     if (options.json) {
-      console.log(JSON.stringify({
-        success: false,
-        error: errorMessage
-      }));
+      console.log(
+        JSON.stringify({
+          success: false,
+          error: errorMessage,
+        }),
+      );
     } else {
       logger.error(`Failed to install hooks: ${errorMessage}`);
     }

@@ -18,7 +18,7 @@ ci:
   waitForChecks: true
   failFast: true
   retryFlaky: false
-  timeout: 30  # minutes
+  timeout: 30 # minutes
 
 # Security scanning settings
 security:

@@ -1,9 +1,9 @@
-import { SecurityScanner } from '../../src/services/SecurityScanner';
-import { VerifyService } from '../../src/services/VerifyService';
-import { ErrorClassifier } from '../../src/utils/ErrorClassifier';
-import { SuggestionEngine } from '../../src/utils/SuggestionEngine';
-import * as child_process from 'child_process';
-import * as fs from 'fs/promises';
+import { SecurityScanner } from "../../src/services/SecurityScanner";
+import { VerifyService } from "../../src/services/VerifyService";
+import { ErrorClassifier } from "../../src/utils/ErrorClassifier";
+import { SuggestionEngine } from "../../src/utils/SuggestionEngine";
+import * as child_process from "child_process";
+import * as fs from "fs/promises";
 
 /**
  * Integration tests for Security Scanner and Verification Service
@@ -12,13 +12,15 @@ import * as fs from 'fs/promises';
  * work together correctly.
  */
 
-jest.mock('child_process');
-jest.mock('fs/promises');
+jest.mock("child_process");
+jest.mock("fs/promises");
 
-const mockedExec = child_process.exec as jest.MockedFunction<typeof child_process.exec>;
+const mockedExec = child_process.exec as jest.MockedFunction<
+  typeof child_process.exec
+>;
 const mockedFsAccess = fs.access as jest.MockedFunction<typeof fs.access>;
 
-describe('Security and Verification Integration', () => {
+describe("Security and Verification Integration", () => {
   let securityScanner: SecurityScanner;
   let verifyService: VerifyService;
   let errorClassifier: ErrorClassifier;
@@ -26,26 +28,26 @@ describe('Security and Verification Integration', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    securityScanner = new SecurityScanner('/test/dir');
-    verifyService = new VerifyService('/test/dir');
+    securityScanner = new SecurityScanner("/test/dir");
+    verifyService = new VerifyService("/test/dir");
     errorClassifier = new ErrorClassifier();
     suggestionEngine = new SuggestionEngine();
   });
 
-  describe('Complete Security and Verification Workflow', () => {
-    it('should run both security scan and verification successfully', async () => {
+  describe("Complete Security and Verification Workflow", () => {
+    it("should run both security scan and verification successfully", async () => {
       // Setup: Security scan - no secrets
       mockedExec.mockImplementationOnce((_cmd, _opts, _callback: any) => {
-        _callback(null, { stdout: '', stderr: '' });
+        _callback(null, { stdout: "", stderr: "" });
         return {} as any;
       });
       mockedExec.mockImplementationOnce((_cmd, _opts, _callback: any) => {
-        _callback(null, { stdout: '', stderr: '' });
+        _callback(null, { stdout: "", stderr: "" });
         return {} as any;
       });
 
       // Setup: No vulnerabilities
-      mockedFsAccess.mockRejectedValue(new Error('not found'));
+      mockedFsAccess.mockRejectedValue(new Error("not found"));
 
       // Act: Run security scan
       const securityResult = await securityScanner.scan();
@@ -57,7 +59,7 @@ describe('Security and Verification Integration', () => {
           stdout: { on: jest.fn() },
           stderr: { on: jest.fn() },
           on: jest.fn((event, handler) => {
-            if (event === 'close') handler(0);
+            if (event === "close") handler(0);
           }),
         } as any;
       });
@@ -72,32 +74,33 @@ describe('Security and Verification Integration', () => {
       expect(verifyResult.errors.length).toBe(0);
     });
 
-    it('should block when security issues found', async () => {
+    it("should block when security issues found", async () => {
       // Setup: Security scan finds secrets
       mockedExec.mockImplementationOnce((_cmd, _opts, _callback: any) => {
-        _callback(null, { stdout: '', stderr: '' });
+        _callback(null, { stdout: "", stderr: "" });
         return {} as any;
       });
       mockedExec.mockImplementationOnce((_cmd, _opts, _callback: any) => {
-        const output = 'config.py:25: Potential hardcoded password\\n.env:10: API key detected';
-        _callback(null, { stdout: output, stderr: '' });
+        const output =
+          "config.py:25: Potential hardcoded password\\n.env:10: API key detected";
+        _callback(null, { stdout: output, stderr: "" });
         return {} as any;
       });
 
       // Setup: Also has critical vulnerabilities
-      mockedFsAccess.mockRejectedValueOnce(new Error('not found'));
-      mockedFsAccess.mockRejectedValueOnce(new Error('not found'));
+      mockedFsAccess.mockRejectedValueOnce(new Error("not found"));
+      mockedFsAccess.mockRejectedValueOnce(new Error("not found"));
       mockedFsAccess.mockResolvedValueOnce(undefined); // package.json
       const vulnOutput = JSON.stringify({
         vulnerabilities: {
-          lodash: { severity: 'critical' },
-          axios: { severity: 'high' },
+          lodash: { severity: "critical" },
+          axios: { severity: "high" },
         },
       });
       mockedExec.mockImplementationOnce((_cmd, _opts, _callback: any) => {
-        const error: any = new Error('vulns');
+        const error: any = new Error("vulns");
         error.stdout = vulnOutput;
-        _callback(error, { stdout: vulnOutput, stderr: '' });
+        _callback(error, { stdout: vulnOutput, stderr: "" });
         return {} as any;
       });
 
@@ -109,39 +112,43 @@ describe('Security and Verification Integration', () => {
       expect(securityResult.blockers.length).toBeGreaterThan(0);
 
       // Act: Classify errors and get suggestion
-      const errors = securityResult.blockers.join('\n');
+      const errors = securityResult.blockers.join("\n");
       const mockCheck = {
-        name: 'security',
+        name: "security",
         output: {
           summary: errors,
-          title: 'Security Scan Failed'
-        }
+          title: "Security Scan Failed",
+        },
       };
       const classification = errorClassifier.classify(mockCheck);
-      const suggestion = suggestionEngine.getSuggestion(errors, classification, []);
+      const suggestion = suggestionEngine.getSuggestion(
+        errors,
+        classification,
+        [],
+      );
 
       // Assert: Should provide security-related suggestion
       expect(suggestion).toBeDefined();
       expect(suggestion.command).toBeDefined();
       expect(
-        suggestion.command.includes('secret') ||
-        suggestion.command.includes('vulnerability') ||
-        suggestion.command.includes('audit') ||
-        suggestion.command.includes('Review')
+        suggestion.command.includes("secret") ||
+          suggestion.command.includes("vulnerability") ||
+          suggestion.command.includes("audit") ||
+          suggestion.command.includes("Review"),
       ).toBe(true);
     });
 
-    it('should handle verification failure with detailed error parsing', async () => {
+    it("should handle verification failure with detailed error parsing", async () => {
       // Setup: Security passes
       mockedExec.mockImplementationOnce((_cmd, _opts, _callback: any) => {
-        _callback(null, { stdout: '', stderr: '' });
+        _callback(null, { stdout: "", stderr: "" });
         return {} as any;
       });
       mockedExec.mockImplementationOnce((_cmd, _opts, _callback: any) => {
-        _callback(null, { stdout: '', stderr: '' });
+        _callback(null, { stdout: "", stderr: "" });
         return {} as any;
       });
-      mockedFsAccess.mockRejectedValue(new Error('not found'));
+      mockedFsAccess.mockRejectedValue(new Error("not found"));
 
       // Act: Security scan
       const securityResult = await securityScanner.scan();
@@ -156,13 +163,13 @@ describe('Security and Verification Integration', () => {
         return {
           stdout: {
             on: jest.fn((event, handler) => {
-              if (event === 'data') stdoutHandlers.push(handler);
+              if (event === "data") stdoutHandlers.push(handler);
             }),
           },
           stderr: { on: jest.fn() },
           on: jest.fn((event, handler) => {
-            if (event === 'close') {
-              stdoutHandlers.forEach(h => h(failureOutput));
+            if (event === "close") {
+              stdoutHandlers.forEach((h) => h(failureOutput));
               handler(1);
             }
           }),
@@ -180,44 +187,48 @@ describe('Security and Verification Integration', () => {
       const allErrors = [
         ...securityResult.blockers,
         ...verifyResult.errors,
-      ].join('\n');
+      ].join("\n");
 
       const mockCheck = {
-        name: 'test',
+        name: "test",
         output: {
           summary: allErrors,
-          title: 'Test Failures'
-        }
+          title: "Test Failures",
+        },
       };
       const classification = errorClassifier.classify(mockCheck);
-      const suggestion = suggestionEngine.getSuggestion(allErrors, classification, []);
+      const suggestion = suggestionEngine.getSuggestion(
+        allErrors,
+        classification,
+        [],
+      );
 
       // Assert: Should provide test or TypeScript related suggestion
       expect(suggestion).toBeDefined();
       expect(suggestion.command).toBeDefined();
       expect(
-        suggestion.command.includes('test') ||
-        suggestion.command.includes('TypeScript') ||
-        suggestion.command.includes('typecheck') ||
-        suggestion.command.includes('pytest')
+        suggestion.command.includes("test") ||
+          suggestion.command.includes("TypeScript") ||
+          suggestion.command.includes("typecheck") ||
+          suggestion.command.includes("pytest"),
       ).toBe(true);
     });
   });
 
-  describe('Workflow Decision Making', () => {
-    it('should determine if PR can proceed based on combined results', async () => {
+  describe("Workflow Decision Making", () => {
+    it("should determine if PR can proceed based on combined results", async () => {
       // Setup: Security checks pass
       mockedExec.mockImplementationOnce((_cmd, _opts, _callback: any) => {
-        _callback(null, { stdout: '', stderr: '' });
+        _callback(null, { stdout: "", stderr: "" });
         return {} as any;
       });
       mockedExec.mockImplementationOnce((_cmd, _opts, _callback: any) => {
-        _callback(null, { stdout: '', stderr: '' });
+        _callback(null, { stdout: "", stderr: "" });
         return {} as any;
       });
 
       // Setup: No language detected (skip dependency check)
-      mockedFsAccess.mockRejectedValue(new Error('not found'));
+      mockedFsAccess.mockRejectedValue(new Error("not found"));
 
       // Act: Run security scan
       const securityResult = await securityScanner.scan();
@@ -229,7 +240,7 @@ describe('Security and Verification Integration', () => {
           stdout: { on: jest.fn() },
           stderr: { on: jest.fn() },
           on: jest.fn((event, handler) => {
-            if (event === 'close') handler(0);
+            if (event === "close") handler(0);
           }),
         } as any;
       });
@@ -242,17 +253,17 @@ describe('Security and Verification Integration', () => {
       expect(canProceed).toBe(true);
     }, 10000);
 
-    it('should block PR if either security or verification fails', async () => {
+    it("should block PR if either security or verification fails", async () => {
       // Setup: Security passes
       mockedExec.mockImplementationOnce((_cmd, _opts, _callback: any) => {
-        _callback(null, { stdout: '', stderr: '' });
+        _callback(null, { stdout: "", stderr: "" });
         return {} as any;
       });
       mockedExec.mockImplementationOnce((_cmd, _opts, _callback: any) => {
-        _callback(null, { stdout: '', stderr: '' });
+        _callback(null, { stdout: "", stderr: "" });
         return {} as any;
       });
-      mockedFsAccess.mockRejectedValue(new Error('not found'));
+      mockedFsAccess.mockRejectedValue(new Error("not found"));
 
       const securityResult = await securityScanner.scan();
 
@@ -263,7 +274,7 @@ describe('Security and Verification Integration', () => {
           stdout: { on: jest.fn() },
           stderr: { on: jest.fn() },
           on: jest.fn((event, handler) => {
-            if (event === 'close') handler(1); // Failure
+            if (event === "close") handler(1); // Failure
           }),
         } as any;
       });
@@ -276,20 +287,20 @@ describe('Security and Verification Integration', () => {
     });
   });
 
-  describe('Progress Reporting Integration', () => {
-    it('should aggregate progress from both services', async () => {
+  describe("Progress Reporting Integration", () => {
+    it("should aggregate progress from both services", async () => {
       const progressUpdates: string[] = [];
 
       // Setup: Security scan with progress
       mockedExec.mockImplementationOnce((_cmd, _opts, _callback: any) => {
-        _callback(null, { stdout: '', stderr: '' });
+        _callback(null, { stdout: "", stderr: "" });
         return {} as any;
       });
       mockedExec.mockImplementationOnce((_cmd, _opts, _callback: any) => {
-        _callback(null, { stdout: '', stderr: '' });
+        _callback(null, { stdout: "", stderr: "" });
         return {} as any;
       });
-      mockedFsAccess.mockRejectedValue(new Error('not found'));
+      mockedFsAccess.mockRejectedValue(new Error("not found"));
 
       // Act: Run security (no progress callback support in current implementation)
       await securityScanner.scan();
@@ -301,13 +312,13 @@ describe('Security and Verification Integration', () => {
         return {
           stdout: {
             on: jest.fn((event, handler) => {
-              if (event === 'data') stdoutHandlers.push(handler);
+              if (event === "data") stdoutHandlers.push(handler);
             }),
           },
           stderr: { on: jest.fn() },
           on: jest.fn((event, handler) => {
-            if (event === 'close') {
-              stdoutHandlers.forEach(h => h('Running tests...'));
+            if (event === "close") {
+              stdoutHandlers.forEach((h) => h("Running tests..."));
               handler(0);
             }
           }),
@@ -321,23 +332,23 @@ describe('Security and Verification Integration', () => {
 
       // Assert: Should have progress updates
       expect(progressUpdates.length).toBeGreaterThan(0);
-      expect(progressUpdates).toContain('Running verification checks...');
-      expect(progressUpdates).toContain('Running tests...');
+      expect(progressUpdates).toContain("Running verification checks...");
+      expect(progressUpdates).toContain("Running tests...");
     });
   });
 
-  describe('Timeout and Performance', () => {
-    it('should handle long-running verification with timeout', async () => {
+  describe("Timeout and Performance", () => {
+    it("should handle long-running verification with timeout", async () => {
       // Setup: Security passes quickly
       mockedExec.mockImplementationOnce((_cmd, _opts, _callback: any) => {
-        _callback(null, { stdout: '', stderr: '' });
+        _callback(null, { stdout: "", stderr: "" });
         return {} as any;
       });
       mockedExec.mockImplementationOnce((_cmd, _opts, _callback: any) => {
-        _callback(null, { stdout: '', stderr: '' });
+        _callback(null, { stdout: "", stderr: "" });
         return {} as any;
       });
-      mockedFsAccess.mockRejectedValue(new Error('not found'));
+      mockedFsAccess.mockRejectedValue(new Error("not found"));
 
       await securityScanner.scan();
 
@@ -350,7 +361,7 @@ describe('Security and Verification Integration', () => {
           stdout: { on: jest.fn() },
           stderr: { on: jest.fn() },
           on: jest.fn((event, handler) => {
-            if (event === 'close') handler(0);
+            if (event === "close") handler(0);
           }),
         } as any;
       });
@@ -360,24 +371,24 @@ describe('Security and Verification Integration', () => {
     });
   });
 
-  describe('Error Recovery and Suggestions', () => {
-    it('should provide comprehensive suggestions for multiple failure types', async () => {
+  describe("Error Recovery and Suggestions", () => {
+    it("should provide comprehensive suggestions for multiple failure types", async () => {
       // Setup: Multiple types of failures
       const errors = [
-        'FAILED tests/test_user.py::test_login',
+        "FAILED tests/test_user.py::test_login",
         'TS2304: Cannot find name "User"',
-        'Potential hardcoded password in config.py',
-        'Critical vulnerability: CVE-2023-1234 in lodash',
-        'ESLint: no-unused-vars',
-      ].join('\n');
+        "Potential hardcoded password in config.py",
+        "Critical vulnerability: CVE-2023-1234 in lodash",
+        "ESLint: no-unused-vars",
+      ].join("\n");
 
       // Act: Classify
       const mockCheck = {
-        name: 'test',
+        name: "test",
         output: {
           summary: errors,
-          title: 'Multiple Failures'
-        }
+          title: "Multiple Failures",
+        },
       };
       const classification = errorClassifier.classify(mockCheck);
 
@@ -385,7 +396,11 @@ describe('Security and Verification Integration', () => {
       expect(classification).toBeDefined();
 
       // Act: Get suggestion
-      const suggestion = suggestionEngine.getSuggestion(errors, classification, []);
+      const suggestion = suggestionEngine.getSuggestion(
+        errors,
+        classification,
+        [],
+      );
 
       // Assert: Should provide a helpful suggestion
       expect(suggestion).toBeDefined();

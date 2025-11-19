@@ -11,11 +11,11 @@ This guide provides comprehensive security recommendations for setting up reposi
 
 ## Quick Reference
 
-| Repository Type | gpm Preset | Required Reviews | Status Checks | Use Case |
-|----------------|------------|------------------|---------------|----------|
-| **Personal/Experimental** | `basic` | 0 | None | Prototypes, learning projects |
-| **Team/Open Source** | `standard` | 0-1 (optional) | ci, security | Team projects, OSS libraries |
-| **Production/Critical** | `strict` | 1+ | ci, security, tests, lint | Production systems, critical infrastructure |
+| Repository Type           | gpm Preset | Required Reviews | Status Checks             | Use Case                                    |
+| ------------------------- | ---------- | ---------------- | ------------------------- | ------------------------------------------- |
+| **Personal/Experimental** | `basic`    | 0                | None                      | Prototypes, learning projects               |
+| **Team/Open Source**      | `standard` | 0-1 (optional)   | ci, security              | Team projects, OSS libraries                |
+| **Production/Critical**   | `strict`   | 1+               | ci, security, tests, lint | Production systems, critical infrastructure |
 
 ---
 
@@ -26,6 +26,7 @@ This guide provides comprehensive security recommendations for setting up reposi
 **Use Case**: Solo development, prototypes, learning projects, quick experiments
 
 **gpm Configuration**:
+
 ```bash
 # Initialize with basic preset
 gpm init --template basic
@@ -35,6 +36,7 @@ gpm protect --preset basic
 ```
 
 **Settings**:
+
 - ✅ **No required reviews** - Fast iteration
 - ✅ **No required status checks** - Minimal friction
 - ✅ **No admin enforcement** - Full control
@@ -42,6 +44,7 @@ gpm protect --preset basic
 - ⚠️ **Block deletions** - Prevent accidental branch deletion
 
 **GitHub Token Security**:
+
 ```bash
 # Recommended: Use session-based token (no persistence needed)
 export GITHUB_TOKEN="ghp_your_token_here"
@@ -51,6 +54,7 @@ echo 'export GITHUB_TOKEN="ghp_your_token_here"' >> ~/.zshrc
 ```
 
 **Branch Protection**:
+
 ```yaml
 # .gpm.yml
 branchProtection:
@@ -68,6 +72,7 @@ branchProtection:
 **Use Case**: Team collaboration, open source libraries, shared repositories
 
 **gpm Configuration**:
+
 ```bash
 # Initialize with standard preset (recommended)
 gpm init --template standard
@@ -77,6 +82,7 @@ gpm protect --preset standard
 ```
 
 **Settings**:
+
 - ✅ **Optional reviews** (0-1) - Balance quality and velocity
 - ✅ **Required checks**: ci, security - Ensure basic quality
 - ✅ **Strict branch updates** - Require up-to-date branches
@@ -86,6 +92,7 @@ gpm protect --preset standard
 - ✅ **Block deletions** - Prevent accidental loss
 
 **GitHub Token Security**:
+
 ```bash
 # Recommended: direnv + .envrc (per-project isolation)
 echo 'export GITHUB_TOKEN="ghp_your_token_here"' > .envrc
@@ -94,11 +101,12 @@ echo '.envrc' >> .gitignore  # CRITICAL: Prevent token leak
 ```
 
 **Branch Protection**:
+
 ```yaml
 # .gpm.yml
 branchProtection:
   enabled: true
-  requireReviews: 0  # or 1 for mandatory reviews
+  requireReviews: 0 # or 1 for mandatory reviews
   requiredStatusChecks:
     - ci
     - security
@@ -110,6 +118,7 @@ branchProtection:
 ```
 
 **Recommended CI Checks**:
+
 ```yaml
 # .github/workflows/ci.yml
 name: CI
@@ -140,6 +149,7 @@ jobs:
 **Use Case**: Production applications, critical infrastructure, financial systems
 
 **gpm Configuration**:
+
 ```bash
 # Initialize with strict preset
 gpm init --template strict
@@ -149,6 +159,7 @@ gpm protect --preset strict
 ```
 
 **Settings**:
+
 - ✅ **1+ required reviews** - Mandatory peer review
 - ✅ **Code owner reviews** - Domain expert approval
 - ✅ **Required checks**: ci, security, tests, lint - Comprehensive validation
@@ -160,6 +171,7 @@ gpm protect --preset strict
 - ✅ **Block deletions** - Prevent data loss
 
 **GitHub Token Security**:
+
 ```bash
 # Recommended: direnv + keychain (maximum security)
 # 1. Store token in macOS Keychain
@@ -175,11 +187,12 @@ gpm doctor
 ```
 
 **Branch Protection**:
+
 ```yaml
 # .gpm.yml
 branchProtection:
   enabled: true
-  requireReviews: 1  # Minimum 1 reviewer
+  requireReviews: 1 # Minimum 1 reviewer
   requireCodeOwnerReviews: true
   dismissStaleReviews: true
   requiredStatusChecks:
@@ -196,6 +209,7 @@ branchProtection:
 ```
 
 **Comprehensive CI Pipeline**:
+
 ```yaml
 # .github/workflows/ci.yml
 name: CI
@@ -277,15 +291,16 @@ permissions:
 
 **Permission Matrix**:
 
-| Permission | Read | Write | Use Case |
-|------------|------|-------|----------|
-| `contents` | ✅ | ⚠️ | Read: checkout code. Write: push commits |
-| `pull-requests` | ✅ | ⚠️ | Read: view PRs. Write: create/update PRs |
-| `checks` | ✅ | ⚠️ | Read: view CI status. Write: create checks |
-| `statuses` | ✅ | ⚠️ | Read: view commit status. Write: set status |
-| `issues` | ✅ | ⚠️ | Read: view issues. Write: create/comment |
+| Permission      | Read | Write | Use Case                                    |
+| --------------- | ---- | ----- | ------------------------------------------- |
+| `contents`      | ✅   | ⚠️    | Read: checkout code. Write: push commits    |
+| `pull-requests` | ✅   | ⚠️    | Read: view PRs. Write: create/update PRs    |
+| `checks`        | ✅   | ⚠️    | Read: view CI status. Write: create checks  |
+| `statuses`      | ✅   | ⚠️    | Read: view commit status. Write: set status |
+| `issues`        | ✅   | ⚠️    | Read: view issues. Write: create/comment    |
 
 **Best Practices**:
+
 - ✅ Always specify permissions explicitly (don't rely on defaults)
 - ✅ Use `read` when possible, only `write` when necessary
 - ✅ Grant permissions per-job, not workflow-wide
@@ -322,6 +337,7 @@ env:
    - Add secret named `CUSTOM_GITHUB_TOKEN`
 
 **Security Rules**:
+
 - ✅ Use `GITHUB_TOKEN` for 90% of operations
 - ✅ Store custom tokens in repository secrets (never in code)
 - ✅ Use environment-specific secrets for different deployment stages
@@ -337,7 +353,7 @@ env:
 
 ```yaml
 # ✅ Good: Pinned to specific SHA (most secure)
-- uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608  # v4.1.0
+- uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
 
 # ✅ Good: Pinned to major version
 - uses: actions/checkout@v4
@@ -350,6 +366,7 @@ env:
 ```
 
 **Action Vetting Checklist**:
+
 - ✅ Verify author (prefer `actions/*` official actions)
 - ✅ Check stars/downloads (popular = more vetted)
 - ✅ Review source code (GitHub repository)
@@ -359,6 +376,7 @@ env:
 - ❌ Avoid actions requesting excessive permissions
 
 **Recommended Actions**:
+
 ```yaml
 # Official GitHub Actions (trusted)
 - uses: actions/checkout@v4
@@ -367,8 +385,8 @@ env:
 - uses: actions/cache@v4
 
 # Verified third-party actions
-- uses: codecov/codecov-action@v3  # Code coverage
-- uses: docker/build-push-action@v5  # Docker builds
+- uses: codecov/codecov-action@v3 # Code coverage
+- uses: docker/build-push-action@v5 # Docker builds
 ```
 
 ---
@@ -406,7 +424,7 @@ jobs:
 
   tests:
     runs-on: ubuntu-latest
-    needs: security  # Block on security
+    needs: security # Block on security
     steps:
       - uses: actions/checkout@v4
       - run: npm test
@@ -483,15 +501,16 @@ gpm doctor
 
 **Security Levels**:
 
-| Method | Security | Persistence | Use Case |
-|--------|----------|-------------|----------|
-| **direnv + keychain** | High | Per-directory | Team/production projects |
-| **direnv + .envrc** | Medium | Per-directory | Team projects, OSS |
-| **Shell profile** | Medium | Global | Personal projects |
-| **.env file** | Low | Per-project | Local dev only (add to .gitignore!) |
-| **Current session** | Low | Session only | Quick testing |
+| Method                | Security | Persistence   | Use Case                            |
+| --------------------- | -------- | ------------- | ----------------------------------- |
+| **direnv + keychain** | High     | Per-directory | Team/production projects            |
+| **direnv + .envrc**   | Medium   | Per-directory | Team projects, OSS                  |
+| **Shell profile**     | Medium   | Global        | Personal projects                   |
+| **.env file**         | Low      | Per-project   | Local dev only (add to .gitignore!) |
+| **Current session**   | Low      | Session only  | Quick testing                       |
 
 **Run `gpm doctor` to get context-aware recommendations**:
+
 ```bash
 gpm doctor  # Shows smart suggestions based on your system
 ```
@@ -545,6 +564,7 @@ build/
 ```
 
 **Verify no secrets committed**:
+
 ```bash
 # Run gpm security scan
 gpm security
@@ -579,6 +599,7 @@ detect-secrets scan --baseline .secrets.baseline
 ```
 
 **Best Practices**:
+
 - ✅ Store MCP credentials in environment variables
 - ✅ Use keychain for API keys
 - ✅ Add `.mcp.json` to `.gitignore` if it contains secrets
@@ -586,6 +607,7 @@ detect-secrets scan --baseline .secrets.baseline
 - ❌ Never commit API keys directly in `.mcp.json`
 
 **Example Secure Setup**:
+
 ```bash
 # Store API keys in keychain
 security add-generic-password -a "$USER" -s "OPENAI_API_KEY" -w "sk-proj-..."
@@ -668,6 +690,7 @@ git push
 **Configure via GitHub UI** (Settings → Branches → Add rule):
 
 **Standard Protection**:
+
 - ✅ Require a pull request before merging
 - ✅ Require approvals: 0 (or 1 for team projects)
 - ✅ Dismiss stale pull request approvals
@@ -678,6 +701,7 @@ git push
 - ✅ Restrict who can push (optional)
 
 **Or use gpm**:
+
 ```bash
 gpm protect --preset standard
 gpm protect --show  # Verify settings
@@ -740,14 +764,14 @@ gpm doctor
 
 **Regular Security Tasks**:
 
-| Task | Frequency | Command |
-|------|-----------|---------|
-| Update dependencies | Weekly | `npm audit fix` |
-| Scan for secrets | Every commit | `gpm security` |
-| Rotate GitHub tokens | 90 days | https://github.com/settings/tokens |
-| Review branch protection | Monthly | `gpm protect --show` |
-| Audit repository access | Quarterly | Settings → Manage access |
-| Check Dependabot alerts | Weekly | Security → Dependabot |
+| Task                     | Frequency    | Command                            |
+| ------------------------ | ------------ | ---------------------------------- |
+| Update dependencies      | Weekly       | `npm audit fix`                    |
+| Scan for secrets         | Every commit | `gpm security`                     |
+| Rotate GitHub tokens     | 90 days      | https://github.com/settings/tokens |
+| Review branch protection | Monthly      | `gpm protect --show`               |
+| Audit repository access  | Quarterly    | Settings → Manage access           |
+| Check Dependabot alerts  | Weekly       | Security → Dependabot              |
 
 **Automated Security Checks**:
 
@@ -756,7 +780,7 @@ gpm doctor
 name: Security Audit
 on:
   schedule:
-    - cron: '0 9 * * 1'  # Weekly on Monday
+    - cron: "0 9 * * 1" # Weekly on Monday
   workflow_dispatch:
 
 jobs:
@@ -786,6 +810,7 @@ jobs:
 ### 6.1 What NOT to Do
 
 ❌ **Committing secrets**:
+
 ```bash
 # BAD: .env file with credentials
 GITHUB_TOKEN=ghp_abc123...
@@ -797,6 +822,7 @@ DATABASE_URL=postgres://user:password@localhost/dbname
 ```
 
 ❌ **Weak branch protection**:
+
 ```yaml
 # BAD: No protection
 branchProtection:
@@ -810,6 +836,7 @@ branchProtection:
 ```
 
 ❌ **Overly permissive GitHub Actions**:
+
 ```yaml
 # BAD: Write-all permissions
 permissions: write-all
@@ -821,6 +848,7 @@ permissions:
 ```
 
 ❌ **Ignoring security warnings**:
+
 ```bash
 # BAD: Ignoring Dependabot alerts
 # (Letting vulnerable dependencies accumulate)
@@ -892,17 +920,20 @@ gpm security
 ## 8. Additional Resources
 
 ### 8.1 gpm Documentation
+
 - **GitHub Actions Integration**: `docs/guides/GITHUB-ACTIONS-INTEGRATION.md`
 - **AI Agent Integration**: `docs/guides/AI-AGENT-INTEGRATION.md`
 - **Quick Reference**: `docs/guides/QUICK-REFERENCE.md`
 
 ### 8.2 External Resources
+
 - **GitHub Security Best Practices**: https://docs.github.com/en/code-security
 - **OWASP Top 10**: https://owasp.org/www-project-top-ten/
 - **Secret Detection Tools**: https://github.com/Yelp/detect-secrets
 - **GitHub Token Permissions**: https://docs.github.com/en/actions/security-guides/automatic-token-authentication#permissions-for-the-github_token
 
 ### 8.3 Support
+
 - **gpm Issues**: https://github.com/littlebearapps/git-pr-manager/issues
 - **Security Vulnerabilities**: Report privately via GitHub Security tab
 
@@ -911,16 +942,19 @@ gpm security
 ## Summary
 
 **Security is a spectrum**:
+
 - 🟢 **Basic**: Fast iteration, personal projects
 - 🟡 **Standard**: Balanced security, team projects (recommended)
 - 🔴 **Strict**: Maximum protection, production systems
 
 **Three pillars**:
+
 1. **Branch Protection** - `gpm protect --preset [basic|standard|strict]`
 2. **Secrets Management** - `gpm doctor` (direnv + keychain recommended)
 3. **Security Scanning** - `gpm security` (secrets + vulnerabilities)
 
 **Start simple, scale up**:
+
 ```bash
 gpm init --template standard  # Good starting point
 gpm doctor                     # Set up GitHub token

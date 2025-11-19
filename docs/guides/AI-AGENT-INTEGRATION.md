@@ -40,6 +40,7 @@ gpm --version
 ### 3. Test with AI Agent
 
 **Example Claude Code conversation**:
+
 ```
 User: "Create a PR for my feature"
 
@@ -58,12 +59,13 @@ Claude: Let me create a PR using gpm:
 **Use case**: You're the only developer, reviewing code with AI before PRs
 
 **Configuration** (`.gpm.yml`):
+
 ```yaml
 branchProtection:
-  enabled: false  # Or set requireReviews: 0
-  requireReviews: 0  # No human reviews needed
+  enabled: false # Or set requireReviews: 0
+  requireReviews: 0 # No human reviews needed
   requireStatusChecks:
-    - quality-gate    # Still require CI to pass
+    - quality-gate # Still require CI to pass
   enforceAdmins: false
 
 ci:
@@ -81,6 +83,7 @@ autoFix:
 ```
 
 **Why this setup**:
+
 - ✅ No review bottleneck (you review with AI before PR)
 - ✅ Still requires CI checks to pass
 - ✅ Security scanning enabled
@@ -88,6 +91,7 @@ autoFix:
 - ⚡ Fast merge workflow
 
 **AI Agent Guidance**:
+
 ```
 When user is solo developer:
 - Recommend requireReviews: 0
@@ -102,19 +106,20 @@ When user is solo developer:
 **Use case**: Small team, occasional reviews, trust-based
 
 **Configuration**:
+
 ```yaml
 branchProtection:
   enabled: true
-  requireReviews: 1  # At least 1 review
+  requireReviews: 1 # At least 1 review
   requireStatusChecks:
     - quality-gate
     - gpm-security
-  enforceAdmins: false  # Allow admins to bypass
+  enforceAdmins: false # Allow admins to bypass
 
 ci:
   waitForChecks: true
   failFast: true
-  retryFlaky: true  # More forgiving for team
+  retryFlaky: true # More forgiving for team
 
 security:
   scanSecrets: true
@@ -122,12 +127,14 @@ security:
 ```
 
 **Why this setup**:
+
 - ✅ Light review requirement (1 person)
 - ✅ Admins can bypass if needed
 - ✅ Flaky test retry enabled
 - 🤝 Balance between safety and speed
 
 **AI Agent Guidance**:
+
 ```
 When team is small (2-5 people):
 - Recommend requireReviews: 1
@@ -142,33 +149,35 @@ When team is small (2-5 people):
 **Use case**: Multiple teams, strict compliance, regulated environments
 
 **Configuration**:
+
 ```yaml
 branchProtection:
   enabled: true
-  requireReviews: 2  # At least 2 reviews
+  requireReviews: 2 # At least 2 reviews
   requireStatusChecks:
     - quality-gate
     - gpm-security
     - integration-tests
     - e2e-tests
-  enforceAdmins: true  # Even admins follow rules
+  enforceAdmins: true # Even admins follow rules
 
 ci:
   waitForChecks: true
   failFast: true
-  retryFlaky: false  # Strict - no retries
-  timeout: 45  # Longer timeout for complex builds
+  retryFlaky: false # Strict - no retries
+  timeout: 45 # Longer timeout for complex builds
 
 security:
   scanSecrets: true
   scanDependencies: true
-  allowedVulnerabilities: []  # Block all vulnerabilities
+  allowedVulnerabilities: [] # Block all vulnerabilities
 
 autoFix:
-  enabled: false  # Disable auto-fix for auditability
+  enabled: false # Disable auto-fix for auditability
 ```
 
 **Why this setup**:
+
 - ✅ Strict review requirements (2 people)
 - ✅ All checks must pass (no flaky retry)
 - ✅ Admin enforcement for compliance
@@ -176,6 +185,7 @@ autoFix:
 - 🔒 Audit trail preserved
 
 **AI Agent Guidance**:
+
 ```
 When team is large or enterprise:
 - Recommend requireReviews: 2
@@ -191,20 +201,24 @@ When team is large or enterprise:
 ### Understanding the Options
 
 **`branchProtection.enabled`**:
+
 - `true`: Validates protection rules match GitHub settings
 - `false`: Skips validation (useful for solo devs)
 
 **`branchProtection.requireReviews`**:
+
 - `0`: No reviews required (solo dev)
 - `1`: Light review requirement (small team)
 - `2+`: Strict review requirement (enterprise)
 
 **`branchProtection.requireStatusChecks`**:
+
 - List of CI check names that must pass
 - Leave empty `[]` for no required checks
 - Example: `["quality-gate", "gpm-security"]`
 
 **`branchProtection.enforceAdmins`**:
+
 - `false`: Admins can bypass rules (flexibility)
 - `true`: Even admins follow rules (compliance)
 
@@ -213,11 +227,13 @@ When team is large or enterprise:
 **1. Edit `.gpm.yml`** (update requireReviews, etc.)
 
 **2. Apply to GitHub** (if using branch protection):
+
 ```bash
 gpm protect  # Applies settings to GitHub
 ```
 
 **3. Verify** (check GitHub settings match):
+
 ```bash
 gpm protect --show  # Display current protection
 ```
@@ -225,20 +241,23 @@ gpm protect --show  # Display current protection
 ### Changing Configuration Later
 
 **Remove review requirement**:
+
 ```yaml
 branchProtection:
-  requireReviews: 0  # Change from 1 to 0
+  requireReviews: 0 # Change from 1 to 0
 ```
 
 Then:
+
 ```bash
 gpm protect  # Re-applies with 0 reviews
 ```
 
 **Disable protection entirely**:
+
 ```yaml
 branchProtection:
-  enabled: false  # Skip validation
+  enabled: false # Skip validation
 ```
 
 ---
@@ -248,6 +267,7 @@ branchProtection:
 When setting up gpm for a new repository, AI agents should:
 
 ### 1. **Ask About Team Size** (if not obvious)
+
 ```
 AI: "Are you working solo, or is this a team repository?"
 
@@ -259,16 +279,18 @@ AI: "I'll configure with requireReviews: 1 for lightweight review"
 ```
 
 ### 2. **Show Configuration Before Applying**
+
 ```yaml
 # Proposed .gpm.yml (show to user first)
 branchProtection:
   enabled: true
-  requireReviews: 0  # ← Solo dev, no reviews
+  requireReviews: 0 # ← Solo dev, no reviews
   requireStatusChecks:
     - quality-gate
 ```
 
 ### 3. **Explain the Impact**
+
 ```
 AI: "This configuration will:
 ✅ Require CI checks to pass
@@ -281,6 +303,7 @@ To skip protection: Leave requireReviews: 0 and don't run gpm protect"
 ```
 
 ### 4. **Don't Auto-Run `gpm protect`**
+
 ```
 ❌ Bad: Run gpm protect without asking
 ✅ Good: Explain what it does, let user decide
@@ -299,11 +322,13 @@ For solo dev, you may prefer to skip this and just use gpm locally."
 ### Claude Code (Anthropic)
 
 **Setup**:
+
 1. Install gpm globally: `npm install -g @littlebearapps/git-pr-manager`
 2. Set `GITHUB_TOKEN` in shell environment
 3. Claude Code inherits environment variables automatically
 
 **Usage**:
+
 ```
 User: "Check the status of PR #123"
 Claude: [Executes] gpm checks 123 --json
@@ -311,6 +336,7 @@ Claude: [Parses JSON] "All 5 checks passed ✅"
 ```
 
 **Advantages**:
+
 - Deep integration with git workflows
 - Can parse complex JSON output
 - Understands error messages and suggests fixes
@@ -321,11 +347,13 @@ Claude: [Parses JSON] "All 5 checks passed ✅"
 ### Aider (Paul Gauthier)
 
 **Setup**:
+
 1. Install gpm: `npm install -g @littlebearapps/git-pr-manager`
 2. Export GITHUB_TOKEN in shell
 3. Launch Aider in project directory
 
 **Usage**:
+
 ```
 You: /run gpm auto
 
@@ -337,6 +365,7 @@ Aider: Running command: gpm auto
 ```
 
 **Advantages**:
+
 - `/run` command for direct CLI execution
 - Git-aware context
 - Can commit changes before running gpm
@@ -346,11 +375,13 @@ Aider: Running command: gpm auto
 ### Cursor (Anysphere)
 
 **Setup**:
+
 1. Install gpm globally
 2. Configure GITHUB_TOKEN in terminal
 3. Use Cursor's terminal integration
 
 **Usage** (via Cursor terminal):
+
 ```bash
 # AI generates and runs:
 gpm feature add-auth
@@ -359,6 +390,7 @@ gpm auto
 ```
 
 **Advantages**:
+
 - IDE integration
 - Visual feedback in editor
 - Can reference code changes in PR description
@@ -368,12 +400,14 @@ gpm auto
 ### GitHub Copilot CLI
 
 **Setup**:
+
 ```bash
 npm install -g @littlebearapps/git-pr-manager
 export GITHUB_TOKEN="ghp_..."
 ```
 
 **Usage**:
+
 ```bash
 # Natural language command
 gh copilot suggest "create a PR with gpm"
@@ -389,11 +423,13 @@ gpm auto --title "feat: add authentication"
 Any AI agent with shell access can use gpm:
 
 **Requirements**:
+
 - Can execute bash commands
 - Can parse JSON output
 - Has access to environment variables
 
 **Integration**:
+
 ```python
 import subprocess
 import json
@@ -433,6 +469,7 @@ gpm auto --json
 ```
 
 **For complete JSON schema documentation**, see [JSON-OUTPUT-SCHEMAS.md](JSON-OUTPUT-SCHEMAS.md) which includes:
+
 - Standard response format
 - Per-command JSON schemas
 - Example outputs for all commands
@@ -443,19 +480,21 @@ gpm auto --json
 ### Parsing JSON in Different Languages
 
 **JavaScript/Node.js**:
+
 ```javascript
-const { execSync } = require('child_process');
+const { execSync } = require("child_process");
 
 function runGpm(command) {
-  const output = execSync(`gpm ${command} --json`, { encoding: 'utf-8' });
+  const output = execSync(`gpm ${command} --json`, { encoding: "utf-8" });
   return JSON.parse(output);
 }
 
-const status = runGpm('checks 123');
+const status = runGpm("checks 123");
 console.log(`Overall status: ${status.overallStatus}`);
 ```
 
 **Python**:
+
 ```python
 import subprocess
 import json
@@ -474,6 +513,7 @@ print(f"Overall status: {status['overallStatus']}")
 ```
 
 **Go**:
+
 ```go
 package main
 
@@ -511,6 +551,7 @@ func runGpm(command string) (*CheckStatus, error) {
 **User Request**: "Create a PR for this feature"
 
 **AI Agent Execution**:
+
 ```bash
 # Step 1: Check current branch
 gpm status --json
@@ -531,11 +572,13 @@ gpm auto --json
 **User Request**: "Has PR #123 passed CI?"
 
 **AI Agent Execution**:
+
 ```bash
 gpm checks 123 --json
 ```
 
 **Output**:
+
 ```json
 {
   "total": 5,
@@ -555,11 +598,13 @@ gpm checks 123 --json
 **User Request**: "Why did the CI fail?"
 
 **AI Agent Execution**:
+
 ```bash
 gpm checks 123 --json
 ```
 
 **Output**:
+
 ```json
 {
   "failed": 1,
@@ -576,6 +621,7 @@ gpm checks 123 --json
 ```
 
 **AI Response**:
+
 ```
 ❌ Test Suite failed:
 - 3 tests failed in auth.test.ts
@@ -594,11 +640,13 @@ Would you like me to:
 **User Request**: "Scan for security issues before committing"
 
 **AI Agent Execution**:
+
 ```bash
 gpm security --json
 ```
 
 **Output**:
+
 ```json
 {
   "passed": false,
@@ -615,6 +663,7 @@ gpm security --json
 ```
 
 **AI Response**:
+
 ```
 ⚠️ Security issue found:
 - AWS Access Key detected in config/database.js:12
@@ -635,6 +684,7 @@ Proceed with fix?
 **User Request**: "Can I merge this PR?"
 
 **AI Agent Execution**:
+
 ```bash
 # Check PR status
 gpm checks $PR_NUMBER --json
@@ -644,13 +694,16 @@ gpm protect --show --json
 ```
 
 **AI Decision Logic**:
+
 ```javascript
 const checks = runGpm(`checks ${prNumber}`);
-const protection = runGpm('protect --show');
+const protection = runGpm("protect --show");
 
-if (checks.overallStatus === 'success' &&
-    protection.requireReviews <= checks.approvals) {
-  return 'Ready to merge ✅';
+if (
+  checks.overallStatus === "success" &&
+  protection.requireReviews <= checks.approvals
+) {
+  return "Ready to merge ✅";
 } else {
   return `Not ready: ${checks.failed} checks failed, need ${protection.requireReviews - checks.approvals} more reviews`;
 }
@@ -661,14 +714,16 @@ if (checks.overallStatus === 'success' &&
 **User Request**: "Is gpm up to date?"
 
 **AI Agent Execution**:
+
 ```bash
 # Check for updates (machine-readable)
 gpm check-update --json
 ```
 
 **AI Response**:
+
 ```javascript
-const updateCheck = runGpm('check-update');
+const updateCheck = runGpm("check-update");
 
 if (updateCheck.success && updateCheck.updateAvailable) {
   return `Update available: ${updateCheck.currentVersion} → ${updateCheck.latestVersion}
@@ -681,11 +736,13 @@ Run: npm install -g @littlebearapps/git-pr-manager`;
 ```
 
 **Exit Codes**:
+
 - `0` - No update available (already latest)
 - `1` - Update available
 - `2` - Error during check
 
 **JSON Output**:
+
 ```json
 {
   "success": true,
@@ -698,18 +755,19 @@ Run: npm install -g @littlebearapps/git-pr-manager`;
 ```
 
 **AI Agent Integration**:
+
 ```javascript
 // Check for updates periodically
 async function checkGpmUpdates() {
-  const result = runGpm('check-update');
+  const result = runGpm("check-update");
 
   if (result.updateAvailable) {
     // Option 1: Notify user
     console.log(`📦 gpm update available: ${result.latestVersion}`);
 
     // Option 2: Auto-update (optional, ask user first)
-    if (await askUser('Update gpm?')) {
-      execSync('npm install -g @littlebearapps/git-pr-manager');
+    if (await askUser("Update gpm?")) {
+      execSync("npm install -g @littlebearapps/git-pr-manager");
     }
   }
 }
@@ -722,6 +780,7 @@ async function checkGpmUpdates() {
 **User Request**: "Set up git hooks for this project" or "I want reminders before pushing"
 
 **AI Agent Execution**:
+
 ```bash
 # Install pre-push hook (default)
 gpm install-hooks
@@ -734,6 +793,7 @@ gpm status --json
 ```
 
 **Recommendation Logic**:
+
 ```javascript
 // When to recommend hooks
 function shouldRecommendHooks(context) {
@@ -741,7 +801,7 @@ function shouldRecommendHooks(context) {
   if (context.teamSize <= 3) {
     return {
       recommend: true,
-      reason: 'Hooks provide helpful reminders without blocking workflow'
+      reason: "Hooks provide helpful reminders without blocking workflow",
     };
   }
 
@@ -749,7 +809,8 @@ function shouldRecommendHooks(context) {
   if (context.hasCIChecks) {
     return {
       recommend: true,
-      reason: 'Pre-push hook reminds developers to run gpm ship for automated PR workflow'
+      reason:
+        "Pre-push hook reminds developers to run gpm ship for automated PR workflow",
     };
   }
 
@@ -757,15 +818,16 @@ function shouldRecommendHooks(context) {
   if (context.teamSize > 10) {
     return {
       recommend: false,
-      reason: 'Large teams should use branch protection and CI for enforcement'
+      reason: "Large teams should use branch protection and CI for enforcement",
     };
   }
 
-  return { recommend: true, reason: 'Default recommendation' };
+  return { recommend: true, reason: "Default recommendation" };
 }
 ```
 
 **AI Response** (when recommending installation):
+
 ```
 I can set up git hooks to provide helpful workflow reminders. These hooks are:
 
@@ -790,21 +852,23 @@ Would you like me to install:
 ```
 
 **Installation Flow**:
+
 ```javascript
 async function installHooks(options) {
   // Default: just pre-push
   if (!options.postCommit) {
-    execSync('gpm install-hooks');
+    execSync("gpm install-hooks");
     return `✅ Installed pre-push hook. You'll see helpful reminders before pushing.`;
   }
 
   // Both hooks
-  execSync('gpm install-hooks --post-commit');
+  execSync("gpm install-hooks --post-commit");
   return `✅ Installed pre-push and post-commit hooks. You'll see reminders at both stages.`;
 }
 ```
 
 **Explaining Hook Behavior**:
+
 ```
 The hooks I installed are "reminder-only" hooks:
 
@@ -827,6 +891,7 @@ You can uninstall anytime with: `gpm uninstall-hooks`
 **User Request**: "Remove the git hooks" or "Disable the reminders"
 
 **AI Agent Execution**:
+
 ```bash
 # Uninstall all gpm hooks
 gpm uninstall-hooks
@@ -836,6 +901,7 @@ gpm status --json
 ```
 
 **AI Response**:
+
 ```
 ✅ Removed all gpm git hooks.
 
@@ -847,26 +913,28 @@ You can reinstall anytime with:
 ```
 
 **Safety Checks**:
+
 ```javascript
 // AI should verify before uninstalling
 async function uninstallHooks() {
   // Check if hooks are gpm-managed
-  const hooksStatus = runGpm('status --json');
+  const hooksStatus = runGpm("status --json");
 
   if (!hooksStatus.hooks || !hooksStatus.hooks.prePush.enabled) {
-    return '⚠️  No gpm hooks are currently installed.';
+    return "⚠️  No gpm hooks are currently installed.";
   }
 
   // Uninstall
-  execSync('gpm uninstall-hooks');
+  execSync("gpm uninstall-hooks");
 
   return `✅ Uninstalled gpm hooks:
-- Pre-push: ${hooksStatus.hooks.prePush.enabled ? 'Removed' : 'Not installed'}
-- Post-commit: ${hooksStatus.hooks.postCommit.enabled ? 'Removed' : 'Not installed'}`;
+- Pre-push: ${hooksStatus.hooks.prePush.enabled ? "Removed" : "Not installed"}
+- Post-commit: ${hooksStatus.hooks.postCommit.enabled ? "Removed" : "Not installed"}`;
 }
 ```
 
 **Advanced: Force Reinstall**:
+
 ```bash
 # Overwrite existing hooks (if user has custom hooks)
 gpm install-hooks --force
@@ -879,6 +947,7 @@ gpm install-hooks --force
 ```
 
 **JSON Output** (for status checking):
+
 ```json
 {
   "hooks": {
@@ -912,20 +981,20 @@ gpm install-hooks --force
 function runGpmSafely(command) {
   try {
     const output = execSync(`gpm ${command} --json`, {
-      encoding: 'utf-8',
-      stdio: 'pipe'
+      encoding: "utf-8",
+      stdio: "pipe",
     });
     return { success: true, data: JSON.parse(output) };
   } catch (error) {
     // Parse error from stderr
     const errorOutput = error.stderr || error.message;
 
-    if (errorOutput.includes('Rate limit exceeded')) {
-      return { success: false, error: 'RATE_LIMIT', message: errorOutput };
-    } else if (errorOutput.includes('GITHUB_TOKEN')) {
-      return { success: false, error: 'AUTH', message: errorOutput };
+    if (errorOutput.includes("Rate limit exceeded")) {
+      return { success: false, error: "RATE_LIMIT", message: errorOutput };
+    } else if (errorOutput.includes("GITHUB_TOKEN")) {
+      return { success: false, error: "AUTH", message: errorOutput };
     } else {
-      return { success: false, error: 'UNKNOWN', message: errorOutput };
+      return { success: false, error: "UNKNOWN", message: errorOutput };
     }
   }
 }
@@ -943,15 +1012,15 @@ async function runGpmWithRetry(command, maxRetries = 3) {
     }
 
     // Retry on rate limit
-    if (result.error === 'RATE_LIMIT') {
+    if (result.error === "RATE_LIMIT") {
       console.log(`Rate limited, waiting ${i + 1} minutes...`);
       await sleep((i + 1) * 60000);
       continue;
     }
 
     // Don't retry on auth errors
-    if (result.error === 'AUTH') {
-      throw new Error('GitHub authentication failed');
+    if (result.error === "AUTH") {
+      throw new Error("GitHub authentication failed");
     }
 
     // Retry on unknown errors
@@ -959,7 +1028,7 @@ async function runGpmWithRetry(command, maxRetries = 3) {
     await sleep(1000);
   }
 
-  throw new Error('Max retries exceeded');
+  throw new Error("Max retries exceeded");
 }
 ```
 
@@ -993,12 +1062,12 @@ fi
 ### 3. Handle Rate Limits Gracefully
 
 ```javascript
-const result = runGpm('checks 123');
+const result = runGpm("checks 123");
 
-if (result.error === 'RATE_LIMIT') {
+if (result.error === "RATE_LIMIT") {
   // Wait and retry, or notify user
-  console.log('Rate limited. GitHub API limit: 5000 requests/hour');
-  console.log('Check status at: https://api.github.com/rate_limit');
+  console.log("Rate limited. GitHub API limit: 5000 requests/hour");
+  console.log("Check status at: https://api.github.com/rate_limit");
 }
 ```
 
@@ -1006,15 +1075,15 @@ if (result.error === 'RATE_LIMIT') {
 
 ```javascript
 try {
-  const result = runGpm('auto');
+  const result = runGpm("auto");
 } catch (error) {
   // Good: Provide context and suggestions
   console.log(`Failed to create PR: ${error.message}`);
-  console.log('Possible causes:');
-  console.log('  1. No GITHUB_TOKEN set');
-  console.log('  2. Branch has no changes');
-  console.log('  3. PR already exists');
-  console.log('Run: gpm status --json to diagnose');
+  console.log("Possible causes:");
+  console.log("  1. No GITHUB_TOKEN set");
+  console.log("  2. Branch has no changes");
+  console.log("  3. PR already exists");
+  console.log("Run: gpm status --json to diagnose");
 }
 ```
 
@@ -1055,9 +1124,9 @@ class GitWorkflowAgent {
     await this.makeChanges();
 
     // Step 3: Run security scan
-    const security = await this.runGpm('security');
+    const security = await this.runGpm("security");
     if (!security.passed) {
-      throw new Error('Security scan failed');
+      throw new Error("Security scan failed");
     }
 
     // Step 4: Create PR
@@ -1068,7 +1137,7 @@ class GitWorkflowAgent {
     const checks = await this.waitForCI(pr.number);
 
     // Step 6: Auto-merge if all checks pass
-    if (checks.overallStatus === 'success') {
+    if (checks.overallStatus === "success") {
       await this.mergePR(pr.number);
     }
 
@@ -1081,11 +1150,11 @@ class GitWorkflowAgent {
     while (Date.now() - startTime < timeout) {
       const checks = await this.runGpm(`checks ${prNumber}`);
 
-      if (checks.overallStatus === 'success') {
+      if (checks.overallStatus === "success") {
         return checks;
       }
 
-      if (checks.overallStatus === 'failure') {
+      if (checks.overallStatus === "failure") {
         throw new Error(`CI failed: ${checks.failed} checks failed`);
       }
 
@@ -1093,11 +1162,11 @@ class GitWorkflowAgent {
       await sleep(Math.min(30000, 5000 * Math.pow(1.5, attempts++)));
     }
 
-    throw new Error('CI timeout');
+    throw new Error("CI timeout");
   }
 
   async runGpm(command) {
-    const output = execSync(`gpm ${command} --json`, { encoding: 'utf-8' });
+    const output = execSync(`gpm ${command} --json`, { encoding: "utf-8" });
     return JSON.parse(output);
   }
 }
@@ -1108,27 +1177,27 @@ class GitWorkflowAgent {
 ```javascript
 // Listen for PR events and trigger gpm
 async function handlePREvent(event) {
-  if (event.action === 'opened' || event.action === 'synchronize') {
+  if (event.action === "opened" || event.action === "synchronize") {
     // Run security scan on new PRs
-    const security = await runGpm('security');
+    const security = await runGpm("security");
 
     if (!security.passed) {
       // Comment on PR with security issues
       await github.issues.createComment({
         issue_number: event.number,
-        body: formatSecurityReport(security)
+        body: formatSecurityReport(security),
       });
     }
   }
 
-  if (event.action === 'labeled' && event.label.name === 'auto-merge') {
+  if (event.action === "labeled" && event.label.name === "auto-merge") {
     // Auto-merge labeled PRs
     const checks = await runGpm(`checks ${event.number}`);
 
-    if (checks.overallStatus === 'success') {
+    if (checks.overallStatus === "success") {
       await github.pulls.merge({
         pull_number: event.number,
-        merge_method: 'squash'
+        merge_method: "squash",
       });
     }
   }
@@ -1142,15 +1211,16 @@ async function handlePREvent(event) {
 ### Issue: "Command not found: gpm"
 
 **Solution for AI agents**:
+
 ```javascript
 // Check if gpm is installed
 function checkGpmInstalled() {
   try {
-    execSync('gpm --version', { stdio: 'ignore' });
+    execSync("gpm --version", { stdio: "ignore" });
     return true;
   } catch (error) {
-    console.log('gpm not installed. Installing...');
-    execSync('npm install -g @littlebearapps/git-pr-manager');
+    console.log("gpm not installed. Installing...");
+    execSync("npm install -g @littlebearapps/git-pr-manager");
     return true;
   }
 }
@@ -1159,13 +1229,14 @@ function checkGpmInstalled() {
 ### Issue: "GITHUB_TOKEN not found"
 
 **Solution**:
+
 ```javascript
 function ensureGitHubToken() {
   if (!process.env.GITHUB_TOKEN && !process.env.GH_TOKEN) {
     throw new Error(
-      'GitHub token not found. Set GITHUB_TOKEN:\n' +
-      '  export GITHUB_TOKEN="ghp_..."\n' +
-      'Generate at: https://github.com/settings/tokens'
+      "GitHub token not found. Set GITHUB_TOKEN:\n" +
+        '  export GITHUB_TOKEN="ghp_..."\n' +
+        "Generate at: https://github.com/settings/tokens",
     );
   }
 }
@@ -1174,13 +1245,14 @@ function ensureGitHubToken() {
 ### Issue: JSON parsing fails
 
 **Solution**:
+
 ```javascript
 function safeParseJSON(output) {
   try {
     return JSON.parse(output);
   } catch (error) {
-    console.error('Failed to parse gpm output:', output);
-    console.error('Error:', error.message);
+    console.error("Failed to parse gpm output:", output);
+    console.error("Error:", error.message);
 
     // Try to extract JSON from mixed output
     const jsonMatch = output.match(/\{[\s\S]*\}/);
@@ -1188,7 +1260,7 @@ function safeParseJSON(output) {
       return JSON.parse(jsonMatch[0]);
     }
 
-    throw new Error('Invalid JSON output from gpm');
+    throw new Error("Invalid JSON output from gpm");
   }
 }
 ```
@@ -1203,7 +1275,7 @@ function safeParseJSON(output) {
  * Example AI agent that uses gpm for PR automation
  */
 
-const { execSync } = require('child_process');
+const { execSync } = require("child_process");
 
 class GitWorkflowAI {
   constructor() {
@@ -1213,54 +1285,54 @@ class GitWorkflowAI {
   ensureSetup() {
     // Check gpm is installed
     try {
-      execSync('gpm --version', { stdio: 'ignore' });
+      execSync("gpm --version", { stdio: "ignore" });
     } catch (error) {
-      console.log('Installing git-pr-manager...');
-      execSync('npm install -g @littlebearapps/git-pr-manager');
+      console.log("Installing git-pr-manager...");
+      execSync("npm install -g @littlebearapps/git-pr-manager");
     }
 
     // Check GITHUB_TOKEN
     if (!process.env.GITHUB_TOKEN) {
-      throw new Error('GITHUB_TOKEN environment variable not set');
+      throw new Error("GITHUB_TOKEN environment variable not set");
     }
   }
 
   runGpm(command) {
     try {
       const output = execSync(`gpm ${command} --json`, {
-        encoding: 'utf-8',
-        stdio: 'pipe'
+        encoding: "utf-8",
+        stdio: "pipe",
       });
       return JSON.parse(output);
     } catch (error) {
-      console.error('gpm error:', error.stderr);
+      console.error("gpm error:", error.stderr);
       throw error;
     }
   }
 
   async handleUserRequest(request) {
-    if (request.includes('create PR')) {
+    if (request.includes("create PR")) {
       return this.createPR();
-    } else if (request.includes('check CI')) {
+    } else if (request.includes("check CI")) {
       const prNumber = this.extractPRNumber(request);
       return this.checkCI(prNumber);
-    } else if (request.includes('merge')) {
+    } else if (request.includes("merge")) {
       const prNumber = this.extractPRNumber(request);
       return this.mergePR(prNumber);
     }
   }
 
   createPR() {
-    console.log('Creating PR with gpm auto...');
+    console.log("Creating PR with gpm auto...");
 
     // Run security scan first
-    const security = this.runGpm('security');
+    const security = this.runGpm("security");
     if (!security.passed) {
       return `❌ Security scan failed: ${security.secretsFound} secrets found`;
     }
 
     // Create PR
-    const result = this.runGpm('auto');
+    const result = this.runGpm("auto");
     return `✅ PR #${result.prNumber} created: ${result.url}`;
   }
 
@@ -1269,14 +1341,14 @@ class GitWorkflowAI {
 
     const checks = this.runGpm(`checks ${prNumber}`);
 
-    if (checks.overallStatus === 'success') {
+    if (checks.overallStatus === "success") {
       return `✅ All ${checks.passed} checks passed!`;
-    } else if (checks.overallStatus === 'pending') {
+    } else if (checks.overallStatus === "pending") {
       return `⏳ ${checks.passed}/${checks.total} checks completed, ${checks.pending} pending...`;
     } else {
       const failures = checks.failureDetails
-        .map(f => `  - ${f.checkName}: ${f.summary}`)
-        .join('\n');
+        .map((f) => `  - ${f.checkName}: ${f.summary}`)
+        .join("\n");
       return `❌ ${checks.failed} check(s) failed:\n${failures}`;
     }
   }
@@ -1294,6 +1366,7 @@ console.log(response);
 ```
 
 **Run it**:
+
 ```bash
 ./ai-agent.js "create PR"
 ./ai-agent.js "check CI for PR #123"
@@ -1306,17 +1379,20 @@ console.log(response);
 ### ✅ Use gpm for Local Automation, Not CI Orchestration
 
 **gpm is designed for**:
+
 - ✅ Local developer workflows (`gpm ship`, `gpm auto`)
 - ✅ Security scanning in CI (`gpm security`)
 - ✅ Status checking during development
 - ✅ Automated PR management from developer machines
 
 **gpm is NOT designed for**:
+
 - ❌ Orchestrating GitHub Actions workflows
 - ❌ Creating workflows to monitor other workflows
 - ❌ Replacing GitHub's built-in PR status checks
 
 **Example - Good AI agent integration**:
+
 ```
 User: "Create a PR for my changes"
 
@@ -1330,6 +1406,7 @@ AI Agent:
 ```
 
 **Example - Bad AI agent integration**:
+
 ```
 User: "Set up gpm in GitHub Actions"
 
@@ -1348,26 +1425,29 @@ AI Agent:
 When proposing GitHub Actions integration:
 
 **✅ Good proposal**:
+
 ```yaml
 # Add gpm as validation step in existing workflow
 jobs:
   security:
     steps:
       - name: Security scan
-        run: gpm security  # Adds value
+        run: gpm security # Adds value
 ```
 
 **❌ Bad proposal**:
+
 ```yaml
 # Create separate workflow to check other workflows
 jobs:
   check-status:
     steps:
       - name: Monitor CI
-        run: gpm checks $PR_NUMBER  # Redundant
+        run: gpm checks $PR_NUMBER # Redundant
 ```
 
 **Why the second is bad**:
+
 - GitHub already provides PR check status
 - Creates workflow to monitor workflows (circular)
 - Adds complexity without value
@@ -1382,6 +1462,7 @@ jobs:
 When users ask about CI monitoring:
 
 **✅ Good response**:
+
 ```
 "You can monitor PR checks locally:
   gpm checks 47          # Check PR #47 status
@@ -1392,6 +1473,7 @@ GitHub's PR UI already shows check status in CI."
 ```
 
 **❌ Bad response**:
+
 ```
 "Let's create a workflow to monitor checks:
   [proposes separate workflow file]
@@ -1406,12 +1488,14 @@ This will run gpm checks on every PR."
 **Core principle**: gpm enhances **developer workflows**, not CI orchestration.
 
 **When to recommend gpm**:
+
 - ✅ User wants to automate PR creation locally
 - ✅ User needs security scanning in CI
 - ✅ User wants structured JSON output
 - ✅ User needs to monitor checks during development
 
 **When NOT to recommend gpm**:
+
 - ❌ GitHub's built-in features already cover the need
 - ❌ Would create meta-workflows (workflows checking workflows)
 - ❌ Would duplicate existing CI checks
@@ -1422,12 +1506,14 @@ This will run gpm checks on every PR."
 ### ✅ Suggest Appropriate Integration Points
 
 **Good integration points**:
+
 1. **Local development**: `gpm ship`, `gpm auto`, `gpm checks`
 2. **CI validation**: `gpm security` as additional scanning
 3. **Pre-commit hooks**: `gpm security` for local validation
 4. **Documentation**: `gpm docs` for discovery
 
 **Poor integration points**:
+
 1. ❌ Separate workflow to check other workflows
 2. ❌ Monitoring GitHub's built-in PR checks
 3. ❌ Orchestrating existing CI pipelines

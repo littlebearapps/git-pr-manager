@@ -37,7 +37,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
 
       - name: Install git-pr-manager
         run: npm install -g @littlebearapps/git-pr-manager
@@ -60,6 +60,7 @@ jobs:
 ```
 
 **Pros**:
+
 - Binary available system-wide as `gpm`
 - No path configuration needed
 - Works like standard CLI tools
@@ -75,6 +76,7 @@ jobs:
 ```
 
 **Pros**:
+
 - Version pinned in package.json
 - No global namespace pollution
 
@@ -86,7 +88,7 @@ jobs:
 
 ```yaml
 env:
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Required for GitHub API
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Required for GitHub API
 ```
 
 **Note**: GitHub automatically provides `GITHUB_TOKEN` with permissions for the current repository. No manual secret creation needed for basic operations.
@@ -95,8 +97,8 @@ env:
 
 ```yaml
 env:
-  DEBUG: 1                    # Enable debug logging
-  GH_TOKEN: ${{ secrets.CUSTOM_TOKEN }}  # Alternative to GITHUB_TOKEN
+  DEBUG: 1 # Enable debug logging
+  GH_TOKEN: ${{ secrets.CUSTOM_TOKEN }} # Alternative to GITHUB_TOKEN
 ```
 
 ### Using Custom GitHub Tokens
@@ -138,7 +140,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
 
       - name: Install gpm
         run: npm install -g @littlebearapps/git-pr-manager
@@ -192,7 +194,7 @@ on:
   workflow_dispatch:
     inputs:
       feature_name:
-        description: 'Feature branch name'
+        description: "Feature branch name"
         required: true
 
 jobs:
@@ -216,7 +218,7 @@ jobs:
 name: Validate Branch Protection
 on:
   schedule:
-    - cron: '0 0 * * 1'  # Weekly on Monday
+    - cron: "0 0 * * 1" # Weekly on Monday
   workflow_dispatch:
 
 jobs:
@@ -320,7 +322,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
 
       - name: Install gpm
         run: npm install -g @littlebearapps/git-pr-manager
@@ -338,7 +340,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
 
       - name: Install gpm
         run: npm install -g @littlebearapps/git-pr-manager
@@ -359,7 +361,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
 
       - name: Install gpm
         run: npm install -g @littlebearapps/git-pr-manager
@@ -446,6 +448,7 @@ All `gpm` commands support `--json` flag for machine-readable output:
 ### Example JSON Output
 
 **gpm checks --json**:
+
 ```json
 {
   "total": 5,
@@ -460,6 +463,7 @@ All `gpm` commands support `--json` flag for machine-readable output:
 ```
 
 **gpm security --json**:
+
 ```json
 {
   "passed": true,
@@ -511,6 +515,7 @@ gpm automatically detects CI environments and adjusts output:
 ### Using .gpm.yml in Repository
 
 1. **Commit .gpm.yml to repository**:
+
    ```yaml
    # .gpm.yml
    branchProtection:
@@ -556,6 +561,7 @@ Use `gpm doctor` to verify your CI environment has all required and optional too
 ```
 
 **Example output in CI**:
+
 ```
 ▸ System Health Check
 ✅ GitHub token: GITHUB_TOKEN
@@ -567,6 +573,7 @@ Use `gpm doctor` to verify your CI environment has all required and optional too
 ```
 
 **When to use**:
+
 - Debugging "tool not found" errors
 - Verifying optional dependencies are installed
 - Confirming environment setup before running workflows
@@ -588,6 +595,7 @@ Use `gpm doctor --pre-release` to validate your repository is ready for publishi
 ```
 
 **Automated Checks** (7 validations):
+
 - ✅ Required workflow files exist (ci.yml, publish.yml)
 - ✅ README badge URLs match actual workflow names
 - ⚠️ package.json version is `0.0.0-development` (warning only)
@@ -597,18 +605,21 @@ Use `gpm doctor --pre-release` to validate your repository is ready for publishi
 - ⚠️ All CI checks passed for HEAD commit (warning if gh CLI unavailable)
 
 **When to use**:
+
 - Before npm publish in release workflows
 - Part of Alternative D release validation strategy
 - Catches configuration issues before semantic-release runs
 - Prevents publishing with uncommitted changes or wrong branch
 
 **Exit codes**:
+
 - `0` - All checks passed (or only warnings)
 - `1` - One or more critical checks failed
 
 ### Issue: "No GitHub token found"
 
 **Solution**: Ensure GITHUB_TOKEN is set:
+
 ```yaml
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -617,12 +628,14 @@ env:
 ### Issue: "Rate limit exceeded"
 
 **Solution 1**: Use authenticated requests (GITHUB_TOKEN):
+
 ```yaml
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 **Solution 2**: Increase timeout for rate limit recovery:
+
 ```yaml
 - run: gpm checks 123
   timeout-minutes: 10
@@ -631,8 +644,9 @@ env:
 ### Issue: "git command not found"
 
 **Solution**: Ensure checkout action runs first:
+
 ```yaml
-- uses: actions/checkout@v4  # Must run before gpm commands
+- uses: actions/checkout@v4 # Must run before gpm commands
 - run: gpm status
 ```
 
@@ -642,21 +656,23 @@ env:
 
 ```yaml
 permissions:
-  contents: read      # Read repository content
-  pull-requests: write  # Create/update PRs
-  checks: read        # Read CI check status
-  statuses: read      # Read commit statuses
+  contents: read # Read repository content
+  pull-requests: write # Create/update PRs
+  checks: read # Read CI check status
+  statuses: read # Read commit statuses
 ```
 
 ### Issue: "Command not found: gpm"
 
 **Solution 1**: Install globally:
+
 ```yaml
 - run: npm install -g @littlebearapps/git-pr-manager
 - run: gpm --version
 ```
 
 **Solution 2**: Use npx:
+
 ```yaml
 - run: npm install @littlebearapps/git-pr-manager
 - run: npx gpm --version
@@ -672,8 +688,8 @@ permissions:
 - name: Setup Node.js
   uses: actions/setup-node@v4
   with:
-    node-version: '20'
-    cache: 'npm'
+    node-version: "20"
+    cache: "npm"
 
 - name: Install gpm
   run: npm install -g @littlebearapps/git-pr-manager
@@ -701,7 +717,7 @@ steps:
 ```yaml
 - name: Wait for CI
   run: gpm checks ${{ github.event.pull_request.number }}
-  timeout-minutes: 30  # Prevent hanging jobs
+  timeout-minutes: 30 # Prevent hanging jobs
   env:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
@@ -731,13 +747,13 @@ jobs:
       - run: gpm security
 
   validate:
-    needs: security  # Wait for security to complete
+    needs: security # Wait for security to complete
     runs-on: ubuntu-latest
     steps:
       - run: gpm checks $PR_NUMBER
 
   deploy:
-    needs: [security, validate]  # Wait for both
+    needs: [security, validate] # Wait for both
     runs-on: ubuntu-latest
     steps:
       - run: ./deploy.sh
@@ -765,8 +781,8 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: "20"
+          cache: "npm"
 
       - name: Install gpm
         run: npm install -g @littlebearapps/git-pr-manager
@@ -786,8 +802,8 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: "20"
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
@@ -806,7 +822,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
 
       - name: Install gpm
         run: npm install -g @littlebearapps/git-pr-manager
@@ -861,6 +877,7 @@ jobs:
 ```
 
 **Why this is bad**:
+
 - Creates circular dependency (workflow checking workflows)
 - Duplicates GitHub's built-in PR status checks
 - Adds maintenance overhead without value
@@ -869,6 +886,7 @@ jobs:
 **✅ Better alternatives**:
 
 1. **Use gpm locally** for PR monitoring:
+
    ```bash
    # Developer workflow
    gpm status              # Check current branch status
@@ -877,6 +895,7 @@ jobs:
    ```
 
 2. **Add gpm to existing workflows** as validation steps:
+
    ```yaml
    # ✅ GOOD: Part of existing workflow
    jobs:
@@ -884,7 +903,7 @@ jobs:
        runs-on: ubuntu-latest
        steps:
          - name: Run security scan
-           run: gpm security  # Adds value, doesn't duplicate
+           run: gpm security # Adds value, doesn't duplicate
    ```
 
 3. **Use GitHub's built-in features**:
@@ -897,17 +916,20 @@ jobs:
 ### ✅ Best Practice: gpm as Validation, Not Orchestration
 
 **gpm is designed for**:
+
 - ✅ Security scanning (`gpm security`)
 - ✅ Local PR workflows (`gpm ship`, `gpm auto`)
 - ✅ CLI automation for developers
 - ✅ Validation steps in existing workflows
 
 **gpm is NOT designed for**:
+
 - ❌ Orchestrating other GitHub Actions workflows
 - ❌ Replacing GitHub's workflow engine
 - ❌ Creating meta-workflows that monitor workflows
 
 **Key principle**: Let GitHub Actions handle workflow execution. Use gpm for:
+
 - **Security**: Scanning secrets and vulnerabilities
 - **Developer UX**: Local CLI automation
 - **Validation**: Checking requirements in CI steps
@@ -917,6 +939,7 @@ jobs:
 ### ✅ Best Practice: Keep Workflows Simple
 
 **Good workflow structure**:
+
 ```yaml
 jobs:
   # 1. Run your tests/builds
@@ -932,10 +955,11 @@ jobs:
     needs: test
     steps:
       - name: Security scan
-        run: gpm security  # Complements existing checks
+        run: gpm security # Complements existing checks
 ```
 
 **Avoid**:
+
 - Multiple layers of workflow dependencies
 - Workflows that only call other tools without adding value
 - Duplicating checks that GitHub already provides
@@ -945,12 +969,14 @@ jobs:
 ### ✅ Best Practice: Use gpm Where It Adds Value
 
 **Add gpm when**:
+
 - ✅ You need security scanning beyond existing tools
 - ✅ You want standardized git workflows for developers
 - ✅ You need structured JSON output for reporting
 - ✅ You want automated PR workflows locally
 
 **Skip gpm when**:
+
 - ❌ GitHub's built-in features already cover the need
 - ❌ It would duplicate existing CI checks
 - ❌ It adds complexity without clear benefit

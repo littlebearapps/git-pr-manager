@@ -1,20 +1,24 @@
-import { VerifyService } from '../../src/services/VerifyService';
-import * as child_process from 'child_process';
-import * as fs from 'fs/promises';
-import * as path from 'path';
+import { VerifyService } from "../../src/services/VerifyService";
+import * as child_process from "child_process";
+import * as fs from "fs/promises";
+import * as path from "path";
 
 // Mock dependencies
-jest.mock('child_process');
-jest.mock('fs/promises');
+jest.mock("child_process");
+jest.mock("fs/promises");
 
-const mockedExec = child_process.exec as jest.MockedFunction<typeof child_process.exec>;
-const mockedExecSync = child_process.execSync as jest.MockedFunction<typeof child_process.execSync>;
+const mockedExec = child_process.exec as jest.MockedFunction<
+  typeof child_process.exec
+>;
+const mockedExecSync = child_process.execSync as jest.MockedFunction<
+  typeof child_process.execSync
+>;
 const mockedFsAccess = fs.access as jest.MockedFunction<typeof fs.access>;
 const mockedFsReadFile = fs.readFile as jest.MockedFunction<typeof fs.readFile>;
 
-describe('VerifyService', () => {
+describe("VerifyService", () => {
   let verifyService: VerifyService;
-  const testDir = path.resolve('/test/dir');
+  const testDir = path.resolve("/test/dir");
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -22,24 +26,24 @@ describe('VerifyService', () => {
     // Mock execSync to simulate gpm not being available
     // Tests can override this if they need to test gpm verify behavior
     mockedExecSync.mockImplementation(() => {
-      throw new Error('command not found');
+      throw new Error("command not found");
     });
 
     verifyService = new VerifyService(testDir);
   });
 
-  describe('runChecks', () => {
-    it('should return success when no verification script found', async () => {
-      mockedFsAccess.mockRejectedValue(new Error('not found'));
+  describe("runChecks", () => {
+    it("should return success when no verification script found", async () => {
+      mockedFsAccess.mockRejectedValue(new Error("not found"));
 
       const result = await verifyService.runChecks();
 
       expect(result.success).toBe(true);
-      expect(result.output).toContain('No verification script found');
+      expect(result.output).toContain("No verification script found");
       expect(result.errors).toEqual([]);
     });
 
-    it('should run verify.sh when found', async () => {
+    it("should run verify.sh when found", async () => {
       mockedFsAccess.mockResolvedValueOnce(undefined); // verify.sh exists
 
       mockedExec.mockImplementationOnce((_cmd, _opts, _callback: any) => {
@@ -47,8 +51,8 @@ describe('VerifyService', () => {
           stdout: { on: jest.fn() },
           stderr: { on: jest.fn() },
           on: jest.fn((event, handler) => {
-            if (event === 'close') handler(0);
-          })
+            if (event === "close") handler(0);
+          }),
         } as any;
       });
 
@@ -56,26 +60,28 @@ describe('VerifyService', () => {
 
       expect(result.success).toBe(true);
       expect(mockedExec).toHaveBeenCalledWith(
-        `bash ${path.join(testDir, 'verify.sh')}`,
-        expect.any(Object)
+        `bash ${path.join(testDir, "verify.sh")}`,
+        expect.any(Object),
       );
     });
 
-    it('should run npm run verify when package.json has verify script', async () => {
-      mockedFsAccess.mockRejectedValueOnce(new Error('verify.sh not found'));
-      mockedFsReadFile.mockResolvedValueOnce(JSON.stringify({
-        scripts: {
-          verify: 'npm test && npm run lint'
-        }
-      }));
+    it("should run npm run verify when package.json has verify script", async () => {
+      mockedFsAccess.mockRejectedValueOnce(new Error("verify.sh not found"));
+      mockedFsReadFile.mockResolvedValueOnce(
+        JSON.stringify({
+          scripts: {
+            verify: "npm test && npm run lint",
+          },
+        }),
+      );
 
       mockedExec.mockImplementationOnce((_cmd, _opts, _callback: any) => {
         return {
           stdout: { on: jest.fn() },
           stderr: { on: jest.fn() },
           on: jest.fn((event, handler) => {
-            if (event === 'close') handler(0);
-          })
+            if (event === "close") handler(0);
+          }),
         } as any;
       });
 
@@ -83,16 +89,16 @@ describe('VerifyService', () => {
 
       expect(result.success).toBe(true);
       expect(mockedExec).toHaveBeenCalledWith(
-        'npm run verify',
-        expect.any(Object)
+        "npm run verify",
+        expect.any(Object),
       );
     });
 
-    it('should run tox when tox.ini found', async () => {
+    it("should run tox when tox.ini found", async () => {
       // verify.sh not found
-      mockedFsAccess.mockRejectedValueOnce(new Error('not found'));
+      mockedFsAccess.mockRejectedValueOnce(new Error("not found"));
       // package.json not found
-      mockedFsReadFile.mockRejectedValueOnce(new Error('not found'));
+      mockedFsReadFile.mockRejectedValueOnce(new Error("not found"));
       // tox.ini exists
       mockedFsAccess.mockResolvedValueOnce(undefined);
 
@@ -101,26 +107,23 @@ describe('VerifyService', () => {
           stdout: { on: jest.fn() },
           stderr: { on: jest.fn() },
           on: jest.fn((event, handler) => {
-            if (event === 'close') handler(0);
-          })
+            if (event === "close") handler(0);
+          }),
         } as any;
       });
 
       await verifyService.runChecks();
 
-      expect(mockedExec).toHaveBeenCalledWith(
-        'tox',
-        expect.any(Object)
-      );
+      expect(mockedExec).toHaveBeenCalledWith("tox", expect.any(Object));
     });
 
-    it('should run make verify when Makefile has verify target', async () => {
+    it("should run make verify when Makefile has verify target", async () => {
       // verify.sh not found
-      mockedFsAccess.mockRejectedValueOnce(new Error('not found'));
+      mockedFsAccess.mockRejectedValueOnce(new Error("not found"));
       // package.json not found
-      mockedFsReadFile.mockRejectedValueOnce(new Error('not found'));
+      mockedFsReadFile.mockRejectedValueOnce(new Error("not found"));
       // tox.ini not found
-      mockedFsAccess.mockRejectedValueOnce(new Error('not found'));
+      mockedFsAccess.mockRejectedValueOnce(new Error("not found"));
       // Makefile exists with verify target
       mockedFsReadFile.mockResolvedValueOnce('verify:\n\techo "verifying"');
 
@@ -129,20 +132,20 @@ describe('VerifyService', () => {
           stdout: { on: jest.fn() },
           stderr: { on: jest.fn() },
           on: jest.fn((event, handler) => {
-            if (event === 'close') handler(0);
-          })
+            if (event === "close") handler(0);
+          }),
         } as any;
       });
 
       await verifyService.runChecks();
 
       expect(mockedExec).toHaveBeenCalledWith(
-        'make verify',
-        expect.any(Object)
+        "make verify",
+        expect.any(Object),
       );
     });
 
-    it('should handle verification failure', async () => {
+    it("should handle verification failure", async () => {
       mockedFsAccess.mockResolvedValueOnce(undefined); // verify.sh exists
 
       mockedExec.mockImplementationOnce((_cmd, _opts, _callback: any) => {
@@ -150,8 +153,8 @@ describe('VerifyService', () => {
           stdout: { on: jest.fn() },
           stderr: { on: jest.fn() },
           on: jest.fn((event, handler) => {
-            if (event === 'close') handler(1); // Non-zero exit code
-          })
+            if (event === "close") handler(1); // Non-zero exit code
+          }),
         } as any;
       });
 
@@ -161,7 +164,7 @@ describe('VerifyService', () => {
       expect(result.errors.length).toBeGreaterThan(0);
     });
 
-    it('should call progress callback during execution', async () => {
+    it("should call progress callback during execution", async () => {
       mockedFsAccess.mockResolvedValueOnce(undefined);
 
       const progressCallback = jest.fn();
@@ -171,27 +174,29 @@ describe('VerifyService', () => {
         return {
           stdout: {
             on: jest.fn((event, handler) => {
-              if (event === 'data') stdoutHandlers.push(handler);
-            })
+              if (event === "data") stdoutHandlers.push(handler);
+            }),
           },
           stderr: { on: jest.fn() },
           on: jest.fn((event, handler) => {
-            if (event === 'close') {
+            if (event === "close") {
               // Emit some data first
-              stdoutHandlers.forEach(h => h('Running tests...'));
+              stdoutHandlers.forEach((h) => h("Running tests..."));
               handler(0);
             }
-          })
+          }),
         } as any;
       });
 
       await verifyService.runChecks({ onProgress: progressCallback });
 
-      expect(progressCallback).toHaveBeenCalledWith('Running verification checks...');
-      expect(progressCallback).toHaveBeenCalledWith('Running tests...');
+      expect(progressCallback).toHaveBeenCalledWith(
+        "Running verification checks...",
+      );
+      expect(progressCallback).toHaveBeenCalledWith("Running tests...");
     });
 
-    it('should respect timeout option', async () => {
+    it("should respect timeout option", async () => {
       mockedFsAccess.mockResolvedValueOnce(undefined);
 
       mockedExec.mockImplementationOnce((_cmd, opts: any, _callback: any) => {
@@ -200,15 +205,15 @@ describe('VerifyService', () => {
           stdout: { on: jest.fn() },
           stderr: { on: jest.fn() },
           on: jest.fn((event, handler) => {
-            if (event === 'close') handler(0);
-          })
+            if (event === "close") handler(0);
+          }),
         } as any;
       });
 
       await verifyService.runChecks({ timeout: 60000 });
     });
 
-    it('should handle execution errors', async () => {
+    it("should handle execution errors", async () => {
       mockedFsAccess.mockResolvedValueOnce(undefined);
 
       mockedExec.mockImplementationOnce((_cmd, _opts, _callback: any) => {
@@ -216,75 +221,81 @@ describe('VerifyService', () => {
           stdout: { on: jest.fn() },
           stderr: { on: jest.fn() },
           on: jest.fn((event, handler) => {
-            if (event === 'error') handler(new Error('Command failed'));
-          })
+            if (event === "error") handler(new Error("Command failed"));
+          }),
         } as any;
       });
 
       const result = await verifyService.runChecks();
 
       expect(result.success).toBe(false);
-      expect(result.errors.some(e => e.includes('Failed to execute verification'))).toBe(true);
-      expect(result.errors.some(e => e.includes('Command failed'))).toBe(true);
+      expect(
+        result.errors.some((e) => e.includes("Failed to execute verification")),
+      ).toBe(true);
+      expect(result.errors.some((e) => e.includes("Command failed"))).toBe(
+        true,
+      );
     });
   });
 
-  describe('parseErrors', () => {
-    it('should parse test failures', async () => {
+  describe("parseErrors", () => {
+    it("should parse test failures", async () => {
       mockedFsAccess.mockResolvedValueOnce(undefined);
 
-      const failureOutput = 'FAILED tests/test_user.py::test_login\nFAILED tests/test_auth.py::test_register';
+      const failureOutput =
+        "FAILED tests/test_user.py::test_login\nFAILED tests/test_auth.py::test_register";
 
       mockedExec.mockImplementationOnce((_cmd, _opts, _callback: any) => {
         const stdoutHandlers: any[] = [];
         return {
           stdout: {
             on: jest.fn((event, handler) => {
-              if (event === 'data') stdoutHandlers.push(handler);
-            })
+              if (event === "data") stdoutHandlers.push(handler);
+            }),
           },
           stderr: { on: jest.fn() },
           on: jest.fn((event, handler) => {
-            if (event === 'close') {
-              stdoutHandlers.forEach(h => h(failureOutput));
+            if (event === "close") {
+              stdoutHandlers.forEach((h) => h(failureOutput));
               handler(1);
             }
-          })
+          }),
         } as any;
       });
 
       const result = await verifyService.runChecks();
 
       expect(result.errors.length).toBeGreaterThan(0);
-      expect(result.errors.some(e => e.includes('FAILED'))).toBe(true);
+      expect(result.errors.some((e) => e.includes("FAILED"))).toBe(true);
     });
 
-    it('should parse TypeScript errors', async () => {
+    it("should parse TypeScript errors", async () => {
       mockedFsAccess.mockResolvedValueOnce(undefined);
 
-      const tsOutput = 'TS2304: Cannot find name "foo"\nTS2345: Argument type mismatch';
+      const tsOutput =
+        'TS2304: Cannot find name "foo"\nTS2345: Argument type mismatch';
 
       mockedExec.mockImplementationOnce((_cmd, _opts, _callback: any) => {
         const stdoutHandlers: any[] = [];
         return {
           stdout: {
             on: jest.fn((event, handler) => {
-              if (event === 'data') stdoutHandlers.push(handler);
-            })
+              if (event === "data") stdoutHandlers.push(handler);
+            }),
           },
           stderr: { on: jest.fn() },
           on: jest.fn((event, handler) => {
-            if (event === 'close') {
-              stdoutHandlers.forEach(h => h(tsOutput));
+            if (event === "close") {
+              stdoutHandlers.forEach((h) => h(tsOutput));
               handler(1);
             }
-          })
+          }),
         } as any;
       });
 
       const result = await verifyService.runChecks();
 
-      expect(result.errors.some(e => e.includes('TS2304'))).toBe(true);
+      expect(result.errors.some((e) => e.includes("TS2304"))).toBe(true);
     });
 
     it('should filter out test console output with "error" in it', async () => {
@@ -318,33 +329,39 @@ Error: Branch protected
         return {
           stdout: {
             on: jest.fn((event, handler) => {
-              if (event === 'data') stdoutHandlers.push(handler);
-            })
+              if (event === "data") stdoutHandlers.push(handler);
+            }),
           },
           stderr: { on: jest.fn() },
           on: jest.fn((event, handler) => {
-            if (event === 'close') {
-              stdoutHandlers.forEach(h => h(testOutput));
+            if (event === "close") {
+              stdoutHandlers.forEach((h) => h(testOutput));
               handler(1); // Non-zero exit code
             }
-          })
+          }),
         } as any;
       });
 
       const result = await verifyService.runChecks();
 
       // Should not include console.log/warn lines or stack trace lines
-      expect(result.errors.every(e => !e.includes('console.log'))).toBe(true);
-      expect(result.errors.every(e => !e.includes('console.warn'))).toBe(true);
-      expect(result.errors.every(e => !e.includes('AutoFix'))).toBe(true);
-      expect(result.errors.every(e => !e.trim().startsWith('at '))).toBe(true);
+      expect(result.errors.every((e) => !e.includes("console.log"))).toBe(true);
+      expect(result.errors.every((e) => !e.includes("console.warn"))).toBe(
+        true,
+      );
+      expect(result.errors.every((e) => !e.includes("AutoFix"))).toBe(true);
+      expect(result.errors.every((e) => !e.trim().startsWith("at "))).toBe(
+        true,
+      );
 
       // Should still include the command and exit code in new format
-      expect(result.errors.some(e => e.includes('Command failed'))).toBe(true);
-      expect(result.errors.some(e => e.includes('Exit code:'))).toBe(true);
+      expect(result.errors.some((e) => e.includes("Command failed"))).toBe(
+        true,
+      );
+      expect(result.errors.some((e) => e.includes("Exit code:"))).toBe(true);
     });
 
-    it('should include real linting errors but filter test console output', async () => {
+    it("should include real linting errors but filter test console output", async () => {
       mockedFsAccess.mockResolvedValueOnce(undefined);
 
       // Mix of real errors and test console output
@@ -363,33 +380,35 @@ error { prNumber: 1 }
         return {
           stdout: {
             on: jest.fn((event, handler) => {
-              if (event === 'data') stdoutHandlers.push(handler);
-            })
+              if (event === "data") stdoutHandlers.push(handler);
+            }),
           },
           stderr: { on: jest.fn() },
           on: jest.fn((event, handler) => {
-            if (event === 'close') {
-              stdoutHandlers.forEach(h => h(mixedOutput));
+            if (event === "close") {
+              stdoutHandlers.forEach((h) => h(mixedOutput));
               handler(1); // Non-zero exit code
             }
-          })
+          }),
         } as any;
       });
 
       const result = await verifyService.runChecks();
 
       // Should include real linting error
-      expect(result.errors.some(e => e.includes('src/utils/helper.ts'))).toBe(true);
-      expect(result.errors.some(e => e.includes('no-undef'))).toBe(true);
+      expect(result.errors.some((e) => e.includes("src/utils/helper.ts"))).toBe(
+        true,
+      );
+      expect(result.errors.some((e) => e.includes("no-undef"))).toBe(true);
 
       // Should NOT include test console output
-      expect(result.errors.every(e => !e.includes('console.log'))).toBe(true);
-      expect(result.errors.every(e => !e.includes('AutoFix'))).toBe(true);
+      expect(result.errors.every((e) => !e.includes("console.log"))).toBe(true);
+      expect(result.errors.every((e) => !e.includes("AutoFix"))).toBe(true);
     });
   });
 
-  describe('hasVerifyScript', () => {
-    it('should return true when verify.sh exists', async () => {
+  describe("hasVerifyScript", () => {
+    it("should return true when verify.sh exists", async () => {
       mockedFsAccess.mockResolvedValueOnce(undefined);
 
       const result = await verifyService.hasVerifyScript();
@@ -397,20 +416,22 @@ error { prNumber: 1 }
       expect(result).toBe(true);
     });
 
-    it('should return true when package.json has verify script', async () => {
-      mockedFsAccess.mockRejectedValueOnce(new Error('not found'));
-      mockedFsReadFile.mockResolvedValueOnce(JSON.stringify({
-        scripts: { verify: 'npm test' }
-      }));
+    it("should return true when package.json has verify script", async () => {
+      mockedFsAccess.mockRejectedValueOnce(new Error("not found"));
+      mockedFsReadFile.mockResolvedValueOnce(
+        JSON.stringify({
+          scripts: { verify: "npm test" },
+        }),
+      );
 
       const result = await verifyService.hasVerifyScript();
 
       expect(result).toBe(true);
     });
 
-    it('should return false when no verification script found', async () => {
-      mockedFsAccess.mockRejectedValue(new Error('not found'));
-      mockedFsReadFile.mockRejectedValue(new Error('not found'));
+    it("should return false when no verification script found", async () => {
+      mockedFsAccess.mockRejectedValue(new Error("not found"));
+      mockedFsReadFile.mockRejectedValue(new Error("not found"));
 
       const result = await verifyService.hasVerifyScript();
 
@@ -418,54 +439,60 @@ error { prNumber: 1 }
     });
   });
 
-  describe('getVerifyCommand', () => {
-    it('should return verify.sh command', async () => {
+  describe("getVerifyCommand", () => {
+    it("should return verify.sh command", async () => {
       mockedFsAccess.mockResolvedValueOnce(undefined);
 
       const command = await verifyService.getVerifyCommand();
 
-      expect(command).toBe(`bash ${path.join(testDir, 'verify.sh')}`);
+      expect(command).toBe(`bash ${path.join(testDir, "verify.sh")}`);
     });
 
-    it('should return npm command for package.json script', async () => {
-      mockedFsAccess.mockRejectedValueOnce(new Error('not found'));
-      mockedFsReadFile.mockResolvedValueOnce(JSON.stringify({
-        scripts: { precommit: 'npm test && npm run lint' }
-      }));
+    it("should return npm command for package.json script", async () => {
+      mockedFsAccess.mockRejectedValueOnce(new Error("not found"));
+      mockedFsReadFile.mockResolvedValueOnce(
+        JSON.stringify({
+          scripts: { precommit: "npm test && npm run lint" },
+        }),
+      );
 
       const command = await verifyService.getVerifyCommand();
 
-      expect(command).toBe('npm run precommit');
+      expect(command).toBe("npm run precommit");
     });
 
-    it('should fall back to npm test when no specific verify script', async () => {
-      mockedFsAccess.mockRejectedValueOnce(new Error('not found'));
-      mockedFsReadFile.mockResolvedValueOnce(JSON.stringify({
-        scripts: { test: 'jest' }
-      }));
+    it("should fall back to npm test when no specific verify script", async () => {
+      mockedFsAccess.mockRejectedValueOnce(new Error("not found"));
+      mockedFsReadFile.mockResolvedValueOnce(
+        JSON.stringify({
+          scripts: { test: "jest" },
+        }),
+      );
 
       const command = await verifyService.getVerifyCommand();
 
-      expect(command).toBe('npm test');
+      expect(command).toBe("npm test");
     });
 
-    it('should return combined test and lint when both available', async () => {
-      mockedFsAccess.mockRejectedValueOnce(new Error('not found'));
-      mockedFsReadFile.mockResolvedValueOnce(JSON.stringify({
-        scripts: {
-          test: 'jest',
-          lint: 'eslint .'
-        }
-      }));
+    it("should return combined test and lint when both available", async () => {
+      mockedFsAccess.mockRejectedValueOnce(new Error("not found"));
+      mockedFsReadFile.mockResolvedValueOnce(
+        JSON.stringify({
+          scripts: {
+            test: "jest",
+            lint: "eslint .",
+          },
+        }),
+      );
 
       const command = await verifyService.getVerifyCommand();
 
-      expect(command).toBe('npm test && npm run lint');
+      expect(command).toBe("npm test && npm run lint");
     });
 
-    it('should return null when no verification script found', async () => {
-      mockedFsAccess.mockRejectedValue(new Error('not found'));
-      mockedFsReadFile.mockRejectedValue(new Error('not found'));
+    it("should return null when no verification script found", async () => {
+      mockedFsAccess.mockRejectedValue(new Error("not found"));
+      mockedFsReadFile.mockRejectedValue(new Error("not found"));
 
       const command = await verifyService.getVerifyCommand();
 
@@ -473,8 +500,8 @@ error { prNumber: 1 }
     });
   });
 
-  describe('duration tracking', () => {
-    it('should track execution duration', async () => {
+  describe("duration tracking", () => {
+    it("should track execution duration", async () => {
       mockedFsAccess.mockResolvedValueOnce(undefined);
 
       mockedExec.mockImplementationOnce((_cmd, _opts, _callback: any) => {
@@ -482,18 +509,18 @@ error { prNumber: 1 }
           stdout: { on: jest.fn() },
           stderr: { on: jest.fn() },
           on: jest.fn((event, handler) => {
-            if (event === 'close') {
+            if (event === "close") {
               // Simulate some delay
               setTimeout(() => handler(0), 100);
             }
-          })
+          }),
         } as any;
       });
 
       const result = await verifyService.runChecks();
 
       expect(result.duration).toBeGreaterThanOrEqual(0);
-      expect(typeof result.duration).toBe('number');
+      expect(typeof result.duration).toBe("number");
     });
   });
 });

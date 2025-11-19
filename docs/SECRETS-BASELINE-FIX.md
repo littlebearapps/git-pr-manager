@@ -9,14 +9,17 @@
 ## Problem
 
 ### Symptoms
+
 - `gpm ship` and `gpm auto` continuously failed with "uncommitted changes" errors
 - The `.secrets.baseline` file appeared modified after every security scan
 - Workflow could not complete due to repeated git cleanliness checks failing
 
 ### Root Cause
+
 The `detect-secrets scan --baseline .secrets.baseline` command updates the `generated_at` timestamp in the baseline file on **every run**, even when no secrets are detected or when the secrets haven't changed.
 
 Example:
+
 ```json
 {
   "version": "1.4.0",
@@ -26,6 +29,7 @@ Example:
 ```
 
 ### Impact
+
 - **Workflow Loop**: Security scan → baseline modified → git status dirty → workflow fails
 - **Cannot Complete PRs**: `gpm ship` and `gpm auto` blocked indefinitely
 - **Workaround Required**: Users had to use `gh` CLI directly to create PRs
@@ -35,6 +39,7 @@ Example:
 ## Solution
 
 ### Implementation
+
 Modified `SecurityScanner.scanForSecrets()` to save and restore the baseline file:
 
 1. **Before scanning**: Read the original `.secrets.baseline` file content
@@ -42,6 +47,7 @@ Modified `SecurityScanner.scanForSecrets()` to save and restore the baseline fil
 3. **After scanning**: Restore the original baseline file content
 
 ### Code Changes
+
 **File**: `src/services/SecurityScanner.ts:scanForSecrets()`
 
 ```typescript
@@ -50,7 +56,7 @@ const baselinePath = `${this.workingDir}/.secrets.baseline`;
 let originalBaseline: string | null = null;
 
 try {
-  originalBaseline = await fs.readFile(baselinePath, 'utf-8');
+  originalBaseline = await fs.readFile(baselinePath, "utf-8");
 } catch {
   // Baseline file doesn't exist yet - that's OK
 }
@@ -58,8 +64,8 @@ try {
 try {
   // Run detect-secrets scan
   const { stdout, stderr } = await execAsync(
-    'detect-secrets scan --baseline .secrets.baseline 2>&1 || true',
-    { cwd: this.workingDir }
+    "detect-secrets scan --baseline .secrets.baseline 2>&1 || true",
+    { cwd: this.workingDir },
   );
 
   // Parse output for potential secrets
@@ -69,11 +75,13 @@ try {
   // Restore original baseline file to prevent timestamp-only changes
   if (originalBaseline !== null) {
     try {
-      await fs.writeFile(baselinePath, originalBaseline, 'utf-8');
+      await fs.writeFile(baselinePath, originalBaseline, "utf-8");
     } catch (error: any) {
       // Log warning but don't fail the scan
       if (process.env.DEBUG) {
-        console.warn(`Warning: Failed to restore .secrets.baseline: ${error.message}`);
+        console.warn(
+          `Warning: Failed to restore .secrets.baseline: ${error.message}`,
+        );
       }
     }
   }
@@ -92,6 +100,7 @@ try {
 ## Testing
 
 ### New Test Coverage
+
 Added 4 new tests in `tests/services/SecurityScanner.test.ts`:
 
 1. ✅ `should restore baseline file after scanning to prevent timestamp-only changes`
@@ -110,6 +119,7 @@ Added 4 new tests in `tests/services/SecurityScanner.test.ts`:
    - Demonstrates graceful error handling
 
 ### Test Results
+
 ```
 ✅ All 825 tests passing (including 4 new tests)
 ✅ No regressions in existing tests
@@ -117,7 +127,9 @@ Added 4 new tests in `tests/services/SecurityScanner.test.ts`:
 ```
 
 ### Manual Verification
+
 Created test repository and verified:
+
 ```bash
 # Before scan
 $ cat .secrets.baseline
@@ -141,20 +153,24 @@ $ git status --porcelain
 ## Benefits
 
 ### 1. Workflow Completion
+
 - `gpm ship` and `gpm auto` now complete successfully
 - No more infinite loops due to baseline timestamp changes
 
 ### 2. Backward Compatible
+
 - Existing workflows continue to work
 - No configuration changes required
 - Gracefully handles missing baseline files
 
 ### 3. Minimal Risk
+
 - Only affects secret scanning behavior
 - Uses `finally` block for guaranteed restoration
 - Fails gracefully if restoration encounters errors
 
 ### 4. No Functional Impact
+
 - Secret scanning still works correctly
 - Baseline file still used for comparison
 - Detection accuracy unchanged
@@ -164,16 +180,21 @@ $ git status --porcelain
 ## Alternative Approaches Considered
 
 ### ❌ Option 1: Use `detect-secrets audit` instead of `scan`
+
 **Rejected**: `audit` command is for reviewing existing secrets in the baseline, not for scanning new code against the baseline.
 
 ### ❌ Option 2: Ignore `.secrets.baseline` in git status checks
+
 **Rejected**: Would hide legitimate changes when users update the baseline intentionally.
 
 ### ❌ Option 3: Use `--no-verify` or similar flag with detect-secrets
+
 **Rejected**: No such flag exists in detect-secrets to prevent timestamp updates.
 
 ### ✅ Option 4: Save and restore baseline file (CHOSEN)
+
 **Selected**:
+
 - Simple implementation
 - No external tool changes required
 - Backward compatible
@@ -184,13 +205,17 @@ $ git status --porcelain
 ## Migration Notes
 
 ### For Users
+
 **No action required**. This fix is transparent:
+
 - Update `@littlebearapps/git-pr-manager` to next version
 - Existing workflows will work automatically
 - No configuration changes needed
 
 ### For Maintainers
+
 **Testing checklist**:
+
 - ✅ Verify `gpm ship` completes without baseline changes
 - ✅ Verify `gpm auto` completes without baseline changes
 - ✅ Verify security scanning still detects secrets correctly
@@ -208,11 +233,13 @@ $ git status --porcelain
 ## Future Improvements
 
 ### Potential Enhancements
+
 1. **Skip scan when no staged changes**: If no files changed, skip secret scanning entirely
 2. **Cache scan results**: Cache results based on file hashes to avoid redundant scans
 3. **Timestamp normalization**: Standardize timestamp format to prevent spurious changes
 
 ### Not Recommended
+
 - ❌ Don't modify detect-secrets tool itself (external dependency)
 - ❌ Don't skip secret scanning (security critical)
 - ❌ Don't ignore baseline changes globally (hides intentional updates)
@@ -222,6 +249,7 @@ $ git status --porcelain
 ## Conclusion
 
 This fix resolves the `.secrets.baseline` timestamp update issue that prevented `gpm ship` and `gpm auto` from completing. The solution is:
+
 - ✅ Simple and low-risk
 - ✅ Backward compatible
 - ✅ Well-tested (825 tests passing)

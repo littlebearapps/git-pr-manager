@@ -1,7 +1,7 @@
 // Mock dependencies first
-jest.mock('child_process');
-jest.mock('fs');
-jest.mock('../../src/utils/logger', () => ({
+jest.mock("child_process");
+jest.mock("fs");
+jest.mock("../../src/utils/logger", () => ({
   logger: {
     success: jest.fn(),
     error: jest.fn(),
@@ -11,21 +11,25 @@ jest.mock('../../src/utils/logger', () => ({
     section: jest.fn(),
     log: jest.fn(),
     divider: jest.fn(),
-  }
+  },
 }));
 
 // Import after mocks are set up
-import { doctorCommand } from '../../src/commands/doctor';
-import { logger } from '../../src/utils/logger';
-import { execSync } from 'child_process';
-import { existsSync, readFileSync, readdirSync } from 'fs';
+import { doctorCommand } from "../../src/commands/doctor";
+import { logger } from "../../src/utils/logger";
+import { execSync } from "child_process";
+import { existsSync, readFileSync, readdirSync } from "fs";
 
 const mockedExecSync = execSync as jest.MockedFunction<typeof execSync>;
 const mockedExistsSync = existsSync as jest.MockedFunction<typeof existsSync>;
-const mockedReadFileSync = readFileSync as jest.MockedFunction<typeof readFileSync>;
-const mockedReaddirSync = readdirSync as jest.MockedFunction<typeof readdirSync>;
+const mockedReadFileSync = readFileSync as jest.MockedFunction<
+  typeof readFileSync
+>;
+const mockedReaddirSync = readdirSync as jest.MockedFunction<
+  typeof readdirSync
+>;
 
-describe('doctor command', () => {
+describe("doctor command", () => {
   let originalEnv: NodeJS.ProcessEnv;
 
   beforeEach(() => {
@@ -37,24 +41,25 @@ describe('doctor command', () => {
     // Mock execSync for command existence checks
     mockedExecSync.mockImplementation(((cmd: string) => {
       // Default: most commands exist
-      if (cmd.includes('command -v git')) return Buffer.from('');
-      if (cmd.includes('command -v node')) return Buffer.from('');
-      if (cmd.includes('command -v gh')) return Buffer.from('');
-      if (cmd.includes('command -v npm')) return Buffer.from('');
-      if (cmd.includes('command -v direnv')) return Buffer.from('');
+      if (cmd.includes("command -v git")) return Buffer.from("");
+      if (cmd.includes("command -v node")) return Buffer.from("");
+      if (cmd.includes("command -v gh")) return Buffer.from("");
+      if (cmd.includes("command -v npm")) return Buffer.from("");
+      if (cmd.includes("command -v direnv")) return Buffer.from("");
 
       // Version commands
-      if (cmd.includes('git --version')) return Buffer.from('git version 2.51.0');
-      if (cmd.includes('node --version')) return Buffer.from('v20.10.0');
-      if (cmd.includes('gh --version')) return Buffer.from('gh version 2.78.0');
-      if (cmd.includes('npm --version')) return Buffer.from('11.6.0');
+      if (cmd.includes("git --version"))
+        return Buffer.from("git version 2.51.0");
+      if (cmd.includes("node --version")) return Buffer.from("v20.10.0");
+      if (cmd.includes("gh --version")) return Buffer.from("gh version 2.78.0");
+      if (cmd.includes("npm --version")) return Buffer.from("11.6.0");
 
       // Optional tools not installed
-      if (cmd.includes('detect-secrets') || cmd.includes('pip-audit')) {
-        throw new Error('Command not found');
+      if (cmd.includes("detect-secrets") || cmd.includes("pip-audit")) {
+        throw new Error("Command not found");
       }
 
-      throw new Error('Command not found');
+      throw new Error("Command not found");
     }) as any);
 
     // Mock existsSync
@@ -62,10 +67,10 @@ describe('doctor command', () => {
       const pathStr = path.toString();
 
       // Keychain helper exists
-      if (pathStr.includes('bin/kc.sh')) return true;
+      if (pathStr.includes("bin/kc.sh")) return true;
 
       // No .envrc or .env by default
-      if (pathStr.includes('.envrc') || pathStr.includes('.env')) return false;
+      if (pathStr.includes(".envrc") || pathStr.includes(".env")) return false;
 
       return false;
     });
@@ -76,277 +81,282 @@ describe('doctor command', () => {
     process.env = originalEnv;
   });
 
-  describe('GitHub token detection', () => {
-    it('should detect GITHUB_TOKEN when set', async () => {
-      process.env.GITHUB_TOKEN = 'ghp_test_token';
+  describe("GitHub token detection", () => {
+    it("should detect GITHUB_TOKEN when set", async () => {
+      process.env.GITHUB_TOKEN = "ghp_test_token";
 
       await doctorCommand();
 
-      expect(logger.success).toHaveBeenCalledWith('GitHub token: GITHUB_TOKEN');
-      expect(logger.warn).not.toHaveBeenCalledWith('GitHub token: Not found');
+      expect(logger.success).toHaveBeenCalledWith("GitHub token: GITHUB_TOKEN");
+      expect(logger.warn).not.toHaveBeenCalledWith("GitHub token: Not found");
     });
 
-    it('should detect GH_TOKEN when set', async () => {
-      delete process.env.GITHUB_TOKEN;  // Ensure GITHUB_TOKEN is not set
-      process.env.GH_TOKEN = 'ghp_test_token';
+    it("should detect GH_TOKEN when set", async () => {
+      delete process.env.GITHUB_TOKEN; // Ensure GITHUB_TOKEN is not set
+      process.env.GH_TOKEN = "ghp_test_token";
 
       await doctorCommand();
 
-      expect(logger.success).toHaveBeenCalledWith('GitHub token: GH_TOKEN');
-      expect(logger.warn).not.toHaveBeenCalledWith('GitHub token: Not found');
+      expect(logger.success).toHaveBeenCalledWith("GitHub token: GH_TOKEN");
+      expect(logger.warn).not.toHaveBeenCalledWith("GitHub token: Not found");
     });
 
-    it('should warn when no token is set', async () => {
+    it("should warn when no token is set", async () => {
       delete process.env.GITHUB_TOKEN;
       delete process.env.GH_TOKEN;
 
       await doctorCommand();
 
-      expect(logger.warn).toHaveBeenCalledWith('GitHub token: Not found');
-      expect(logger.success).not.toHaveBeenCalledWith(expect.stringContaining('GitHub token:'));
+      expect(logger.warn).toHaveBeenCalledWith("GitHub token: Not found");
+      expect(logger.success).not.toHaveBeenCalledWith(
+        expect.stringContaining("GitHub token:"),
+      );
     });
   });
 
-  describe('Setup options with direnv + keychain', () => {
+  describe("Setup options with direnv + keychain", () => {
     beforeEach(() => {
       delete process.env.GITHUB_TOKEN;
       delete process.env.GH_TOKEN;
 
       // direnv exists
       mockedExecSync.mockImplementation(((cmd: string) => {
-        if (cmd.includes('command -v direnv')) return Buffer.from('');
-        if (cmd.includes('command -v git')) return Buffer.from('');
-        if (cmd.includes('command -v node')) return Buffer.from('');
-        if (cmd.includes('git --version')) return Buffer.from('git version 2.51.0');
-        if (cmd.includes('node --version')) return Buffer.from('v20.10.0');
-        throw new Error('Command not found');
+        if (cmd.includes("command -v direnv")) return Buffer.from("");
+        if (cmd.includes("command -v git")) return Buffer.from("");
+        if (cmd.includes("command -v node")) return Buffer.from("");
+        if (cmd.includes("git --version"))
+          return Buffer.from("git version 2.51.0");
+        if (cmd.includes("node --version")) return Buffer.from("v20.10.0");
+        throw new Error("Command not found");
       }) as any);
 
       // Keychain helper exists
       mockedExistsSync.mockImplementation((checkPath: any) => {
         const pathStr = checkPath.toString();
         // Check for keychain helper with platform-agnostic path separators
-        if (pathStr.includes('bin') && pathStr.includes('kc.sh')) return true;
+        if (pathStr.includes("bin") && pathStr.includes("kc.sh")) return true;
         return false;
       });
     });
 
-    it('should recommend direnv + keychain when both available', async () => {
+    it("should recommend direnv + keychain when both available", async () => {
       await doctorCommand();
 
       expect(logger.success).toHaveBeenCalledWith(
-        expect.stringContaining('Recommended: direnv + keychain')
+        expect.stringContaining("Recommended: direnv + keychain"),
       );
       expect(logger.success).toHaveBeenCalledWith(
-        expect.stringContaining('high security')
+        expect.stringContaining("high security"),
       );
     });
 
-    it('should show keychain integration steps', async () => {
+    it("should show keychain integration steps", async () => {
       await doctorCommand();
 
       expect(logger.log).toHaveBeenCalledWith(
-        expect.stringContaining('source ~/bin/kc.sh')
+        expect.stringContaining("source ~/bin/kc.sh"),
       );
       expect(logger.log).toHaveBeenCalledWith(
-        expect.stringContaining('kc_get GITHUB_PAT')
+        expect.stringContaining("kc_get GITHUB_PAT"),
       );
     });
 
-    it('should show alternative options', async () => {
+    it("should show alternative options", async () => {
       await doctorCommand();
 
       expect(logger.log).toHaveBeenCalledWith(
-        expect.stringContaining('Alternative 1:')
+        expect.stringContaining("Alternative 1:"),
       );
       expect(logger.log).toHaveBeenCalledWith(
-        expect.stringContaining('shell profile')
+        expect.stringContaining("shell profile"),
       );
     });
 
-    it('should show token generation link', async () => {
+    it("should show token generation link", async () => {
       await doctorCommand();
 
       expect(logger.log).toHaveBeenCalledWith(
-        'Generate token at: https://github.com/settings/tokens'
+        "Generate token at: https://github.com/settings/tokens",
       );
       expect(logger.log).toHaveBeenCalledWith(
-        'Required scopes: repo (full control of private repositories)'
+        "Required scopes: repo (full control of private repositories)",
       );
     });
   });
 
-  describe('Setup options without keychain', () => {
+  describe("Setup options without keychain", () => {
     beforeEach(() => {
       delete process.env.GITHUB_TOKEN;
       delete process.env.GH_TOKEN;
 
       // direnv exists but no keychain
       mockedExecSync.mockImplementation(((cmd: string) => {
-        if (cmd.includes('command -v direnv')) return Buffer.from('');
-        if (cmd.includes('command -v git')) return Buffer.from('');
-        if (cmd.includes('command -v node')) return Buffer.from('');
-        if (cmd.includes('git --version')) return Buffer.from('git version 2.51.0');
-        if (cmd.includes('node --version')) return Buffer.from('v20.10.0');
-        throw new Error('Command not found');
+        if (cmd.includes("command -v direnv")) return Buffer.from("");
+        if (cmd.includes("command -v git")) return Buffer.from("");
+        if (cmd.includes("command -v node")) return Buffer.from("");
+        if (cmd.includes("git --version"))
+          return Buffer.from("git version 2.51.0");
+        if (cmd.includes("node --version")) return Buffer.from("v20.10.0");
+        throw new Error("Command not found");
       }) as any);
 
       // No keychain helper
       mockedExistsSync.mockImplementation(() => false);
     });
 
-    it('should recommend direnv with .envrc when keychain not available', async () => {
+    it("should recommend direnv with .envrc when keychain not available", async () => {
       await doctorCommand();
 
       expect(logger.success).toHaveBeenCalledWith(
-        expect.stringContaining('Recommended: direnv with .envrc')
+        expect.stringContaining("Recommended: direnv with .envrc"),
       );
       expect(logger.success).toHaveBeenCalledWith(
-        expect.stringContaining('medium security')
+        expect.stringContaining("medium security"),
       );
     });
 
-    it('should warn about .gitignore for .envrc', async () => {
+    it("should warn about .gitignore for .envrc", async () => {
       await doctorCommand();
 
       expect(logger.log).toHaveBeenCalledWith(
-        expect.stringContaining('.gitignore')
+        expect.stringContaining(".gitignore"),
       );
     });
   });
 
-  describe('Setup options without direnv or keychain', () => {
+  describe("Setup options without direnv or keychain", () => {
     beforeEach(() => {
       delete process.env.GITHUB_TOKEN;
       delete process.env.GH_TOKEN;
 
       // No direnv, no keychain
       mockedExecSync.mockImplementation(((cmd: string) => {
-        if (cmd.includes('command -v git')) return Buffer.from('');
-        if (cmd.includes('command -v node')) return Buffer.from('');
-        if (cmd.includes('git --version')) return Buffer.from('git version 2.51.0');
-        if (cmd.includes('node --version')) return Buffer.from('v20.10.0');
-        throw new Error('Command not found');
+        if (cmd.includes("command -v git")) return Buffer.from("");
+        if (cmd.includes("command -v node")) return Buffer.from("");
+        if (cmd.includes("git --version"))
+          return Buffer.from("git version 2.51.0");
+        if (cmd.includes("node --version")) return Buffer.from("v20.10.0");
+        throw new Error("Command not found");
       }) as any);
 
       mockedExistsSync.mockImplementation(() => false);
     });
 
-    it('should recommend shell profile when no advanced tools available', async () => {
+    it("should recommend shell profile when no advanced tools available", async () => {
       await doctorCommand();
 
       expect(logger.log).toHaveBeenCalledWith(
-        expect.stringContaining('Alternative 1: shell profile')
+        expect.stringContaining("Alternative 1: shell profile"),
       );
     });
 
-    it('should show all alternative methods', async () => {
+    it("should show all alternative methods", async () => {
       await doctorCommand();
 
       // Should show shell profile, .env, and current session
       expect(logger.log).toHaveBeenCalledWith(
-        expect.stringContaining('shell profile')
+        expect.stringContaining("shell profile"),
       );
       expect(logger.log).toHaveBeenCalledWith(
-        expect.stringContaining('.env file')
+        expect.stringContaining(".env file"),
       );
       expect(logger.log).toHaveBeenCalledWith(
-        expect.stringContaining('current session')
+        expect.stringContaining("current session"),
       );
     });
   });
 
-  describe('Required and optional tools', () => {
-    it('should check required tools (git, node)', async () => {
-      process.env.GITHUB_TOKEN = 'test_token';
+  describe("Required and optional tools", () => {
+    it("should check required tools (git, node)", async () => {
+      process.env.GITHUB_TOKEN = "test_token";
 
       await doctorCommand();
 
       expect(logger.success).toHaveBeenCalledWith(
-        expect.stringContaining('git')
+        expect.stringContaining("git"),
       );
       expect(logger.success).toHaveBeenCalledWith(
-        expect.stringContaining('node')
+        expect.stringContaining("node"),
       );
     });
 
-    it('should check optional tools (gh, detect-secrets, pip-audit, npm)', async () => {
-      process.env.GITHUB_TOKEN = 'test_token';
+    it("should check optional tools (gh, detect-secrets, pip-audit, npm)", async () => {
+      process.env.GITHUB_TOKEN = "test_token";
 
       await doctorCommand();
 
       // gh and npm exist
       expect(logger.success).toHaveBeenCalledWith(
-        expect.stringContaining('gh')
+        expect.stringContaining("gh"),
       );
       expect(logger.success).toHaveBeenCalledWith(
-        expect.stringContaining('npm')
+        expect.stringContaining("npm"),
       );
 
       // detect-secrets and pip-audit don't exist
       expect(logger.warn).toHaveBeenCalledWith(
-        expect.stringContaining('detect-secrets')
+        expect.stringContaining("detect-secrets"),
       );
       expect(logger.warn).toHaveBeenCalledWith(
-        expect.stringContaining('pip-audit')
+        expect.stringContaining("pip-audit"),
       );
     });
 
-    it('should show summary when optional tools missing', async () => {
-      process.env.GITHUB_TOKEN = 'test_token';
+    it("should show summary when optional tools missing", async () => {
+      process.env.GITHUB_TOKEN = "test_token";
 
       await doctorCommand();
 
       expect(logger.warn).toHaveBeenCalledWith(
-        'ℹ️  Some optional tools are missing'
+        "ℹ️  Some optional tools are missing",
       );
     });
   });
 
-  describe('Pre-release validation (--pre-release flag)', () => {
+  describe("Pre-release validation (--pre-release flag)", () => {
     beforeEach(() => {
       // Mock fs.readFileSync for reading files
       mockedReadFileSync.mockImplementation((path: any) => {
         const pathStr = path.toString();
 
         // README.md with valid badge
-        if (pathStr.includes('README.md')) {
-          return '[![CI](https://github.com/littlebearapps/git-pr-manager/workflows/CI/badge.svg)]';
+        if (pathStr.includes("README.md")) {
+          return "[![CI](https://github.com/littlebearapps/git-pr-manager/workflows/CI/badge.svg)]";
         }
 
         // .github/workflows/ci.yml
-        if (pathStr.includes('.github/workflows/ci.yml')) {
-          return 'name: CI\non: push';
+        if (pathStr.includes(".github/workflows/ci.yml")) {
+          return "name: CI\non: push";
         }
 
         // .github/workflows/publish.yml
-        if (pathStr.includes('.github/workflows/publish.yml')) {
-          return 'name: Release\non: push';
+        if (pathStr.includes(".github/workflows/publish.yml")) {
+          return "name: Release\non: push";
         }
 
         // package.json with placeholder version
-        if (pathStr.includes('package.json')) {
-          return JSON.stringify({ version: '0.0.0-development' });
+        if (pathStr.includes("package.json")) {
+          return JSON.stringify({ version: "0.0.0-development" });
         }
 
         // .releaserc.json without git plugin
-        if (pathStr.includes('.releaserc.json')) {
+        if (pathStr.includes(".releaserc.json")) {
           return JSON.stringify({
             plugins: [
-              '@semantic-release/commit-analyzer',
-              '@semantic-release/npm',
-              '@semantic-release/github'
-            ]
+              "@semantic-release/commit-analyzer",
+              "@semantic-release/npm",
+              "@semantic-release/github",
+            ],
           });
         }
 
-        return '';
+        return "";
       });
 
       // Mock fs.readdirSync for listing workflow files
       mockedReaddirSync.mockImplementation((path: any) => {
-        if (path.toString().includes('.github/workflows')) {
-          return ['ci.yml', 'publish.yml'] as any;
+        if (path.toString().includes(".github/workflows")) {
+          return ["ci.yml", "publish.yml"] as any;
         }
         return [] as any;
       });
@@ -357,30 +367,30 @@ describe('doctor command', () => {
         const hasEncoding = options && options.encoding;
 
         // Git status (clean working directory)
-        if (cmd.includes('git status --porcelain')) {
-          return hasEncoding ? '' : Buffer.from('');
+        if (cmd.includes("git status --porcelain")) {
+          return hasEncoding ? "" : Buffer.from("");
         }
 
         // Current branch (main)
-        if (cmd.includes('git branch --show-current')) {
-          return hasEncoding ? 'main' : Buffer.from('main');
+        if (cmd.includes("git branch --show-current")) {
+          return hasEncoding ? "main" : Buffer.from("main");
         }
 
         // Git rev-parse HEAD
-        if (cmd.includes('git rev-parse HEAD')) {
-          return hasEncoding ? 'abc123def456' : Buffer.from('abc123def456');
+        if (cmd.includes("git rev-parse HEAD")) {
+          return hasEncoding ? "abc123def456" : Buffer.from("abc123def456");
         }
 
         // gh run list (all checks passed)
-        if (cmd.includes('gh run list')) {
+        if (cmd.includes("gh run list")) {
           const data = JSON.stringify([
-            { status: 'completed', conclusion: 'success' },
-            { status: 'completed', conclusion: 'success' }
+            { status: "completed", conclusion: "success" },
+            { status: "completed", conclusion: "success" },
           ]);
           return hasEncoding ? data : Buffer.from(data);
         }
 
-        return hasEncoding ? '' : Buffer.from('');
+        return hasEncoding ? "" : Buffer.from("");
       }) as any);
 
       // Mock existsSync for workflow files
@@ -388,423 +398,475 @@ describe('doctor command', () => {
         const pathStr = path.toString();
 
         // Required workflow files exist
-        if (pathStr.includes('.github/workflows/ci.yml')) return true;
-        if (pathStr.includes('.github/workflows/publish.yml')) return true;
-        if (pathStr.includes('.github/workflows')) return true;
+        if (pathStr.includes(".github/workflows/ci.yml")) return true;
+        if (pathStr.includes(".github/workflows/publish.yml")) return true;
+        if (pathStr.includes(".github/workflows")) return true;
 
         // Config files exist
-        if (pathStr.includes('README.md')) return true;
-        if (pathStr.includes('package.json')) return true;
-        if (pathStr.includes('.releaserc.json')) return true;
+        if (pathStr.includes("README.md")) return true;
+        if (pathStr.includes("package.json")) return true;
+        if (pathStr.includes(".releaserc.json")) return true;
 
         return false;
       });
     });
 
-    describe('All checks passing', () => {
-      it('should pass pre-release validation when all checks succeed', async () => {
+    describe("All checks passing", () => {
+      it("should pass pre-release validation when all checks succeed", async () => {
         // Ensure clean mock state - reset all mocks explicitly
         mockedExistsSync.mockImplementation((path: any) => {
           const pathStr = path.toString();
-          if (pathStr.includes('.github/workflows/ci.yml')) return true;
-          if (pathStr.includes('.github/workflows/publish.yml')) return true;
-          if (pathStr.includes('.github/workflows')) return true;
-          if (pathStr.includes('README.md')) return true;
-          if (pathStr.includes('package.json')) return true;
-          if (pathStr.includes('.releaserc.json')) return true;
+          if (pathStr.includes(".github/workflows/ci.yml")) return true;
+          if (pathStr.includes(".github/workflows/publish.yml")) return true;
+          if (pathStr.includes(".github/workflows")) return true;
+          if (pathStr.includes("README.md")) return true;
+          if (pathStr.includes("package.json")) return true;
+          if (pathStr.includes(".releaserc.json")) return true;
           return false;
         });
 
         mockedReadFileSync.mockImplementation((path: any) => {
           const pathStr = path.toString();
-          if (pathStr.includes('README.md')) {
-            return '[![CI](https://github.com/littlebearapps/git-pr-manager/workflows/CI/badge.svg)]';
+          if (pathStr.includes("README.md")) {
+            return "[![CI](https://github.com/littlebearapps/git-pr-manager/workflows/CI/badge.svg)]";
           }
-          if (pathStr.includes('.github/workflows/ci.yml')) {
-            return 'name: CI\non: push';
+          if (pathStr.includes(".github/workflows/ci.yml")) {
+            return "name: CI\non: push";
           }
-          if (pathStr.includes('.github/workflows/publish.yml')) {
-            return 'name: Release\non: push';
+          if (pathStr.includes(".github/workflows/publish.yml")) {
+            return "name: Release\non: push";
           }
-          if (pathStr.includes('package.json')) {
-            return JSON.stringify({ version: '0.0.0-development' });
+          if (pathStr.includes("package.json")) {
+            return JSON.stringify({ version: "0.0.0-development" });
           }
-          if (pathStr.includes('.releaserc.json')) {
+          if (pathStr.includes(".releaserc.json")) {
             return JSON.stringify({
               plugins: [
-                '@semantic-release/commit-analyzer',
-                '@semantic-release/npm',
-                '@semantic-release/github'
-              ]
+                "@semantic-release/commit-analyzer",
+                "@semantic-release/npm",
+                "@semantic-release/github",
+              ],
             });
           }
-          return '';
+          return "";
         });
 
         mockedReaddirSync.mockImplementation((path: any) => {
-          if (path.toString().includes('.github/workflows')) {
-            return ['ci.yml', 'publish.yml'] as any;
+          if (path.toString().includes(".github/workflows")) {
+            return ["ci.yml", "publish.yml"] as any;
           }
           return [] as any;
         });
 
         mockedExecSync.mockImplementation(((cmd: string, options?: any) => {
           const hasEncoding = options && options.encoding;
-          if (cmd.includes('git status --porcelain')) {
-            return hasEncoding ? '' : Buffer.from('');
+          if (cmd.includes("git status --porcelain")) {
+            return hasEncoding ? "" : Buffer.from("");
           }
-          if (cmd.includes('git branch --show-current')) {
-            return hasEncoding ? 'main' : Buffer.from('main');
+          if (cmd.includes("git branch --show-current")) {
+            return hasEncoding ? "main" : Buffer.from("main");
           }
-          if (cmd.includes('git rev-parse HEAD')) {
-            return hasEncoding ? 'abc123def456' : Buffer.from('abc123def456');
+          if (cmd.includes("git rev-parse HEAD")) {
+            return hasEncoding ? "abc123def456" : Buffer.from("abc123def456");
           }
-          if (cmd.includes('gh run list')) {
+          if (cmd.includes("gh run list")) {
             const data = JSON.stringify([
-              { status: 'completed', conclusion: 'success' },
-              { status: 'completed', conclusion: 'success' }
+              { status: "completed", conclusion: "success" },
+              { status: "completed", conclusion: "success" },
             ]);
             return hasEncoding ? data : Buffer.from(data);
           }
-          return hasEncoding ? '' : Buffer.from('');
+          return hasEncoding ? "" : Buffer.from("");
         }) as any);
 
-        const exitSpy = jest.spyOn(process, 'exit').mockImplementation((() => {}) as any);
+        const exitSpy = jest
+          .spyOn(process, "exit")
+          .mockImplementation((() => {}) as any);
 
         await doctorCommand({ preRelease: true });
 
-        expect(logger.section).toHaveBeenCalledWith('Pre-Release Validation');
-        expect(logger.success).toHaveBeenCalledWith('✅ Workflow files exist');
-        expect(logger.success).toHaveBeenCalledWith('✅ Badge URLs match workflows');
-        expect(logger.success).toHaveBeenCalledWith('✅ package.json version is placeholder');
-        expect(logger.success).toHaveBeenCalledWith('✅ @semantic-release/git plugin NOT present');
-        expect(logger.success).toHaveBeenCalledWith('✅ Working directory clean');
-        expect(logger.success).toHaveBeenCalledWith('✅ On main branch');
-        expect(logger.success).toHaveBeenCalledWith('✅ All CI checks passed');
-        expect(logger.success).toHaveBeenCalledWith('✅ Pre-release validation PASSED');
-        expect(logger.info).toHaveBeenCalledWith('   Ready to publish!');
+        expect(logger.section).toHaveBeenCalledWith("Pre-Release Validation");
+        expect(logger.success).toHaveBeenCalledWith("✅ Workflow files exist");
+        expect(logger.success).toHaveBeenCalledWith(
+          "✅ Badge URLs match workflows",
+        );
+        expect(logger.success).toHaveBeenCalledWith(
+          "✅ package.json version is placeholder",
+        );
+        expect(logger.success).toHaveBeenCalledWith(
+          "✅ @semantic-release/git plugin NOT present",
+        );
+        expect(logger.success).toHaveBeenCalledWith(
+          "✅ Working directory clean",
+        );
+        expect(logger.success).toHaveBeenCalledWith("✅ On main branch");
+        expect(logger.success).toHaveBeenCalledWith("✅ All CI checks passed");
+        expect(logger.success).toHaveBeenCalledWith(
+          "✅ Pre-release validation PASSED",
+        );
+        expect(logger.info).toHaveBeenCalledWith("   Ready to publish!");
         expect(exitSpy).not.toHaveBeenCalled();
 
         exitSpy.mockRestore();
       });
     });
 
-    describe('Workflow files check', () => {
-      it('should fail when required workflow files are missing', async () => {
+    describe("Workflow files check", () => {
+      it("should fail when required workflow files are missing", async () => {
         mockedExistsSync.mockImplementation((path: any) => {
           const pathStr = path.toString();
           // ci.yml missing
-          if (pathStr.includes('.github/workflows/ci.yml')) return false;
-          if (pathStr.includes('.github/workflows/publish.yml')) return true;
+          if (pathStr.includes(".github/workflows/ci.yml")) return false;
+          if (pathStr.includes(".github/workflows/publish.yml")) return true;
           return true;
         });
 
-        const exitSpy = jest.spyOn(process, 'exit').mockImplementation((() => {}) as any);
+        const exitSpy = jest
+          .spyOn(process, "exit")
+          .mockImplementation((() => {}) as any);
 
         await doctorCommand({ preRelease: true });
 
-        expect(logger.error).toHaveBeenCalledWith('❌ Workflow files exist: Required workflow files missing');
-        expect(logger.error).toHaveBeenCalledWith('⛔ Pre-release validation FAILED');
+        expect(logger.error).toHaveBeenCalledWith(
+          "❌ Workflow files exist: Required workflow files missing",
+        );
+        expect(logger.error).toHaveBeenCalledWith(
+          "⛔ Pre-release validation FAILED",
+        );
         expect(exitSpy).toHaveBeenCalledWith(1);
 
         exitSpy.mockRestore();
       });
     });
 
-    describe('Badge URLs check', () => {
-      it('should fail when badge references non-existent workflow', async () => {
+    describe("Badge URLs check", () => {
+      it("should fail when badge references non-existent workflow", async () => {
         mockedReadFileSync.mockImplementation((path: any) => {
           const pathStr = path.toString();
 
           // README with badge for "Test" workflow that doesn't exist
-          if (pathStr.includes('README.md')) {
-            return '[![Test](https://github.com/littlebearapps/git-pr-manager/workflows/Test/badge.svg)]';
+          if (pathStr.includes("README.md")) {
+            return "[![Test](https://github.com/littlebearapps/git-pr-manager/workflows/Test/badge.svg)]";
           }
 
           // Only CI workflow exists
-          if (pathStr.includes('.github/workflows/ci.yml')) {
-            return 'name: CI\non: push';
+          if (pathStr.includes(".github/workflows/ci.yml")) {
+            return "name: CI\non: push";
           }
 
-          if (pathStr.includes('package.json')) {
-            return JSON.stringify({ version: '0.0.0-development' });
+          if (pathStr.includes("package.json")) {
+            return JSON.stringify({ version: "0.0.0-development" });
           }
 
-          if (pathStr.includes('.releaserc.json')) {
-            return JSON.stringify({ plugins: ['@semantic-release/npm'] });
+          if (pathStr.includes(".releaserc.json")) {
+            return JSON.stringify({ plugins: ["@semantic-release/npm"] });
           }
 
-          return '';
+          return "";
         });
 
-        const exitSpy = jest.spyOn(process, 'exit').mockImplementation((() => {}) as any);
+        const exitSpy = jest
+          .spyOn(process, "exit")
+          .mockImplementation((() => {}) as any);
 
         await doctorCommand({ preRelease: true });
 
-        expect(logger.error).toHaveBeenCalledWith('❌ Badge URLs match workflows: README badges reference non-existent workflows');
+        expect(logger.error).toHaveBeenCalledWith(
+          "❌ Badge URLs match workflows: README badges reference non-existent workflows",
+        );
         expect(exitSpy).toHaveBeenCalledWith(1);
 
         exitSpy.mockRestore();
       });
 
-      it('should pass when badge URLs match actual workflows', async () => {
-        const exitSpy = jest.spyOn(process, 'exit').mockImplementation((() => {}) as any);
+      it("should pass when badge URLs match actual workflows", async () => {
+        const exitSpy = jest
+          .spyOn(process, "exit")
+          .mockImplementation((() => {}) as any);
 
         mockedReadFileSync.mockImplementation((path: any) => {
           const pathStr = path.toString();
 
           // README with valid badge
-          if (pathStr.includes('README.md')) {
-            return '[![CI](https://github.com/littlebearapps/git-pr-manager/workflows/CI/badge.svg)]';
+          if (pathStr.includes("README.md")) {
+            return "[![CI](https://github.com/littlebearapps/git-pr-manager/workflows/CI/badge.svg)]";
           }
 
-          if (pathStr.includes('.github/workflows/ci.yml')) {
-            return 'name: CI\non: push';
+          if (pathStr.includes(".github/workflows/ci.yml")) {
+            return "name: CI\non: push";
           }
 
-          if (pathStr.includes('package.json')) {
-            return JSON.stringify({ version: '0.0.0-development' });
+          if (pathStr.includes("package.json")) {
+            return JSON.stringify({ version: "0.0.0-development" });
           }
 
-          if (pathStr.includes('.releaserc.json')) {
-            return JSON.stringify({ plugins: ['@semantic-release/npm'] });
+          if (pathStr.includes(".releaserc.json")) {
+            return JSON.stringify({ plugins: ["@semantic-release/npm"] });
           }
 
-          return '';
+          return "";
         });
 
         await doctorCommand({ preRelease: true });
 
-        expect(logger.success).toHaveBeenCalledWith('✅ Badge URLs match workflows');
+        expect(logger.success).toHaveBeenCalledWith(
+          "✅ Badge URLs match workflows",
+        );
 
         exitSpy.mockRestore();
       });
     });
 
-    describe('package.json version check', () => {
-      it('should warn when package.json version is not placeholder', async () => {
-        const exitSpy = jest.spyOn(process, 'exit').mockImplementation((() => {}) as any);
+    describe("package.json version check", () => {
+      it("should warn when package.json version is not placeholder", async () => {
+        const exitSpy = jest
+          .spyOn(process, "exit")
+          .mockImplementation((() => {}) as any);
 
         mockedReadFileSync.mockImplementation((path: any) => {
           const pathStr = path.toString();
 
-          if (pathStr.includes('package.json')) {
-            return JSON.stringify({ version: '1.7.0' }); // Wrong version
+          if (pathStr.includes("package.json")) {
+            return JSON.stringify({ version: "1.7.0" }); // Wrong version
           }
 
-          if (pathStr.includes('README.md')) {
-            return '[![CI](https://github.com/littlebearapps/git-pr-manager/workflows/CI/badge.svg)]';
+          if (pathStr.includes("README.md")) {
+            return "[![CI](https://github.com/littlebearapps/git-pr-manager/workflows/CI/badge.svg)]";
           }
 
-          if (pathStr.includes('.github/workflows/ci.yml')) {
-            return 'name: CI\non: push';
+          if (pathStr.includes(".github/workflows/ci.yml")) {
+            return "name: CI\non: push";
           }
 
-          if (pathStr.includes('.releaserc.json')) {
-            return JSON.stringify({ plugins: ['@semantic-release/npm'] });
+          if (pathStr.includes(".releaserc.json")) {
+            return JSON.stringify({ plugins: ["@semantic-release/npm"] });
           }
 
-          return '';
+          return "";
         });
 
         await doctorCommand({ preRelease: true });
 
         expect(logger.warn).toHaveBeenCalledWith(
-          '⚠️  package.json version is placeholder: package.json version should be "0.0.0-development" for single source of truth'
+          '⚠️  package.json version is placeholder: package.json version should be "0.0.0-development" for single source of truth',
         );
-        expect(logger.warn).toHaveBeenCalledWith('⚠️  Pre-release validation passed with warnings');
+        expect(logger.warn).toHaveBeenCalledWith(
+          "⚠️  Pre-release validation passed with warnings",
+        );
 
         exitSpy.mockRestore();
       });
 
-      it('should pass when package.json has placeholder version', async () => {
-        const exitSpy = jest.spyOn(process, 'exit').mockImplementation((() => {}) as any);
+      it("should pass when package.json has placeholder version", async () => {
+        const exitSpy = jest
+          .spyOn(process, "exit")
+          .mockImplementation((() => {}) as any);
 
         await doctorCommand({ preRelease: true });
 
-        expect(logger.success).toHaveBeenCalledWith('✅ package.json version is placeholder');
+        expect(logger.success).toHaveBeenCalledWith(
+          "✅ package.json version is placeholder",
+        );
 
         exitSpy.mockRestore();
       });
     });
 
-    describe('@semantic-release/git plugin check', () => {
-      it('should warn when git plugin is present', async () => {
-        const exitSpy = jest.spyOn(process, 'exit').mockImplementation((() => {}) as any);
+    describe("@semantic-release/git plugin check", () => {
+      it("should warn when git plugin is present", async () => {
+        const exitSpy = jest
+          .spyOn(process, "exit")
+          .mockImplementation((() => {}) as any);
 
         mockedReadFileSync.mockImplementation((path: any) => {
           const pathStr = path.toString();
 
-          if (pathStr.includes('.releaserc.json')) {
+          if (pathStr.includes(".releaserc.json")) {
             return JSON.stringify({
               plugins: [
-                '@semantic-release/commit-analyzer',
-                '@semantic-release/git', // Git plugin present (bad)
-                '@semantic-release/npm'
-              ]
+                "@semantic-release/commit-analyzer",
+                "@semantic-release/git", // Git plugin present (bad)
+                "@semantic-release/npm",
+              ],
             });
           }
 
-          if (pathStr.includes('README.md')) {
-            return '[![CI](https://github.com/littlebearapps/git-pr-manager/workflows/CI/badge.svg)]';
+          if (pathStr.includes("README.md")) {
+            return "[![CI](https://github.com/littlebearapps/git-pr-manager/workflows/CI/badge.svg)]";
           }
 
-          if (pathStr.includes('.github/workflows/ci.yml')) {
-            return 'name: CI\non: push';
+          if (pathStr.includes(".github/workflows/ci.yml")) {
+            return "name: CI\non: push";
           }
 
-          if (pathStr.includes('package.json')) {
-            return JSON.stringify({ version: '0.0.0-development' });
+          if (pathStr.includes("package.json")) {
+            return JSON.stringify({ version: "0.0.0-development" });
           }
 
-          return '';
+          return "";
         });
 
         await doctorCommand({ preRelease: true });
 
         expect(logger.warn).toHaveBeenCalledWith(
-          '⚠️  @semantic-release/git plugin NOT present: @semantic-release/git plugin found - should be removed for Alternative D'
+          "⚠️  @semantic-release/git plugin NOT present: @semantic-release/git plugin found - should be removed for Alternative D",
         );
 
         exitSpy.mockRestore();
       });
 
-      it('should warn when git plugin is present with config', async () => {
-        const exitSpy = jest.spyOn(process, 'exit').mockImplementation((() => {}) as any);
+      it("should warn when git plugin is present with config", async () => {
+        const exitSpy = jest
+          .spyOn(process, "exit")
+          .mockImplementation((() => {}) as any);
 
         mockedReadFileSync.mockImplementation((path: any) => {
           const pathStr = path.toString();
 
-          if (pathStr.includes('.releaserc.json')) {
+          if (pathStr.includes(".releaserc.json")) {
             return JSON.stringify({
               plugins: [
-                '@semantic-release/commit-analyzer',
-                ['@semantic-release/git', { assets: ['package.json'] }], // Git plugin with config
-                '@semantic-release/npm'
-              ]
+                "@semantic-release/commit-analyzer",
+                ["@semantic-release/git", { assets: ["package.json"] }], // Git plugin with config
+                "@semantic-release/npm",
+              ],
             });
           }
 
-          if (pathStr.includes('README.md')) {
-            return '[![CI](https://github.com/littlebearapps/git-pr-manager/workflows/CI/badge.svg)]';
+          if (pathStr.includes("README.md")) {
+            return "[![CI](https://github.com/littlebearapps/git-pr-manager/workflows/CI/badge.svg)]";
           }
 
-          if (pathStr.includes('.github/workflows/ci.yml')) {
-            return 'name: CI\non: push';
+          if (pathStr.includes(".github/workflows/ci.yml")) {
+            return "name: CI\non: push";
           }
 
-          if (pathStr.includes('package.json')) {
-            return JSON.stringify({ version: '0.0.0-development' });
+          if (pathStr.includes("package.json")) {
+            return JSON.stringify({ version: "0.0.0-development" });
           }
 
-          return '';
+          return "";
         });
 
         await doctorCommand({ preRelease: true });
 
         expect(logger.warn).toHaveBeenCalledWith(
-          '⚠️  @semantic-release/git plugin NOT present: @semantic-release/git plugin found - should be removed for Alternative D'
+          "⚠️  @semantic-release/git plugin NOT present: @semantic-release/git plugin found - should be removed for Alternative D",
         );
 
         exitSpy.mockRestore();
       });
 
-      it('should pass when git plugin is not present', async () => {
-        const exitSpy = jest.spyOn(process, 'exit').mockImplementation((() => {}) as any);
+      it("should pass when git plugin is not present", async () => {
+        const exitSpy = jest
+          .spyOn(process, "exit")
+          .mockImplementation((() => {}) as any);
 
         await doctorCommand({ preRelease: true });
 
-        expect(logger.success).toHaveBeenCalledWith('✅ @semantic-release/git plugin NOT present');
+        expect(logger.success).toHaveBeenCalledWith(
+          "✅ @semantic-release/git plugin NOT present",
+        );
 
         exitSpy.mockRestore();
       });
 
-      it('should pass when no .releaserc.json exists', async () => {
-        const exitSpy = jest.spyOn(process, 'exit').mockImplementation((() => {}) as any);
+      it("should pass when no .releaserc.json exists", async () => {
+        const exitSpy = jest
+          .spyOn(process, "exit")
+          .mockImplementation((() => {}) as any);
 
         mockedExistsSync.mockImplementation((path: any) => {
           const pathStr = path.toString();
-          if (pathStr.includes('.releaserc.json')) return false;
-          if (pathStr.includes('.github/workflows/ci.yml')) return true;
-          if (pathStr.includes('.github/workflows/publish.yml')) return true;
-          if (pathStr.includes('.github/workflows')) return true;
-          if (pathStr.includes('README.md')) return true;
-          if (pathStr.includes('package.json')) return true;
+          if (pathStr.includes(".releaserc.json")) return false;
+          if (pathStr.includes(".github/workflows/ci.yml")) return true;
+          if (pathStr.includes(".github/workflows/publish.yml")) return true;
+          if (pathStr.includes(".github/workflows")) return true;
+          if (pathStr.includes("README.md")) return true;
+          if (pathStr.includes("package.json")) return true;
           return false;
         });
 
         await doctorCommand({ preRelease: true });
 
-        expect(logger.success).toHaveBeenCalledWith('✅ @semantic-release/git plugin NOT present');
+        expect(logger.success).toHaveBeenCalledWith(
+          "✅ @semantic-release/git plugin NOT present",
+        );
 
         exitSpy.mockRestore();
       });
     });
 
-    describe('Working directory clean check', () => {
-      it('should fail when working directory has uncommitted changes', async () => {
+    describe("Working directory clean check", () => {
+      it("should fail when working directory has uncommitted changes", async () => {
         mockedExecSync.mockImplementation(((cmd: string) => {
-          if (cmd.includes('git status --porcelain')) {
-            return Buffer.from('M src/index.ts\n'); // Uncommitted changes
+          if (cmd.includes("git status --porcelain")) {
+            return Buffer.from("M src/index.ts\n"); // Uncommitted changes
           }
-          if (cmd.includes('git branch --show-current')) {
-            return Buffer.from('main');
+          if (cmd.includes("git branch --show-current")) {
+            return Buffer.from("main");
           }
-          if (cmd.includes('git rev-parse HEAD')) {
-            return Buffer.from('abc123');
+          if (cmd.includes("git rev-parse HEAD")) {
+            return Buffer.from("abc123");
           }
-          if (cmd.includes('gh run list')) {
-            return Buffer.from(JSON.stringify([{ status: 'completed', conclusion: 'success' }]));
+          if (cmd.includes("gh run list")) {
+            return Buffer.from(
+              JSON.stringify([{ status: "completed", conclusion: "success" }]),
+            );
           }
-          return Buffer.from('');
+          return Buffer.from("");
         }) as any);
 
-        const exitSpy = jest.spyOn(process, 'exit').mockImplementation((() => {}) as any);
+        const exitSpy = jest
+          .spyOn(process, "exit")
+          .mockImplementation((() => {}) as any);
 
         await doctorCommand({ preRelease: true });
 
-        expect(logger.error).toHaveBeenCalledWith('❌ Working directory clean: Uncommitted changes detected');
+        expect(logger.error).toHaveBeenCalledWith(
+          "❌ Working directory clean: Uncommitted changes detected",
+        );
         expect(exitSpy).toHaveBeenCalledWith(1);
 
         exitSpy.mockRestore();
       });
 
-      it('should pass when working directory is clean', async () => {
+      it("should pass when working directory is clean", async () => {
         // Complete mock setup for all checks to pass
         mockedExistsSync.mockImplementation((path: any) => {
           const pathStr = path.toString();
-          if (pathStr.includes('.github/workflows/ci.yml')) return true;
-          if (pathStr.includes('.github/workflows/publish.yml')) return true;
-          if (pathStr.includes('.github/workflows')) return true;
-          if (pathStr.includes('README.md')) return true;
-          if (pathStr.includes('package.json')) return true;
-          if (pathStr.includes('.releaserc.json')) return true;
+          if (pathStr.includes(".github/workflows/ci.yml")) return true;
+          if (pathStr.includes(".github/workflows/publish.yml")) return true;
+          if (pathStr.includes(".github/workflows")) return true;
+          if (pathStr.includes("README.md")) return true;
+          if (pathStr.includes("package.json")) return true;
+          if (pathStr.includes(".releaserc.json")) return true;
           return false;
         });
 
         mockedReadFileSync.mockImplementation((path: any) => {
           const pathStr = path.toString();
-          if (pathStr.includes('README.md')) {
-            return '[![CI](https://github.com/littlebearapps/git-pr-manager/workflows/CI/badge.svg)]';
+          if (pathStr.includes("README.md")) {
+            return "[![CI](https://github.com/littlebearapps/git-pr-manager/workflows/CI/badge.svg)]";
           }
-          if (pathStr.includes('.github/workflows/ci.yml')) {
-            return 'name: CI\non: push';
+          if (pathStr.includes(".github/workflows/ci.yml")) {
+            return "name: CI\non: push";
           }
-          if (pathStr.includes('.github/workflows/publish.yml')) {
-            return 'name: Release\non: push';
+          if (pathStr.includes(".github/workflows/publish.yml")) {
+            return "name: Release\non: push";
           }
-          if (pathStr.includes('package.json')) {
-            return JSON.stringify({ version: '0.0.0-development' });
+          if (pathStr.includes("package.json")) {
+            return JSON.stringify({ version: "0.0.0-development" });
           }
-          if (pathStr.includes('.releaserc.json')) {
-            return JSON.stringify({ plugins: ['@semantic-release/npm'] });
+          if (pathStr.includes(".releaserc.json")) {
+            return JSON.stringify({ plugins: ["@semantic-release/npm"] });
           }
-          return '';
+          return "";
         });
 
         mockedReaddirSync.mockImplementation((path: any) => {
-          if (path.toString().includes('.github/workflows')) {
-            return ['ci.yml', 'publish.yml'] as any;
+          if (path.toString().includes(".github/workflows")) {
+            return ["ci.yml", "publish.yml"] as any;
           }
           return [] as any;
         });
@@ -813,272 +875,296 @@ describe('doctor command', () => {
           // When encoding is specified, return string; otherwise return Buffer
           const hasEncoding = options && options.encoding;
 
-          if (cmd.includes('git status --porcelain')) {
-            return hasEncoding ? '' : Buffer.from('');
+          if (cmd.includes("git status --porcelain")) {
+            return hasEncoding ? "" : Buffer.from("");
           }
-          if (cmd.includes('git branch --show-current')) {
-            return hasEncoding ? 'main' : Buffer.from('main');
+          if (cmd.includes("git branch --show-current")) {
+            return hasEncoding ? "main" : Buffer.from("main");
           }
-          if (cmd.includes('git rev-parse HEAD')) {
-            return hasEncoding ? 'abc123def456' : Buffer.from('abc123def456');
+          if (cmd.includes("git rev-parse HEAD")) {
+            return hasEncoding ? "abc123def456" : Buffer.from("abc123def456");
           }
-          if (cmd.includes('gh run list')) {
+          if (cmd.includes("gh run list")) {
             const data = JSON.stringify([
-              { status: 'completed', conclusion: 'success' }
+              { status: "completed", conclusion: "success" },
             ]);
             return hasEncoding ? data : Buffer.from(data);
           }
-          return hasEncoding ? '' : Buffer.from('');
+          return hasEncoding ? "" : Buffer.from("");
         }) as any);
 
-        const exitSpy = jest.spyOn(process, 'exit').mockImplementation((() => {}) as any);
+        const exitSpy = jest
+          .spyOn(process, "exit")
+          .mockImplementation((() => {}) as any);
 
         await doctorCommand({ preRelease: true });
 
-        expect(logger.success).toHaveBeenCalledWith('✅ Working directory clean');
+        expect(logger.success).toHaveBeenCalledWith(
+          "✅ Working directory clean",
+        );
 
         exitSpy.mockRestore();
       });
     });
 
-    describe('On main branch check', () => {
-      it('should fail when not on main branch', async () => {
+    describe("On main branch check", () => {
+      it("should fail when not on main branch", async () => {
         mockedExecSync.mockImplementation(((cmd: string, options?: any) => {
           const hasEncoding = options && options.encoding;
-          if (cmd.includes('git status --porcelain')) {
-            return hasEncoding ? '' : Buffer.from('');
+          if (cmd.includes("git status --porcelain")) {
+            return hasEncoding ? "" : Buffer.from("");
           }
-          if (cmd.includes('git branch --show-current')) {
-            return hasEncoding ? 'feature/my-feature\n' : Buffer.from('feature/my-feature\n'); // On feature branch
+          if (cmd.includes("git branch --show-current")) {
+            return hasEncoding
+              ? "feature/my-feature\n"
+              : Buffer.from("feature/my-feature\n"); // On feature branch
           }
-          if (cmd.includes('git rev-parse HEAD')) {
-            return hasEncoding ? 'abc123' : Buffer.from('abc123');
+          if (cmd.includes("git rev-parse HEAD")) {
+            return hasEncoding ? "abc123" : Buffer.from("abc123");
           }
-          if (cmd.includes('gh run list')) {
-            const data = JSON.stringify([{ status: 'completed', conclusion: 'success' }]);
+          if (cmd.includes("gh run list")) {
+            const data = JSON.stringify([
+              { status: "completed", conclusion: "success" },
+            ]);
             return hasEncoding ? data : Buffer.from(data);
           }
-          return hasEncoding ? '' : Buffer.from('');
+          return hasEncoding ? "" : Buffer.from("");
         }) as any);
 
-        const exitSpy = jest.spyOn(process, 'exit').mockImplementation((() => {}) as any);
+        const exitSpy = jest
+          .spyOn(process, "exit")
+          .mockImplementation((() => {}) as any);
 
         await doctorCommand({ preRelease: true });
 
-        expect(logger.error).toHaveBeenCalledWith('❌ On main branch: Not on main branch - releases must be from main');
+        expect(logger.error).toHaveBeenCalledWith(
+          "❌ On main branch: Not on main branch - releases must be from main",
+        );
         expect(exitSpy).toHaveBeenCalledWith(1);
 
         exitSpy.mockRestore();
       });
 
-      it('should pass when on main branch', async () => {
+      it("should pass when on main branch", async () => {
         // Complete mock setup for all checks to pass
         mockedExistsSync.mockImplementation((path: any) => {
           const pathStr = path.toString();
-          if (pathStr.includes('.github/workflows/ci.yml')) return true;
-          if (pathStr.includes('.github/workflows/publish.yml')) return true;
-          if (pathStr.includes('.github/workflows')) return true;
-          if (pathStr.includes('README.md')) return true;
-          if (pathStr.includes('package.json')) return true;
-          if (pathStr.includes('.releaserc.json')) return true;
+          if (pathStr.includes(".github/workflows/ci.yml")) return true;
+          if (pathStr.includes(".github/workflows/publish.yml")) return true;
+          if (pathStr.includes(".github/workflows")) return true;
+          if (pathStr.includes("README.md")) return true;
+          if (pathStr.includes("package.json")) return true;
+          if (pathStr.includes(".releaserc.json")) return true;
           return false;
         });
 
         mockedReadFileSync.mockImplementation((path: any) => {
           const pathStr = path.toString();
-          if (pathStr.includes('README.md')) {
-            return '[![CI](https://github.com/littlebearapps/git-pr-manager/workflows/CI/badge.svg)]';
+          if (pathStr.includes("README.md")) {
+            return "[![CI](https://github.com/littlebearapps/git-pr-manager/workflows/CI/badge.svg)]";
           }
-          if (pathStr.includes('.github/workflows/ci.yml')) {
-            return 'name: CI\non: push';
+          if (pathStr.includes(".github/workflows/ci.yml")) {
+            return "name: CI\non: push";
           }
-          if (pathStr.includes('.github/workflows/publish.yml')) {
-            return 'name: Release\non: push';
+          if (pathStr.includes(".github/workflows/publish.yml")) {
+            return "name: Release\non: push";
           }
-          if (pathStr.includes('package.json')) {
-            return JSON.stringify({ version: '0.0.0-development' });
+          if (pathStr.includes("package.json")) {
+            return JSON.stringify({ version: "0.0.0-development" });
           }
-          if (pathStr.includes('.releaserc.json')) {
-            return JSON.stringify({ plugins: ['@semantic-release/npm'] });
+          if (pathStr.includes(".releaserc.json")) {
+            return JSON.stringify({ plugins: ["@semantic-release/npm"] });
           }
-          return '';
+          return "";
         });
 
         mockedReaddirSync.mockImplementation((path: any) => {
-          if (path.toString().includes('.github/workflows')) {
-            return ['ci.yml', 'publish.yml'] as any;
+          if (path.toString().includes(".github/workflows")) {
+            return ["ci.yml", "publish.yml"] as any;
           }
           return [] as any;
         });
 
         mockedExecSync.mockImplementation(((cmd: string, options?: any) => {
           const hasEncoding = options && options.encoding;
-          if (cmd.includes('git status --porcelain')) {
-            return hasEncoding ? '' : Buffer.from('');
+          if (cmd.includes("git status --porcelain")) {
+            return hasEncoding ? "" : Buffer.from("");
           }
-          if (cmd.includes('git branch --show-current')) {
-            return hasEncoding ? 'main' : Buffer.from('main'); // On main branch
+          if (cmd.includes("git branch --show-current")) {
+            return hasEncoding ? "main" : Buffer.from("main"); // On main branch
           }
-          if (cmd.includes('git rev-parse HEAD')) {
-            return hasEncoding ? 'abc123def456' : Buffer.from('abc123def456');
+          if (cmd.includes("git rev-parse HEAD")) {
+            return hasEncoding ? "abc123def456" : Buffer.from("abc123def456");
           }
-          if (cmd.includes('gh run list')) {
+          if (cmd.includes("gh run list")) {
             const data = JSON.stringify([
-              { status: 'completed', conclusion: 'success' }
+              { status: "completed", conclusion: "success" },
             ]);
             return hasEncoding ? data : Buffer.from(data);
           }
-          return hasEncoding ? '' : Buffer.from('');
+          return hasEncoding ? "" : Buffer.from("");
         }) as any);
 
-        const exitSpy = jest.spyOn(process, 'exit').mockImplementation((() => {}) as any);
+        const exitSpy = jest
+          .spyOn(process, "exit")
+          .mockImplementation((() => {}) as any);
 
         await doctorCommand({ preRelease: true });
 
-        expect(logger.success).toHaveBeenCalledWith('✅ On main branch');
+        expect(logger.success).toHaveBeenCalledWith("✅ On main branch");
 
         exitSpy.mockRestore();
       });
     });
 
-    describe('All CI checks passed', () => {
-      it('should warn when CI checks have not passed', async () => {
-        const exitSpy = jest.spyOn(process, 'exit').mockImplementation((() => {}) as any);
+    describe("All CI checks passed", () => {
+      it("should warn when CI checks have not passed", async () => {
+        const exitSpy = jest
+          .spyOn(process, "exit")
+          .mockImplementation((() => {}) as any);
 
         // Complete mock setup for all previous checks to pass
         mockedExistsSync.mockImplementation((path: any) => {
           const pathStr = path.toString();
-          if (pathStr.includes('.github/workflows/ci.yml')) return true;
-          if (pathStr.includes('.github/workflows/publish.yml')) return true;
-          if (pathStr.includes('.github/workflows')) return true;
-          if (pathStr.includes('README.md')) return true;
-          if (pathStr.includes('package.json')) return true;
-          if (pathStr.includes('.releaserc.json')) return true;
+          if (pathStr.includes(".github/workflows/ci.yml")) return true;
+          if (pathStr.includes(".github/workflows/publish.yml")) return true;
+          if (pathStr.includes(".github/workflows")) return true;
+          if (pathStr.includes("README.md")) return true;
+          if (pathStr.includes("package.json")) return true;
+          if (pathStr.includes(".releaserc.json")) return true;
           return false;
         });
 
         mockedReadFileSync.mockImplementation((path: any) => {
           const pathStr = path.toString();
-          if (pathStr.includes('README.md')) {
-            return '[![CI](https://github.com/littlebearapps/git-pr-manager/workflows/CI/badge.svg)]';
+          if (pathStr.includes("README.md")) {
+            return "[![CI](https://github.com/littlebearapps/git-pr-manager/workflows/CI/badge.svg)]";
           }
-          if (pathStr.includes('.github/workflows/ci.yml')) {
-            return 'name: CI\non: push';
+          if (pathStr.includes(".github/workflows/ci.yml")) {
+            return "name: CI\non: push";
           }
-          if (pathStr.includes('.github/workflows/publish.yml')) {
-            return 'name: Release\non: push';
+          if (pathStr.includes(".github/workflows/publish.yml")) {
+            return "name: Release\non: push";
           }
-          if (pathStr.includes('package.json')) {
-            return JSON.stringify({ version: '0.0.0-development' });
+          if (pathStr.includes("package.json")) {
+            return JSON.stringify({ version: "0.0.0-development" });
           }
-          if (pathStr.includes('.releaserc.json')) {
-            return JSON.stringify({ plugins: ['@semantic-release/npm'] });
+          if (pathStr.includes(".releaserc.json")) {
+            return JSON.stringify({ plugins: ["@semantic-release/npm"] });
           }
-          return '';
+          return "";
         });
 
         mockedReaddirSync.mockImplementation((path: any) => {
-          if (path.toString().includes('.github/workflows')) {
-            return ['ci.yml', 'publish.yml'] as any;
+          if (path.toString().includes(".github/workflows")) {
+            return ["ci.yml", "publish.yml"] as any;
           }
           return [] as any;
         });
 
         mockedExecSync.mockImplementation(((cmd: string, options?: any) => {
           const hasEncoding = options && options.encoding;
-          if (cmd.includes('git status --porcelain')) {
-            return hasEncoding ? '' : Buffer.from('');
+          if (cmd.includes("git status --porcelain")) {
+            return hasEncoding ? "" : Buffer.from("");
           }
-          if (cmd.includes('git branch --show-current')) {
-            return hasEncoding ? 'main' : Buffer.from('main');
+          if (cmd.includes("git branch --show-current")) {
+            return hasEncoding ? "main" : Buffer.from("main");
           }
-          if (cmd.includes('git rev-parse HEAD')) {
-            return hasEncoding ? 'abc123' : Buffer.from('abc123');
+          if (cmd.includes("git rev-parse HEAD")) {
+            return hasEncoding ? "abc123" : Buffer.from("abc123");
           }
-          if (cmd.includes('gh run list')) {
+          if (cmd.includes("gh run list")) {
             const data = JSON.stringify([
-              { status: 'completed', conclusion: 'success' },
-              { status: 'completed', conclusion: 'failure' } // One check failed
+              { status: "completed", conclusion: "success" },
+              { status: "completed", conclusion: "failure" }, // One check failed
             ]);
             return hasEncoding ? data : Buffer.from(data);
           }
-          return hasEncoding ? '' : Buffer.from('');
+          return hasEncoding ? "" : Buffer.from("");
         }) as any);
 
         await doctorCommand({ preRelease: true });
 
         expect(logger.warn).toHaveBeenCalledWith(
-          '⚠️  All CI checks passed: CI checks have not all passed for HEAD commit'
+          "⚠️  All CI checks passed: CI checks have not all passed for HEAD commit",
         );
-        expect(logger.warn).toHaveBeenCalledWith('⚠️  Pre-release validation passed with warnings');
+        expect(logger.warn).toHaveBeenCalledWith(
+          "⚠️  Pre-release validation passed with warnings",
+        );
 
         exitSpy.mockRestore();
       });
 
-      it('should pass when all CI checks succeeded', async () => {
-        const exitSpy = jest.spyOn(process, 'exit').mockImplementation((() => {}) as any);
+      it("should pass when all CI checks succeeded", async () => {
+        const exitSpy = jest
+          .spyOn(process, "exit")
+          .mockImplementation((() => {}) as any);
 
         await doctorCommand({ preRelease: true });
 
-        expect(logger.success).toHaveBeenCalledWith('✅ All CI checks passed');
+        expect(logger.success).toHaveBeenCalledWith("✅ All CI checks passed");
 
         exitSpy.mockRestore();
       });
 
-      it('should pass when gh CLI is not available (graceful degradation)', async () => {
-        const exitSpy = jest.spyOn(process, 'exit').mockImplementation((() => {}) as any);
+      it("should pass when gh CLI is not available (graceful degradation)", async () => {
+        const exitSpy = jest
+          .spyOn(process, "exit")
+          .mockImplementation((() => {}) as any);
 
         mockedExecSync.mockImplementation(((cmd: string, options?: any) => {
           const hasEncoding = options && options.encoding;
-          if (cmd.includes('git status --porcelain')) {
-            return hasEncoding ? '' : Buffer.from('');
+          if (cmd.includes("git status --porcelain")) {
+            return hasEncoding ? "" : Buffer.from("");
           }
-          if (cmd.includes('git branch --show-current')) {
-            return hasEncoding ? 'main' : Buffer.from('main');
+          if (cmd.includes("git branch --show-current")) {
+            return hasEncoding ? "main" : Buffer.from("main");
           }
-          if (cmd.includes('git rev-parse HEAD')) {
-            return hasEncoding ? 'abc123' : Buffer.from('abc123');
+          if (cmd.includes("git rev-parse HEAD")) {
+            return hasEncoding ? "abc123" : Buffer.from("abc123");
           }
-          if (cmd.includes('gh run list')) {
-            throw new Error('gh CLI not found'); // gh not available
+          if (cmd.includes("gh run list")) {
+            throw new Error("gh CLI not found"); // gh not available
           }
-          return hasEncoding ? '' : Buffer.from('');
+          return hasEncoding ? "" : Buffer.from("");
         }) as any);
 
         await doctorCommand({ preRelease: true });
 
         // Should skip this check gracefully when gh not available
-        expect(logger.success).toHaveBeenCalledWith('✅ All CI checks passed');
+        expect(logger.success).toHaveBeenCalledWith("✅ All CI checks passed");
 
         exitSpy.mockRestore();
       });
     });
 
-    describe('Error handling', () => {
-      it('should handle check failures gracefully', async () => {
+    describe("Error handling", () => {
+      it("should handle check failures gracefully", async () => {
         mockedExecSync.mockImplementation(((cmd: string, options?: any) => {
           const hasEncoding = options && options.encoding;
-          if (cmd.includes('git status --porcelain')) {
+          if (cmd.includes("git status --porcelain")) {
             // Return dirty status (check fails normally, not via exception)
-            return hasEncoding ? 'M file.ts' : Buffer.from('M file.ts');
+            return hasEncoding ? "M file.ts" : Buffer.from("M file.ts");
           }
-          if (cmd.includes('git branch --show-current')) {
+          if (cmd.includes("git branch --show-current")) {
             // Return feature branch (another failure)
-            return hasEncoding ? 'feature/test' : Buffer.from('feature/test');
+            return hasEncoding ? "feature/test" : Buffer.from("feature/test");
           }
-          return hasEncoding ? '' : Buffer.from('');
+          return hasEncoding ? "" : Buffer.from("");
         }) as any);
 
-        const exitSpy = jest.spyOn(process, 'exit').mockImplementation((() => {}) as any);
+        const exitSpy = jest
+          .spyOn(process, "exit")
+          .mockImplementation((() => {}) as any);
 
         await doctorCommand({ preRelease: true });
 
         // Both checks should fail with their normal error messages
         expect(logger.error).toHaveBeenCalledWith(
-          '❌ Working directory clean: Uncommitted changes detected'
+          "❌ Working directory clean: Uncommitted changes detected",
         );
         expect(logger.error).toHaveBeenCalledWith(
-          '❌ On main branch: Not on main branch - releases must be from main'
+          "❌ On main branch: Not on main branch - releases must be from main",
         );
         expect(exitSpy).toHaveBeenCalledWith(1);
 
@@ -1086,20 +1172,22 @@ describe('doctor command', () => {
       });
     });
 
-    describe('Exit codes', () => {
-      it('should exit with code 1 when validation fails', async () => {
+    describe("Exit codes", () => {
+      it("should exit with code 1 when validation fails", async () => {
         mockedExecSync.mockImplementation(((cmd: string, options?: any) => {
           const hasEncoding = options && options.encoding;
-          if (cmd.includes('git status --porcelain')) {
-            return hasEncoding ? 'M file.ts' : Buffer.from('M file.ts'); // Uncommitted changes
+          if (cmd.includes("git status --porcelain")) {
+            return hasEncoding ? "M file.ts" : Buffer.from("M file.ts"); // Uncommitted changes
           }
-          if (cmd.includes('git branch --show-current')) {
-            return hasEncoding ? 'main' : Buffer.from('main');
+          if (cmd.includes("git branch --show-current")) {
+            return hasEncoding ? "main" : Buffer.from("main");
           }
-          return hasEncoding ? '' : Buffer.from('');
+          return hasEncoding ? "" : Buffer.from("");
         }) as any);
 
-        const exitSpy = jest.spyOn(process, 'exit').mockImplementation((() => {}) as any);
+        const exitSpy = jest
+          .spyOn(process, "exit")
+          .mockImplementation((() => {}) as any);
 
         await doctorCommand({ preRelease: true });
 
@@ -1108,38 +1196,40 @@ describe('doctor command', () => {
         exitSpy.mockRestore();
       });
 
-      it('should not exit when validation passes', async () => {
+      it("should not exit when validation passes", async () => {
         // Reset mocks to "all passing" state from beforeEach
         mockedExecSync.mockImplementation(((cmd: string, options?: any) => {
           const hasEncoding = options && options.encoding;
           // Git status (clean working directory)
-          if (cmd.includes('git status --porcelain')) {
-            return hasEncoding ? '' : Buffer.from('');
+          if (cmd.includes("git status --porcelain")) {
+            return hasEncoding ? "" : Buffer.from("");
           }
 
           // Current branch (main)
-          if (cmd.includes('git branch --show-current')) {
-            return hasEncoding ? 'main' : Buffer.from('main');
+          if (cmd.includes("git branch --show-current")) {
+            return hasEncoding ? "main" : Buffer.from("main");
           }
 
           // Git rev-parse HEAD
-          if (cmd.includes('git rev-parse HEAD')) {
-            return hasEncoding ? 'abc123def456' : Buffer.from('abc123def456');
+          if (cmd.includes("git rev-parse HEAD")) {
+            return hasEncoding ? "abc123def456" : Buffer.from("abc123def456");
           }
 
           // gh run list (all checks passed)
-          if (cmd.includes('gh run list')) {
+          if (cmd.includes("gh run list")) {
             const data = JSON.stringify([
-              { status: 'completed', conclusion: 'success' },
-              { status: 'completed', conclusion: 'success' }
+              { status: "completed", conclusion: "success" },
+              { status: "completed", conclusion: "success" },
             ]);
             return hasEncoding ? data : Buffer.from(data);
           }
 
-          return hasEncoding ? '' : Buffer.from('');
+          return hasEncoding ? "" : Buffer.from("");
         }) as any);
 
-        const exitSpy = jest.spyOn(process, 'exit').mockImplementation((() => {}) as any);
+        const exitSpy = jest
+          .spyOn(process, "exit")
+          .mockImplementation((() => {}) as any);
 
         await doctorCommand({ preRelease: true });
 
@@ -1148,57 +1238,61 @@ describe('doctor command', () => {
         exitSpy.mockRestore();
       });
 
-      it('should not exit when only warnings present', async () => {
+      it("should not exit when only warnings present", async () => {
         // Reset execSync mock to "all passing" state
         mockedExecSync.mockImplementation(((cmd: string, options?: any) => {
           const hasEncoding = options && options.encoding;
-          if (cmd.includes('git status --porcelain')) {
-            return hasEncoding ? '' : Buffer.from('');
+          if (cmd.includes("git status --porcelain")) {
+            return hasEncoding ? "" : Buffer.from("");
           }
-          if (cmd.includes('git branch --show-current')) {
-            return hasEncoding ? 'main' : Buffer.from('main');
+          if (cmd.includes("git branch --show-current")) {
+            return hasEncoding ? "main" : Buffer.from("main");
           }
-          if (cmd.includes('git rev-parse HEAD')) {
-            return hasEncoding ? 'abc123def456' : Buffer.from('abc123def456');
+          if (cmd.includes("git rev-parse HEAD")) {
+            return hasEncoding ? "abc123def456" : Buffer.from("abc123def456");
           }
-          if (cmd.includes('gh run list')) {
+          if (cmd.includes("gh run list")) {
             const data = JSON.stringify([
-              { status: 'completed', conclusion: 'success' },
-              { status: 'completed', conclusion: 'success' }
+              { status: "completed", conclusion: "success" },
+              { status: "completed", conclusion: "success" },
             ]);
             return hasEncoding ? data : Buffer.from(data);
           }
-          return hasEncoding ? '' : Buffer.from('');
+          return hasEncoding ? "" : Buffer.from("");
         }) as any);
 
         mockedReadFileSync.mockImplementation((path: any) => {
           const pathStr = path.toString();
 
-          if (pathStr.includes('package.json')) {
-            return JSON.stringify({ version: '1.7.0' }); // Wrong version (warning)
+          if (pathStr.includes("package.json")) {
+            return JSON.stringify({ version: "1.7.0" }); // Wrong version (warning)
           }
 
-          if (pathStr.includes('README.md')) {
-            return '[![CI](https://github.com/littlebearapps/git-pr-manager/workflows/CI/badge.svg)]';
+          if (pathStr.includes("README.md")) {
+            return "[![CI](https://github.com/littlebearapps/git-pr-manager/workflows/CI/badge.svg)]";
           }
 
-          if (pathStr.includes('.github/workflows/ci.yml')) {
-            return 'name: CI\non: push';
+          if (pathStr.includes(".github/workflows/ci.yml")) {
+            return "name: CI\non: push";
           }
 
-          if (pathStr.includes('.releaserc.json')) {
-            return JSON.stringify({ plugins: ['@semantic-release/npm'] });
+          if (pathStr.includes(".releaserc.json")) {
+            return JSON.stringify({ plugins: ["@semantic-release/npm"] });
           }
 
-          return '';
+          return "";
         });
 
-        const exitSpy = jest.spyOn(process, 'exit').mockImplementation((() => {}) as any);
+        const exitSpy = jest
+          .spyOn(process, "exit")
+          .mockImplementation((() => {}) as any);
 
         await doctorCommand({ preRelease: true });
 
         expect(exitSpy).not.toHaveBeenCalled();
-        expect(logger.warn).toHaveBeenCalledWith('⚠️  Pre-release validation passed with warnings');
+        expect(logger.warn).toHaveBeenCalledWith(
+          "⚠️  Pre-release validation passed with warnings",
+        );
 
         exitSpy.mockRestore();
       });

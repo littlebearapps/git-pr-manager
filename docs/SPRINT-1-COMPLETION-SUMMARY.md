@@ -4,6 +4,7 @@ Version: v1.7.0
 Branch: `docs/dogfooding-fix-plan`
 
 ## What Was Implemented
+
 - ExecutionTracker utility to capture step-by-step execution metadata for AI agents.
   - Tracks completed, skipped, and failed steps, with durations and reasons.
   - Provides summary with total duration and ISO timestamps.
@@ -19,6 +20,7 @@ Branch: `docs/dogfooding-fix-plan`
 - Conditional messaging in `ship.ts` for no-checks vs checks-passed.
 
 ## Test Results
+
 - Unit tests added:
   - ExecutionTracker: 10 tests (structure, ordering, durations, ISO times, mixed statuses).
   - EnhancedCIPoller: 2 tests for “no checks” scenario (grace wait + final warning).
@@ -26,9 +28,11 @@ Branch: `docs/dogfooding-fix-plan`
 - Coverage threshold (>=80%): maintained (per jest config thresholds).
 
 ## Build
+
 - `npm run build`: succeeds
 
 ## Example JSON Output (ship --json)
+
 ```json
 {
   "success": true,
@@ -58,13 +62,15 @@ Branch: `docs/dogfooding-fix-plan`
 ```
 
 ## Example Output: No CI Checks Configured
+
 - During progress: `⚠️  No CI checks configured`
 - Final message on success path: `No CI checks to wait for - proceeding with merge`
 
 ## Deviations From Plan
+
 - For verification without a script, we record a skipped step with reason `no verification script`.
 - Progress updates avoid emitting a status field; the no-checks condition is detected via `total === 0`.
 
 ## Ready for Sprint 2
-YES — Execution metadata is available for AI agents; CI race condition and UX improvements are in place.
 
+YES — Execution metadata is available for AI agents; CI race condition and UX improvements are in place.

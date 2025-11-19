@@ -9,6 +9,7 @@
 ## Current Configuration Summary
 
 ### GitHub Actions Workflow
+
 ✅ **File**: `.github/workflows/publish.yml`
 ✅ **Permissions**: `id-token: write`, `contents: read`
 ✅ **Environment**: NONE (blank)
@@ -18,6 +19,7 @@
 ✅ **Publish command**: `npm publish --tag $TAG --provenance --access public`
 
 **Comment in workflow (line 21)**:
+
 ```yaml
 # No environment specified - matches npm trusted publisher config (blank environment)
 ```
@@ -38,6 +40,7 @@ This indicates the intended configuration is **no environment**.
 4. Look for "Trusted publishers" list
 
 **Question**: Is there a GitHub Actions trusted publisher configured?
+
 - ❓ **If NO** → Go to Step 2 (Add trusted publisher)
 - ❓ **If YES** → Go to Step 3 (Verify configuration)
 
@@ -49,15 +52,16 @@ This indicates the intended configuration is **no environment**.
 
 Click "Add trusted publisher" and enter these **exact** values:
 
-| Field | Value | Notes |
-|-------|-------|-------|
-| **Provider** | `GitHub Actions` | Select from dropdown |
-| **Organization/User** | `littlebearapps` | Must match exactly |
-| **Repository** | `git-pr-manager` | Must match exactly |
-| **Workflow filename** | `publish.yml` | Must match exactly (case-sensitive) |
-| **Environment name** | *(leave blank)* | **CRITICAL: Leave this blank** |
+| Field                 | Value            | Notes                               |
+| --------------------- | ---------------- | ----------------------------------- |
+| **Provider**          | `GitHub Actions` | Select from dropdown                |
+| **Organization/User** | `littlebearapps` | Must match exactly                  |
+| **Repository**        | `git-pr-manager` | Must match exactly                  |
+| **Workflow filename** | `publish.yml`    | Must match exactly (case-sensitive) |
+| **Environment name**  | _(leave blank)_  | **CRITICAL: Leave this blank**      |
 
 **Why blank environment?**
+
 - The workflow has NO `environment:` field configured
 - npm requires exact match between workflow and trusted publisher
 - Blank on both sides = valid configuration
@@ -70,15 +74,16 @@ Click "Add publisher" to save.
 
 If a trusted publisher already exists, verify **ALL** fields match:
 
-| Field | Expected Value | Check |
-|-------|---------------|-------|
-| Provider | GitHub Actions | ☐ |
-| Organization/User | `littlebearapps` | ☐ |
-| Repository | `git-pr-manager` | ☐ |
-| Workflow filename | `publish.yml` | ☐ |
-| Environment name | *(blank/none)* | ☐ |
+| Field             | Expected Value   | Check |
+| ----------------- | ---------------- | ----- |
+| Provider          | GitHub Actions   | ☐     |
+| Organization/User | `littlebearapps` | ☐     |
+| Repository        | `git-pr-manager` | ☐     |
+| Workflow filename | `publish.yml`    | ☐     |
+| Environment name  | _(blank/none)_   | ☐     |
 
 **Common mistakes**:
+
 - ❌ Environment name set to "Production" (should be blank)
 - ❌ Repository name includes organization (should be just `git-pr-manager`)
 - ❌ Workflow filename has `.github/workflows/` prefix (should be just `publish.yml`)
@@ -95,6 +100,7 @@ If you prefer to use a **GitHub Environment** for additional protection:
 ### Option A: Add Environment to Workflow (Recommended by npm)
 
 **Pros**:
+
 - Additional approval gate before publishing
 - Deployment protection rules
 - Better audit trail
@@ -102,6 +108,7 @@ If you prefer to use a **GitHub Environment** for additional protection:
 **Changes needed**:
 
 1. **Edit `.github/workflows/publish.yml` line 21**:
+
    ```yaml
    # Before:
    # No environment specified - matches npm trusted publisher config (blank environment)
@@ -141,6 +148,7 @@ gh run watch
 ```
 
 **Expected result**:
+
 - ✅ Workflow completes successfully
 - ✅ No ENEEDAUTH error
 - ✅ Package published to npm with `next` tag
@@ -160,12 +168,14 @@ npm view @littlebearapps/git-pr-manager@next --json | jq '.dist.integrity'
 ## Current Workflow Runs
 
 ### Run 19403947509 (FAILED - Current)
+
 - **Error**: `npm error code ENEEDAUTH`
 - **Error message**: "This command requires you to be logged in to https://registry.npmjs.org/"
 - **Root cause**: Trusted publisher likely not configured on npmjs.com
 - **Fix**: Complete Step 2 above
 
 ### Previous Runs (All Fixed)
+
 - ✅ Run 19402982972: Fixed postinstall script issue
 - ✅ Run 19403014336: Fixed CI-sensitive test failures
 - ✅ Run 19403040124: Fixed prepublishOnly hook
@@ -189,6 +199,7 @@ npm view @littlebearapps/git-pr-manager@next --json | jq '.dist.integrity'
 ### Still Getting ENEEDAUTH After Configuration?
 
 **Check**:
+
 1. Wait 5 minutes after adding trusted publisher (npm propagation delay)
 2. Verify exact match of ALL fields (case-sensitive)
 3. Try removing and re-adding the trusted publisher
@@ -197,6 +208,7 @@ npm view @littlebearapps/git-pr-manager@next --json | jq '.dist.integrity'
 ### Getting "Environment protection rules failed"?
 
 **If you added `environment: Production` to workflow**:
+
 - Go to Actions → Your workflow run
 - Click "Review deployments"
 - Select "Production" and click "Approve and deploy"

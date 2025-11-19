@@ -7,27 +7,29 @@
  * Phase 1a: Foundation - Command Resolution
  */
 
-import { LanguageDetectionService } from './LanguageDetectionService';
-import {
-  Language,
-  PackageManager,
-  VerificationConfig
-} from '../types/index';
+import { LanguageDetectionService } from "./LanguageDetectionService";
+import { Language, PackageManager, VerificationConfig } from "../types/index";
 
 /**
  * Task types for verification
  */
-export type VerificationTask = 'lint' | 'test' | 'typecheck' | 'format' | 'build' | 'install';
+export type VerificationTask =
+  | "lint"
+  | "test"
+  | "typecheck"
+  | "format"
+  | "build"
+  | "install";
 
 /**
  * Command resolution result
  */
 export interface ResolvedCommand {
   command: string;
-  source: 'config' | 'makefile' | 'package-manager' | 'native' | 'not-found';
+  source: "config" | "makefile" | "package-manager" | "native" | "not-found";
   language: Language;
   packageManager?: PackageManager;
-  optional?: boolean;  // Task is optional (e.g., build when no build script exists)
+  optional?: boolean; // Task is optional (e.g., build when no build script exists)
 }
 
 /**
@@ -84,69 +86,76 @@ export class CommandResolver {
       language,
       packageManager,
       config,
-      makefileTargets = []
+      makefileTargets = [],
     } = options;
 
     // 1. Check for custom config command override
     if (config?.commands?.[task]) {
       return {
         command: config.commands[task]!,
-        source: 'config',
+        source: "config",
         language,
-        packageManager
+        packageManager,
       };
     }
 
     // 2. Check for Makefile target (if preferMakefile is enabled)
     const preferMakefile = config?.preferMakefile !== false; // Default: true
     if (preferMakefile && makefileTargets.length > 0) {
-      const makefileCommand = this.resolveMakefileCommand(task, makefileTargets, config);
+      const makefileCommand = this.resolveMakefileCommand(
+        task,
+        makefileTargets,
+        config,
+      );
       if (makefileCommand) {
         return {
           command: makefileCommand,
-          source: 'makefile',
+          source: "makefile",
           language,
-          packageManager
+          packageManager,
         };
       }
     }
 
     // 3. Get package manager or native tool commands
-    const toolCommands = await this.languageDetector.getToolCommands(language, packageManager);
+    const toolCommands = await this.languageDetector.getToolCommands(
+      language,
+      packageManager,
+    );
 
     // 4. Select first available command from fallback chain
     const commandChain = toolCommands[task] || [];
 
     for (const cmd of commandChain) {
       // Skip 'make' commands if we already checked Makefile
-      if (cmd.startsWith('make ') && preferMakefile) {
+      if (cmd.startsWith("make ") && preferMakefile) {
         continue; // Already checked Makefile, skip
       }
 
       // Check if tool is available
-      const [tool] = cmd.split(' ');
+      const [tool] = cmd.split(" ");
       const isAvailable = await this.languageDetector.checkToolAvailable(tool);
 
       if (isAvailable) {
         return {
           command: cmd,
-          source: packageManager ? 'package-manager' : 'native',
+          source: packageManager ? "package-manager" : "native",
           language,
-          packageManager
+          packageManager,
         };
       }
     }
 
     // 5. No command found
     // Build task is optional - mark it so verify command can skip it gracefully
-    const isOptional = task === 'build';
+    const isOptional = task === "build";
 
     return {
-      command: '',
-      source: 'not-found',
+      command: "",
+      source: "not-found",
       language,
       packageManager,
-      optional: isOptional
+      optional: isOptional,
     };
   }
 
@@ -157,7 +166,7 @@ export class CommandResolver {
   private resolveMakefileCommand(
     task: VerificationTask,
     makefileTargets: string[],
-    config?: VerificationConfig
+    config?: VerificationConfig,
   ): string | null {
     // 1. Check for custom Makefile target mapping in config
     const customTarget = config?.makefileTargets?.[task];
@@ -173,7 +182,9 @@ export class CommandResolver {
     // 3. Phase 1b: Check for aliased target names
     // Example: if Makefile has 'check' and config has { check: 'test' }, use 'make check' for test task
     if (config?.makefileAliases) {
-      for (const [actualTarget, mappedTask] of Object.entries(config.makefileAliases)) {
+      for (const [actualTarget, mappedTask] of Object.entries(
+        config.makefileAliases,
+      )) {
         if (mappedTask === task && makefileTargets.includes(actualTarget)) {
           return `make ${actualTarget}`;
         }
@@ -189,35 +200,35 @@ export class CommandResolver {
   getSuggestedInstallCommand(tool: string, language: Language): string | null {
     const installSuggestions: Record<string, Record<Language, string>> = {
       ruff: {
-        python: 'pip install ruff',
-        nodejs: 'npm install -D ruff',
-        go: '',
-        rust: ''
+        python: "pip install ruff",
+        nodejs: "npm install -D ruff",
+        go: "",
+        rust: "",
       },
       pytest: {
-        python: 'pip install pytest',
-        nodejs: '',
-        go: '',
-        rust: ''
+        python: "pip install pytest",
+        nodejs: "",
+        go: "",
+        rust: "",
       },
       mypy: {
-        python: 'pip install mypy',
-        nodejs: '',
-        go: '',
-        rust: ''
+        python: "pip install mypy",
+        nodejs: "",
+        go: "",
+        rust: "",
       },
       eslint: {
-        python: '',
-        nodejs: 'npm install -D eslint',
-        go: '',
-        rust: ''
+        python: "",
+        nodejs: "npm install -D eslint",
+        go: "",
+        rust: "",
       },
-      'golangci-lint': {
-        python: '',
-        nodejs: '',
-        go: 'go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest',
-        rust: ''
-      }
+      "golangci-lint": {
+        python: "",
+        nodejs: "",
+        go: "go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest",
+        rust: "",
+      },
     };
 
     return installSuggestions[tool]?.[language] || null;
@@ -229,12 +240,12 @@ export class CommandResolver {
    */
   async getDetectionSummary(
     language: Language,
-    packageManager?: PackageManager
+    packageManager?: PackageManager,
   ): Promise<string> {
     const lines: string[] = [];
 
-    lines.push('▸ Detection Summary');
-    lines.push('─'.repeat(80));
+    lines.push("▸ Detection Summary");
+    lines.push("─".repeat(80));
     lines.push(`Language: ${language}`);
 
     if (packageManager) {
@@ -250,11 +261,11 @@ export class CommandResolver {
     // Get Makefile targets
     const makefileTargets = await this.languageDetector.getMakefileTargets();
     if (makefileTargets.length > 0) {
-      lines.push(`Makefile Targets: ${makefileTargets.join(', ')}`);
+      lines.push(`Makefile Targets: ${makefileTargets.join(", ")}`);
     } else {
-      lines.push('Makefile: Not found');
+      lines.push("Makefile: Not found");
     }
 
-    return lines.join('\n');
+    return lines.join("\n");
   }
 }

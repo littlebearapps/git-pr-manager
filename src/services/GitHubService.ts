@@ -1,8 +1,8 @@
-import { Octokit } from '@octokit/rest';
-import { RequestError } from '@octokit/request-error';
-import { throttling } from '@octokit/plugin-throttling';
-import { GitHubServiceOptions, PROptions, MergeOptions } from '../types';
-import { logger } from '../utils/logger';
+import { Octokit } from "@octokit/rest";
+import { RequestError } from "@octokit/request-error";
+import { throttling } from "@octokit/plugin-throttling";
+import { GitHubServiceOptions, PROptions, MergeOptions } from "../types";
+import { logger } from "../utils/logger";
 
 // Extend Octokit with throttling plugin
 const MyOctokit = Octokit.plugin(throttling);
@@ -13,35 +13,35 @@ const MyOctokit = Octokit.plugin(throttling);
 export class AuthError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = 'AuthError';
+    this.name = "AuthError";
   }
 }
 
 export class PRExistsError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = 'PRExistsError';
+    this.name = "PRExistsError";
   }
 }
 
 export class NotFoundError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = 'NotFoundError';
+    this.name = "NotFoundError";
   }
 }
 
 export class MergeBlockedError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = 'MergeBlockedError';
+    this.name = "MergeBlockedError";
   }
 }
 
 export class MergeConflictError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = 'MergeConflictError';
+    this.name = "MergeConflictError";
   }
 }
 
@@ -58,13 +58,15 @@ export class GitHubService {
       auth: options.token,
       throttle: {
         onRateLimit: (retryAfter, _options, _octokit, retryCount) => {
-          logger.warn(`Rate limit exceeded, retrying after ${retryAfter}s (attempt ${retryCount + 1})`);
+          logger.warn(
+            `Rate limit exceeded, retrying after ${retryAfter}s (attempt ${retryCount + 1})`,
+          );
 
           if (retryCount < 3) {
             return true; // Retry
           }
 
-          logger.error('Rate limit retry attempts exhausted');
+          logger.error("Rate limit retry attempts exhausted");
           return false;
         },
         onSecondaryRateLimit: (retryAfter, _options, _octokit) => {
@@ -114,20 +116,22 @@ export class GitHubService {
         body,
         head,
         base,
-        draft
+        draft,
       });
 
       return {
         number: data.number,
         html_url: data.html_url,
-        head: data.head.sha
+        head: data.head.sha,
       };
     } catch (error) {
       if (error instanceof RequestError) {
         if (error.status === 422) {
-          throw new PRExistsError('Pull request already exists for this branch');
+          throw new PRExistsError(
+            "Pull request already exists for this branch",
+          );
         } else if (error.status === 404) {
-          throw new NotFoundError('Repository not found or no access');
+          throw new NotFoundError("Repository not found or no access");
         }
       }
       throw error;
@@ -153,7 +157,7 @@ export class GitHubService {
       const { data } = await this.octokit.rest.pulls.get({
         owner: this.owner,
         repo: this.repo,
-        pull_number: prNumber
+        pull_number: prNumber,
       });
 
       return data as any;
@@ -168,22 +172,24 @@ export class GitHubService {
   /**
    * List pull requests
    */
-  async listPRs(state: 'open' | 'closed' | 'all' = 'open'): Promise<Array<{
-    number: number;
-    title: string;
-    body: string | null;
-    state: string;
-    html_url: string;
-    head: { ref: string; sha: string };
-    base: { ref: string };
-    mergeable: boolean | null;
-    merged: boolean;
-    [key: string]: any;
-  }>> {
+  async listPRs(state: "open" | "closed" | "all" = "open"): Promise<
+    Array<{
+      number: number;
+      title: string;
+      body: string | null;
+      state: string;
+      html_url: string;
+      head: { ref: string; sha: string };
+      base: { ref: string };
+      mergeable: boolean | null;
+      merged: boolean;
+      [key: string]: any;
+    }>
+  > {
     const { data } = await this.octokit.rest.pulls.list({
       owner: this.owner,
       repo: this.repo,
-      state
+      state,
     });
 
     return data as any;
@@ -193,7 +199,7 @@ export class GitHubService {
    * Merge pull request
    */
   async mergePR(prNumber: number, options: MergeOptions) {
-    const { method = 'merge', commitTitle, commitMessage, sha } = options;
+    const { method = "merge", commitTitle, commitMessage, sha } = options;
 
     try {
       const { data } = await this.octokit.rest.pulls.merge({
@@ -203,19 +209,21 @@ export class GitHubService {
         merge_method: method,
         commit_title: commitTitle,
         commit_message: commitMessage,
-        sha
+        sha,
       });
 
       return {
         merged: data.merged,
-        sha: data.sha
+        sha: data.sha,
       };
     } catch (error) {
       if (error instanceof RequestError) {
         if (error.status === 405) {
-          throw new MergeBlockedError('PR cannot be merged (conflicts or failed checks)');
+          throw new MergeBlockedError(
+            "PR cannot be merged (conflicts or failed checks)",
+          );
         } else if (error.status === 409) {
-          throw new MergeConflictError('PR has merge conflicts');
+          throw new MergeConflictError("PR has merge conflicts");
         }
       }
       throw error;
@@ -230,7 +238,7 @@ export class GitHubService {
       await this.octokit.rest.git.deleteRef({
         owner: this.owner,
         repo: this.repo,
-        ref: `heads/${branch}`
+        ref: `heads/${branch}`,
       });
     } catch (error) {
       if (error instanceof RequestError && error.status === 422) {
@@ -246,7 +254,7 @@ export class GitHubService {
   async getRepo() {
     const { data } = await this.octokit.rest.repos.get({
       owner: this.owner,
-      repo: this.repo
+      repo: this.repo,
     });
 
     return data;
@@ -266,15 +274,19 @@ export class GitHubService {
 
     // Warn if running low
     if (remaining < 1000) {
-      logger.warn(`API rate limit low: ${remaining}/${limit} requests remaining`);
-      logger.info(`Rate limit resets at: ${new Date(reset * 1000).toLocaleString()}`);
+      logger.warn(
+        `API rate limit low: ${remaining}/${limit} requests remaining`,
+      );
+      logger.info(
+        `Rate limit resets at: ${new Date(reset * 1000).toLocaleString()}`,
+      );
     }
 
     return {
       remaining,
       limit,
       reset: new Date(reset * 1000),
-      used
+      used,
     };
   }
 
@@ -287,11 +299,13 @@ export class GitHubService {
   private parseRemoteUrlSync(): { owner: string; repo: string } {
     try {
       // Use exec to get remote URL synchronously
-      const childProcess = require('child_process');
-      const remoteUrl = childProcess.execSync('git config --get remote.origin.url', {
-        encoding: 'utf-8',
-        cwd: process.cwd()
-      }).trim();
+      const childProcess = require("child_process");
+      const remoteUrl = childProcess
+        .execSync("git config --get remote.origin.url", {
+          encoding: "utf-8",
+          cwd: process.cwd(),
+        })
+        .trim();
 
       return this.parseGitUrl(remoteUrl);
     } catch (error) {
@@ -308,16 +322,18 @@ export class GitHubService {
     if (sshMatch) {
       return {
         owner: sshMatch[1],
-        repo: sshMatch[2]
+        repo: sshMatch[2],
       };
     }
 
     // HTTPS format: https://github.com/littlebearapps/notebridge.git
-    const httpsMatch = url.match(/https:\/\/github\.com\/(.+?)\/(.+?)(?:\.git)?$/);
+    const httpsMatch = url.match(
+      /https:\/\/github\.com\/(.+?)\/(.+?)(?:\.git)?$/,
+    );
     if (httpsMatch) {
       return {
         owner: httpsMatch[1],
-        repo: httpsMatch[2]
+        repo: httpsMatch[2],
       };
     }
 

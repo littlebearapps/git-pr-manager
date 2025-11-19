@@ -14,6 +14,7 @@ This document outlines a **4-6 layer defense strategy** to prevent version misma
 **Key Innovation**: Version mismatch becomes **architecturally impossible** - there's only one source of truth (npm registry), with smart runtime detection for development workflows.
 
 **Root Issues Addressed**:
+
 1. **Version Mismatch**: npm registry at v1.8.0 while GitHub repository remained at v1.7.0
    - **Root cause (discovered)**: Attempting to sync versions between npm and git creates dual source of truth
    - **Solution**: Eliminate the problem at source - use placeholder version + smart CLI
@@ -27,20 +28,22 @@ This document outlines a **4-6 layer defense strategy** to prevent version misma
 ### Issue 1: Version Mismatch Deep Dive
 
 **What Happened**:
+
 - semantic-release published v1.8.0 to npm registry ✅
 - semantic-release created GitHub release v1.8.0 ✅
 - package.json remained at "1.7.0" ❌
 - README.md showed v1.7.0 ❌
 
 **Surface-Level Root Cause**:
+
 ```json
 // .releaserc.json - MISSING @semantic-release/git plugin
 {
   "plugins": [
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
-    "@semantic-release/npm",      // ✅ Published to npm
-    "@semantic-release/github"    // ✅ Created GitHub release
+    "@semantic-release/npm", // ✅ Published to npm
+    "@semantic-release/github" // ✅ Created GitHub release
     // ❌ MISSING: @semantic-release/git (commits version back to repo)
   ]
 }
@@ -48,12 +51,14 @@ This document outlines a **4-6 layer defense strategy** to prevent version misma
 
 **Deeper Root Cause** (discovered through zen validation):
 The real problem is **attempting to maintain version consistency across two sources of truth**:
+
 - npm registry (authoritative, updated by semantic-release)
 - Git repository (secondary, requires sync via @semantic-release/git plugin)
 
 This creates an **architectural vulnerability**: any failure in the sync mechanism causes divergence.
 
 **Workflow That Occurred**:
+
 1. GitHub Actions triggered on push to main
 2. semantic-release analyzed 16 commits
 3. Determined version 1.8.0 (3 "feat:" commits = minor bump)
@@ -63,6 +68,7 @@ This creates an **architectural vulnerability**: any failure in the sync mechani
 7. **Never committed changes back to repository** ❌ ← The sync point that failed
 
 **Impact**:
+
 - Source of truth divergence (npm vs GitHub repo)
 - Developer confusion about current version
 - Potential installation issues
@@ -72,6 +78,7 @@ This creates an **architectural vulnerability**: any failure in the sync mechani
 ### Issue 2: Badge Failure Deep Dive
 
 **What Happened**:
+
 - README badge URL: `workflows/Test/badge.svg`
 - Actual workflow file: `.github/workflows/ci.yml` (name: "CI")
 - Badge API returned "failing" status (workflow not found)
@@ -80,6 +87,7 @@ This creates an **architectural vulnerability**: any failure in the sync mechani
 Workflow was renamed from "Test" to "CI" but README badges were not updated.
 
 **Impact**:
+
 - False negative signal to users/contributors
 - Undermines project credibility
 - Users may avoid using gpm thinking it's broken
@@ -91,44 +99,52 @@ Workflow was renamed from "Test" to "CI" but README badges were not updated.
 ### semantic-release Recommendations
 
 **Official Recommendation** (semantic-release team):
+
 - **DON'T commit version changes back to repository**
 - Use placeholder version like `"0.0.0-development"` in package.json
 - Treat npm registry as single source of truth
 
 **Reasoning**:
+
 - Avoids branch protection configuration complexity
 - Reduces commit noise
 - Prevents circular workflow triggers
 - Simplifies release process
 
 **Sources**:
+
 - https://semantic-release.gitbook.io/semantic-release/support/faq
 - https://github.com/semantic-release/semantic-release/blob/master/docs/support/FAQ.md
 
 ### Badge Management Best Practices
 
 **Automated Generation**:
+
 - GitHub Actions exist for auto-generating badges
 - Dynamic badge generation from actual workflow files
 - Badge-as-code approach (generate from config)
 
 **Validation**:
+
 - Pre-commit hooks to validate badge URLs
 - CI checks for badge accuracy
 - Scheduled health checks
 
 **Sources**:
+
 - https://github.com/marketplace/actions/ci-badges
 - https://github.com/marketplace/actions/dynamic-badges
 
 ### Version Sync Detection
 
 **Automated Monitoring**:
+
 - PostHog/check-package-version action
 - Compares package.json vs npm registry
 - Triggers alerts on drift
 
 **Sources**:
+
 - https://github.com/PostHog/check-package-version
 - https://stackoverflow.com/questions/50029908/sync-version-management-in-npm-and-git
 
@@ -141,6 +157,7 @@ Workflow was renamed from "Test" to "CI" but README badges were not updated.
 The semantic-release team **explicitly recommends AGAINST** using `@semantic-release/git` to commit version changes:
 
 **Their reasoning**:
+
 - Avoids branch protection configuration complexity
 - Reduces commit noise
 - Prevents circular workflow triggers
@@ -152,6 +169,7 @@ The semantic-release team **explicitly recommends AGAINST** using `@semantic-rel
 ### Why We Initially Resisted
 
 **Our concerns** (before zen validation):
+
 1. **Developer Experience**: Contributors expect accurate version in package.json
 2. **Dogfooding**: gpm demonstrates git workflows - shouldn't we track versions in git?
 3. **Transparency**: Version history visible in git log
@@ -184,6 +202,7 @@ The semantic-release team **explicitly recommends AGAINST** using `@semantic-rel
 ### The Architectural Advantage
 
 **Eliminates the problem at source**:
+
 - **Before** (dual source): Can fail in many ways (plugin config, branch protection, sync errors)
 - **After** (single source): **Cannot fail** - there's nothing to sync
 
@@ -248,17 +267,20 @@ This is a **better foundation** than trying to prevent sync failures through val
 ### Defense-in-Depth Principle
 
 **Architectural Impossibility**: Version mismatch between npm and git **cannot occur**:
+
 - Layer 1: Eliminates dual source of truth
 - Layer 2: Smart CLI provides accurate versions at runtime
 - Layers 3-6: Additional validation and automation (nice-to-have)
 
 **No Single Point of Failure** (if you implement optional layers):
+
 - If Layer 2 breaks → Layer 3 validates before release
 - If Layer 3 missed → Layer 4 detects after
 - If Layer 4 fails → Layer 5 finds it weekly
 - Layer 6 eliminates manual badge errors
 
 **Critical vs Optional**:
+
 - **Critical**: Layers 1-2 (prevent problem from existing)
 - **Recommended**: Layers 3-4 (catch other issues)
 - **Optional**: Layers 5-6 (ongoing maintenance)
@@ -269,23 +291,23 @@ This is a **better foundation** than trying to prevent sync failures through val
 
 ### Detailed Feature Comparison
 
-| Feature | @semantic-release/git Approach | Alternative D (Recommended) | Advantage |
-|---------|-------------------------------|----------------------------|-----------|
-| **Architecture** | Dual source of truth (npm + git) | Single source of truth (npm only) | ✅ Simpler |
-| **Version in package.json** | Real version (e.g., "1.8.0") | Placeholder ("0.0.0-development") | ⚠️ Trade-off |
-| **CLI version detection** | Static from package.json | Smart (git tags + npm injection) | ✅ More informative |
-| **Version mismatch risk** | High (sync can fail) | **Zero** (impossible) | ✅✅ Major win |
-| **Plugin dependencies** | @semantic-release/git required | None (removed) | ✅ Simpler |
-| **Branch protection** | Must allow commits from bot | No special config needed | ✅ Easier setup |
-| **Commit noise** | Version bump commits | None | ✅ Cleaner history |
-| **Circular workflow risk** | Medium (needs [skip ci]) | None | ✅ Safer |
-| **Developer UX** | See real version in repo | See dev version with context | ✅ More informative |
-| **Published package** | Real version | Real version (npm injects) | 🟰 Same |
-| **Development mode** | Shows last released version | Shows `tag-dev+N` (commits ahead) | ✅ More accurate |
-| **Alignment with semantic-release** | Against team recommendation | **Follows** team recommendation | ✅ Best practice |
-| **Long-term maintenance** | Must maintain sync logic | No sync logic needed | ✅ Less code |
-| **Failure modes** | 5+ ways to fail (plugin, branch, sync) | 1-2 ways (CLI edge cases) | ✅ More robust |
-| **Confidence level** | VERY HIGH (with validation layers) | **ALMOST CERTAIN** (inherent design) | ✅ Higher confidence |
+| Feature                             | @semantic-release/git Approach         | Alternative D (Recommended)          | Advantage            |
+| ----------------------------------- | -------------------------------------- | ------------------------------------ | -------------------- |
+| **Architecture**                    | Dual source of truth (npm + git)       | Single source of truth (npm only)    | ✅ Simpler           |
+| **Version in package.json**         | Real version (e.g., "1.8.0")           | Placeholder ("0.0.0-development")    | ⚠️ Trade-off         |
+| **CLI version detection**           | Static from package.json               | Smart (git tags + npm injection)     | ✅ More informative  |
+| **Version mismatch risk**           | High (sync can fail)                   | **Zero** (impossible)                | ✅✅ Major win       |
+| **Plugin dependencies**             | @semantic-release/git required         | None (removed)                       | ✅ Simpler           |
+| **Branch protection**               | Must allow commits from bot            | No special config needed             | ✅ Easier setup      |
+| **Commit noise**                    | Version bump commits                   | None                                 | ✅ Cleaner history   |
+| **Circular workflow risk**          | Medium (needs [skip ci])               | None                                 | ✅ Safer             |
+| **Developer UX**                    | See real version in repo               | See dev version with context         | ✅ More informative  |
+| **Published package**               | Real version                           | Real version (npm injects)           | 🟰 Same              |
+| **Development mode**                | Shows last released version            | Shows `tag-dev+N` (commits ahead)    | ✅ More accurate     |
+| **Alignment with semantic-release** | Against team recommendation            | **Follows** team recommendation      | ✅ Best practice     |
+| **Long-term maintenance**           | Must maintain sync logic               | No sync logic needed                 | ✅ Less code         |
+| **Failure modes**                   | 5+ ways to fail (plugin, branch, sync) | 1-2 ways (CLI edge cases)            | ✅ More robust       |
+| **Confidence level**                | VERY HIGH (with validation layers)     | **ALMOST CERTAIN** (inherent design) | ✅ Higher confidence |
 
 ### zen thinkdeep Validation Results
 
@@ -294,6 +316,7 @@ This is a **better foundation** than trying to prevent sync failures through val
 **Answer** (ALMOST CERTAIN confidence): Alternative D
 
 **Key insights from validation**:
+
 1. Version mismatch is **architecturally impossible** with Alternative D
 2. Eliminates problem at source rather than trying to prevent it
 3. Aligns with industry best practice (semantic-release team's own recommendation)
@@ -301,6 +324,7 @@ This is a **better foundation** than trying to prevent sync failures through val
 5. Simpler architecture = fewer failure points = higher reliability
 
 **Confidence levels**:
+
 - @semantic-release/git approach: VERY HIGH (requires all validation layers)
 - Alternative D: **ALMOST CERTAIN** (problem cannot occur by design)
 
@@ -315,24 +339,27 @@ This is a **better foundation** than trying to prevent sync failures through val
 **File**: `package.json`
 
 **Before** (dual source of truth):
+
 ```json
 {
   "name": "@littlebearapps/git-pr-manager",
-  "version": "1.7.0",  // ❌ Gets out of sync with npm
+  "version": "1.7.0" // ❌ Gets out of sync with npm
   // ...
 }
 ```
 
 **After** (single source of truth):
+
 ```json
 {
   "name": "@littlebearapps/git-pr-manager",
-  "version": "0.0.0-development",  // ✅ Placeholder - never changes
+  "version": "0.0.0-development" // ✅ Placeholder - never changes
   // ...
 }
 ```
 
 **Key Points**:
+
 - This placeholder **never changes** in the repository
 - semantic-release injects the real version during `npm publish`
 - Published packages have real version (e.g., 1.8.0)
@@ -343,6 +370,7 @@ This is a **better foundation** than trying to prevent sync failures through val
 **File**: `.releaserc.json`
 
 **Before** (attempt to sync versions):
+
 ```json
 {
   "branches": ["main"],
@@ -351,7 +379,7 @@ This is a **better foundation** than trying to prevent sync failures through val
     "@semantic-release/release-notes-generator",
     "@semantic-release/npm",
     [
-      "@semantic-release/git",  // ❌ REMOVE - Creates dual source of truth
+      "@semantic-release/git", // ❌ REMOVE - Creates dual source of truth
       {
         "assets": ["package.json", "package-lock.json"],
         "message": "chore(release): ${nextRelease.version} [skip ci]"
@@ -363,20 +391,22 @@ This is a **better foundation** than trying to prevent sync failures through val
 ```
 
 **After** (single source of truth):
+
 ```json
 {
   "branches": ["main"],
   "plugins": [
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
-    "@semantic-release/npm",      // ✅ Publishes to npm with real version
-    "@semantic-release/github"    // ✅ Creates GitHub release + git tags
+    "@semantic-release/npm", // ✅ Publishes to npm with real version
+    "@semantic-release/github" // ✅ Creates GitHub release + git tags
     // ✅ NO git plugin - package.json stays at placeholder
   ]
 }
 ```
 
 **Uninstall** (if previously added):
+
 ```bash
 npm uninstall @semantic-release/git
 ```
@@ -386,11 +416,13 @@ npm uninstall @semantic-release/git
 **File**: `README.md`
 
 **Before** (broken):
+
 ```markdown
 [![CI](https://github.com/littlebearapps/git-pr-manager/workflows/Test/badge.svg)](https://github.com/littlebearapps/git-pr-manager/actions/workflows/test.yml)
 ```
 
 **After** (fixed):
+
 ```markdown
 [![CI](https://github.com/littlebearapps/git-pr-manager/workflows/CI/badge.svg)](https://github.com/littlebearapps/git-pr-manager/actions/workflows/ci.yml)
 ```
@@ -406,7 +438,7 @@ npm uninstall @semantic-release/git
 **Create new file**: `src/utils/version.ts`
 
 ```typescript
-import { execSync } from 'child_process';
+import { execSync } from "child_process";
 
 /**
  * Smart version detection for CLI
@@ -416,19 +448,19 @@ import { execSync } from 'child_process';
  * Fallback: Returns placeholder (e.g., "0.0.0-development")
  */
 export function getVersion(): string {
-  const pkg = require('../../package.json');
+  const pkg = require("../../package.json");
 
   // Published package - npm injects real version during publish
-  if (pkg.version !== '0.0.0-development') {
+  if (pkg.version !== "0.0.0-development") {
     return pkg.version;
   }
 
   // Development mode - get version from git tags
   try {
     // Get git repository root
-    const gitRoot = execSync('git rev-parse --show-toplevel', {
-      stdio: 'pipe',
-      encoding: 'utf-8'
+    const gitRoot = execSync("git rev-parse --show-toplevel", {
+      stdio: "pipe",
+      encoding: "utf-8",
     }).trim();
 
     const currentDir = process.cwd();
@@ -436,35 +468,32 @@ export function getVersion(): string {
     // Check if we're inside the gpm repository
     if (currentDir.startsWith(gitRoot)) {
       // Get latest git tag (e.g., "v1.7.0")
-      const latestTag = execSync('git describe --tags --abbrev=0', {
-        stdio: 'pipe',
-        encoding: 'utf-8'
+      const latestTag = execSync("git describe --tags --abbrev=0", {
+        stdio: "pipe",
+        encoding: "utf-8",
       }).trim();
 
       // Count commits since last tag
-      const commitsSince = execSync(
-        `git rev-list ${latestTag}..HEAD --count`,
-        {
-          stdio: 'pipe',
-          encoding: 'utf-8'
-        }
-      ).trim();
+      const commitsSince = execSync(`git rev-list ${latestTag}..HEAD --count`, {
+        stdio: "pipe",
+        encoding: "utf-8",
+      }).trim();
 
       // If on the tag exactly, return clean version
-      if (commitsSince === '0') {
-        return latestTag.replace(/^v/, '');
+      if (commitsSince === "0") {
+        return latestTag.replace(/^v/, "");
       }
 
       // Development version: tag + commits ahead
       // Example: "1.7.0-dev+3" (3 commits ahead of v1.7.0)
-      return `${latestTag.replace(/^v/, '')}-dev+${commitsSince}`;
+      return `${latestTag.replace(/^v/, "")}-dev+${commitsSince}`;
     }
   } catch {
     // Not in git repo, or git not available
   }
 
   // Fallback to placeholder
-  return '0.0.0-development';
+  return "0.0.0-development";
 }
 ```
 
@@ -473,7 +502,7 @@ export function getVersion(): string {
 **Update CLI entry point**:
 
 ```typescript
-import { getVersion } from './utils/version';
+import { getVersion } from "./utils/version";
 
 const program = new Command();
 
@@ -488,6 +517,7 @@ program.version(getVersion());
 #### User Experience Examples
 
 **Published package** (installed via npm):
+
 ```bash
 $ npm install -g @littlebearapps/git-pr-manager
 $ gpm --version
@@ -495,6 +525,7 @@ $ gpm --version
 ```
 
 **Development mode** (working in repo):
+
 ```bash
 $ git clone https://github.com/littlebearapps/git-pr-manager.git
 $ cd git-pr-manager
@@ -505,6 +536,7 @@ $ gpm --version
 ```
 
 **On exact tag**:
+
 ```bash
 $ git checkout v1.7.0
 $ gpm --version
@@ -512,6 +544,7 @@ $ gpm --version
 ```
 
 **Fallback** (not in git repo):
+
 ```bash
 $ cd /tmp
 $ gpm --version
@@ -548,26 +581,27 @@ interface PreReleaseCheck {
 
 const PRE_RELEASE_CHECKS: PreReleaseCheck[] = [
   {
-    name: 'Workflow files exist',
+    name: "Workflow files exist",
     check: async () => {
       const workflows = [
-        '.github/workflows/ci.yml',
-        '.github/workflows/publish.yml'
+        ".github/workflows/ci.yml",
+        ".github/workflows/publish.yml",
       ];
-      return workflows.every(w => existsSync(w));
+      return workflows.every((w) => existsSync(w));
     },
-    error: 'Required workflow files missing'
+    error: "Required workflow files missing",
   },
   {
-    name: 'Badge URLs match workflows',
+    name: "Badge URLs match workflows",
     check: async () => {
-      const readme = readFileSync('README.md', 'utf-8');
-      const workflowFiles = readdirSync('.github/workflows')
-        .filter(f => f.endsWith('.yml'));
+      const readme = readFileSync("README.md", "utf-8");
+      const workflowFiles = readdirSync(".github/workflows").filter((f) =>
+        f.endsWith(".yml"),
+      );
 
       const workflowNames: string[] = [];
       for (const file of workflowFiles) {
-        const content = readFileSync(`.github/workflows/${file}`, 'utf-8');
+        const content = readFileSync(`.github/workflows/${file}`, "utf-8");
         const nameMatch = content.match(/^name:\s*(.+)$/m);
         if (nameMatch) {
           workflowNames.push(nameMatch[1].trim());
@@ -584,79 +618,87 @@ const PRE_RELEASE_CHECKS: PreReleaseCheck[] = [
       }
       return true;
     },
-    error: 'README badges reference non-existent workflows'
+    error: "README badges reference non-existent workflows",
   },
   {
-    name: 'package.json version is placeholder',
+    name: "package.json version is placeholder",
     check: async () => {
-      if (!existsSync('package.json')) {
+      if (!existsSync("package.json")) {
         return false;
       }
-      const packageJson = JSON.parse(readFileSync('package.json', 'utf-8'));
-      return packageJson.version === '0.0.0-development';
+      const packageJson = JSON.parse(readFileSync("package.json", "utf-8"));
+      return packageJson.version === "0.0.0-development";
     },
-    error: 'package.json version should be "0.0.0-development" for single source of truth',
-    warning: true
+    error:
+      'package.json version should be "0.0.0-development" for single source of truth',
+    warning: true,
   },
   {
-    name: '@semantic-release/git plugin NOT present',
+    name: "@semantic-release/git plugin NOT present",
     check: async () => {
-      if (!existsSync('.releaserc.json')) {
+      if (!existsSync(".releaserc.json")) {
         return true; // OK if no config file
       }
-      const releaserc = JSON.parse(readFileSync('.releaserc.json', 'utf-8'));
+      const releaserc = JSON.parse(readFileSync(".releaserc.json", "utf-8"));
       if (!releaserc.plugins) {
         return true; // OK if no plugins
       }
       // Check that git plugin is NOT present
-      return !releaserc.plugins.some((p: any) =>
-        p === '@semantic-release/git' ||
-        (Array.isArray(p) && p[0] === '@semantic-release/git')
+      return !releaserc.plugins.some(
+        (p: any) =>
+          p === "@semantic-release/git" ||
+          (Array.isArray(p) && p[0] === "@semantic-release/git"),
       );
     },
-    error: '@semantic-release/git plugin found - should be removed for Alternative D',
-    warning: true
+    error:
+      "@semantic-release/git plugin found - should be removed for Alternative D",
+    warning: true,
   },
   {
-    name: 'Working directory clean',
+    name: "Working directory clean",
     check: async () => {
-      const status = execSync('git status --porcelain', { encoding: 'utf-8' });
+      const status = execSync("git status --porcelain", { encoding: "utf-8" });
       return status.trim().length === 0;
     },
-    error: 'Uncommitted changes detected'
+    error: "Uncommitted changes detected",
   },
   {
-    name: 'On main branch',
+    name: "On main branch",
     check: async () => {
-      const branch = execSync('git branch --show-current', { encoding: 'utf-8' });
-      return branch.trim() === 'main';
+      const branch = execSync("git branch --show-current", {
+        encoding: "utf-8",
+      });
+      return branch.trim() === "main";
     },
-    error: 'Not on main branch - releases must be from main'
+    error: "Not on main branch - releases must be from main",
   },
   {
-    name: 'All CI checks passed',
+    name: "All CI checks passed",
     check: async () => {
       // Get latest commit SHA
-      const sha = execSync('git rev-parse HEAD', { encoding: 'utf-8' }).trim();
+      const sha = execSync("git rev-parse HEAD", { encoding: "utf-8" }).trim();
 
       // Check if all required workflows passed for this commit
       const result = execSync(
         `gh run list --commit ${sha} --json conclusion,status`,
-        { encoding: 'utf-8' }
+        { encoding: "utf-8" },
       );
       const runs = JSON.parse(result);
 
-      return runs.every((run: any) =>
-        run.status === 'completed' && run.conclusion === 'success'
+      return runs.every(
+        (run: any) =>
+          run.status === "completed" && run.conclusion === "success",
       );
     },
-    error: 'CI checks have not all passed for HEAD commit'
-  }
+    error: "CI checks have not all passed for HEAD commit",
+  },
 ];
 
-export async function doctorCommand(options: { preRelease?: boolean }): Promise<void> {
+export async function doctorCommand(options: {
+  preRelease?: boolean;
+}): Promise<void> {
   if (options.preRelease) {
-    logger.section('Pre-Release Validation');
+    logger.section("Pre-Release Validation");
 
     let hasErrors = false;
     let hasWarnings = false;
@@ -685,15 +727,15 @@ export async function doctorCommand(options: { preRelease?: boolean }): Promise<
     logger.divider();
 
     if (hasErrors) {
-      logger.error('⛔ Pre-release validation FAILED');
-      logger.info('   Fix the errors above before publishing');
+      logger.error("⛔ Pre-release validation FAILED");
+      logger.info("   Fix the errors above before publishing");
       process.exit(1);
     } else if (hasWarnings) {
-      logger.warn('⚠️  Pre-release validation passed with warnings');
-      logger.info('   Review warnings - they may indicate issues');
+      logger.warn("⚠️  Pre-release validation passed with warnings");
+      logger.info("   Review warnings - they may indicate issues");
     } else {
-      logger.success('✅ Pre-release validation PASSED');
-      logger.info('   Ready to publish!');
+      logger.success("✅ Pre-release validation PASSED");
+      logger.info("   Ready to publish!");
     }
 
     return;
@@ -707,13 +749,14 @@ export async function doctorCommand(options: { preRelease?: boolean }): Promise<
 
 ```typescript
 program
-  .command('doctor')
-  .description('Check system requirements and setup')
-  .option('--pre-release', 'Run pre-release validation checks')
+  .command("doctor")
+  .description("Check system requirements and setup")
+  .option("--pre-release", "Run pre-release validation checks")
   .action(doctorCommand);
 ```
 
 **Usage**:
+
 ```bash
 # Standard health check
 gpm doctor
@@ -797,6 +840,7 @@ https://github.com/\${{ github.repository }}/actions/runs/\${{ github.run_id }}"
 ```
 
 **Key Features**:
+
 - Waits 2 minutes for npm CDN propagation
 - Compares **only the two sources that matter**: npm vs GitHub release
 - **No package.json check** (always 0.0.0-development by design)
@@ -804,6 +848,7 @@ https://github.com/\${{ github.repository }}/actions/runs/\${{ github.run_id }}"
 - Fails the workflow to alert team
 
 **Simpler than hybrid approach**:
+
 - Removed package.json validation (no longer relevant)
 - Removed confusing warnings about sync
 - Single critical check: npm == GitHub release
@@ -958,6 +1003,7 @@ The published package version on npm doesn't match the GitHub release version. T
 ```
 
 **Features**:
+
 - Runs every Monday (scheduled)
 - Can be triggered manually (workflow_dispatch)
 - Validates badge URLs against actual workflows
@@ -976,23 +1022,24 @@ The published package version on npm doesn't match the GitHub release version. T
 ```javascript
 #!/usr/bin/env node
 
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
 /**
  * Generate badge markdown from actual workflow files
  */
 function generateBadges() {
-  const workflowsDir = '.github/workflows';
+  const workflowsDir = ".github/workflows";
 
   // Read all workflow files
-  const workflowFiles = fs.readdirSync(workflowsDir)
-    .filter(f => f.endsWith('.yml') || f.endsWith('.yaml'));
+  const workflowFiles = fs
+    .readdirSync(workflowsDir)
+    .filter((f) => f.endsWith(".yml") || f.endsWith(".yaml"));
 
   const badges = [];
 
   for (const file of workflowFiles) {
-    const content = fs.readFileSync(path.join(workflowsDir, file), 'utf-8');
+    const content = fs.readFileSync(path.join(workflowsDir, file), "utf-8");
 
     // Extract workflow name
     const nameMatch = content.match(/^name:\s*(.+)$/m);
@@ -1017,24 +1064,24 @@ function generateBadges() {
  * Update README.md with generated badges
  */
 function updateReadme(badges) {
-  const readmePath = 'README.md';
-  const readme = fs.readFileSync(readmePath, 'utf-8');
+  const readmePath = "README.md";
+  const readme = fs.readFileSync(readmePath, "utf-8");
 
   // Generate badge section
-  const badgeMarkdown = badges.map(b => b.markdown).join('\n');
+  const badgeMarkdown = badges.map((b) => b.markdown).join("\n");
 
   // Replace between markers
-  const startMarker = '<!-- BADGES:START -->';
-  const endMarker = '<!-- BADGES:END -->';
+  const startMarker = "<!-- BADGES:START -->";
+  const endMarker = "<!-- BADGES:END -->";
 
   const startIndex = readme.indexOf(startMarker);
   const endIndex = readme.indexOf(endMarker);
 
   if (startIndex === -1 || endIndex === -1) {
-    console.error('❌ Could not find badge markers in README.md');
-    console.error('   Add the following markers where badges should go:');
-    console.error('   <!-- BADGES:START -->');
-    console.error('   <!-- BADGES:END -->');
+    console.error("❌ Could not find badge markers in README.md");
+    console.error("   Add the following markers where badges should go:");
+    console.error("   <!-- BADGES:START -->");
+    console.error("   <!-- BADGES:END -->");
     process.exit(1);
   }
 
@@ -1045,8 +1092,8 @@ function updateReadme(badges) {
 
   fs.writeFileSync(readmePath, updatedReadme);
 
-  console.log('✅ Badges updated successfully:');
-  badges.forEach(b => console.log(`   - ${b.name}`));
+  console.log("✅ Badges updated successfully:");
+  badges.forEach((b) => console.log(`   - ${b.name}`));
 }
 
 // Main execution
@@ -1054,7 +1101,7 @@ try {
   const badges = generateBadges();
   updateReadme(badges);
 } catch (error) {
-  console.error('❌ Badge generation failed:', error.message);
+  console.error("❌ Badge generation failed:", error.message);
   process.exit(1);
 }
 ```
@@ -1062,12 +1109,15 @@ try {
 **README.md Update**:
 
 Add badge markers:
+
 ```markdown
 # git-pr-manager
 
 <!-- BADGES:START -->
+
 [![CI](https://github.com/littlebearapps/git-pr-manager/workflows/CI/badge.svg)](https://github.com/littlebearapps/git-pr-manager/actions/workflows/ci.yml)
 [![Publish](https://github.com/littlebearapps/git-pr-manager/workflows/Publish/badge.svg)](https://github.com/littlebearapps/git-pr-manager/actions/workflows/publish.yml)
+
 <!-- BADGES:END -->
 ```
 
@@ -1104,6 +1154,7 @@ git add README.md
 **Goal**: Implement single source of truth + smart CLI (Layers 1-2).
 
 **Tasks**:
+
 1. ✅ Change `package.json` version to `"0.0.0-development"`
 2. ✅ Remove `@semantic-release/git` plugin from `.releaserc.json`
 3. ✅ Uninstall plugin: `npm uninstall @semantic-release/git`
@@ -1117,6 +1168,7 @@ git add README.md
    - On exact tag (`git checkout v1.7.0`, check version)
 
 **Validation**:
+
 ```bash
 # Test smart CLI version detection
 npm link
@@ -1138,6 +1190,7 @@ cat package/package.json | grep version  # Should show "0.0.0-development"
 ```
 
 **Success Criteria**:
+
 - ✅ package.json = "0.0.0-development"
 - ✅ No @semantic-release/git plugin
 - ✅ Smart CLI shows accurate versions (dev vs published)
@@ -1152,6 +1205,7 @@ cat package/package.json | grep version  # Should show "0.0.0-development"
 **Goal**: Add Layer 3 validation to catch configuration issues.
 
 **Tasks**:
+
 1. ⏱️ Implement `gpm doctor --pre-release` command
 2. ⏱️ Add pre-release validation checks:
    - Workflows exist
@@ -1167,6 +1221,7 @@ cat package/package.json | grep version  # Should show "0.0.0-development"
 6. ⏱️ Update documentation
 
 **Testing**:
+
 ```bash
 # Test pre-release validation
 gpm doctor --pre-release
@@ -1176,6 +1231,7 @@ gpm doctor --pre-release
 ```
 
 **Success Criteria**:
+
 - All 7 pre-release checks implemented
 - Detects placeholder version correctly
 - Detects if git plugin accidentally added
@@ -1189,6 +1245,7 @@ gpm doctor --pre-release
 **Goal**: Add Layers 5-6 for continuous validation.
 
 **Tasks**:
+
 1. ⏱️ Create `.github/workflows/health-check.yml`
 2. ⏱️ Implement badge validation
 3. ⏱️ Implement version consistency check (npm vs GitHub release only)
@@ -1197,6 +1254,7 @@ gpm doctor --pre-release
 6. ⏱️ Test manually (workflow_dispatch)
 
 **Testing**:
+
 ```bash
 # Trigger manually
 gh workflow run health-check.yml
@@ -1209,6 +1267,7 @@ npm run update-badges
 ```
 
 **Success Criteria**:
+
 - Weekly health check runs successfully
 - Version check compares npm vs GitHub release only
 - Badge validation works
@@ -1222,45 +1281,53 @@ npm run update-badges
 ### Quantitative Metrics
 
 **Version Mismatch Prevention**:
+
 - **Before** (dual source): 100% chance of mismatch without @semantic-release/git
 - **After** (single source): **0% chance** - architecturally impossible
   - No sync mechanism = nothing to fail
   - Only one source of truth (npm registry)
 
 **Badge Accuracy**:
+
 - **Before**: Manual updates, prone to drift on workflow renames
 - **After** (Layer 6): Automated validation, auto-correction
 
 **Release Confidence**:
+
 - **Before**: No validation, discovered issues post-release
 - **After**:
   - Layers 1-2: Problem eliminated at source (ALMOST CERTAIN)
   - Layers 3-6: Additional validation (optional but recommended)
 
 **Simplicity**:
+
 - **Before** (@semantic-release/git): 5 layers + complex sync logic
 - **After** (Alternative D): 4-6 layers, simpler architecture
 
 ### Qualitative Benefits
 
 **Developer Experience**:
+
 - Smart CLI shows accurate versions (published vs development)
 - Clear distinction: `1.8.0` (release) vs `1.7.0-dev+3` (development)
 - No confusion about "which version am I testing?"
 - Faster onboarding (follows industry best practice)
 
 **User Trust**:
+
 - Accurate badges signal project health
 - **Impossible to have version mismatch** - inherent reliability
 - Professional release process aligned with semantic-release team's recommendation
 
 **Maintenance**:
+
 - Simpler codebase (no sync logic to maintain)
 - Fewer failure points
 - Self-documenting ("0.0.0-development" clearly signals intent)
 - Easier to debug (single source of truth)
 
 **Dogfooding**:
+
 - Demonstrates modern best practices
 - Example for users: "this is how professionals do it"
 - Shows trust in semantic-release team's recommendations
@@ -1272,6 +1339,7 @@ npm run update-badges
 ### Potential Failure Scenarios
 
 **Scenario 1: Smart CLI Version Detection Fails**
+
 - **Probability**: Very Low (<0.1%)
 - **Impact**: CLI shows "0.0.0-development" instead of git tag version
 - **Mitigation**: Graceful fallback built into getVersion()
@@ -1279,12 +1347,14 @@ npm run update-badges
 - **Recovery**: None needed - fallback version is acceptable
 
 **Scenario 2: semantic-release Fails to Inject Version**
+
 - **Probability**: Extremely Low (core npm publish behavior)
 - **Impact**: Published package has "0.0.0-development" version
 - **Mitigation**: Would be caught by npm registry validation (semantic-release would fail)
 - **Recovery**: Fix semantic-release config, republish
 
 **Scenario 3: npm/GitHub Release Mismatch**
+
 - **Probability**: Low (both from same semantic-release run)
 - **Impact**: Published version differs from GitHub release
 - **Mitigation**: Layer 4 post-publish verification catches this
@@ -1292,12 +1362,14 @@ npm run update-badges
 - **Recovery**: Manually create missing artifact (release or npm publish)
 
 **Scenario 4: Badge Generation Script Fails (If implemented)**
+
 - **Probability**: Low
 - **Impact**: Badges not updated automatically
 - **Mitigation**: Layer 5 weekly check detects invalid badges
 - **Recovery**: Manual badge update, fix script
 
 **Scenario 5: Developer Accidentally Changes package.json Version**
+
 - **Probability**: Medium (human error)
 - **Impact**: Version mismatch in development
 - **Mitigation**: Layer 3 pre-release check detects non-placeholder version
@@ -1305,15 +1377,15 @@ npm run update-badges
 
 ### Risk Comparison: Alternative D vs @semantic-release/git
 
-| Risk | @semantic-release/git | Alternative D | Winner |
-|------|----------------------|---------------|--------|
-| Version mismatch | High (sync can fail) | **Zero** (no sync) | ✅ Alt D |
-| Plugin misconfiguration | High (must be correct) | **None** (no plugin) | ✅ Alt D |
-| Branch protection issues | Medium (can block commits) | **None** (no commits) | ✅ Alt D |
-| Commit noise | Medium (version commits) | **None** | ✅ Alt D |
-| Circular workflows | Low (mitigated with [skip ci]) | **None** | ✅ Alt D |
-| Smart CLI failure | **N/A** | Low (fallback exists) | ⚠️ New risk |
-| Developer confusion | Low (version in package.json) | Low (smart CLI shows version) | 🟰 Tie |
+| Risk                     | @semantic-release/git          | Alternative D                 | Winner      |
+| ------------------------ | ------------------------------ | ----------------------------- | ----------- |
+| Version mismatch         | High (sync can fail)           | **Zero** (no sync)            | ✅ Alt D    |
+| Plugin misconfiguration  | High (must be correct)         | **None** (no plugin)          | ✅ Alt D    |
+| Branch protection issues | Medium (can block commits)     | **None** (no commits)         | ✅ Alt D    |
+| Commit noise             | Medium (version commits)       | **None**                      | ✅ Alt D    |
+| Circular workflows       | Low (mitigated with [skip ci]) | **None**                      | ✅ Alt D    |
+| Smart CLI failure        | **N/A**                        | Low (fallback exists)         | ⚠️ New risk |
+| Developer confusion      | Low (version in package.json)  | Low (smart CLI shows version) | 🟰 Tie      |
 
 **Overall**: Alternative D has **significantly lower risk profile**
 
@@ -1324,16 +1396,19 @@ npm run update-badges
 ### Regular Tasks
 
 **Weekly** (Automated):
+
 - Health check runs (GitHub Action)
 - Badge validation
 - Version consistency check
 
 **Monthly** (Manual):
+
 - Review health check issues
 - Update documentation if workflow changes
 - Review semantic-release plugin updates
 
 **Per Release** (Automated):
+
 - Pre-release validation
 - Post-publish verification
 - Badge generation (if enabled)
@@ -1341,11 +1416,13 @@ npm run update-badges
 ### Monitoring Alerts
 
 **Critical Alerts** (create issue immediately):
+
 - Version mismatch (npm vs GitHub release)
 - Pre-release validation failure
 - Post-publish verification failure
 
 **Warning Alerts** (create issue for review):
+
 - Badge URLs invalid
 - package.json version drift
 - Missing @semantic-release/git plugin
@@ -1357,19 +1434,23 @@ npm run update-badges
 If issues occur after implementation:
 
 **Step 1: Identify Layer**
+
 - Which layer failed?
 - Was it configuration, validation, or monitoring?
 
 **Step 2: Isolate**
+
 - Disable failing layer temporarily
 - Other layers continue providing coverage
 
 **Step 3: Fix**
+
 - Address root cause
 - Test in isolation
 - Re-enable layer
 
 **Step 4: Post-Mortem**
+
 - Document what failed and why
 - Update this strategy document
 - Add new test case to prevent recurrence
@@ -1379,16 +1460,19 @@ If issues occur after implementation:
 ## References
 
 ### Official Documentation
+
 - [semantic-release Documentation](https://semantic-release.gitbook.io/)
 - [@semantic-release/git Plugin](https://github.com/semantic-release/git)
 - [GitHub Actions Badges](https://docs.github.com/en/actions/monitoring-and-troubleshooting-workflows/adding-a-workflow-status-badge)
 
 ### Best Practices
+
 - [Semantic Versioning 2.0.0](https://semver.org/)
 - [Conventional Commits](https://www.conventionalcommits.org/)
 - [Keep a Changelog](https://keepachangelog.com/)
 
 ### Tools Referenced
+
 - [PostHog check-package-version](https://github.com/PostHog/check-package-version)
 - [CI Badges Action](https://github.com/marketplace/actions/ci-badges)
 - [Dynamic Badges Action](https://github.com/marketplace/actions/dynamic-badges)
@@ -1402,16 +1486,19 @@ If issues occur after implementation:
 **Decision**: Use "0.0.0-development" placeholder + Smart CLI (Alternative D).
 
 **Initial Position** (before zen validation):
+
 - Wanted to use @semantic-release/git to keep version in package.json
 - Concerned about developer experience with placeholder version
 - Thought validation layers would be sufficient
 
 **Breaking Point** (zen thinkdeep validation):
+
 - Discovered version mismatch is **architectural issue**, not just configuration
 - Realized Smart CLI **solves all concerns** better than static version
 - Validation can achieve VERY HIGH confidence, but Alternative D achieves **ALMOST CERTAIN**
 
 **Final Reasoning**:
+
 1. **Architecture**: Eliminates problem at source (impossible to fail)
 2. **Developer Experience**: Smart CLI shows more informative versions
    - Static: "1.7.0" (could be released or not)
@@ -1421,11 +1508,13 @@ If issues occur after implementation:
 5. **Confidence**: ALMOST CERTAIN vs VERY HIGH
 
 **Trade-offs Accepted**:
+
 - package.json shows placeholder (not real version)
 - Requires Smart CLI implementation (~100 lines of code)
 - Slight mental shift for contributors (but better UX overall)
 
 **Trade-offs Gained**:
+
 - **Zero risk** of version mismatch (architecturally impossible)
 - No @semantic-release/git plugin dependency
 - No branch protection configuration needed
@@ -1434,6 +1523,7 @@ If issues occur after implementation:
 - Simpler release workflow
 
 **Alternatives Considered and Rejected**:
+
 1. ❌ @semantic-release/git + validation layers: More complex, lower confidence
 2. ❌ Manual version commits: Error-prone, defeats automation
 3. ✅ **Alternative D** (0.0.0-development + Smart CLI): Highest confidence, simplest architecture
@@ -1494,16 +1584,19 @@ If issues occur after implementation:
 ### Team Notification
 
 **Before Implementation**:
+
 - Share this document for review
 - Gather feedback on approach
 - Schedule implementation window
 
 **During Implementation**:
+
 - Create tracking issue for phases
 - Update team on progress
 - Document any deviations from plan
 
 **After Implementation**:
+
 - Announce completion
 - Provide quick start guide
 - Monitor first few releases closely
@@ -1511,6 +1604,7 @@ If issues occur after implementation:
 ### User Communication
 
 **Release Notes**:
+
 ```markdown
 ### Release Process Improvements
 
@@ -1527,6 +1621,7 @@ This prevents issues like v1.8.0 where npm and GitHub versions diverged.
 ```
 
 **Documentation Updates**:
+
 - Add "Release Process" section to README
 - Update CONTRIBUTING.md with new workflow
 - Create RELEASE_CHECKLIST.md (for maintainers)
@@ -1547,6 +1642,7 @@ This prevents issues like v1.8.0 where npm and GitHub versions diverged.
 ### The Recommendation
 
 **Implement Alternative D** (0.0.0-development + Smart CLI):
+
 - **Confidence**: ALMOST CERTAIN (vs VERY HIGH for hybrid approach)
 - **Effort**: 6-8 hours for core implementation (Layers 1-2)
 - **Maintenance**: Simpler long-term (fewer failure points)

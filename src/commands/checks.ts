@@ -1,7 +1,7 @@
-import { EnhancedCIPoller } from '../services/EnhancedCIPoller';
-import { OutputFormatter } from '../utils/OutputFormatter';
-import { logger } from '../utils/logger';
-import { spinner } from '../utils/spinner';
+import { EnhancedCIPoller } from "../services/EnhancedCIPoller";
+import { OutputFormatter } from "../utils/OutputFormatter";
+import { logger } from "../utils/logger";
+import { spinner } from "../utils/spinner";
 
 interface ChecksOptions {
   details?: boolean;
@@ -11,7 +11,10 @@ interface ChecksOptions {
 /**
  * Show detailed CI check status for a PR
  */
-export async function checksCommand(prNumberStr: string, options: ChecksOptions): Promise<void> {
+export async function checksCommand(
+  prNumberStr: string,
+  options: ChecksOptions,
+): Promise<void> {
   const prNumber = parseInt(prNumberStr, 10);
 
   if (isNaN(prNumber)) {
@@ -22,7 +25,9 @@ export async function checksCommand(prNumberStr: string, options: ChecksOptions)
   // Get GitHub token from environment
   const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
   if (!token) {
-    logger.error('GitHub token not found. Set GITHUB_TOKEN or GH_TOKEN environment variable.');
+    logger.error(
+      "GitHub token not found. Set GITHUB_TOKEN or GH_TOKEN environment variable.",
+    );
     process.exit(1);
   }
 
@@ -32,8 +37,10 @@ export async function checksCommand(prNumberStr: string, options: ChecksOptions)
     spinner.start(`Fetching CI check status for PR #${prNumber}...`);
 
     // Create a temporary GitHubService to get owner/repo
-    const { execSync } = require('child_process');
-    const remoteUrl = execSync('git config --get remote.origin.url', { encoding: 'utf-8' }).trim();
+    const { execSync } = require("child_process");
+    const remoteUrl = execSync("git config --get remote.origin.url", {
+      encoding: "utf-8",
+    }).trim();
     const { owner, repo } = parseGitUrl(remoteUrl);
 
     const poller = new EnhancedCIPoller({ token, owner, repo });
@@ -52,25 +59,27 @@ export async function checksCommand(prNumberStr: string, options: ChecksOptions)
       skipped: summary.skipped,
       overallStatus: summary.overallStatus,
       failureDetails: summary.failureDetails,
-      startedAt: summary.startedAt
+      startedAt: summary.startedAt,
     };
 
     // Output JSON if in JSON mode (will only output if jsonMode enabled)
-    logger.outputJsonResult(summary.overallStatus === 'success', jsonData);
+    logger.outputJsonResult(summary.overallStatus === "success", jsonData);
 
     // Human-readable output below (will only output if jsonMode disabled)
     logger.section(`CI Check Status - PR #${prNumber}`);
 
     if (options.files) {
       // Show only affected files
-      logger.log('\nAffected Files:');
+      logger.log("\nAffected Files:");
       const allFiles = new Set<string>();
-      summary.failureDetails.forEach(f => f.affectedFiles.forEach(file => allFiles.add(file)));
+      summary.failureDetails.forEach((f) =>
+        f.affectedFiles.forEach((file) => allFiles.add(file)),
+      );
 
       if (allFiles.size === 0) {
-        logger.info('No affected files found');
+        logger.info("No affected files found");
       } else {
-        allFiles.forEach(file => logger.log(`  - ${file}`));
+        allFiles.forEach((file) => logger.log(`  - ${file}`));
       }
     } else {
       // Show full summary
@@ -78,22 +87,24 @@ export async function checksCommand(prNumberStr: string, options: ChecksOptions)
       logger.log(output);
 
       if (options.details && summary.failureDetails.length > 0) {
-        logger.section('Detailed Annotations');
+        logger.section("Detailed Annotations");
 
         for (const failure of summary.failureDetails) {
           // Fetch annotations for this check run
           // Note: We'd need the check run ID which isn't in our current data structure
-          logger.warn(`Annotation fetching not yet implemented for: ${failure.checkName}`);
+          logger.warn(
+            `Annotation fetching not yet implemented for: ${failure.checkName}`,
+          );
         }
       }
     }
 
     // Exit with error code if checks failed
-    if (summary.overallStatus === 'failure') {
+    if (summary.overallStatus === "failure") {
       process.exit(1);
     }
   } catch (error: any) {
-    spinner.fail('Failed to fetch CI check status');
+    spinner.fail("Failed to fetch CI check status");
     logger.error(error.message);
     if (process.env.DEBUG) {
       console.error(error);
@@ -111,16 +122,18 @@ function parseGitUrl(url: string): { owner: string; repo: string } {
   if (sshMatch) {
     return {
       owner: sshMatch[1],
-      repo: sshMatch[2]
+      repo: sshMatch[2],
     };
   }
 
   // HTTPS format: https://github.com/littlebearapps/notebridge.git
-  const httpsMatch = url.match(/https:\/\/github\.com\/(.+?)\/(.+?)(?:\.git)?$/);
+  const httpsMatch = url.match(
+    /https:\/\/github\.com\/(.+?)\/(.+?)(?:\.git)?$/,
+  );
   if (httpsMatch) {
     return {
       owner: httpsMatch[1],
-      repo: httpsMatch[2]
+      repo: httpsMatch[2],
     };
   }
 

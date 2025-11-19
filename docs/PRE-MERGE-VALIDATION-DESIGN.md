@@ -12,6 +12,7 @@
 Design for a multi-layered pre-merge validation system that prevents accidental PR merges to main branch without explicit user approval. This addresses the critical safety gap where `gpm ship` can auto-merge PRs and trigger npm package publication without user confirmation.
 
 **Problem**: Current `gpm ship` command automatically merges PRs after CI passes, which:
+
 - Triggers npm publish via semantic-release (main branch push → GitHub Actions → npm)
 - Bypasses user review for production releases
 - Creates risk of publishing unintended changes
@@ -34,6 +35,7 @@ Design for a multi-layered pre-merge validation system that prevents accidental 
 ## Layer 1: Interactive Approval Prompt (Immediate)
 
 ### Purpose
+
 Add interactive confirmation prompt in `gpm ship` before merge step.
 
 ### Implementation
@@ -43,6 +45,7 @@ Add interactive confirmation prompt in `gpm ship` before merge step.
 **Location**: Before merge operation (after CI checks pass, before calling `github.mergePR()`)
 
 **Code Addition**:
+
 ```typescript
 // Step 7: Merge PR (with approval prompt)
 if (!options.noMerge) {
@@ -50,31 +53,32 @@ if (!options.noMerge) {
   logger.section(`Ready to Merge PR #${prNumber}`);
 
   // Check if approval is required
-  const requireApproval = process.env.GPM_REQUIRE_APPROVAL === '1'
-    || config.workflow?.requireApproval === true
-    || !process.env.CI; // Always require in interactive mode
+  const requireApproval =
+    process.env.GPM_REQUIRE_APPROVAL === "1" ||
+    config.workflow?.requireApproval === true ||
+    !process.env.CI; // Always require in interactive mode
 
   if (requireApproval && !options.approve) {
     // Interactive prompt
-    const readline = require('readline');
+    const readline = require("readline");
     const rl = readline.createInterface({
       input: process.stdin,
-      output: process.stdout
+      output: process.stdout,
     });
 
     const answer = await new Promise<string>((resolve) => {
       rl.question(
         `\n⚠️  Merge PR #${prNumber} to ${defaultBranch}? This will trigger npm publish.\n` +
-        `   Type 'yes' to confirm, or Ctrl+C to cancel: `,
+          `   Type 'yes' to confirm, or Ctrl+C to cancel: `,
         (answer: string) => {
           rl.close();
           resolve(answer.toLowerCase().trim());
-        }
+        },
       );
     });
 
-    if (answer !== 'yes' && answer !== 'y') {
-      logger.warn('Merge cancelled by user');
+    if (answer !== "yes" && answer !== "y") {
+      logger.warn("Merge cancelled by user");
       logger.info(`PR #${prNumber} is ready to merge when you're ready`);
       logger.info(`To merge later: gh pr merge ${prNumber} --squash`);
       process.exit(0);
@@ -88,6 +92,7 @@ if (!options.noMerge) {
 ```
 
 **New CLI Options**:
+
 ```bash
 gpm ship --approve          # Skip prompt, auto-approve (CI mode)
 gpm ship --no-merge         # Create PR but don't merge
@@ -95,33 +100,36 @@ gpm ship --draft            # Create as draft (already exists, prevents merge)
 ```
 
 **Configuration** (`.gpm.yml`):
+
 ```yaml
 workflow:
-  requireApproval: true   # Require interactive approval (default: false)
-  alwaysDraft: false      # Always create draft PRs (default: false)
+  requireApproval: true # Require interactive approval (default: false)
+  alwaysDraft: false # Always create draft PRs (default: false)
 ```
 
 **Environment Variable**:
+
 ```bash
 export GPM_REQUIRE_APPROVAL=1   # Force approval prompts
 ```
 
 **Behavior Matrix**:
 
-| Context | `requireApproval` | `--approve` | `CI` env | Behavior |
-|---------|-------------------|-------------|----------|----------|
-| Local dev | false | - | false | Prompt for approval |
-| Local dev | true | - | false | Prompt for approval |
-| Local dev | - | yes | false | Skip prompt, merge |
-| CI/CD | false | - | true | Auto-merge (no prompt) |
-| CI/CD | true | - | true | Fail with error |
-| CI/CD | true | yes | true | Auto-merge |
+| Context   | `requireApproval` | `--approve` | `CI` env | Behavior               |
+| --------- | ----------------- | ----------- | -------- | ---------------------- |
+| Local dev | false             | -           | false    | Prompt for approval    |
+| Local dev | true              | -           | false    | Prompt for approval    |
+| Local dev | -                 | yes         | false    | Skip prompt, merge     |
+| CI/CD     | false             | -           | true     | Auto-merge (no prompt) |
+| CI/CD     | true              | -           | true     | Fail with error        |
+| CI/CD     | true              | yes         | true     | Auto-merge             |
 
 ---
 
 ## Layer 2: Environment Variable Enforcement (Immediate)
 
 ### Purpose
+
 Prevent accidental merges in development environments through environment configuration.
 
 ### Implementation
@@ -141,10 +149,11 @@ echo 'source ~/bin/kc.sh && export GPM_REQUIRE_APPROVAL=1' >> .envrc
 ```
 
 **Error Handling**:
+
 ```typescript
-if (process.env.GPM_REQUIRE_APPROVAL === '1' && process.env.CI) {
-  logger.error('GPM_REQUIRE_APPROVAL is set but running in CI environment');
-  logger.error('Use --approve flag to explicitly authorize merge in CI');
+if (process.env.GPM_REQUIRE_APPROVAL === "1" && process.env.CI) {
+  logger.error("GPM_REQUIRE_APPROVAL is set but running in CI environment");
+  logger.error("Use --approve flag to explicitly authorize merge in CI");
   process.exit(1);
 }
 ```
@@ -154,32 +163,35 @@ if (process.env.GPM_REQUIRE_APPROVAL === '1' && process.env.CI) {
 ## Layer 3: Config File Safety Defaults (Medium Priority)
 
 ### Purpose
+
 Repository-level configuration to enforce approval requirements.
 
 ### Implementation
 
 **New Config Options** (`.gpm.yml`):
+
 ```yaml
 workflow:
   # Merge approval settings
-  requireApproval: true          # Require approval prompt (default: false)
-  alwaysDraft: false             # Always create draft PRs (default: false)
-  allowAutoMerge: false          # Allow auto-merge without approval (default: true)
+  requireApproval: true # Require approval prompt (default: false)
+  alwaysDraft: false # Always create draft PRs (default: false)
+  allowAutoMerge: false # Allow auto-merge without approval (default: true)
 
   # Safety overrides
-  protectedBranches:             # Branches requiring approval
+  protectedBranches: # Branches requiring approval
     - main
     - master
     - production
 
   # Approval methods
   approvalMethods:
-    - interactive-prompt         # Terminal prompt (default)
-    - environment-variable       # GPM_REQUIRE_APPROVAL=1
-    - config-file               # requireApproval: true
+    - interactive-prompt # Terminal prompt (default)
+    - environment-variable # GPM_REQUIRE_APPROVAL=1
+    - config-file # requireApproval: true
 ```
 
 **Config Validation** (on load):
+
 ```typescript
 // src/services/ConfigService.ts
 async validateSafetyConfig(): Promise<ValidationResult> {
@@ -212,6 +224,7 @@ async validateSafetyConfig(): Promise<ValidationResult> {
 ## Layer 4: Git Hooks - Pre-Merge Warning (Low Priority)
 
 ### Purpose
+
 Final safety net: warn users before pushing changes that would trigger merge.
 
 ### Implementation
@@ -221,6 +234,7 @@ Final safety net: warn users before pushing changes that would trigger merge.
 **File**: `src/commands/install-hooks.ts`
 
 **Hook Content**:
+
 ```bash
 #!/bin/sh
 # gpm pre-push merge check hook
@@ -265,19 +279,21 @@ exit 0
 ```
 
 **Installation**:
+
 ```bash
 gpm install-hooks --merge-check
 ```
 
 **Configuration**:
+
 ```yaml
 hooks:
   mergeCheck:
-    enabled: true              # Install merge check hook
-    protectedBranches:         # Branches to check
+    enabled: true # Install merge check hook
+    protectedBranches: # Branches to check
       - main
       - master
-    requireConfirmation: true  # Require 'yes' to proceed
+    requireConfirmation: true # Require 'yes' to proceed
 ```
 
 ---
@@ -285,10 +301,12 @@ hooks:
 ## Implementation Phases
 
 ### Phase 1: Immediate (1-2 hours)
+
 **Priority**: P0 - Critical Safety
 **Timeline**: Today
 
 **Deliverables**:
+
 1. ✅ Update CLAUDE.md with `--draft` mandatory rule
 2. 🔜 Add interactive approval prompt to `ship.ts`
 3. 🔜 Add `--approve` and `--no-merge` CLI flags
@@ -296,16 +314,19 @@ hooks:
 5. 🔜 Update help text and documentation
 
 **Testing**:
+
 - Manual test: `gpm ship` prompts for approval
 - Manual test: `gpm ship --approve` skips prompt
 - Manual test: `gpm ship --draft` creates draft PR
 - CI test: `GPM_REQUIRE_APPROVAL=1` in CI fails without `--approve`
 
 ### Phase 2: Safety Defaults (4-6 hours)
+
 **Priority**: P1 - High
 **Timeline**: This week
 
 **Deliverables**:
+
 1. Add `workflow.requireApproval` config option
 2. Add `workflow.alwaysDraft` config option
 3. Add config validation with safety warnings
@@ -313,15 +334,18 @@ hooks:
 5. Add tests for config validation
 
 **Testing**:
+
 - Unit tests: Config validation logic
 - Integration tests: Approval behavior with config
 - Manual tests: Various config combinations
 
 ### Phase 3: Git Hooks (2-3 hours)
+
 **Priority**: P2 - Medium
 **Timeline**: Next week
 
 **Deliverables**:
+
 1. Create pre-push merge check hook
 2. Add `--merge-check` flag to `install-hooks`
 3. Update hook templates and installation logic
@@ -329,6 +353,7 @@ hooks:
 5. Update documentation
 
 **Testing**:
+
 - Manual test: Hook prompts on push to main
 - Manual test: Hook allows push on 'yes'
 - Manual test: Hook cancels push on 'no'
@@ -341,6 +366,7 @@ hooks:
 ### Developer Workflow (Interactive Mode)
 
 **Before** (unsafe):
+
 ```bash
 $ gpm ship
 ✅ Verification passed
@@ -352,6 +378,7 @@ $ gpm ship
 ```
 
 **After** (safe):
+
 ```bash
 $ gpm ship --draft
 ✅ Verification passed
@@ -375,15 +402,17 @@ $ gpm ship
 ### CI/CD Workflow
 
 **Authorized CI Merge** (with approval):
+
 ```yaml
 # .github/workflows/merge-approved-pr.yml
 - name: Merge PR after approval
-  run: gpm ship --approve  # Explicit authorization
+  run: gpm ship --approve # Explicit authorization
   env:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 **Blocked CI Merge** (safety check):
+
 ```bash
 $ GPM_REQUIRE_APPROVAL=1 gpm ship  # In CI
 ❌ Error: GPM_REQUIRE_APPROVAL is set but running in CI
@@ -399,11 +428,13 @@ $ GPM_REQUIRE_APPROVAL=1 gpm ship  # In CI
 **Timeline**: 3-release deprecation
 
 **Version 1.7.0** (Next release):
+
 - Add deprecation warning for `gpm ship` without safety flags
 - Warning shows but still allows merge
 - Encourage migration to `--draft` or `--approve`
 
 **Warning Message**:
+
 ```
 ⚠️  DEPRECATION WARNING
    Using 'gpm ship' without safety flags will be blocked in v2.0.0
@@ -417,10 +448,12 @@ $ GPM_REQUIRE_APPROVAL=1 gpm ship  # In CI
 ```
 
 **Version 1.8.0**:
+
 - Deprecation warning persists
 - Add `workflow.allowLegacyMerge: true` escape hatch
 
 **Version 2.0.0** (Breaking change):
+
 - `gpm ship` without safety flags requires explicit approval
 - Default behavior: always prompt or require `--approve`
 - Remove `workflow.allowLegacyMerge` option
@@ -428,6 +461,7 @@ $ GPM_REQUIRE_APPROVAL=1 gpm ship  # In CI
 ### Migration Guide
 
 **For Individual Developers**:
+
 ```bash
 # Old workflow (deprecated)
 gpm ship
@@ -440,20 +474,22 @@ gpm ship --approve        # Merge with approval
 ```
 
 **For CI/CD Pipelines**:
+
 ```yaml
 # Old workflow (deprecated)
 - run: gpm ship
 
 # New workflow (explicit)
-- run: gpm ship --approve  # Explicit merge authorization
+- run: gpm ship --approve # Explicit merge authorization
 ```
 
 **For Team Settings**:
+
 ```yaml
 # .gpm.yml - Team-wide safety defaults
 workflow:
-  requireApproval: true    # Require approval for all merges
-  alwaysDraft: true        # Default all PRs to draft
+  requireApproval: true # Require approval for all merges
+  alwaysDraft: true # Default all PRs to draft
 ```
 
 ---
@@ -465,6 +501,7 @@ workflow:
 **Test File**: `tests/commands/ship.test.ts`
 
 **Test Cases**:
+
 1. ✅ `ship --draft` creates draft PR and does not merge
 2. ✅ `ship --approve` skips approval prompt and merges
 3. ✅ `ship` with `GPM_REQUIRE_APPROVAL=1` prompts for approval
@@ -479,6 +516,7 @@ workflow:
 **Test File**: `tests/integration/merge-approval.integration.test.ts`
 
 **Test Scenarios**:
+
 1. ✅ Full workflow with draft PR creation
 2. ✅ Full workflow with approval prompt (mocked stdin)
 3. ✅ Full workflow with `--approve` flag in CI
@@ -488,6 +526,7 @@ workflow:
 ### Manual Testing
 
 **Pre-Release Checklist**:
+
 - [ ] Test `gpm ship --draft` creates draft PR
 - [ ] Test `gpm ship` prompts for approval in terminal
 - [ ] Test 'yes' response merges PR
@@ -542,34 +581,39 @@ workflow:
 ### Threat Model
 
 **Threat 1**: Accidental merge by developer
+
 - **Mitigation**: Interactive approval prompt (Layer 1)
 - **Fallback**: Environment variable enforcement (Layer 2)
 
 **Threat 2**: Automated merge in untrusted CI
+
 - **Mitigation**: Require explicit `--approve` flag in CI
 - **Fallback**: Config file `requireApproval: true`
 
 **Threat 3**: Social engineering (Claude Code auto-merge)
+
 - **Mitigation**: Update CLAUDE.md with mandatory `--draft` rule
 - **Fallback**: Multiple approval layers prevent bypass
 
 **Threat 4**: Configuration tampering
+
 - **Mitigation**: Config validation warns about unsafe settings
 - **Fallback**: Environment variable overrides config
 
 ### Audit Trail
 
 **Log all merge decisions**:
+
 ```typescript
 logger.info(`Merge decision: approved=${approved}, method=${method}`);
 // Where method = 'interactive-prompt' | 'approve-flag' | 'env-var' | 'auto'
 
-telemetry?.breadcrumb('merge-decision', {
+telemetry?.breadcrumb("merge-decision", {
   prNumber,
   approved,
   method,
   requireApproval: config.workflow?.requireApproval,
-  ci: !!process.env.CI
+  ci: !!process.env.CI,
 });
 ```
 
@@ -578,16 +622,19 @@ telemetry?.breadcrumb('merge-decision', {
 ## Success Metrics
 
 ### Phase 1 (Immediate)
+
 - ✅ Zero accidental merges to main without approval
 - ✅ 100% of `gpm ship` uses require explicit approval or `--draft` flag
 - ✅ Updated documentation reflects new safety rules
 
 ### Phase 2 (Safety Defaults)
+
 - ✅ 90%+ of projects use `workflow.requireApproval: true` in config
 - ✅ Config validation catches unsafe settings
 - ✅ Clear warnings guide users to safer configurations
 
 ### Phase 3 (Git Hooks)
+
 - ✅ Pre-push hook installed in 50%+ of development environments
 - ✅ Zero complaints about false-positive merge warnings
 - ✅ Hooks integrate smoothly with existing workflows
@@ -597,21 +644,25 @@ telemetry?.breadcrumb('merge-decision', {
 ## Alternatives Considered
 
 ### Alternative 1: Remove Auto-Merge Entirely
+
 **Pros**: Simplest, most secure
 **Cons**: Breaks existing workflows, reduces automation value
 **Decision**: Rejected - too disruptive
 
 ### Alternative 2: GitHub Branch Protection Only
+
 **Pros**: Native GitHub feature, well-understood
 **Cons**: Doesn't prevent gpm from attempting merge, only GitHub blocks it
 **Decision**: Included as supplementary layer, not primary
 
 ### Alternative 3: Token Permission Restriction
+
 **Pros**: Prevents merge at API level
 **Cons**: Requires manual token management, breaks automation
 **Decision**: Rejected - poor UX for legitimate merges
 
 ### Alternative 4: Always Require PR Review
+
 **Pros**: Forces human review
 **Cons**: Slows down solo developer workflows
 **Decision**: Included as option, not requirement
@@ -658,26 +709,26 @@ telemetry?.breadcrumb('merge-decision', {
 
 ```typescript
 // src/utils/approval.ts
-import readline from 'readline';
-import { logger } from './logger';
+import readline from "readline";
+import { logger } from "./logger";
 
 export interface ApprovalOptions {
   message: string;
-  defaultResponse?: 'yes' | 'no';
+  defaultResponse?: "yes" | "no";
   timeout?: number; // milliseconds
 }
 
 export async function promptForApproval(
-  options: ApprovalOptions
+  options: ApprovalOptions,
 ): Promise<boolean> {
   // Skip in non-interactive environments
   if (!process.stdin.isTTY || process.env.CI) {
-    return options.defaultResponse === 'yes';
+    return options.defaultResponse === "yes";
   }
 
   const rl = readline.createInterface({
     input: process.stdin,
-    output: process.stdout
+    output: process.stdout,
   });
 
   return new Promise<boolean>((resolve) => {
@@ -686,7 +737,7 @@ export async function promptForApproval(
     rl.question(prompt, (answer: string) => {
       rl.close();
       const normalized = answer.toLowerCase().trim();
-      resolve(normalized === 'yes' || normalized === 'y');
+      resolve(normalized === "yes" || normalized === "y");
     });
   });
 }
@@ -736,14 +787,14 @@ async validateWorkflowSafety(
 
 ```typescript
 // src/commands/ship.ts (merge section)
-import { promptForApproval } from '../utils/approval';
+import { promptForApproval } from "../utils/approval";
 
 // After CI checks pass, before merge:
 const shouldMerge = await determineMergeApproval({
   prNumber,
   config,
   options,
-  defaultBranch
+  defaultBranch,
 });
 
 if (!shouldMerge) {
@@ -779,7 +830,7 @@ async function determineMergeApproval(params: {
 
   // 4. Check if approval required
   const requireApproval =
-    process.env.GPM_REQUIRE_APPROVAL === '1' ||
+    process.env.GPM_REQUIRE_APPROVAL === "1" ||
     config.workflow?.requireApproval === true ||
     (!process.env.CI && process.stdin.isTTY); // Interactive mode
 
@@ -790,7 +841,7 @@ async function determineMergeApproval(params: {
 
   // 5. Prompt for approval
   const message = `Merge PR #${prNumber} to ${defaultBranch}? This will trigger npm publish.`;
-  return await promptForApproval({ message, defaultResponse: 'no' });
+  return await promptForApproval({ message, defaultResponse: "no" });
 }
 ```
 

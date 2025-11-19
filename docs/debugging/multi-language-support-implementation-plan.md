@@ -1,4 +1,5 @@
 # Multi-Language Support Implementation Plan
+
 # Fixing auditor-toolkit Feedback Issues
 
 **Date Created**: 2025-11-17
@@ -15,6 +16,7 @@
 gpm currently assumes all projects are Node.js-based, causing verification failures on Python, Go, and Rust projects. The auditor-toolkit Python project experienced complete workflow failure due to hardcoded `npm` commands in verification logic.
 
 **Impact**:
+
 - ❌ Python projects cannot use gpm (100% failure rate)
 - ❌ Go projects cannot use gpm (100% failure rate)
 - ❌ Rust projects cannot use gpm (100% failure rate)
@@ -23,6 +25,7 @@ gpm currently assumes all projects are Node.js-based, causing verification failu
 **Solution**: Implement multi-language detection with tool command mapping, Makefile support, and auto-fix capabilities.
 
 **Expected Outcome**:
+
 - ✅ 67% time savings (15min → 5min manual workflow)
 - ✅ 36% of errors auto-fixable (based on real data)
 - ✅ Support for Python, Node.js, Go, Rust out of the box
@@ -53,22 +56,23 @@ gpm currently assumes all projects are Node.js-based, causing verification failu
 
 After expert analysis using zen deepthink, the following refinements were made to the original plan:
 
-| Area | Original | Refined | Rationale |
-|------|----------|---------|-----------|
-| **Phase 1 Scope** | Single phase (16-20h) | Split into 1a/1b (23-30h + 12-17h) | Better risk management, faster delivery |
-| **Test Coverage** | 30+ tests (3-4h) | 50-60 tests (5-6h) | Accurate accounting of integration tests |
-| **Auto-Fix UX** | Basic flow (12-16h) | Enhanced safety (14-19h) | Critical: dry-run, rollback, diff display |
-| **Commit Parser** | Custom build (4-6h) | Use library (1-2h) | Proven library, -4h time savings |
-| **Package Managers** | Not included | **CRITICAL addition** (2-3h) | Python: poetry/pip, Node: yarn/npm/pnpm |
-| **Total Effort** | 46-62 hours | 63-88 hours | More realistic with all features (5 phases) |
+| Area                 | Original              | Refined                            | Rationale                                   |
+| -------------------- | --------------------- | ---------------------------------- | ------------------------------------------- |
+| **Phase 1 Scope**    | Single phase (16-20h) | Split into 1a/1b (23-30h + 12-17h) | Better risk management, faster delivery     |
+| **Test Coverage**    | 30+ tests (3-4h)      | 50-60 tests (5-6h)                 | Accurate accounting of integration tests    |
+| **Auto-Fix UX**      | Basic flow (12-16h)   | Enhanced safety (14-19h)           | Critical: dry-run, rollback, diff display   |
+| **Commit Parser**    | Custom build (4-6h)   | Use library (1-2h)                 | Proven library, -4h time savings            |
+| **Package Managers** | Not included          | **CRITICAL addition** (2-3h)       | Python: poetry/pip, Node: yarn/npm/pnpm     |
+| **Total Effort**     | 46-62 hours           | 63-88 hours                        | More realistic with all features (5 phases) |
 
 ### Critical Addition: Package Manager Detection
 
 **Severity**: 🚨 **HIGH** - Without this, multi-package-manager projects will fail
 
-**Problem**: Original plan detects *languages* (Python, Node.js) but not *package managers* within each ecosystem.
+**Problem**: Original plan detects _languages_ (Python, Node.js) but not _package managers_ within each ecosystem.
 
 **Impact**:
+
 - `npm run lint` fails in yarn/pnpm projects
 - `pytest` fails in poetry/pipenv projects (dependencies not installed)
 - Tool commands incorrect (e.g., `pip install` when project uses poetry)
@@ -76,6 +80,7 @@ After expert analysis using zen deepthink, the following refinements were made t
 **Solution**: Add package manager detection to Phase 1a (Task 1.1b, 2-3 hours)
 
 **Detection Strategy**:
+
 - Python: poetry.lock → poetry | Pipfile.lock → pipenv | uv.lock → uv | requirements.txt → pip
 - Node.js: pnpm-lock.yaml → pnpm | yarn.lock → yarn | bun.lockb → bun | package-lock.json → npm
 - Go/Rust: Single package manager (no detection needed)
@@ -85,6 +90,7 @@ After expert analysis using zen deepthink, the following refinements were made t
 **Problem**: Original plan missing critical safety features for auto-fix
 
 **Added Features** (Task 2.5, +2-3 hours):
+
 1. `--dry-run` mode (preview changes before applying)
 2. Git stash backup (auto-rollback if fix breaks code)
 3. Diff summary after applying fixes
@@ -98,6 +104,7 @@ After expert analysis using zen deepthink, the following refinements were made t
 **Decision**: Use `conventional-commits-parser` (npm) instead of custom build
 
 **Rationale**:
+
 - Battle-tested (1.1M weekly downloads, used by semantic-release)
 - Handles all edge cases (emoji, multi-line, breaking changes)
 - **Time savings**: -4 hours development + zero ongoing maintenance
@@ -108,6 +115,7 @@ After expert analysis using zen deepthink, the following refinements were made t
 ### Phase 1 Split: 1a (Foundation) + 1b (Operational)
 
 **Phase 1a - Foundation** (23-30 hours, shippable):
+
 - Core language detection
 - **Package manager detection** (NEW)
 - CommandResolver service (NEW - unified command resolution)
@@ -117,6 +125,7 @@ After expert analysis using zen deepthink, the following refinements were made t
 - Backward compatible
 
 **Phase 1b - Operational** (12-17 hours):
+
 - Install step support (opt-in)
 - Makefile enhancements
 - Basic Node workspaces
@@ -132,6 +141,7 @@ After expert analysis using zen deepthink, the following refinements were made t
 ### Issue Summary (from auditor-toolkit)
 
 **What Happened**:
+
 ```bash
 $ gpm ship
 ▸ Shipping Feature
@@ -151,6 +161,7 @@ Build errors:
 ```
 
 **Why It Failed**:
+
 - auditor-toolkit is a **Python 3.12 project**
 - Has `pyproject.toml`, `setup.py`, `requirements.txt`, `Makefile`
 - Uses `ruff check .` (not `npm run lint`)
@@ -158,6 +169,7 @@ Build errors:
 - No build step needed (Python is interpreted)
 
 **Manual Workaround** (what the user had to do):
+
 1. Run `make lint && make typecheck && make test` locally
 2. Manually push with `git push origin <branch>`
 3. Manually create PR with `gh pr create --fill`
@@ -168,6 +180,7 @@ Build errors:
 8. Total time: **15 minutes**
 
 **Expected with Working gpm**:
+
 1. Run `gpm ship`
 2. Auto-detect Python project
 3. Auto-run appropriate checks (`make lint`, `pytest`)
@@ -188,20 +201,24 @@ Build errors:
 
 ```typescript
 // Line 50: Hardcoded ESLint
-const lintResult = await runStep('Lint (ESLint)', 'npm run lint', jsonMode);
+const lintResult = await runStep("Lint (ESLint)", "npm run lint", jsonMode);
 
 // Lines 59-62: Hardcoded TypeScript
 const typecheckResult = await runStep(
-  'Type Check (TypeScript)',
-  'npx tsc --noEmit',
-  jsonMode
+  "Type Check (TypeScript)",
+  "npx tsc --noEmit",
+  jsonMode,
 );
 
 // Line 72: Hardcoded npm test
-const testResult = await runStep('Tests (Jest)', 'npm test', jsonMode);
+const testResult = await runStep("Tests (Jest)", "npm test", jsonMode);
 
 // Line 81: Hardcoded npm build
-const buildResult = await runStep('Build (TypeScript)', 'npm run build', jsonMode);
+const buildResult = await runStep(
+  "Build (TypeScript)",
+  "npm run build",
+  jsonMode,
+);
 ```
 
 **Problem**: No language detection, no alternative tools, no fallback logic.
@@ -211,12 +228,14 @@ const buildResult = await runStep('Build (TypeScript)', 'npm run build', jsonMod
 **File**: `src/services/VerifyService.ts`
 
 The service has **partial** multi-language support:
+
 - Lines 122-128: Checks for `tox.ini` (Python)
 - Lines 131-141: Checks for `Makefile` targets
 
 **BUT** this discovery logic is only used when `VerifyService.runChecks()` is called, NOT when `gpm verify` CLI command runs directly!
 
 **Circular Dependency**:
+
 ```
 gpm ship
   ↓
@@ -232,6 +251,7 @@ Hardcoded npm commands (ignores discovery!)
 #### 3. No Language Detection Layer
 
 There is no centralized service for:
+
 - Detecting project language (Python, Node.js, Go, Rust)
 - Mapping language → tool commands
 - Checking tool availability
@@ -245,12 +265,12 @@ There is no centralized service for:
 
 **Primary Strategy**: Project marker files (99%+ accuracy)
 
-| Language | Marker Files | Priority |
-|----------|--------------|----------|
-| Python | `pyproject.toml`, `setup.py`, `requirements.txt`, `Pipfile`, `.python-version` | High |
-| Node.js | `package.json`, `package-lock.json`, `yarn.lock` | High |
-| Go | `go.mod`, `go.sum` | High |
-| Rust | `Cargo.toml`, `Cargo.lock` | High |
+| Language | Marker Files                                                                   | Priority |
+| -------- | ------------------------------------------------------------------------------ | -------- |
+| Python   | `pyproject.toml`, `setup.py`, `requirements.txt`, `Pipfile`, `.python-version` | High     |
+| Node.js  | `package.json`, `package-lock.json`, `yarn.lock`                               | High     |
+| Go       | `go.mod`, `go.sum`                                                             | High     |
+| Rust     | `Cargo.toml`, `Cargo.lock`                                                     | High     |
 
 **Secondary Strategy**: File extensions (less reliable, slower)
 **Fallback**: Default to Node.js (backward compatibility)
@@ -258,6 +278,7 @@ There is no centralized service for:
 ### Auto-Fix Tools Research
 
 **Python - Ruff** (Recommended):
+
 - **Speed**: 10-100x faster than Pylint/Black
 - **Coverage**: 800+ lint rules (Flake8, isort, pyupgrade compatible)
 - **Auto-fix**: `ruff check --fix` (safe) | `--unsafe-fixes` (aggressive)
@@ -265,16 +286,19 @@ There is no centralized service for:
 - **Docs**: https://docs.astral.sh/ruff/linter/
 
 **JavaScript/TypeScript - ESLint**:
+
 - **Auto-fix**: `eslint --fix .`
 - **Coverage**: Lint + some formatting
 - **Integration**: Works with Prettier
 
 **Go - gofmt / goimports**:
+
 - **Auto-fix**: `gofmt -w .` | `goimports -w .`
 - **Coverage**: Formatting + import management
 - **Advanced**: `golangci-lint run --fix` (comprehensive)
 
 **Rust - rustfmt / clippy**:
+
 - **Auto-fix**: `cargo fmt` | `cargo clippy --fix`
 - **Coverage**: Formatting + lint fixes
 - **Safe**: `cargo fix` (compiler suggestions)
@@ -287,6 +311,7 @@ There is no centralized service for:
 - **Time saved**: 10 minutes (auto-fix + guided fixes)
 
 **Error Breakdown**:
+
 - E402: Module imports not at top (9 errors) - Auto-fixable
 - F401: Unused imports (7 errors) - Auto-fixable
 - F811: Fixture redefinitions (5 errors) - Manual (pytest-specific)
@@ -302,6 +327,7 @@ There is no centralized service for:
 **File**: `src/services/LanguageDetectionService.ts`
 
 **Responsibilities**:
+
 1. Detect project language via marker files
 2. Parse Makefile for available targets
 3. Map language → tool commands (with fallbacks)
@@ -312,16 +338,16 @@ There is no centralized service for:
 
 ```typescript
 export interface DetectedLanguage {
-  primary: Language;           // Main language
-  additional: Language[];      // For monorepos
-  confidence: number;          // 0-100%
-  sources: string[];          // Files that led to detection
+  primary: Language; // Main language
+  additional: Language[]; // For monorepos
+  confidence: number; // 0-100%
+  sources: string[]; // Files that led to detection
 }
 
 export interface ToolCommands {
-  lint: string[];             // Fallback chain
+  lint: string[]; // Fallback chain
   test: string[];
-  typecheck?: string[];       // Optional
+  typecheck?: string[]; // Optional
   format?: string[];
   build?: string[];
 }
@@ -416,33 +442,33 @@ async detectLanguage(): Promise<DetectedLanguage> {
 ```typescript
 const TOOL_COMMANDS: Record<Language, ToolCommands> = {
   python: {
-    lint: ['make lint', 'ruff check .', 'flake8 .', 'pylint .'],
-    test: ['make test', 'pytest tests/', 'python -m pytest', 'tox'],
-    typecheck: ['make typecheck', 'mypy .', 'pyright .'],
-    format: ['ruff format .', 'black .', 'autopep8 .'],
-    build: [] // Typically no build step
+    lint: ["make lint", "ruff check .", "flake8 .", "pylint ."],
+    test: ["make test", "pytest tests/", "python -m pytest", "tox"],
+    typecheck: ["make typecheck", "mypy .", "pyright ."],
+    format: ["ruff format .", "black .", "autopep8 ."],
+    build: [], // Typically no build step
   },
 
   nodejs: {
-    lint: ['npm run lint', 'npx eslint .'],
-    test: ['npm test', 'npx jest', 'npx vitest'],
-    typecheck: ['npm run typecheck', 'npx tsc --noEmit'],
-    build: ['npm run build', 'npx tsc']
+    lint: ["npm run lint", "npx eslint ."],
+    test: ["npm test", "npx jest", "npx vitest"],
+    typecheck: ["npm run typecheck", "npx tsc --noEmit"],
+    build: ["npm run build", "npx tsc"],
   },
 
   go: {
-    lint: ['make lint', 'golangci-lint run'],
-    test: ['make test', 'go test ./...'],
-    format: ['gofmt -w .', 'goimports -w .'],
-    build: ['make build', 'go build', 'go build ./...']
+    lint: ["make lint", "golangci-lint run"],
+    test: ["make test", "go test ./..."],
+    format: ["gofmt -w .", "goimports -w ."],
+    build: ["make build", "go build", "go build ./..."],
   },
 
   rust: {
-    lint: ['make lint', 'cargo clippy'],
-    test: ['make test', 'cargo test'],
-    format: ['cargo fmt'],
-    build: ['make build', 'cargo build']
-  }
+    lint: ["make lint", "cargo clippy"],
+    test: ["make test", "cargo test"],
+    format: ["cargo fmt"],
+    build: ["make build", "cargo build"],
+  },
 };
 ```
 
@@ -474,6 +500,7 @@ async getMakefileTargets(): Promise<string[]> {
 **File**: `src/services/AutoFixService.ts`
 
 **Responsibilities**:
+
 1. Attempt auto-fix for lint/format errors
 2. Distinguish safe vs unsafe fixes
 3. Prompt user before unsafe fixes
@@ -485,29 +512,26 @@ async getMakefileTargets(): Promise<string[]> {
 ```typescript
 export interface FixResult {
   success: boolean;
-  fixed: number;          // Errors fixed
-  remaining: number;      // Errors still present
+  fixed: number; // Errors fixed
+  remaining: number; // Errors still present
   output: string;
-  safe: boolean;         // Whether only safe fixes were applied
+  safe: boolean; // Whether only safe fixes were applied
 }
 
 export interface FixOptions {
-  allowUnsafe: boolean;   // Allow unsafe fixes
-  prompt: boolean;        // Prompt before fix
-  dryRun: boolean;       // Show what would be fixed
+  allowUnsafe: boolean; // Allow unsafe fixes
+  prompt: boolean; // Prompt before fix
+  dryRun: boolean; // Show what would be fixed
 }
 
 export class AutoFixService {
-  constructor(
-    workingDir: string,
-    language: Language
-  ) {}
+  constructor(workingDir: string, language: Language) {}
 
   // Attempt auto-fix
   async attemptFix(
     step: VerificationStep,
     error: string,
-    options: FixOptions
+    options: FixOptions,
   ): Promise<FixResult>;
 
   // Check if error is fixable
@@ -527,58 +551,61 @@ interface FixCommand {
   safe: boolean;
 }
 
-const FIX_COMMANDS: Record<Language, Partial<Record<VerificationStep, FixCommand>>> = {
+const FIX_COMMANDS: Record<
+  Language,
+  Partial<Record<VerificationStep, FixCommand>>
+> = {
   python: {
     lint: {
-      command: 'ruff',
-      flags: ['check', '--fix', '--unsafe-fixes'],
-      safe: false  // --unsafe-fixes can change behavior
+      command: "ruff",
+      flags: ["check", "--fix", "--unsafe-fixes"],
+      safe: false, // --unsafe-fixes can change behavior
     },
     format: {
-      command: 'ruff',
-      flags: ['format', '.'],
-      safe: true  // Formatting is always safe
-    }
+      command: "ruff",
+      flags: ["format", "."],
+      safe: true, // Formatting is always safe
+    },
   },
 
   nodejs: {
     lint: {
-      command: 'eslint',
-      flags: ['--fix', '.'],
-      safe: false
+      command: "eslint",
+      flags: ["--fix", "."],
+      safe: false,
     },
     format: {
-      command: 'prettier',
-      flags: ['--write', '.'],
-      safe: true
-    }
+      command: "prettier",
+      flags: ["--write", "."],
+      safe: true,
+    },
   },
 
   go: {
     lint: {
-      command: 'golangci-lint',
-      flags: ['run', '--fix'],
-      safe: false
+      command: "golangci-lint",
+      flags: ["run", "--fix"],
+      safe: false,
     },
     format: {
-      command: 'gofmt',
-      flags: ['-w', '.'],
-      safe: true
-    }
+      command: "gofmt",
+      flags: ["-w", "."],
+      safe: true,
+    },
   },
 
   rust: {
     lint: {
-      command: 'cargo',
-      flags: ['clippy', '--fix', '--allow-dirty'],
-      safe: false
+      command: "cargo",
+      flags: ["clippy", "--fix", "--allow-dirty"],
+      safe: false,
     },
     format: {
-      command: 'cargo',
-      flags: ['fmt'],
-      safe: true
-    }
-  }
+      command: "cargo",
+      flags: ["fmt"],
+      safe: true,
+    },
+  },
 };
 ```
 
@@ -643,26 +670,26 @@ async attemptFix(
 
 # Language Configuration (NEW)
 language:
-  primary: python          # Explicit override (auto-detected if omitted)
-  additional: []           # For monorepos: [nodejs, python]
-  autoDetect: true         # Enable auto-detection (default: true)
+  primary: python # Explicit override (auto-detected if omitted)
+  additional: [] # For monorepos: [nodejs, python]
+  autoDetect: true # Enable auto-detection (default: true)
 
 # Verification Configuration (EXTENDED)
 verification:
   # Custom commands (override defaults)
   commands:
-    lint: make lint        # Custom lint command
+    lint: make lint # Custom lint command
     test: pytest tests/ -v # Custom test command
     typecheck: make typecheck
     format: ruff format .
-    build: skip            # Or custom command
+    build: skip # Or custom command
 
   # Auto-fix settings (NEW)
   autoFix:
-    enabled: true                 # Enable auto-fix (default: true)
-    promptBeforeFix: true         # Ask before running (default: true)
-    allowUnsafeFixes: false       # Allow unsafe fixes (default: false)
-    maxAttempts: 2                # Max retry attempts (default: 2)
+    enabled: true # Enable auto-fix (default: true)
+    promptBeforeFix: true # Ask before running (default: true)
+    allowUnsafeFixes: false # Allow unsafe fixes (default: false)
+    maxAttempts: 2 # Max retry attempts (default: 2)
 
     # Per-language overrides (optional)
     python:
@@ -672,13 +699,13 @@ verification:
   # Tool preferences (NEW)
   toolPreferences:
     python:
-      linter: ruff          # or: pylint, flake8
-      formatter: ruff       # or: black, autopep8
-      typeChecker: mypy     # or: pyright, pyre
+      linter: ruff # or: pylint, flake8
+      formatter: ruff # or: black, autopep8
+      typeChecker: mypy # or: pyright, pyre
 
   # Makefile integration (NEW)
-  preferMakefile: true      # Prefer Makefile targets over native tools
-  makefileTargets:          # Target name mapping
+  preferMakefile: true # Prefer Makefile targets over native tools
+  makefileTargets: # Target name mapping
     lint: lint
     test: test
     typecheck: typecheck
@@ -687,17 +714,17 @@ verification:
 
 # PR Configuration (EXTENDED)
 pr:
-  autoGenerateTitle: true         # NEW - from conventional commits
-  autoGenerateBody: true          # NEW - from commit messages
-  parseConventionalCommits: true  # NEW - detect commit types (feat, fix, etc.)
-  mergeMethod: squash             # EXISTING
-  deleteBranchAfterMerge: true    # EXISTING
-  checkoutMainAfterMerge: true    # NEW
+  autoGenerateTitle: true # NEW - from conventional commits
+  autoGenerateBody: true # NEW - from commit messages
+  parseConventionalCommits: true # NEW - detect commit types (feat, fix, etc.)
+  mergeMethod: squash # EXISTING
+  deleteBranchAfterMerge: true # EXISTING
+  checkoutMainAfterMerge: true # NEW
 
 # CI Configuration (EXISTING - no changes)
 ci:
   waitForChecks: true
-  timeout: 1800000  # 30 minutes
+  timeout: 1800000 # 30 minutes
   retryFlaky: true
 ```
 
@@ -737,9 +764,9 @@ export interface GpmConfig {
 
     toolPreferences?: {
       python?: {
-        linter?: 'ruff' | 'pylint' | 'flake8';
-        formatter?: 'ruff' | 'black' | 'autopep8';
-        typeChecker?: 'mypy' | 'pyright' | 'pyre';
+        linter?: "ruff" | "pylint" | "flake8";
+        formatter?: "ruff" | "black" | "autopep8";
+        typeChecker?: "mypy" | "pyright" | "pyre";
       };
     };
 
@@ -757,7 +784,7 @@ export interface GpmConfig {
     autoGenerateTitle?: boolean;
     autoGenerateBody?: boolean;
     parseConventionalCommits?: boolean;
-    mergeMethod?: 'merge' | 'squash' | 'rebase';
+    mergeMethod?: "merge" | "squash" | "rebase";
     deleteBranchAfterMerge?: boolean;
     checkoutMainAfterMerge?: boolean;
   };
@@ -777,20 +804,24 @@ export interface GpmConfig {
 **File**: `src/commands/verify.ts` (refactored)
 
 **Before** (Hardcoded):
+
 ```typescript
 // Line 50: Hardcoded ESLint
-const lintResult = await runStep('Lint (ESLint)', 'npm run lint', jsonMode);
+const lintResult = await runStep("Lint (ESLint)", "npm run lint", jsonMode);
 
 // Line 72: Hardcoded npm test
-const testResult = await runStep('Tests (Jest)', 'npm test', jsonMode);
+const testResult = await runStep("Tests (Jest)", "npm test", jsonMode);
 ```
 
 **After** (Dynamic):
-```typescript
-import { LanguageDetectionService } from '../services/LanguageDetectionService';
-import { AutoFixService } from '../services/AutoFixService';
 
-export async function verifyCommand(options: VerifyOptions = {}): Promise<void> {
+```typescript
+import { LanguageDetectionService } from "../services/LanguageDetectionService";
+import { AutoFixService } from "../services/AutoFixService";
+
+export async function verifyCommand(
+  options: VerifyOptions = {},
+): Promise<void> {
   const startTime = Date.now();
   const results: VerifyStepResult[] = [];
   const failedSteps: string[] = [];
@@ -802,11 +833,13 @@ export async function verifyCommand(options: VerifyOptions = {}): Promise<void> 
   const makefileTargets = await detector.getMakefileTargets();
 
   if (!options.json) {
-    logger.section('Running Verification Checks');
-    logger.info(`Detected language: ${detected.primary} (${detected.confidence}% confidence)`);
+    logger.section("Running Verification Checks");
+    logger.info(
+      `Detected language: ${detected.primary} (${detected.confidence}% confidence)`,
+    );
 
     if (makefileTargets.length > 0) {
-      logger.info(`Found Makefile with targets: ${makefileTargets.join(', ')}`);
+      logger.info(`Found Makefile with targets: ${makefileTargets.join(", ")}`);
     }
   }
 
@@ -817,44 +850,58 @@ export async function verifyCommand(options: VerifyOptions = {}): Promise<void> 
   // Step 1: Lint
   if (!options.skipLint) {
     const lintCommands = toolCommands.lint || [];
-    const lintCommand = await selectCommand(lintCommands, makefileTargets, 'lint');
+    const lintCommand = await selectCommand(
+      lintCommands,
+      makefileTargets,
+      "lint",
+    );
 
     if (lintCommand) {
-      let lintResult = await runStep('Lint', lintCommand, options.json);
+      let lintResult = await runStep("Lint", lintCommand, options.json);
       results.push(lintResult);
 
       // Attempt auto-fix if enabled and step failed
-      if (!lintResult.passed && config.verification?.autoFix?.enabled !== false) {
+      if (
+        !lintResult.passed &&
+        config.verification?.autoFix?.enabled !== false
+      ) {
         if (!options.json) {
-          logger.info('Attempting auto-fix...');
+          logger.info("Attempting auto-fix...");
         }
 
-        const fixResult = await autoFix.attemptFix('lint', lintResult.error || '', {
-          allowUnsafe: config.verification?.autoFix?.allowUnsafeFixes || false,
-          prompt: config.verification?.autoFix?.promptBeforeFix !== false,
-          dryRun: false
-        });
+        const fixResult = await autoFix.attemptFix(
+          "lint",
+          lintResult.error || "",
+          {
+            allowUnsafe:
+              config.verification?.autoFix?.allowUnsafeFixes || false,
+            prompt: config.verification?.autoFix?.promptBeforeFix !== false,
+            dryRun: false,
+          },
+        );
 
         if (fixResult.success && fixResult.fixed > 0) {
           if (!options.json) {
             logger.success(`Auto-fixed ${fixResult.fixed} errors`);
             if (fixResult.remaining > 0) {
-              logger.warn(`${fixResult.remaining} errors remaining (manual fix needed)`);
+              logger.warn(
+                `${fixResult.remaining} errors remaining (manual fix needed)`,
+              );
             }
           }
 
           // Retry verification
-          lintResult = await runStep('Lint (retry)', lintCommand, options.json);
+          lintResult = await runStep("Lint (retry)", lintCommand, options.json);
           results.push(lintResult);
         }
       }
 
       if (!lintResult.passed) {
-        failedSteps.push('lint');
+        failedSteps.push("lint");
       }
     } else {
       if (!options.json) {
-        logger.warn('No lint command found, skipping');
+        logger.warn("No lint command found, skipping");
       }
     }
   }
@@ -870,7 +917,7 @@ export async function verifyCommand(options: VerifyOptions = {}): Promise<void> 
 async function selectCommand(
   commands: string[],
   makefileTargets: string[],
-  step: string
+  step: string,
 ): Promise<string | null> {
   // Prefer Makefile targets if available
   const config = await loadConfig();
@@ -886,10 +933,10 @@ async function selectCommand(
   // Fall back to native tools
   for (const cmd of commands) {
     // Check if command is available
-    const [tool] = cmd.split(' ');
+    const [tool] = cmd.split(" ");
 
     try {
-      execSync(`command -v ${tool}`, { stdio: 'ignore' });
+      execSync(`command -v ${tool}`, { stdio: "ignore" });
       return cmd;
     } catch {
       // Tool not available, try next
@@ -1268,6 +1315,7 @@ async function selectCommand(
   - Log metrics: errors fixed, errors introduced, net improvement
 
 **Enhanced attemptFix() Implementation**:
+
 ```typescript
 async attemptFix(
   failure: FailureDetail,
@@ -1400,6 +1448,7 @@ async attemptFix(
   - Test edge cases (no type, multiple types)
 
 **Why use library over custom implementation:**
+
 - ✅ Time savings: 4-6 hours → 1-2 hours (saves 4 hours)
 - ✅ Battle-tested: 1.1M weekly downloads, actively maintained
 - ✅ Full spec compliance: Handles all conventional commit variations
@@ -1523,6 +1572,7 @@ async attemptFix(
 **Likelihood**: Medium
 **Impact**: High
 **Mitigation**:
+
 - Default to Node.js if no language markers found (backward compatibility)
 - Comprehensive testing with existing gpm repositories
 - Beta release (v1.6.0-beta.1) before stable
@@ -1530,6 +1580,7 @@ async attemptFix(
 - Migration guide with examples
 
 **Validation**:
+
 - Run full test suite (678+ tests) before release
 - Test with 5+ real Node.js projects
 - Monitor GitHub issues after beta release
@@ -1541,12 +1592,14 @@ async attemptFix(
 **Likelihood**: Low
 **Impact**: Medium
 **Mitigation**:
+
 - Use simple regex for target detection (no complex parsing)
 - Don't parse Makefile logic (variables, conditions, includes)
 - Fallback to native tools if parsing fails
 - Test with common Makefile patterns (GNU Make)
 
 **Edge Cases**:
+
 - Makefiles with complex variable expansion: Skip parsing
 - Makefiles with `.PHONY` targets: Detect anyway
 - Makefiles with conditional logic: Ignore conditions, detect all targets
@@ -1558,12 +1611,14 @@ async attemptFix(
 **Likelihood**: Medium
 **Impact**: Low
 **Mitigation**:
+
 - Cache tool availability results (in-memory, TTL: 1 hour)
 - Run checks in parallel (Promise.all)
 - Lazy check (only when needed for verification, not on every CLI invocation)
 - Skip availability check for Makefile targets (Makefile handles this)
 
 **Performance Target**:
+
 - Language detection: <100ms
 - Tool availability checks: <500ms (cached: <1ms)
 - Total overhead: <600ms
@@ -1575,6 +1630,7 @@ async attemptFix(
 **Likelihood**: Low (with safe-only default)
 **Impact**: High
 **Mitigation**:
+
 - **Default to safe fixes only** (no behavioral changes)
 - **Prompt before running unsafe fixes** (user consent required)
 - **Show diff before applying** (future enhancement - v1.9.0)
@@ -1582,11 +1638,13 @@ async attemptFix(
 - **Clear documentation** on safe vs unsafe fixes
 
 **Safe Fixes** (applied automatically):
+
 - Formatting changes (ruff format, prettier, gofmt)
 - Import sorting (isort behavior in ruff)
 - Unused import removal (if not used anywhere)
 
 **Unsafe Fixes** (require prompt):
+
 - Code refactoring (ruff --unsafe-fixes)
 - Logic changes (e.g., converting deprecated APIs)
 - Removing seemingly unused code (might have side effects)
@@ -1598,6 +1656,7 @@ async attemptFix(
 **Likelihood**: Low
 **Impact**: Medium
 **Mitigation**:
+
 - Maintain full backward compatibility (all old configs still work)
 - Warn about deprecated config options (log to stderr)
 - Provide migration tool: `gpm migrate-config` (future)
@@ -1605,6 +1664,7 @@ async attemptFix(
 - Clear upgrade documentation
 
 **Migration Strategy**:
+
 ```yaml
 # Old .gpm.yml (v1.5.x and earlier)
 ci:
@@ -1631,6 +1691,7 @@ ci:
 **Likelihood**: Low
 **Impact**: Low
 **Mitigation**:
+
 - Clear communication: "Backward compatible, no action needed"
 - Show value: "Python/Go/Rust now supported!"
 - Provide examples in README
@@ -1643,6 +1704,7 @@ ci:
 **Likelihood**: Medium
 **Impact**: Medium
 **Mitigation**:
+
 - Comprehensive documentation (README, CLAUDE.md, guides)
 - Clear error messages ("Python project detected, using ruff")
 - `gpm doctor` enhancement: Show detected language, available tools
@@ -1691,6 +1753,7 @@ ci:
 **Source**: `/tmp/gpm-errors-auditor-toolkit.md`
 
 **Key Metrics**:
+
 - Manual workflow time: 15 minutes
 - Expected gpm workflow time: 5 minutes
 - Time savings: 67%
@@ -1699,6 +1762,7 @@ ci:
 - Manual fixes needed: 16 (64%)
 
 **Lessons Learned**:
+
 1. Language detection is critical
 2. Makefile targets are common in Python projects
 3. CI is already robust - don't duplicate all checks locally
@@ -1712,16 +1776,19 @@ ci:
 ### Appendix B: Research Sources
 
 **Language Detection**:
+
 - GitHub Linguist: https://github.com/github-linguist/linguist
 - Project marker files: PEP 518 (pyproject.toml), npm (package.json), Go modules (go.mod), Cargo (Cargo.toml)
 
 **Auto-Fix Tools**:
+
 - Ruff (Python): https://docs.astral.sh/ruff/linter/
 - ESLint (JavaScript): https://eslint.org/docs/latest/use/command-line-interface#--fix
 - gofmt (Go): https://pkg.go.dev/cmd/gofmt
 - cargo fmt (Rust): https://doc.rust-lang.org/cargo/commands/cargo-fmt.html
 
 **Makefile Parsing**:
+
 - GNU Make manual: https://www.gnu.org/software/make/manual/make.html
 - Simple target regex: `/^([a-zA-Z0-9_-]+):/gm`
 
@@ -1729,18 +1796,18 @@ ci:
 
 ### Appendix C: Comparison Matrix
 
-| Feature | Before (v1.5.x) | After (v1.6.0+) |
-|---------|----------------|-----------------|
-| **Language Support** | Node.js only | Python, Node.js, Go, Rust |
-| **Detection** | None (assumes Node.js) | Auto-detect via marker files |
+| Feature              | Before (v1.5.x)              | After (v1.6.0+)                    |
+| -------------------- | ---------------------------- | ---------------------------------- |
+| **Language Support** | Node.js only                 | Python, Node.js, Go, Rust          |
+| **Detection**        | None (assumes Node.js)       | Auto-detect via marker files       |
 | **Makefile Support** | Partial (VerifyService only) | Full (preferred over native tools) |
-| **Auto-Fix** | None | Safe/unsafe with prompting |
-| **Tool Commands** | Hardcoded npm | Dynamic with fallback chains |
-| **Config Override** | Limited | Full (.gpm.yml language section) |
-| **Python Projects** | ❌ Fail | ✅ Work |
-| **Go Projects** | ❌ Fail | ✅ Work |
-| **Rust Projects** | ❌ Fail | ✅ Work |
-| **Time Savings** | Manual: 15min | Automated: 5min (67% savings) |
+| **Auto-Fix**         | None                         | Safe/unsafe with prompting         |
+| **Tool Commands**    | Hardcoded npm                | Dynamic with fallback chains       |
+| **Config Override**  | Limited                      | Full (.gpm.yml language section)   |
+| **Python Projects**  | ❌ Fail                      | ✅ Work                            |
+| **Go Projects**      | ❌ Fail                      | ✅ Work                            |
+| **Rust Projects**    | ❌ Fail                      | ✅ Work                            |
+| **Time Savings**     | Manual: 15min                | Automated: 5min (67% savings)      |
 
 ---
 
@@ -1749,6 +1816,7 @@ ci:
 #### Python Project (auditor-toolkit)
 
 **Before (v1.5.x)**:
+
 ```bash
 $ gpm ship
 ❌ Verification failed (npm run lint not found)
@@ -1767,6 +1835,7 @@ $ git checkout main && git pull             # 1 min
 ```
 
 **After (v1.6.0+)**:
+
 ```bash
 $ gpm ship
 🔍 Detected language: Python (95% confidence)
@@ -1805,6 +1874,7 @@ $ gpm ship  # Retry
 #### Node.js Project (gpm itself)
 
 **Before (v1.5.x)**:
+
 ```bash
 $ gpm ship
 ✅ Detected language: Node.js (implicit)
@@ -1816,6 +1886,7 @@ $ gpm ship
 ```
 
 **After (v1.6.0+)**:
+
 ```bash
 $ gpm ship
 🔍 Detected language: Node.js (95% confidence from package.json)
@@ -1833,6 +1904,7 @@ $ gpm ship
 ### Appendix E: File Structure Changes
 
 **New Files** (Phase 1):
+
 ```
 src/
 ├── services/
@@ -1854,6 +1926,7 @@ tests/
 ```
 
 **Modified Files**:
+
 ```
 src/
 ├── commands/
@@ -1880,6 +1953,7 @@ docs/
 #### Unit Tests (Phase 1)
 
 **LanguageDetectionService**:
+
 - [ ] `detectLanguage()` - Python project (pyproject.toml)
 - [ ] `detectLanguage()` - Node.js project (package.json)
 - [ ] `detectLanguage()` - Go project (go.mod)
@@ -1899,6 +1973,7 @@ docs/
 - [ ] `checkToolAvailable()` - Cache hit
 
 **verify command**:
+
 - [ ] Verify Python project with Makefile
 - [ ] Verify Python project without Makefile
 - [ ] Verify Node.js project (regression test)
@@ -1908,6 +1983,7 @@ docs/
 - [ ] Verify with `--json` output
 
 **ConfigService**:
+
 - [ ] Load config with new language section
 - [ ] Validate language config
 - [ ] Validate autoFix config
@@ -1940,12 +2016,14 @@ docs/
 **Optional Enhancements** for Node.js projects:
 
 1. **Add language config** to `.gpm.yml` (optional):
+
 ```yaml
 language:
   primary: nodejs
 ```
 
 2. **Use Makefile targets** (optional):
+
 ```yaml
 verification:
   preferMakefile: true
@@ -1954,12 +2032,13 @@ verification:
 **Recommended for Python projects**:
 
 1. **Create `.gpm.yml`**:
+
 ```yaml
 language:
   primary: python
 
 verification:
-  preferMakefile: true  # If you have a Makefile
+  preferMakefile: true # If you have a Makefile
 
   # Or specify custom commands:
   commands:
@@ -1970,12 +2049,14 @@ verification:
 ```
 
 2. **Verify your setup**:
+
 ```bash
 gpm doctor        # Check tool availability
 gpm verify        # Test verification
 ```
 
 3. **Use gpm workflow**:
+
 ```bash
 gpm ship          # Full workflow
 ```
@@ -2026,6 +2107,7 @@ See examples in README.md and docs/guides/MULTI-LANGUAGE-SUPPORT.md.
 This implementation plan addresses all issues identified in the auditor-toolkit feedback and provides a clear path to multi-language support in gpm.
 
 **Key Takeaways**:
+
 - **Phase 1 is critical** - Language detection is the foundation
 - **Incremental delivery** - v1.6.0 → v1.7.0 → v1.8.0+
 - **Backward compatible** - No breaking changes for existing users
@@ -2034,6 +2116,7 @@ This implementation plan addresses all issues identified in the auditor-toolkit 
 - **Risk-mitigated** - Clear strategies for handling edge cases
 
 **Estimated Timeline** (revised after Zen DeepThink analysis):
+
 - Phase 1a - Foundation (v1.6.0-beta.1): 4-5 weeks (23-30 hours)
 - Phase 1b - Operational (v1.6.0): 2-3 weeks (12-17 hours)
 - Phase 2 - Auto-Fix (v1.7.0): 2-3 weeks (14-19 hours)
@@ -2042,6 +2125,7 @@ This implementation plan addresses all issues identified in the auditor-toolkit 
 - **Total**: 11-16 weeks (63-88 hours)
 
 **Next Steps**:
+
 1. Review and approve this plan
 2. Create GitHub milestone for v1.6.0
 3. Create issues for Phase 1 tasks

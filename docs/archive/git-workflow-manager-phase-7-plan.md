@@ -1,4 +1,5 @@
 # Git Workflow Manager - Phase 7 Implementation Plan
+
 ## Auto-Update Notification System
 
 **Document Version**: 1.0
@@ -14,6 +15,7 @@
 Phase 7 will add intelligent auto-update notifications to git-pr-manager, ensuring users and AI agents stay informed about new versions without compromising performance or user experience. This plan implements a lightweight, npm-first approach with smart suppression for CI/automation environments.
 
 **Key Objectives**:
+
 1. **Zero-friction updates** - Notify users of available updates with clear upgrade path
 2. **AI agent friendly** - Machine-readable JSON output, explicit suppression controls
 3. **CI/automation safe** - Silent in non-interactive environments by default
@@ -31,12 +33,14 @@ Phase 7 will add intelligent auto-update notifications to git-pr-manager, ensuri
 ### Distribution & Versioning (v1.4.0)
 
 **npm Package**:
+
 - Published as: `@littlebearapps/git-pr-manager`
 - Current version: v1.4.0-beta.1
 - Binary: `gpm`
 - Install: `npm install -g @littlebearapps/git-pr-manager`
 
 **GitHub Repository**:
+
 - ❌ **NOT YET CREATED** - Currently local-only development
 - ⚠️ **Required for Phase 7** - Need GitHub repo for:
   - Version control and backup
@@ -45,6 +49,7 @@ Phase 7 will add intelligent auto-update notifications to git-pr-manager, ensuri
   - Future open-sourcing
 
 **Current Version Management**:
+
 - Manual version bumps in package.json
 - No automated update checks
 - No notification system
@@ -67,6 +72,7 @@ Phase 7 will add intelligent auto-update notifications to git-pr-manager, ensuri
 **Objective**: Create private GitHub repository for git-pr-manager
 
 **Tasks**:
+
 1. Create private GitHub repo: `littlebearapps/git-pr-manager`
 2. Initialize with current codebase
 3. Set up GitHub Actions CI/CD:
@@ -80,6 +86,7 @@ Phase 7 will add intelligent auto-update notifications to git-pr-manager, ensuri
 5. Optional: Set up GitHub Releases template
 
 **Deliverables**:
+
 - Private GitHub repo created
 - CI/CD workflows active
 - Documentation updated with repo URL
@@ -87,6 +94,7 @@ Phase 7 will add intelligent auto-update notifications to git-pr-manager, ensuri
 **Time Estimate**: 1-2 hours
 
 **Why Private Initially**:
+
 - Can test GitHub Actions without public visibility
 - Can make public later if/when ready
 - Enables GitHub Releases for changelogs (optional)
@@ -112,6 +120,7 @@ Phase 7 will add intelligent auto-update notifications to git-pr-manager, ensuri
 ```
 
 **Rationale**:
+
 - `package-json`: Fetch npm package metadata with dist-tags
 - `semver`: Version comparison and diff calculation
 
@@ -122,6 +131,7 @@ Phase 7 will add intelligent auto-update notifications to git-pr-manager, ensuri
 **File**: `src/utils/update-check.ts` (NEW)
 
 **Functionality**:
+
 - Check npm registry for latest version (with dist-tag support)
 - Cache results in TMPDIR (7-day TTL)
 - Respect suppression rules (CI, JSON mode, non-TTY)
@@ -129,22 +139,24 @@ Phase 7 will add intelligent auto-update notifications to git-pr-manager, ensuri
 - Short timeout (1000ms default)
 
 **Key Functions**:
+
 ```typescript
 export async function checkForUpdate(options: {
   packageName: string;
   currentVersion: string;
-  channel?: 'latest' | 'next';
+  channel?: "latest" | "next";
   cacheMs?: number;
   timeoutMs?: number;
-}): Promise<UpdateCheckResult>
+}): Promise<UpdateCheckResult>;
 
 export async function maybeNotifyUpdate(options: {
   pkg: { name: string; version: string };
   argv: string[];
-}): Promise<UpdateCheckResult | null>
+}): Promise<UpdateCheckResult | null>;
 ```
 
 **Implementation** (provided by zen analysis):
+
 - Auto-detect channel based on version (prerelease → `next`, stable → `latest`)
 - Environment variable overrides: `GPM_UPDATE_CHANNEL`
 - Suppression logic:
@@ -156,6 +168,7 @@ export async function maybeNotifyUpdate(options: {
   - `!process.stderr.isTTY`
 
 **Cache Strategy**:
+
 - Location: `os.tmpdir()/gpm-update-cache.json`
 - TTL: 7 days (configurable via `GPM_UPDATE_CHECK_INTERVAL_MS`)
 - Structure:
@@ -177,9 +190,10 @@ export async function maybeNotifyUpdate(options: {
 **File**: `src/index.ts` (MODIFY)
 
 **Changes**:
+
 ```typescript
-import { maybeNotifyUpdate } from './utils/update-check.js';
-import pkg from '../package.json' assert { type: 'json' };
+import { maybeNotifyUpdate } from "./utils/update-check.js";
+import pkg from "../package.json" assert { type: "json" };
 
 async function main(argv: string[]) {
   // Fire-and-forget check (don't block CLI)
@@ -190,6 +204,7 @@ async function main(argv: string[]) {
 ```
 
 **Notification Format** (stderr only):
+
 ```
 Update available: @littlebearapps/git-pr-manager 1.4.0 -> 1.5.0 (stable). Run: npm i -g @littlebearapps/git-pr-manager@latest
 ```
@@ -207,12 +222,14 @@ Update available: @littlebearapps/git-pr-manager 1.4.0 -> 1.5.0 (stable). Run: n
 **File**: `src/commands/check-update.ts` (NEW)
 
 **Functionality**:
+
 - Force update check (ignore cache)
 - Always output JSON to stdout
 - Never suppress (explicit user request)
 - Exit code 0 always (non-blocking)
 
 **Implementation**:
+
 ```typescript
 export async function run(argv: string[]) {
   const channel = process.env.GPM_UPDATE_CHANNEL;
@@ -220,27 +237,29 @@ export async function run(argv: string[]) {
     packageName: pkg.name,
     currentVersion: pkg.version,
     channel,
-    cacheMs: 0 // Force fresh check
+    cacheMs: 0, // Force fresh check
   });
 
   // Always stdout JSON
-  process.stdout.write(JSON.stringify(res, null, 2) + '\n');
+  process.stdout.write(JSON.stringify(res, null, 2) + "\n");
 }
 ```
 
 **JSON Output Schema**:
+
 ```typescript
 interface UpdateCheckResult {
-  current: string;           // Current version
-  latest: string | null;     // Latest version (null if fetch failed)
-  tag: string;               // Dist-tag checked ('latest' or 'next')
-  updateAvailable: boolean;  // True if update available
+  current: string; // Current version
+  latest: string | null; // Latest version (null if fetch failed)
+  tag: string; // Dist-tag checked ('latest' or 'next')
+  updateAvailable: boolean; // True if update available
   updateType: string | null; // 'patch', 'minor', 'major', 'prerelease'
-  fromCache: boolean;        // True if result from cache
+  fromCache: boolean; // True if result from cache
 }
 ```
 
 **Example Output**:
+
 ```json
 {
   "current": "1.4.0-beta.1",
@@ -261,12 +280,13 @@ interface UpdateCheckResult {
 **File**: `src/index.ts` (MODIFY)
 
 **Add to command routing**:
+
 ```typescript
 program
-  .command('check-update')
-  .description('Check for available updates (machine-readable JSON)')
+  .command("check-update")
+  .description("Check for available updates (machine-readable JSON)")
   .action(async () => {
-    const { run } = await import('./commands/check-update.js');
+    const { run } = await import("./commands/check-update.js");
     await run(process.argv);
   });
 ```
@@ -284,6 +304,7 @@ program
 **File**: `docs/guides/PUBLISHING.md` (NEW)
 
 **Content**:
+
 - How to publish stable releases (`npm publish --tag latest`)
 - How to publish prereleases (`npm publish --tag next`)
 - Version numbering conventions
@@ -291,6 +312,7 @@ program
 - Optional: GitHub Release creation
 
 **Publishing Commands**:
+
 ```bash
 # Stable release
 npm version patch  # or minor, major
@@ -315,6 +337,7 @@ gh release create v1.5.0 --notes "See CHANGELOG.md"
 **File**: `package.json` (MODIFY)
 
 **Add scripts**:
+
 ```json
 {
   "scripts": {
@@ -341,6 +364,7 @@ gh release create v1.5.0 --notes "See CHANGELOG.md"
 **File**: `tests/utils/update-check.test.ts` (NEW)
 
 **Test Coverage**:
+
 - ✅ Check cache behavior (hit/miss/expiry)
 - ✅ Version comparison logic
 - ✅ Dist-tag selection (stable vs prerelease)
@@ -360,6 +384,7 @@ gh release create v1.5.0 --notes "See CHANGELOG.md"
 **File**: `tests/commands/check-update.test.ts` (NEW)
 
 **Test Coverage**:
+
 - ✅ Command outputs valid JSON
 - ✅ Respects GPM_UPDATE_CHANNEL env var
 - ✅ Handles network failures gracefully
@@ -374,6 +399,7 @@ gh release create v1.5.0 --notes "See CHANGELOG.md"
 #### Task 7.5.3: Manual Testing
 
 **Test Scenarios**:
+
 1. Fresh install → verify notification shows
 2. Up-to-date version → no notification
 3. CI environment → silent
@@ -397,6 +423,7 @@ gh release create v1.5.0 --notes "See CHANGELOG.md"
 **Add section**: "## 🔔 Update Notifications"
 
 **Content**:
+
 - How update checks work
 - How to check for updates (`gpm check-update`)
 - Environment variables for control
@@ -413,6 +440,7 @@ gh release create v1.5.0 --notes "See CHANGELOG.md"
 **Add section**: "## Update Management"
 
 **Content**:
+
 - How AI agents can check for updates
 - JSON output schema
 - How to auto-update (via npm)
@@ -429,6 +457,7 @@ gh release create v1.5.0 --notes "See CHANGELOG.md"
 **Add section**: "## Version Management in CI"
 
 **Content**:
+
 - How to check for updates in workflows
 - How to suppress notifications
 - Example workflow for monitoring updates
@@ -441,13 +470,13 @@ gh release create v1.5.0 --notes "See CHANGELOG.md"
 
 ### User Control
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `GPM_DISABLE_UPDATE_CHECK` | `0` | Set to `1` to disable all update checks |
-| `GPM_UPDATE_CHANNEL` | `latest` or `next` | Force specific dist-tag (auto-detected from version) |
-| `GPM_UPDATE_CHECK_INTERVAL_MS` | `604800000` | Cache TTL (7 days default) |
-| `GPM_UPDATE_TIMEOUT_MS` | `1000` | Network timeout for npm registry check |
-| `NO_UPDATE_NOTIFIER` | - | Standard env var to disable update checks (respected) |
+| Variable                       | Default            | Description                                           |
+| ------------------------------ | ------------------ | ----------------------------------------------------- |
+| `GPM_DISABLE_UPDATE_CHECK`     | `0`                | Set to `1` to disable all update checks               |
+| `GPM_UPDATE_CHANNEL`           | `latest` or `next` | Force specific dist-tag (auto-detected from version)  |
+| `GPM_UPDATE_CHECK_INTERVAL_MS` | `604800000`        | Cache TTL (7 days default)                            |
+| `GPM_UPDATE_TIMEOUT_MS`        | `1000`             | Network timeout for npm registry check                |
+| `NO_UPDATE_NOTIFIER`           | -                  | Standard env var to disable update checks (respected) |
 
 ---
 
@@ -472,13 +501,13 @@ gh release create v1.5.0 --notes "See CHANGELOG.md"
 
 ### Risks & Mitigations
 
-| Risk | Impact | Probability | Mitigation |
-|------|--------|-------------|------------|
-| **Network failures block CLI** | High | Low | Fire-and-forget, 1s timeout, graceful failure |
-| **Rate limiting from npm** | Medium | Very Low | 7-day cache, short timeout |
-| **False notifications** | Low | Low | Comprehensive testing, cache validation |
-| **CI/automation noise** | Medium | Low | Strict suppression rules, JSON mode detection |
-| **Cache corruption** | Low | Very Low | Graceful fallback to network check |
+| Risk                           | Impact | Probability | Mitigation                                    |
+| ------------------------------ | ------ | ----------- | --------------------------------------------- |
+| **Network failures block CLI** | High   | Low         | Fire-and-forget, 1s timeout, graceful failure |
+| **Rate limiting from npm**     | Medium | Very Low    | 7-day cache, short timeout                    |
+| **False notifications**        | Low    | Low         | Comprehensive testing, cache validation       |
+| **CI/automation noise**        | Medium | Low         | Strict suppression rules, JSON mode detection |
+| **Cache corruption**           | Low    | Very Low    | Graceful fallback to network check            |
 
 **Overall Risk**: **LOW**
 
@@ -505,6 +534,7 @@ gh release create v1.5.0 --notes "See CHANGELOG.md"
 ## Implementation Timeline
 
 ### Session 1: Infrastructure & Core (3-4 hours)
+
 - ✅ Create GitHub repository (if not done)
 - ✅ Add dependencies
 - ✅ Implement update-check.ts
@@ -512,6 +542,7 @@ gh release create v1.5.0 --notes "See CHANGELOG.md"
 - ✅ Basic manual testing
 
 ### Session 2: Commands & Testing (2-3 hours)
+
 - ✅ Implement check-update command
 - ✅ Unit tests (update-check.test.ts)
 - ✅ Integration tests (check-update.test.ts)
@@ -526,11 +557,13 @@ gh release create v1.5.0 --notes "See CHANGELOG.md"
 ### Version 1.5.0-beta.1 (Prerelease)
 
 **Goals**:
+
 - Test update notification in real environment
 - Verify suppression rules in CI
 - Collect feedback from AI agents
 
 **Publish**:
+
 ```bash
 npm version prerelease --preid beta
 npm publish --tag next
@@ -543,11 +576,13 @@ npm publish --tag next
 ### Version 1.5.0 (Stable)
 
 **Goals**:
+
 - Production release with update notifications
 - Full documentation
 - GitHub Release with changelog
 
 **Publish**:
+
 ```bash
 npm version minor
 npm publish --tag latest
@@ -563,6 +598,7 @@ gh release create v1.5.0 --notes-file CHANGELOG.md
 **When**: If/when repository becomes public
 
 **Features**:
+
 - `gpm release-notes` command to open release page
 - Display release notes in notification
 - Link to GitHub Releases for full changelog
@@ -590,6 +626,7 @@ gh release create v1.5.0 --notes-file CHANGELOG.md
 See zen analysis response for complete code (200+ lines).
 
 **Key exports**:
+
 - `checkForUpdate(options)` - Core check logic
 - `maybeNotifyUpdate({ pkg, argv })` - CLI integration
 - Helper functions: `isPrerelease()`, `defaultChannelFor()`, `shouldSuppress()`
@@ -601,6 +638,7 @@ See zen analysis response for complete code (200+ lines).
 See zen analysis response for complete code (20+ lines).
 
 **Key export**:
+
 - `run(argv)` - Command handler
 
 ---
@@ -609,12 +647,12 @@ See zen analysis response for complete code (20+ lines).
 
 ### Test Coverage Matrix
 
-| Component | Unit Tests | Integration Tests | Manual Tests |
-|-----------|-----------|-------------------|--------------|
-| update-check.ts | 15-20 | - | 7 scenarios |
-| check-update.ts | - | 5-8 | - |
-| CLI integration | - | - | 7 scenarios |
-| **Total** | **15-20** | **5-8** | **7 scenarios** |
+| Component       | Unit Tests | Integration Tests | Manual Tests    |
+| --------------- | ---------- | ----------------- | --------------- |
+| update-check.ts | 15-20      | -                 | 7 scenarios     |
+| check-update.ts | -          | 5-8               | -               |
+| CLI integration | -          | -                 | 7 scenarios     |
+| **Total**       | **15-20**  | **5-8**           | **7 scenarios** |
 
 ---
 
@@ -623,6 +661,7 @@ See zen analysis response for complete code (20+ lines).
 ### Recommendation: Create Private GitHub Repository
 
 **Why create a repo NOW** (even though zen suggested "keep in monorepo"):
+
 1. ✅ **Enable CI/CD**: We just documented GitHub Actions integration - we need a repo to use it!
 2. ✅ **Version Control**: Proper git history and backup
 3. ✅ **GitHub Releases**: Optional but professional for changelogs
@@ -630,11 +669,13 @@ See zen analysis response for complete code (20+ lines).
 5. ✅ **Collaboration Ready**: Easier to collaborate if needed
 
 **Why private initially**:
+
 - Test GitHub Actions without public visibility
 - Iterate on CI/CD workflows privately
 - Can make public when polished and ready
 
 **Setup Checklist**:
+
 - [ ] Create repo: `littlebearapps/git-pr-manager`
 - [ ] Set to Private
 - [ ] Push current codebase
@@ -649,6 +690,7 @@ See zen analysis response for complete code (20+ lines).
 ## Conclusion
 
 Phase 7 adds intelligent update notifications with:
+
 - **Zero friction** - Fire-and-forget checks with smart caching
 - **AI-friendly** - JSON output, explicit suppression
 - **CI-safe** - Silent in automation by default
@@ -660,6 +702,7 @@ Phase 7 adds intelligent update notifications with:
 **Value Delivered**: HIGH (keeps users informed, improves retention)
 
 **Next Steps**:
+
 1. Create private GitHub repository (prerequisite)
 2. Implement Phase 7.2 (update check infrastructure)
 3. Add check-update command (Phase 7.3)

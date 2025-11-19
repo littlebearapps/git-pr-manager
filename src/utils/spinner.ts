@@ -1,4 +1,4 @@
-import ora, { Ora } from 'ora';
+import ora, { Ora } from "ora";
 
 /**
  * Spinner utility for showing progress
@@ -99,7 +99,7 @@ export async function withSpinner<T>(
   message: string,
   task: () => Promise<T>,
   successMessage?: string,
-  errorMessage?: string
+  errorMessage?: string,
 ): Promise<T> {
   const s = createSpinner();
   s.start(message);

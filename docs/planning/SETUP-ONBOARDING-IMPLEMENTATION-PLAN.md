@@ -28,12 +28,14 @@ This creates friction for both human users and AI agents, leading to setup aband
 ### Current Pain Points
 
 **For Human Users**:
+
 - "Why is gpm failing? I just installed it"
 - No clear path from installation → working setup
 - Manual tool installation and configuration required
 - Cryptic error messages when tools are missing
 
 **For AI Agents**:
+
 - Must manually detect missing scripts
 - Must install packages and add configurations
 - No standardized automation interface
@@ -51,28 +53,36 @@ This creates friction for both human users and AI agents, leading to setup aband
 ## Design Principles
 
 ### 1. Progressive Disclosure
+
 Start simple, reveal complexity gradually. Users should get value quickly without overwhelming options.
 
 ### 2. Explicit Consent
+
 **Never modify system without user approval**. Security-first approach:
+
 - No auto-install without consent (supply chain protection)
 - Show exactly what will be installed
 - Provide dry-run mode for preview
 - Audit logging for all changes
 
 ### 3. Fail Safe
+
 Defensive operations:
+
 - Detect before modify
 - Backup before change
 - Rollback on failure
 - Idempotent operations (safe to re-run)
 
 ### 4. Dual UX
+
 Support both workflows equally:
+
 - **Human-interactive**: Rich prompts, explanations, step-by-step
 - **AI-automatable**: Non-interactive flags, JSON output, structured errors
 
 ### 5. Security First
+
 - Keychain integration for token storage
 - No plaintext secrets in files
 - Audit logging for accountability
@@ -116,6 +126,7 @@ Support both workflows equally:
 ### Key Separation of Concerns
 
 **Detection vs. Action**:
+
 - `gpm doctor` = Pure detection, no side effects, safe to run anywhere
 - `gpm setup` = Actions with consent, modifies system state
 - Shared services ensure consistency
@@ -129,12 +140,14 @@ Support both workflows equally:
 **Goal**: Upgrade `gpm doctor` to provide comprehensive diagnostics
 
 **Features**:
+
 - Deep project analysis (tools, scripts, configs)
 - Structured recommendations (critical → nice-to-have)
 - JSON output mode for AI agents
 - Actionable fix suggestions
 
 **Deliverables**:
+
 ```typescript
 // New service: src/services/ToolDetector.ts
 export class ToolDetector {
@@ -150,6 +163,7 @@ gpm doctor --full --json
 ```
 
 **JSON Output Schema**:
+
 ```json
 {
   "status": "warnings",
@@ -183,11 +197,13 @@ gpm doctor --full --json
 ```
 
 **Testing**:
+
 - Unit tests for detection logic (all package managers)
 - Integration tests across Node 18, 20, 22
 - CI matrix: macOS, Linux (Ubuntu), Windows
 
 **Success Criteria**:
+
 - ✅ Detects all critical tools (git, node, npm, etc.)
 - ✅ Validates GitHub token presence and scopes
 - ✅ Identifies missing package.json scripts
@@ -200,6 +216,7 @@ gpm doctor --full --json
 **Goal**: Implement secure token storage with keychain integration
 
 **Features**:
+
 - Detect keychain helper (`~/bin/kc.sh`)
 - Guide token creation with required scopes
 - Keychain integration (kc_set/kc_get)
@@ -207,6 +224,7 @@ gpm doctor --full --json
 - Fallback to shell profile or .env (with warnings)
 
 **Deliverables**:
+
 ```typescript
 // New service: src/services/KeychainIntegration.ts
 export class KeychainIntegration {
@@ -222,6 +240,7 @@ gpm setup github-token [--storage=keychain|env|profile]
 ```
 
 **Token Setup Flow (Interactive)**:
+
 ```
 $ gpm setup github-token
 
@@ -256,6 +275,7 @@ Testing token... ✅ Authenticated as @nathanschram
 ```
 
 **Security Safeguards**:
+
 - Validate token via GitHub API before storing
 - Check required scopes (repo, workflow, read:org)
 - Never echo token to console or logs
@@ -263,12 +283,14 @@ Testing token... ✅ Authenticated as @nathanschram
 - Provide token rotation command
 
 **Testing**:
+
 - Unit tests with mocked kc.sh
 - Integration tests for all storage methods
 - Security audit: No token leakage in logs
 - Cross-platform compatibility (macOS, Linux)
 
 **Success Criteria**:
+
 - ✅ Keychain storage works seamlessly
 - ✅ Token validation catches invalid tokens
 - ✅ Fallback mechanisms work when keychain unavailable
@@ -281,6 +303,7 @@ Testing token... ✅ Authenticated as @nathanschram
 **Goal**: Implement guided project setup wizard
 
 **Features**:
+
 - Interactive 7-step wizard for humans
 - Non-interactive mode (--yes) for CI/AI
 - Selective setup (--lint, --format flags)
@@ -291,6 +314,7 @@ Testing token... ✅ Authenticated as @nathanschram
 - Verification tests after setup
 
 **Deliverables**:
+
 ```typescript
 // New service: src/services/SetupOrchestrator.ts
 export class SetupOrchestrator {
@@ -333,6 +357,7 @@ gpm setup --dry-run          # Preview changes
 7. **Branch Protection** → Optional (admin required)
 
 **Non-Interactive Mode** (JSON output):
+
 ```bash
 $ gpm setup --yes --json
 {
@@ -354,21 +379,26 @@ $ gpm setup --yes --json
 
 **Edge Case Handling**:
 
-| Scenario | Detection | Action |
-|----------|-----------|--------|
-| **Existing config files** | Check for .eslintrc.*, .prettierrc.*, etc. | Backup + suggest side-by-side, never overwrite |
-| **Version conflicts** | Compare installed vs. required versions | Warn + offer upgrade with --force |
-| **Multiple lock files** | Detect package-lock, yarn.lock, pnpm-lock | Require user choice of package manager |
-| **Monorepo/Workspaces** | Check package.json workspaces field | Recommend installation location (root vs local) |
-| **CI environment** | Detect process.env.CI | Fail with helpful error unless --yes provided |
-| **Offline/air-gapped** | Network connectivity test | Provide manual installation instructions |
-| **Permission issues** | Write permission checks | Suggest permission fixes or workarounds |
+| Scenario                  | Detection                                  | Action                                          |
+| ------------------------- | ------------------------------------------ | ----------------------------------------------- |
+| **Existing config files** | Check for .eslintrc._, .prettierrc._, etc. | Backup + suggest side-by-side, never overwrite  |
+| **Version conflicts**     | Compare installed vs. required versions    | Warn + offer upgrade with --force               |
+| **Multiple lock files**   | Detect package-lock, yarn.lock, pnpm-lock  | Require user choice of package manager          |
+| **Monorepo/Workspaces**   | Check package.json workspaces field        | Recommend installation location (root vs local) |
+| **CI environment**        | Detect process.env.CI                      | Fail with helpful error unless --yes provided   |
+| **Offline/air-gapped**    | Network connectivity test                  | Provide manual installation instructions        |
+| **Permission issues**     | Write permission checks                    | Suggest permission fixes or workarounds         |
 
 **Defensive Operations**:
 
 ```typescript
 interface Operation {
-  type: 'write_file' | 'append_file' | 'update_json' | 'install_package' | 'store_secret';
+  type:
+    | "write_file"
+    | "append_file"
+    | "update_json"
+    | "install_package"
+    | "store_secret";
   target: string;
   payload: any;
 }
@@ -376,18 +406,18 @@ interface Operation {
 async function executeOperation(op: Operation): Promise<OperationResult> {
   // 1. Check if change needed (idempotency)
   if (await isAlreadyInDesiredState(op)) {
-    return { status: 'skipped', reason: 'already configured' };
+    return { status: "skipped", reason: "already configured" };
   }
 
   // 2. Create backup
-  if (op.type === 'write_file' && await fileExists(op.target)) {
+  if (op.type === "write_file" && (await fileExists(op.target))) {
     await backup(op.target, `${op.target}.gpm-backup-${Date.now()}`);
   }
 
   // 3. Execute atomically
   try {
     await performOperation(op);
-    return { status: 'ok' };
+    return { status: "ok" };
   } catch (error) {
     // 4. Rollback on failure
     await rollback(op);
@@ -397,6 +427,7 @@ async function executeOperation(op: Operation): Promise<OperationResult> {
 ```
 
 **Testing**:
+
 - 150+ unit tests (detection, installation, config modification)
 - 30+ integration tests (full setup flows)
 - Matrix testing: npm, yarn, pnpm across Node 18, 20, 22
@@ -404,6 +435,7 @@ async function executeOperation(op: Operation): Promise<OperationResult> {
 - Idempotency testing: Re-running setup is safe
 
 **Success Criteria**:
+
 - ✅ First-time setup completes in <5 minutes
 - ✅ 95%+ success rate across test matrix
 - ✅ AI agents can automate setup with --yes --json
@@ -416,6 +448,7 @@ async function executeOperation(op: Operation): Promise<OperationResult> {
 **Goal**: Connect all pieces and enhance existing commands
 
 **Features**:
+
 - Update `gpm init` to suggest `gpm setup`
 - Update `gpm verify` to suggest `gpm setup` on failures
 - Add `gpm setup --update` for existing projects
@@ -423,6 +456,7 @@ async function executeOperation(op: Operation): Promise<OperationResult> {
 - Documentation and examples
 
 **Enhanced Error Messages**:
+
 ```bash
 # Before (current)
 $ gpm verify
@@ -447,6 +481,7 @@ Missing tools (3):
 ```
 
 **Workflow Integration**:
+
 ```typescript
 // In gpm verify command
 async function verifyCommand(options: VerifyOptions) {
@@ -454,8 +489,8 @@ async function verifyCommand(options: VerifyOptions) {
   const missing = await detector.detectMissingTools();
 
   if (missing.length > 0) {
-    logger.error('Missing required tools');
-    logger.info('Run: gpm setup --fix');
+    logger.error("Missing required tools");
+    logger.info("Run: gpm setup --fix");
     process.exit(2);
   }
 
@@ -464,6 +499,7 @@ async function verifyCommand(options: VerifyOptions) {
 ```
 
 **Migration for Existing Users**:
+
 ```bash
 $ gpm doctor --migration-check
 
@@ -484,6 +520,7 @@ $ gpm setup --migrate
 ```
 
 **Documentation**:
+
 - User guide: Step-by-step onboarding
 - API reference: --json schemas
 - Migration guide: v1.7 → v1.8
@@ -491,11 +528,13 @@ $ gpm setup --migrate
 - Security guide: Token storage best practices
 
 **Testing**:
+
 - E2E scenarios: Fresh install → PR creation
 - Upgrade testing: v1.7 → v1.8 migration
 - Documentation verification: All examples work
 
 **Success Criteria**:
+
 - ✅ Existing projects migrate seamlessly
 - ✅ Error messages provide clear next steps
 - ✅ Documentation covers all scenarios
@@ -508,6 +547,7 @@ $ gpm setup --migrate
 **Goal**: Enhance with power-user features
 
 **Features**:
+
 - Template system (basic/standard/strict configs)
 - Rollback mechanism (undo setup changes)
 - Setup history log (.gpm-setup.log)
@@ -515,6 +555,7 @@ $ gpm setup --migrate
 - Health check cron (periodic validation)
 
 **Deliverables**:
+
 ```bash
 # Template system
 gpm setup --template=strict
@@ -535,18 +576,20 @@ gpm doctor --watch
 
 **Templates**:
 
-| Template | Format | Lint | Typecheck | Test | Build | Use Case |
-|----------|--------|------|-----------|------|-------|----------|
-| **Basic** | ✓ | ✗ | ✗ | ✓ | ✗ | Minimal, fast iteration |
-| **Standard** | ✓ | ✓ | ✓ | ✓ | ✗ | Recommended for most |
-| **Strict** | ✓ | ✓ | ✓ | ✓ | ✓ | Maximum validation |
+| Template     | Format | Lint | Typecheck | Test | Build | Use Case                |
+| ------------ | ------ | ---- | --------- | ---- | ----- | ----------------------- |
+| **Basic**    | ✓      | ✗    | ✗         | ✓    | ✗     | Minimal, fast iteration |
+| **Standard** | ✓      | ✓    | ✓         | ✓    | ✗     | Recommended for most    |
+| **Strict**   | ✓      | ✓    | ✓         | ✓    | ✓     | Maximum validation      |
 
 **Testing**:
+
 - Template application tests
 - Rollback integrity tests
 - Audit log parsing tests
 
 **Success Criteria**:
+
 - ✅ Templates provide opinionated defaults
 - ✅ Rollback works 100% of the time
 - ✅ Audit logs are parseable and useful
@@ -558,9 +601,10 @@ gpm doctor --watch
 ### JSON Schema Contracts
 
 #### `gpm doctor --json` Response
+
 ```typescript
 interface DoctorResponse {
-  status: 'ok' | 'warnings' | 'errors';
+  status: "ok" | "warnings" | "errors";
   checks: Check[];
   metadata: {
     timestamp: string;
@@ -570,19 +614,20 @@ interface DoctorResponse {
 }
 
 interface Check {
-  id: string;                  // Stable identifier: 'node.version', 'github.token'
-  status: 'ok' | 'missing' | 'incompatible' | 'misconfigured';
+  id: string; // Stable identifier: 'node.version', 'github.token'
+  status: "ok" | "missing" | "incompatible" | "misconfigured";
   details: string;
-  version?: string;            // For versioned tools
-  recommendedAction?: string;  // 'run:gpm setup', 'install:prettier'
+  version?: string; // For versioned tools
+  recommendedAction?: string; // 'run:gpm setup', 'install:prettier'
 }
 ```
 
 #### `gpm setup --json` Response
+
 ```typescript
 interface SetupResponse {
   success: boolean;
-  status: 'ok' | 'partial' | 'failed';
+  status: "ok" | "partial" | "failed";
   changes: Change[];
   verification: VerificationResult;
   rollbackInfo?: RollbackInfo;
@@ -594,21 +639,26 @@ interface SetupResponse {
 
 interface Change {
   id: string;
-  action: 'installed' | 'updated' | 'created_file' | 'modified_file' | 'stored_secret';
+  action:
+    | "installed"
+    | "updated"
+    | "created_file"
+    | "modified_file"
+    | "stored_secret";
   target: string;
-  result: 'ok' | 'skipped' | 'failed';
+  result: "ok" | "skipped" | "failed";
   details: string;
 }
 ```
 
 ### Exit Codes
 
-| Code | Meaning | When to Use |
-|------|---------|-------------|
-| 0 | Success | All operations completed successfully |
-| 1 | Partial success | Some operations failed, others succeeded |
-| 2 | Fatal failure | Cannot proceed (missing dependencies, permission denied) |
-| 3 | User cancelled | User explicitly aborted operation |
+| Code | Meaning         | When to Use                                              |
+| ---- | --------------- | -------------------------------------------------------- |
+| 0    | Success         | All operations completed successfully                    |
+| 1    | Partial success | Some operations failed, others succeeded                 |
+| 2    | Fatal failure   | Cannot proceed (missing dependencies, permission denied) |
+| 3    | User cancelled  | User explicitly aborted operation                        |
 
 ### Configuration Schema (.gpm.yml additions)
 
@@ -637,7 +687,7 @@ setup:
       scriptName: "typecheck"
 
   github:
-    tokenStorage: "keychain"  # or "env" or "profile"
+    tokenStorage: "keychain" # or "env" or "profile"
     tokenKey: "GITHUB_PAT"
 
   hooks:
@@ -651,18 +701,19 @@ setup:
 
 ### Threat Model
 
-| Threat | Impact | Mitigation |
-|--------|--------|------------|
-| **Supply chain attack** | Critical | Never auto-install without consent; verify package integrity |
-| **Token leakage** | Critical | Keychain storage; never log tokens; .gitignore enforcement |
-| **Config overwrite** | High | Backup before modify; require --force for overwrites |
-| **Malicious scripts** | High | Sanitize package.json scripts; validate commands |
-| **Permission escalation** | Medium | Use local installs; never require sudo |
-| **Dependency confusion** | Medium | Validate package names; use lock files |
+| Threat                    | Impact   | Mitigation                                                   |
+| ------------------------- | -------- | ------------------------------------------------------------ |
+| **Supply chain attack**   | Critical | Never auto-install without consent; verify package integrity |
+| **Token leakage**         | Critical | Keychain storage; never log tokens; .gitignore enforcement   |
+| **Config overwrite**      | High     | Backup before modify; require --force for overwrites         |
+| **Malicious scripts**     | High     | Sanitize package.json scripts; validate commands             |
+| **Permission escalation** | Medium   | Use local installs; never require sudo                       |
+| **Dependency confusion**  | Medium   | Validate package names; use lock files                       |
 
 ### Security Checklist
 
 Setup Phase:
+
 - [ ] Never auto-install packages without explicit consent
 - [ ] Validate package names against known registries
 - [ ] Use package lock files for reproducibility
@@ -670,6 +721,7 @@ Setup Phase:
 - [ ] Sanitize user input (package names, script content)
 
 Token Management:
+
 - [ ] Never store tokens in plaintext files
 - [ ] Verify .gitignore includes sensitive files (.env, .envrc)
 - [ ] Validate token scopes before storing
@@ -677,6 +729,7 @@ Token Management:
 - [ ] Provide token rotation mechanism
 
 File Operations:
+
 - [ ] Check file permissions before writing
 - [ ] Backup files before modification
 - [ ] Atomic writes (temp file → rename)
@@ -684,6 +737,7 @@ File Operations:
 - [ ] Rollback capability for all operations
 
 General:
+
 - [ ] Fail closed on security checks (deny by default)
 - [ ] Input validation on all user-provided values
 - [ ] Principle of least privilege (minimal permissions)
@@ -697,6 +751,7 @@ General:
 ### Unit Tests (150+ tests)
 
 **ToolDetector**:
+
 - Detect npm, yarn, pnpm, bun
 - Detect Node.js versions
 - Validate tool versions
@@ -704,6 +759,7 @@ General:
 - Detect language (Node.js, Python, Go, Rust)
 
 **PackageInstaller**:
+
 - Install via npm, yarn, pnpm
 - Verify installation success
 - Rollback on failure
@@ -711,6 +767,7 @@ General:
 - Offline mode handling
 
 **ConfigWriter**:
+
 - Add scripts to package.json
 - Create config files (.prettierrc, .eslintrc)
 - Backup existing files
@@ -718,6 +775,7 @@ General:
 - Idempotent operations
 
 **KeychainIntegration**:
+
 - Detect kc.sh helper
 - Store/retrieve tokens
 - Create .envrc
@@ -727,6 +785,7 @@ General:
 ### Integration Tests (30+ tests)
 
 **Full Setup Flow**:
+
 - Fresh project → configured (all steps)
 - Existing project → migration
 - Selective setup (--lint only)
@@ -734,18 +793,21 @@ General:
 - Dry-run mode (--dry-run)
 
 **Package Manager Variants**:
+
 - npm workflow
 - yarn workflow
 - pnpm workflow
 - bun workflow (if supported)
 
 **Multi-Language**:
+
 - Node.js project
 - Python project (poetry, pipenv)
 - Go project
 - Rust project
 
 **Rollback Scenarios**:
+
 - Failed install → rollback
 - User cancel → cleanup
 - Permission denied → graceful failure
@@ -776,22 +838,26 @@ General:
 ### Test Matrix
 
 **Node.js Versions**:
+
 - v18 (LTS)
 - v20 (Current LTS)
 - v22 (Latest)
 
 **Operating Systems**:
+
 - macOS (M1/M2, Intel)
 - Linux (Ubuntu 22.04, Debian 12)
 - Windows (if gpm supports - TBD)
 
 **Package Managers**:
+
 - npm (v9, v10)
 - yarn (v1, v3)
 - pnpm (v8)
 - bun (v1) [optional]
 
 **CI Environments**:
+
 - GitHub Actions
 - GitLab CI
 - CircleCI
@@ -802,49 +868,61 @@ General:
 ## Success Metrics
 
 ### Setup Success Rate
+
 **Target**: >95% of users complete setup successfully
 
 **Measurement**:
+
 - Track setup completion events
 - Monitor error rates by phase
 - Collect exit codes
 
 ### Time to First Success
+
 **Target**: <5 minutes from install to working PR
 
 **Measurement**:
+
 - Track timestamp: gpm install → gpm ship success
 - Measure by user segment (developer, AI agent)
 - Identify bottlenecks
 
 ### Setup Errors
+
 **Target**: <5% encounter errors during setup
 
 **Measurement**:
+
 - Count errors by type
 - Track error recovery rate
 - Monitor support tickets
 
 ### User Satisfaction
+
 **Target**: NPS >50 for onboarding experience
 
 **Measurement**:
+
 - Post-setup survey (optional)
 - GitHub issue sentiment analysis
 - Community feedback
 
 ### AI Agent Adoption
+
 **Target**: 80%+ of AI workflows use non-interactive setup
 
 **Measurement**:
+
 - Track --yes flag usage
 - Monitor JSON mode adoption
 - Survey AI agent developers
 
 ### Support Reduction
+
 **Target**: 50% reduction in setup-related issues
 
 **Measurement**:
+
 - Compare GitHub issues (before/after)
 - Track resolution time
 - Monitor recurring questions
@@ -856,6 +934,7 @@ General:
 ### For Existing gpm Users
 
 **Detection**:
+
 ```bash
 gpm doctor --migration-check
 
@@ -871,6 +950,7 @@ Recommendation: Run 'gpm setup --migrate'
 ```
 
 **Migration Command**:
+
 ```bash
 gpm setup --migrate
 
@@ -899,6 +979,7 @@ Your project is now gpm v1.8 compatible!
 ```
 
 **Non-Destructive Guarantee**:
+
 - Preserve existing .gpm.yml configurations
 - Keep custom tool configs
 - Don't reinstall existing tools
@@ -907,24 +988,28 @@ Your project is now gpm v1.8 compatible!
 ### Rollout Strategy
 
 **Phase 1: Beta Testing** (2 weeks)
+
 - Deploy to internal projects only
 - Collect feedback from team
 - Fix critical bugs
 - Validate metrics
 
 **Phase 2: Limited Release** (2 weeks)
+
 - Feature flag: `GPM_ENABLE_SETUP=1`
 - Release to 10% of users
 - Monitor error rates
 - Gradual increase to 50%
 
 **Phase 3: General Availability** (1 week)
+
 - Remove feature flag
 - Full release to all users
 - Update documentation
 - Announce via changelog
 
 **Rollback Plan**:
+
 - If error rate >10%, rollback immediately
 - Feature flag allows instant disable
 - Maintain v1.7 compatibility during transition
@@ -934,9 +1019,11 @@ Your project is now gpm v1.8 compatible!
 ## Documentation Requirements
 
 ### 1. User Guide
+
 **File**: `docs/guides/SETUP-ONBOARDING-GUIDE.md`
 
 **Contents**:
+
 - Getting started with gpm
 - First-time setup walkthrough
 - Interactive mode guide
@@ -945,9 +1032,11 @@ Your project is now gpm v1.8 compatible!
 - FAQ
 
 ### 2. API Reference
+
 **File**: `docs/api/SETUP-API-REFERENCE.md`
 
 **Contents**:
+
 - `gpm doctor` JSON schema
 - `gpm setup` JSON schema
 - Exit codes reference
@@ -955,9 +1044,11 @@ Your project is now gpm v1.8 compatible!
 - Configuration schema
 
 ### 3. Migration Guide
+
 **File**: `docs/guides/MIGRATION-v1.7-to-v1.8.md`
 
 **Contents**:
+
 - What's new in v1.8
 - Breaking changes (if any)
 - Migration steps
@@ -965,9 +1056,11 @@ Your project is now gpm v1.8 compatible!
 - Common issues
 
 ### 4. Security Guide
+
 **File**: `docs/guides/SECURITY-BEST-PRACTICES.md`
 
 **Contents**:
+
 - Token storage options
 - Keychain integration
 - .gitignore patterns
@@ -975,9 +1068,11 @@ Your project is now gpm v1.8 compatible!
 - Audit logging
 
 ### 5. AI Agent Integration
+
 **File**: `docs/guides/AI-AGENT-SETUP.md`
 
 **Contents**:
+
 - Non-interactive setup
 - JSON parsing examples
 - Error handling
@@ -990,52 +1085,57 @@ Your project is now gpm v1.8 compatible!
 
 ### High Impact, High Probability
 
-| Risk | Impact | Probability | Mitigation |
-|------|--------|-------------|------------|
-| **Package install failures** | High | Medium | Robust error handling, retry logic, manual fallback |
-| **Version conflicts** | Medium | High | Detect conflicts early, warn user, provide resolution |
+| Risk                         | Impact | Probability | Mitigation                                            |
+| ---------------------------- | ------ | ----------- | ----------------------------------------------------- |
+| **Package install failures** | High   | Medium      | Robust error handling, retry logic, manual fallback   |
+| **Version conflicts**        | Medium | High        | Detect conflicts early, warn user, provide resolution |
 
 ### High Impact, Low Probability
 
-| Risk | Impact | Probability | Mitigation |
-|------|--------|-------------|------------|
-| **Configuration overwrites** | High | Low | Backup files, detect existing configs, require --force |
-| **Security vulnerabilities** | Critical | Low | Audit dependencies, validate inputs, use keychain |
-| **CI/CD breakage** | High | Medium | Extensive testing, gradual rollout, feature flags |
+| Risk                         | Impact   | Probability | Mitigation                                             |
+| ---------------------------- | -------- | ----------- | ------------------------------------------------------ |
+| **Configuration overwrites** | High     | Low         | Backup files, detect existing configs, require --force |
+| **Security vulnerabilities** | Critical | Low         | Audit dependencies, validate inputs, use keychain      |
+| **CI/CD breakage**           | High     | Medium      | Extensive testing, gradual rollout, feature flags      |
 
 ### Medium Impact, Variable Probability
 
-| Risk | Impact | Probability | Mitigation |
-|------|--------|-------------|------------|
-| **User resistance to setup** | Medium | Medium | Make optional, provide skip options, education |
-| **Cross-platform issues** | Medium | Medium | Test matrix, platform-specific code paths |
-| **Dependency churn** | Medium | Low | Lock dependencies, test upgrades carefully |
+| Risk                         | Impact | Probability | Mitigation                                     |
+| ---------------------------- | ------ | ----------- | ---------------------------------------------- |
+| **User resistance to setup** | Medium | Medium      | Make optional, provide skip options, education |
+| **Cross-platform issues**    | Medium | Medium      | Test matrix, platform-specific code paths      |
+| **Dependency churn**         | Medium | Low         | Lock dependencies, test upgrades carefully     |
 
 ---
 
 ## Timeline & Resources
 
 ### Phase 1: Enhanced Detection (2-3 weeks)
+
 **Team**: 1 developer
 **Effort**: 10-15 days
 **Dependencies**: None
 
 ### Phase 2: GitHub Token Setup (1 week)
+
 **Team**: 1 developer
 **Effort**: 5 days
 **Dependencies**: Phase 1 complete
 
 ### Phase 3: Core Setup Command (3-4 weeks)
+
 **Team**: 2 developers
 **Effort**: 15-20 days
 **Dependencies**: Phase 1, 2 complete
 
 ### Phase 4: Integration & Polish (1-2 weeks)
+
 **Team**: 1 developer, 1 technical writer
 **Effort**: 7-10 days
 **Dependencies**: Phase 1, 2, 3 complete
 
 ### Phase 5: Advanced Features (2-3 weeks) [OPTIONAL]
+
 **Team**: 1 developer
 **Effort**: 10-15 days
 **Dependencies**: Phase 1-4 complete
@@ -1049,35 +1149,41 @@ Your project is now gpm v1.8 compatible!
 The following refinements from expert analysis have been incorporated:
 
 ### 1. Strict Detection/Action Layering
+
 - `doctor` as single source of truth
 - `setup` always calls detection first
 - No guessing, explicit diagnostic states
 
 ### 2. Clear Interface Contracts
+
 - JSON schemas for both commands
 - Stable exit codes (0, 1, 2+)
 - Structured error responses
 - Idempotent operations
 
 ### 3. GitHub Token as First-Class Resource
+
 - Canonical storage: keychain primary
 - Token validation with scope checking
 - Rotation and failure path handling
 - Never log or echo tokens
 
 ### 4. Defensive Configuration Management
+
 - Non-destructive hook strategy
 - Config backup before modification
 - Side-by-side suggestions for conflicts
 - Explicit --force flag for overwrites
 
 ### 5. Smart Package Management
+
 - Detect package manager heuristically
 - Allow override via flag
 - Support monorepo/workspace detection
 - Lock file consistency checks
 
 ### 6. Graduated Testing Strategy
+
 - Focus on supported platforms
 - Prioritize critical paths
 - Incremental coverage expansion
@@ -1112,6 +1218,7 @@ The following refinements from expert analysis have been incorporated:
 ### Pre-Implementation Review
 
 Before starting implementation:
+
 - [ ] Get stakeholder approval on scope
 - [ ] Confirm timeline and resources
 - [ ] Review security checklist
@@ -1121,6 +1228,7 @@ Before starting implementation:
 ### Implementation Kickoff
 
 Once approved:
+
 1. Create feature branch
 2. Set up test infrastructure
 3. Implement Phase 1 (Enhanced Detection)

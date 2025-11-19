@@ -1,4 +1,4 @@
-import { WorktreeInfo } from '../types';
+import { WorktreeInfo } from "../types";
 
 /**
  * Parse `git worktree list --porcelain` output
@@ -22,24 +22,24 @@ export function parseWorktreeList(output: string): WorktreeInfo[] {
   const entries = output.trim().split(/\n\n+/);
 
   for (const entry of entries) {
-    const lines = entry.split('\n').filter(line => line.trim());
+    const lines = entry.split("\n").filter((line) => line.trim());
     const info: Partial<WorktreeInfo> = {
       branch: null,
-      isMain: false
+      isMain: false,
     };
 
     for (const line of lines) {
-      if (line.startsWith('worktree ')) {
-        info.path = line.substring('worktree '.length).trim();
-      } else if (line.startsWith('HEAD ')) {
-        info.commit = line.substring('HEAD '.length).trim();
-      } else if (line.startsWith('branch ')) {
-        const branchRef = line.substring('branch '.length).trim();
+      if (line.startsWith("worktree ")) {
+        info.path = line.substring("worktree ".length).trim();
+      } else if (line.startsWith("HEAD ")) {
+        info.commit = line.substring("HEAD ".length).trim();
+      } else if (line.startsWith("branch ")) {
+        const branchRef = line.substring("branch ".length).trim();
         // Extract branch name from refs/heads/branch-name
-        info.branch = branchRef.replace('refs/heads/', '');
-      } else if (line === 'bare') {
+        info.branch = branchRef.replace("refs/heads/", "");
+      } else if (line === "bare") {
         info.isMain = true;
-      } else if (line === 'detached') {
+      } else if (line === "detached") {
         // Explicitly mark as detached (branch already null)
         info.branch = null;
       }

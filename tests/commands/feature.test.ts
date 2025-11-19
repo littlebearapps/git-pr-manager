@@ -1,30 +1,30 @@
-import { jest, describe, it, expect, beforeEach } from '@jest/globals';
+import { jest, describe, it, expect, beforeEach } from "@jest/globals";
 
 // Mock dependencies BEFORE importing the module that uses them
-jest.mock('../../src/services/GitService');
-jest.mock('../../src/utils/logger');
-jest.mock('../../src/utils/spinner', () => ({
+jest.mock("../../src/services/GitService");
+jest.mock("../../src/utils/logger");
+jest.mock("../../src/utils/spinner", () => ({
   spinner: {
     start: jest.fn(),
     succeed: jest.fn(),
     fail: jest.fn(),
-    stop: jest.fn()
-  }
+    stop: jest.fn(),
+  },
 }));
 
 // Now import after mocks are set up
-import { featureCommand } from '../../src/commands/feature';
-import { GitService } from '../../src/services/GitService';
-import { logger } from '../../src/utils/logger';
-import { spinner } from '../../src/utils/spinner';
+import { featureCommand } from "../../src/commands/feature";
+import { GitService } from "../../src/services/GitService";
+import { logger } from "../../src/utils/logger";
+import { spinner } from "../../src/utils/spinner";
 
-describe('featureCommand', () => {
+describe("featureCommand", () => {
   let mockGitService: jest.Mocked<GitService>;
 
   // Mock process.exit to throw an error so we can test error paths
   beforeEach(() => {
-    jest.spyOn(process, 'exit').mockImplementation(() => {
-      throw new Error('process.exit called');
+    jest.spyOn(process, "exit").mockImplementation(() => {
+      throw new Error("process.exit called");
     });
   });
 
@@ -43,7 +43,9 @@ describe('featureCommand', () => {
       createBranch: jest.fn(),
     } as any;
 
-    (GitService as jest.MockedClass<typeof GitService>).mockImplementation(() => mockGitService);
+    (GitService as jest.MockedClass<typeof GitService>).mockImplementation(
+      () => mockGitService,
+    );
 
     // Mock spinner
     (spinner.start as jest.Mock).mockReturnValue(undefined);
@@ -51,228 +53,262 @@ describe('featureCommand', () => {
     (spinner.fail as jest.Mock).mockReturnValue(undefined);
   });
 
-  describe('basic functionality', () => {
-    it('should create feature branch successfully', async () => {
+  describe("basic functionality", () => {
+    it("should create feature branch successfully", async () => {
       mockGitService.getBranchInfo.mockResolvedValue({
-        current: 'main',
+        current: "main",
         isClean: true,
         hasUncommittedChanges: false,
-        remoteBranches: []
+        remoteBranches: [],
       });
-      mockGitService.getDefaultBranch.mockResolvedValue('main');
+      mockGitService.getDefaultBranch.mockResolvedValue("main");
       mockGitService.branchExists.mockResolvedValue(false);
       mockGitService.getBranchWorktrees.mockResolvedValue([]);
 
-      await featureCommand('test-feature', {});
+      await featureCommand("test-feature", {});
 
-      expect(mockGitService.createBranch).toHaveBeenCalledWith('feature/test-feature', 'main');
-      expect(logger.success).toHaveBeenCalledWith('Feature branch created!');
+      expect(mockGitService.createBranch).toHaveBeenCalledWith(
+        "feature/test-feature",
+        "main",
+      );
+      expect(logger.success).toHaveBeenCalledWith("Feature branch created!");
     });
 
-    it('should error when working directory is not clean', async () => {
+    it("should error when working directory is not clean", async () => {
       mockGitService.getBranchInfo.mockResolvedValue({
-        current: 'main',
+        current: "main",
         isClean: false,
         hasUncommittedChanges: true,
-        remoteBranches: []
+        remoteBranches: [],
       });
 
-      await expect(featureCommand('test-feature', {})).rejects.toThrow('process.exit called');
+      await expect(featureCommand("test-feature", {})).rejects.toThrow(
+        "process.exit called",
+      );
 
       expect(logger.error).toHaveBeenCalledWith(
-        'Working directory has uncommitted changes. Commit or stash them first.'
+        "Working directory has uncommitted changes. Commit or stash them first.",
       );
     });
 
-    it('should error when branch already exists', async () => {
+    it("should error when branch already exists", async () => {
       mockGitService.getBranchInfo.mockResolvedValue({
-        current: 'main',
+        current: "main",
         isClean: true,
         hasUncommittedChanges: false,
-        remoteBranches: []
+        remoteBranches: [],
       });
-      mockGitService.getDefaultBranch.mockResolvedValue('main');
+      mockGitService.getDefaultBranch.mockResolvedValue("main");
       mockGitService.branchExists.mockResolvedValue(true);
 
-      await expect(featureCommand('test-feature', {})).rejects.toThrow('process.exit called');
+      await expect(featureCommand("test-feature", {})).rejects.toThrow(
+        "process.exit called",
+      );
 
       expect(logger.error).toHaveBeenCalledWith(
-        expect.stringContaining('already exists')
+        expect.stringContaining("already exists"),
       );
     });
 
-    it('should use custom base branch when provided', async () => {
+    it("should use custom base branch when provided", async () => {
       mockGitService.getBranchInfo.mockResolvedValue({
-        current: 'main',
+        current: "main",
         isClean: true,
         hasUncommittedChanges: false,
-        remoteBranches: []
+        remoteBranches: [],
       });
       mockGitService.branchExists.mockResolvedValue(false);
       mockGitService.getBranchWorktrees.mockResolvedValue([]);
 
-      await featureCommand('test-feature', { from: 'develop' });
+      await featureCommand("test-feature", { from: "develop" });
 
-      expect(mockGitService.checkout).toHaveBeenCalledWith('develop');
-      expect(mockGitService.createBranch).toHaveBeenCalledWith('feature/test-feature', 'develop');
+      expect(mockGitService.checkout).toHaveBeenCalledWith("develop");
+      expect(mockGitService.createBranch).toHaveBeenCalledWith(
+        "feature/test-feature",
+        "develop",
+      );
     });
   });
 
-  describe('worktree conflict detection', () => {
-    it('should error when branch checked out in another worktree', async () => {
+  describe("worktree conflict detection", () => {
+    it("should error when branch checked out in another worktree", async () => {
       mockGitService.getBranchInfo.mockResolvedValue({
-        current: 'main',
+        current: "main",
         isClean: true,
         hasUncommittedChanges: false,
-        remoteBranches: []
+        remoteBranches: [],
       });
-      mockGitService.getDefaultBranch.mockResolvedValue('main');
+      mockGitService.getDefaultBranch.mockResolvedValue("main");
       mockGitService.branchExists.mockResolvedValue(false);
-      mockGitService.getBranchWorktrees.mockResolvedValue(['/path/to/other/worktree']);
+      mockGitService.getBranchWorktrees.mockResolvedValue([
+        "/path/to/other/worktree",
+      ]);
 
-      await expect(featureCommand('test-feature', {})).rejects.toThrow('process.exit called');
+      await expect(featureCommand("test-feature", {})).rejects.toThrow(
+        "process.exit called",
+      );
 
       expect(logger.error).toHaveBeenCalledWith(
-        expect.stringContaining('already checked out in another worktree'),
-        'WORKTREE_CONFLICT',
+        expect.stringContaining("already checked out in another worktree"),
+        "WORKTREE_CONFLICT",
         expect.objectContaining({
-          branch: 'feature/test-feature',
-          conflictingWorktrees: ['/path/to/other/worktree']
+          branch: "feature/test-feature",
+          conflictingWorktrees: ["/path/to/other/worktree"],
         }),
         expect.arrayContaining([
-          expect.stringContaining('cd /path/to/other/worktree'),
-          expect.stringContaining('use a different branch name'),
-          expect.stringContaining('git worktree remove')
-        ])
+          expect.stringContaining("cd /path/to/other/worktree"),
+          expect.stringContaining("use a different branch name"),
+          expect.stringContaining("git worktree remove"),
+        ]),
       );
     });
 
-    it('should succeed when branch checked out in current worktree only', async () => {
+    it("should succeed when branch checked out in current worktree only", async () => {
       const currentPath = process.cwd();
 
       mockGitService.getBranchInfo.mockResolvedValue({
-        current: 'main',
+        current: "main",
         isClean: true,
         hasUncommittedChanges: false,
-        remoteBranches: []
+        remoteBranches: [],
       });
-      mockGitService.getDefaultBranch.mockResolvedValue('main');
+      mockGitService.getDefaultBranch.mockResolvedValue("main");
       mockGitService.branchExists.mockResolvedValue(false);
       mockGitService.getBranchWorktrees.mockResolvedValue([currentPath]);
 
-      await featureCommand('test-feature', {});
+      await featureCommand("test-feature", {});
 
-      expect(mockGitService.createBranch).toHaveBeenCalledWith('feature/test-feature', 'main');
-      expect(logger.success).toHaveBeenCalledWith('Feature branch created!');
+      expect(mockGitService.createBranch).toHaveBeenCalledWith(
+        "feature/test-feature",
+        "main",
+      );
+      expect(logger.success).toHaveBeenCalledWith("Feature branch created!");
     });
 
-    it('should filter out current worktree from conflict list', async () => {
+    it("should filter out current worktree from conflict list", async () => {
       const currentPath = process.cwd();
 
       mockGitService.getBranchInfo.mockResolvedValue({
-        current: 'main',
+        current: "main",
         isClean: true,
         hasUncommittedChanges: false,
-        remoteBranches: []
+        remoteBranches: [],
       });
-      mockGitService.getDefaultBranch.mockResolvedValue('main');
+      mockGitService.getDefaultBranch.mockResolvedValue("main");
       mockGitService.branchExists.mockResolvedValue(false);
       mockGitService.getBranchWorktrees.mockResolvedValue([
         currentPath,
-        '/path/to/other/worktree'
+        "/path/to/other/worktree",
       ]);
 
-      await expect(featureCommand('test-feature', {})).rejects.toThrow('process.exit called');
+      await expect(featureCommand("test-feature", {})).rejects.toThrow(
+        "process.exit called",
+      );
 
       expect(logger.error).toHaveBeenCalledWith(
-        expect.stringContaining('already checked out in another worktree'),
-        'WORKTREE_CONFLICT',
+        expect.stringContaining("already checked out in another worktree"),
+        "WORKTREE_CONFLICT",
         expect.objectContaining({
           currentWorktree: currentPath,
-          conflictingWorktrees: ['/path/to/other/worktree']
+          conflictingWorktrees: ["/path/to/other/worktree"],
         }),
-        expect.any(Array)
+        expect.any(Array),
       );
     });
 
-    it('should error when branch in multiple other worktrees', async () => {
+    it("should error when branch in multiple other worktrees", async () => {
       mockGitService.getBranchInfo.mockResolvedValue({
-        current: 'main',
+        current: "main",
         isClean: true,
         hasUncommittedChanges: false,
-        remoteBranches: []
+        remoteBranches: [],
       });
-      mockGitService.getDefaultBranch.mockResolvedValue('main');
+      mockGitService.getDefaultBranch.mockResolvedValue("main");
       mockGitService.branchExists.mockResolvedValue(false);
       mockGitService.getBranchWorktrees.mockResolvedValue([
-        '/path/to/worktree1',
-        '/path/to/worktree2',
-        '/path/to/worktree3'
+        "/path/to/worktree1",
+        "/path/to/worktree2",
+        "/path/to/worktree3",
       ]);
 
-      await expect(featureCommand('test-feature', {})).rejects.toThrow('process.exit called');
+      await expect(featureCommand("test-feature", {})).rejects.toThrow(
+        "process.exit called",
+      );
 
       expect(logger.error).toHaveBeenCalledWith(
-        expect.stringContaining('already checked out in another worktree'),
-        'WORKTREE_CONFLICT',
+        expect.stringContaining("already checked out in another worktree"),
+        "WORKTREE_CONFLICT",
         expect.objectContaining({
-          conflictingWorktrees: ['/path/to/worktree1', '/path/to/worktree2', '/path/to/worktree3']
+          conflictingWorktrees: [
+            "/path/to/worktree1",
+            "/path/to/worktree2",
+            "/path/to/worktree3",
+          ],
         }),
         expect.arrayContaining([
-          expect.stringContaining('cd /path/to/worktree1')
-        ])
+          expect.stringContaining("cd /path/to/worktree1"),
+        ]),
       );
     });
 
-    it('should proceed when getBranchWorktrees returns empty array', async () => {
+    it("should proceed when getBranchWorktrees returns empty array", async () => {
       mockGitService.getBranchInfo.mockResolvedValue({
-        current: 'main',
+        current: "main",
         isClean: true,
         hasUncommittedChanges: false,
-        remoteBranches: []
+        remoteBranches: [],
       });
-      mockGitService.getDefaultBranch.mockResolvedValue('main');
+      mockGitService.getDefaultBranch.mockResolvedValue("main");
       mockGitService.branchExists.mockResolvedValue(false);
       mockGitService.getBranchWorktrees.mockResolvedValue([]);
 
-      await featureCommand('test-feature', {});
+      await featureCommand("test-feature", {});
 
-      expect(mockGitService.createBranch).toHaveBeenCalledWith('feature/test-feature', 'main');
+      expect(mockGitService.createBranch).toHaveBeenCalledWith(
+        "feature/test-feature",
+        "main",
+      );
       expect(logger.error).not.toHaveBeenCalled();
     });
   });
 
-  describe('branch name sanitization', () => {
-    it('should convert spaces to hyphens', async () => {
+  describe("branch name sanitization", () => {
+    it("should convert spaces to hyphens", async () => {
       mockGitService.getBranchInfo.mockResolvedValue({
-        current: 'main',
+        current: "main",
         isClean: true,
         hasUncommittedChanges: false,
-        remoteBranches: []
+        remoteBranches: [],
       });
-      mockGitService.getDefaultBranch.mockResolvedValue('main');
+      mockGitService.getDefaultBranch.mockResolvedValue("main");
       mockGitService.branchExists.mockResolvedValue(false);
       mockGitService.getBranchWorktrees.mockResolvedValue([]);
 
-      await featureCommand('my test feature', {});
+      await featureCommand("my test feature", {});
 
-      expect(mockGitService.createBranch).toHaveBeenCalledWith('feature/my-test-feature', 'main');
+      expect(mockGitService.createBranch).toHaveBeenCalledWith(
+        "feature/my-test-feature",
+        "main",
+      );
     });
 
-    it('should convert uppercase to lowercase', async () => {
+    it("should convert uppercase to lowercase", async () => {
       mockGitService.getBranchInfo.mockResolvedValue({
-        current: 'main',
+        current: "main",
         isClean: true,
         hasUncommittedChanges: false,
-        remoteBranches: []
+        remoteBranches: [],
       });
-      mockGitService.getDefaultBranch.mockResolvedValue('main');
+      mockGitService.getDefaultBranch.mockResolvedValue("main");
       mockGitService.branchExists.mockResolvedValue(false);
       mockGitService.getBranchWorktrees.mockResolvedValue([]);
 
-      await featureCommand('TEST-FEATURE', {});
+      await featureCommand("TEST-FEATURE", {});
 
-      expect(mockGitService.createBranch).toHaveBeenCalledWith('feature/test-feature', 'main');
+      expect(mockGitService.createBranch).toHaveBeenCalledWith(
+        "feature/test-feature",
+        "main",
+      );
     });
   });
 });

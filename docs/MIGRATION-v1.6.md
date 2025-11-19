@@ -36,14 +36,15 @@ Version 1.7.0 introduces **multi-language support** to `gpm verify`, enabling au
 
 `gpm verify` now automatically detects your project language from marker files:
 
-| Language | Detection Files |
-|----------|----------------|
-| **Python** | `pyproject.toml`, `Pipfile`, `requirements.txt` |
-| **Node.js** | `package.json` |
-| **Go** | `go.mod` |
-| **Rust** | `Cargo.toml` |
+| Language    | Detection Files                                 |
+| ----------- | ----------------------------------------------- |
+| **Python**  | `pyproject.toml`, `Pipfile`, `requirements.txt` |
+| **Node.js** | `package.json`                                  |
+| **Go**      | `go.mod`                                        |
+| **Rust**    | `Cargo.toml`                                    |
 
 **Example**:
+
 ```bash
 # In a Python project with poetry
 gpm verify
@@ -59,12 +60,14 @@ gpm verify
 Auto-detects package manager from lock files:
 
 **Python**:
+
 - `poetry.lock` → poetry
 - `Pipfile.lock` → pipenv
 - `uv.lock` → uv
 - `requirements.txt` → pip
 
 **Node.js**:
+
 - `pnpm-lock.yaml` → pnpm
 - `yarn.lock` → yarn
 - `bun.lockb` → bun
@@ -141,6 +144,7 @@ gpm verify
 ### For Python Projects (New!)
 
 1. **Install verification tools** (if not already installed):
+
    ```bash
    # Using poetry
    poetry add --group dev ruff mypy pytest
@@ -150,6 +154,7 @@ gpm verify
    ```
 
 2. **Run verification**:
+
    ```bash
    gpm verify
    # Auto-detects Python and runs appropriate commands
@@ -167,6 +172,7 @@ gpm verify
 ### For Go Projects (New!)
 
 1. **Install verification tools** (if not already installed):
+
    ```bash
    go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
    ```
@@ -204,12 +210,13 @@ gpm verify
 ### Example Resolution
 
 **Python project with Makefile**:
+
 ```yaml
 # .gpm.yml
 verification:
-  preferMakefile: true  # default
+  preferMakefile: true # default
   commands:
-    test: "pytest tests/ --cov=src"  # Override test command
+    test: "pytest tests/ --cov=src" # Override test command
 ```
 
 ```makefile
@@ -234,6 +241,7 @@ gpm verify
 ### Issue: "Detected wrong package manager"
 
 **Solution**: Override in `.gpm.yml`:
+
 ```yaml
 verification:
   detectionEnabled: false
@@ -245,6 +253,7 @@ verification:
 ### Issue: "Command not found" (tool not installed)
 
 **Solution**: Install the missing tool:
+
 ```bash
 # Python
 pip install ruff mypy pytest
@@ -257,6 +266,7 @@ go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 ```
 
 Or skip the step:
+
 ```bash
 gpm verify --skip-lint
 gpm verify --skip-typecheck
@@ -265,6 +275,7 @@ gpm verify --skip-typecheck
 ### Issue: "Wrong language detected"
 
 **Rare edge case** - force language in `.gpm.yml`:
+
 ```yaml
 verification:
   detectionEnabled: false
@@ -357,6 +368,7 @@ npm install -g @littlebearapps/git-pr-manager@1.5.0
 ## What's Next
 
 **Phase 1b** (Future):
+
 - Install step support (auto-run `poetry install`, `npm install`, etc.)
 - Monorepo/workspace support
 - Enhanced Makefile parsing

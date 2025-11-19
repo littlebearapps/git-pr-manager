@@ -25,12 +25,14 @@ User: "Use git-pr-manager to create PR and sync worktrees"
 #### Step 1: Precondition Checks ✅
 
 **What It Does**:
+
 - Verifies you're in the dev worktree
 - Checks for uncommitted changes
 - Validates git remote origin is configured
 - Checks GitHub CLI authentication
 
 **Commands Executed**:
+
 ```bash
 git rev-parse --abbrev-ref HEAD          # Get current branch
 git diff-index --quiet HEAD --           # Check uncommitted changes
@@ -39,6 +41,7 @@ gh auth status                           # Check GitHub CLI auth
 ```
 
 **Real Example (env-validator)**:
+
 ```
 ✅ In dev worktree
 ✅ No uncommitted changes
@@ -51,6 +54,7 @@ gh auth status                           # Check GitHub CLI auth
 #### Step 2: Run Multi-Language Verification 🔍
 
 **What It Does**:
+
 - Auto-detects project language (Python, Node.js, Go, Rust)
 - Auto-detects package manager (poetry, npm, pnpm, cargo, etc.)
 - Runs verification pipeline: format → lint → typecheck → test → build
@@ -58,12 +62,14 @@ gh auth status                           # Check GitHub CLI auth
 - Prefers Makefile targets when available
 
 **Commands Executed**:
+
 ```bash
 gpm verify                               # Run multi-language verification
 # OR skip with: gpm ship --no-verify
 ```
 
 **Real Example (Node.js project)**:
+
 ```
 🔍 Running multi-language verification...
   → Detected: nodejs (npm)
@@ -76,6 +82,7 @@ gpm verify                               # Run multi-language verification
 ```
 
 **Python Example** (would show):
+
 ```
 🔍 Running multi-language verification...
   → Detected: python (poetry)
@@ -92,15 +99,18 @@ gpm verify                               # Run multi-language verification
 #### Step 3: Push Dev to Origin ⬆️
 
 **What It Does**:
+
 - Pushes latest dev branch commits to remote
 - Ensures remote is up-to-date before PR creation
 
 **Commands Executed**:
+
 ```bash
 git push origin dev
 ```
 
 **Real Example (env-validator)**:
+
 ```
 ⬆️  Pushing dev to origin...
 To https://github.com/littlebearapps/env-validator.git
@@ -113,16 +123,19 @@ To https://github.com/littlebearapps/env-validator.git
 #### Step 4: Create Pull Request 📝
 
 **What It Does**:
+
 - Creates PR from dev → main
 - Uses commit messages to generate PR title and description
 - Includes test plan and summary
 
 **Commands Executed**:
+
 ```bash
 gh pr create --base main --head dev --fill
 ```
 
 **Real Example (env-validator)**:
+
 ```
 📝 Creating pull request...
 Created PR #2: https://github.com/littlebearapps/env-validator/pull/2
@@ -143,6 +156,7 @@ Body:
 ```
 
 **GitHub State After This Step**:
+
 - PR #2 opened on GitHub
 - Status: Open, awaiting merge
 - Checks: Running (if CI configured)
@@ -152,16 +166,19 @@ Body:
 #### Step 5: Merge Pull Request 🔀
 
 **What It Does**:
+
 - Merges PR using squash strategy
 - Condenses all dev commits into single commit on main
 - Keeps dev branch intact (not deleted)
 
 **Commands Executed**:
+
 ```bash
 gh pr merge --squash --delete-branch=false
 ```
 
 **Real Example (env-validator)**:
+
 ```
 🔀 Merging pull request...
 ✅ Pull request merged
@@ -171,11 +188,13 @@ Original commits: fe77a14 (dev) → 885b7f8 (main)
 ```
 
 **GitHub State After This Step**:
+
 - PR #2 merged and closed
 - main branch: Updated with squash commit 885b7f8
 - dev branch: Still at fe77a14 (needs sync)
 
 **Git History Visualization**:
+
 ```
 Before merge:
 main:  27a51fd ─────────────────────
@@ -191,17 +210,20 @@ dev:   27a51fd ──→ fe77a14 (needs sync)
 #### Step 6: Sync Main Worktree 🔄
 
 **What It Does**:
+
 - Switches to main worktree
 - Pulls latest from origin/main
 - Fast-forwards to include squash commit
 
 **Commands Executed**:
+
 ```bash
 cd ~/claude-code-tools/lba/apps/subagents/integration-tests/env-validator/main
 git pull origin main
 ```
 
 **Real Example (env-validator)**:
+
 ```
 🔄 Syncing main worktree...
 From https://github.com/littlebearapps/env-validator
@@ -217,6 +239,7 @@ Fast-forward
 ```
 
 **Main Worktree State After This Step**:
+
 - HEAD: 885b7f8 (squash commit)
 - README.md: Updated with new content
 - Working tree: Clean
@@ -226,18 +249,21 @@ Fast-forward
 #### Step 7: Sync Dev Worktree 🔄
 
 **What It Does**:
+
 - Stays in dev worktree
 - Pulls latest main branch
 - Merges origin/main into dev
 - Creates merge commit
 
 **Commands Executed**:
+
 ```bash
 cd ~/claude-code-tools/lba/apps/subagents/integration-tests/env-validator/dev
 git pull origin main
 ```
 
 **Real Example (env-validator)**:
+
 ```
 🔄 Syncing dev with latest main...
 From https://github.com/littlebearapps/env-validator
@@ -253,11 +279,13 @@ Merge commit: 7527512
 ```
 
 **Dev Worktree State After This Step**:
+
 - HEAD: 7527512 (merge commit)
 - Combines: fe77a14 (original dev) + 885b7f8 (squashed main)
 - Working tree: Clean
 
 **Git History Visualization**:
+
 ```
 After sync:
 main:  27a51fd ──→ 885b7f8 (squashed README)
@@ -272,15 +300,18 @@ dev:   27a51fd ──→ fe77a14 (original README)
 #### Step 8: Push Synced Dev ⬆️
 
 **What It Does**:
+
 - Pushes synced dev branch to origin
 - Updates remote dev with merge commit
 
 **Commands Executed**:
+
 ```bash
 git push origin dev
 ```
 
 **Real Example (env-validator)**:
+
 ```
 ⬆️  Pushing synced dev to origin...
 To https://github.com/littlebearapps/env-validator.git
@@ -290,6 +321,7 @@ To https://github.com/littlebearapps/env-validator.git
 ```
 
 **Remote State After This Step**:
+
 - origin/main: 885b7f8 (squash commit)
 - origin/dev: 7527512 (merge commit)
 - Both branches synced and up-to-date
@@ -299,11 +331,13 @@ To https://github.com/littlebearapps/env-validator.git
 #### Step 9: Verify Synchronization ✅
 
 **What It Does**:
+
 - Checks both worktrees are at expected commits
 - Verifies main and dev share common base
 - Confirms both working trees are clean
 
 **Commands Executed**:
+
 ```bash
 git -C ~/path/to/main rev-parse HEAD
 git merge-base HEAD origin/main
@@ -311,6 +345,7 @@ git status --short
 ```
 
 **Real Example (env-validator)**:
+
 ```
 ✅ Verifying sync...
 
@@ -333,12 +368,14 @@ Dev worktree:
 #### Step 10: Summary Report 🎉
 
 **What It Provides**:
+
 - Complete workflow summary
 - All steps executed
 - Final state of both worktrees
 - Next action guidance
 
 **Real Example (env-validator)**:
+
 ```
 🎉 PR workflow complete!
 
@@ -369,11 +406,13 @@ You can immediately start your next feature!
 ### Before Workflow
 
 **GitHub Repository**:
+
 - main branch: 27a51fd
 - dev branch: fe77a14 (1 commit ahead)
 - Open PRs: None
 
 **Local Worktrees**:
+
 - main/: 27a51fd (clean)
 - dev/: fe77a14 (clean, pushed)
 
@@ -382,11 +421,13 @@ You can immediately start your next feature!
 ### After Workflow
 
 **GitHub Repository**:
+
 - main branch: 885b7f8 (squash commit)
 - dev branch: 7527512 (merge commit)
 - Open PRs: None (PR #2 merged and closed)
 
 **Local Worktrees**:
+
 - main/: 885b7f8 (synced, clean)
 - dev/: 7527512 (synced, clean, ready for next feature)
 
@@ -397,6 +438,7 @@ You can immediately start your next feature!
 ### Main Worktree
 
 **Before**:
+
 ```bash
 ~/claude-code-tools/lba/apps/subagents/integration-tests/env-validator/main/
 ├── README.md (341 lines - old seo-ads-expert content)
@@ -406,6 +448,7 @@ You can immediately start your next feature!
 ```
 
 **After**:
+
 ```bash
 ~/claude-code-tools/lba/apps/subagents/integration-tests/env-validator/main/
 ├── README.md (26 lines - new env-validator content)
@@ -417,6 +460,7 @@ You can immediately start your next feature!
 ### Dev Worktree
 
 **Before**:
+
 ```bash
 ~/claude-code-tools/lba/apps/subagents/integration-tests/env-validator/dev/
 ├── README.md (26 lines - new env-validator content)
@@ -426,6 +470,7 @@ You can immediately start your next feature!
 ```
 
 **After**:
+
 ```bash
 ~/claude-code-tools/lba/apps/subagents/integration-tests/env-validator/dev/
 ├── README.md (26 lines - synced with main)
@@ -503,18 +548,18 @@ git status --short
 
 Based on integration test (env-validator):
 
-| Step | Duration | Notes |
-|------|----------|-------|
-| Precondition checks | <1s | Fast validation |
-| Multi-language verification | 5-30s | Depends on project size (format, lint, typecheck, test, build) |
-| Push dev | ~2s | Network dependent |
-| Create PR | ~3s | GitHub API call |
-| Merge PR | ~2s | GitHub API call |
-| Sync main | ~1s | Local git operation |
-| Sync dev | ~1s | Local git operation |
-| Push dev | ~2s | Network dependent |
-| Verify | <1s | Local git operations |
-| **Total** | **~12s** | **vs 10-15 min manual** |
+| Step                        | Duration | Notes                                                          |
+| --------------------------- | -------- | -------------------------------------------------------------- |
+| Precondition checks         | <1s      | Fast validation                                                |
+| Multi-language verification | 5-30s    | Depends on project size (format, lint, typecheck, test, build) |
+| Push dev                    | ~2s      | Network dependent                                              |
+| Create PR                   | ~3s      | GitHub API call                                                |
+| Merge PR                    | ~2s      | GitHub API call                                                |
+| Sync main                   | ~1s      | Local git operation                                            |
+| Sync dev                    | ~1s      | Local git operation                                            |
+| Push dev                    | ~2s      | Network dependent                                              |
+| Verify                      | <1s      | Local git operations                                           |
+| **Total**                   | **~12s** | **vs 10-15 min manual**                                        |
 
 **Time Savings**: ~98% reduction (10 min → 12 seconds)
 
@@ -525,6 +570,7 @@ Based on integration test (env-validator):
 ### Git Commits
 
 **Squash Commit** (885b7f8 on main):
+
 ```
 docs: add README with usage instructions (#2)
 
@@ -535,6 +581,7 @@ Added comprehensive README covering:
 ```
 
 **Merge Commit** (7527512 on dev):
+
 ```
 Merge remote-tracking branch 'origin/main' into dev
 ```
@@ -542,6 +589,7 @@ Merge remote-tracking branch 'origin/main' into dev
 ### GitHub Activity
 
 **PR #2**:
+
 - Title: "docs: add README with usage instructions"
 - Status: Merged
 - Merge method: Squash and merge
@@ -549,6 +597,7 @@ Merge remote-tracking branch 'origin/main' into dev
 - Final commit: 885b7f8
 
 **Branches**:
+
 - main: Updated (27a51fd → 885b7f8)
 - dev: Updated (fe77a14 → 7527512)
 
@@ -559,6 +608,7 @@ Merge remote-tracking branch 'origin/main' into dev
 The subagent is designed to handle these scenarios gracefully:
 
 ### 1. Uncommitted Changes
+
 ```
 ❌ Uncommitted changes detected
 
@@ -571,6 +621,7 @@ Commit or stash before creating PR:
 ```
 
 ### 2. Verification Failure
+
 ```
 ❌ Multi-language verification failed
 
@@ -590,6 +641,7 @@ Fix issues before creating PR
 ```
 
 ### 3. PR Already Exists
+
 ```
 ❌ Pull request already exists
 
@@ -601,6 +653,7 @@ Options:
 ```
 
 ### 4. Merge Conflicts
+
 ```
 ❌ Failed to merge main into dev
 
@@ -613,6 +666,7 @@ You have merge conflicts. Resolve them manually:
 ```
 
 ### 5. Network Errors
+
 ```
 ❌ Failed to push to origin
 

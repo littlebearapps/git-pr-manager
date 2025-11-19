@@ -1,7 +1,7 @@
-import { GitService } from '../services/GitService';
-import { logger } from '../utils/logger';
-import { spinner } from '../utils/spinner';
-import chalk from 'chalk';
+import { GitService } from "../services/GitService";
+import { logger } from "../utils/logger";
+import { spinner } from "../utils/spinner";
+import chalk from "chalk";
 
 interface FeatureOptions {
   from?: string; // Base branch (defaults to main/master)
@@ -12,26 +12,28 @@ interface FeatureOptions {
  */
 export async function featureCommand(
   featureName: string,
-  options: FeatureOptions = {}
+  options: FeatureOptions = {},
 ): Promise<void> {
   try {
     const gitService = new GitService({ workingDir: process.cwd() });
 
-    logger.section('Starting New Feature');
+    logger.section("Starting New Feature");
 
     // Get base branch
-    const baseBranch = options.from || await gitService.getDefaultBranch();
+    const baseBranch = options.from || (await gitService.getDefaultBranch());
 
     // Check working directory is clean
     const branchInfo = await gitService.getBranchInfo();
     if (!branchInfo.isClean) {
-      logger.error('Working directory has uncommitted changes. Commit or stash them first.');
+      logger.error(
+        "Working directory has uncommitted changes. Commit or stash them first.",
+      );
       process.exit(1);
     }
 
     // Validate feature name
     if (!featureName || featureName.length === 0) {
-      logger.error('Feature name is required');
+      logger.error("Feature name is required");
       process.exit(1);
     }
 
@@ -50,22 +52,22 @@ export async function featureCommand(
     if (worktrees.length > 0) {
       const currentPath = process.cwd();
       // Filter out current worktree
-      const otherWorktrees = worktrees.filter(w => w !== currentPath);
+      const otherWorktrees = worktrees.filter((w) => w !== currentPath);
 
       if (otherWorktrees.length > 0) {
         logger.error(
           `Branch ${chalk.cyan(branchName)} is already checked out in another worktree`,
-          'WORKTREE_CONFLICT',
+          "WORKTREE_CONFLICT",
           {
             branch: branchName,
             currentWorktree: currentPath,
-            conflictingWorktrees: otherWorktrees
+            conflictingWorktrees: otherWorktrees,
           },
           [
             `Switch to existing worktree: ${chalk.cyan(`cd ${otherWorktrees[0]}`)}`,
             `Or use a different branch name`,
-            `Or remove the worktree: ${chalk.gray(`git worktree remove ${otherWorktrees[0]}`)}`
-          ]
+            `Or remove the worktree: ${chalk.gray(`git worktree remove ${otherWorktrees[0]}`)}`,
+          ],
         );
         process.exit(1);
       }
@@ -91,23 +93,22 @@ export async function featureCommand(
     logger.outputJsonResult(true, {
       branch: branchName,
       baseBranch,
-      created: true
+      created: true,
     });
 
     // Human-readable output
     logger.blank();
-    logger.success('Feature branch created!');
+    logger.success("Feature branch created!");
     logger.log(`Branch: ${chalk.cyan(branchName)}`);
     logger.log(`Base: ${chalk.gray(baseBranch)}`);
 
     logger.blank();
-    logger.info('Next steps:');
-    logger.log('  1. Make your changes');
-    logger.log('  2. Commit your changes');
-    logger.log(`  3. Run ${chalk.cyan('gpm ship')} to create PR and merge`);
-
+    logger.info("Next steps:");
+    logger.log("  1. Make your changes");
+    logger.log("  2. Commit your changes");
+    logger.log(`  3. Run ${chalk.cyan("gpm ship")} to create PR and merge`);
   } catch (error: any) {
-    spinner.fail('Failed to create feature branch');
+    spinner.fail("Failed to create feature branch");
     logger.error(error.message);
     if (process.env.DEBUG) {
       console.error(error);
@@ -124,16 +125,16 @@ function sanitizeBranchName(name: string): string {
   let sanitized = name.toLowerCase();
 
   // Replace spaces and underscores with hyphens
-  sanitized = sanitized.replace(/[\s_]+/g, '-');
+  sanitized = sanitized.replace(/[\s_]+/g, "-");
 
   // Remove special characters except hyphens and slashes
-  sanitized = sanitized.replace(/[^a-z0-9-/]/g, '');
+  sanitized = sanitized.replace(/[^a-z0-9-/]/g, "");
 
   // Remove leading/trailing hyphens
-  sanitized = sanitized.replace(/^-+|-+$/g, '');
+  sanitized = sanitized.replace(/^-+|-+$/g, "");
 
   // Add feature/ prefix if not already prefixed
-  if (!sanitized.includes('/')) {
+  if (!sanitized.includes("/")) {
     sanitized = `feature/${sanitized}`;
   }
 

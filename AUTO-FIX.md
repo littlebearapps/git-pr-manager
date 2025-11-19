@@ -7,28 +7,33 @@ The Auto-Fix feature automatically attempts to resolve common CI failures by det
 ## ✨ Key Features
 
 ### 🔧 Intelligent Error Detection
+
 - **Pattern-Based Classification**: Automatically identifies error types (linting, formatting, security, type errors, build errors)
 - **Language Detection**: Supports JavaScript, TypeScript, Python with language-specific fix strategies
 - **Fixability Assessment**: Determines which errors can be auto-fixed vs. requiring manual intervention
 
 ### 🛡️ Safe Execution
+
 - **Post-Fix Verification**: Runs tests after applying fixes to ensure nothing broke
 - **Automatic Rollback**: Reverts changes if verification fails or too many lines changed
 - **Change Size Limits**: Configurable maximum changed lines (default: 1000 lines)
 - **Attempt Tracking**: Prevents infinite loops with configurable max attempts per error type
 
 ### 🎯 Dry-Run Mode
+
 - **Risk-Free Testing**: Simulate fixes without making actual changes
 - **Preview Commands**: See exactly what would be executed
 - **No Attempt Counting**: Dry-run attempts don't count toward max attempts
 
 ### 📊 Comprehensive Metrics
+
 - **Success/Failure Tracking**: Monitor auto-fix effectiveness over time
 - **Error Type Breakdown**: See which error types are most common
 - **Performance Metrics**: Track average fix duration and total time saved
 - **Rollback Statistics**: Identify patterns in failed fixes
 
 ### 📝 Enhanced Logging
+
 - **Structured Logs**: Timestamp, log level, and context for every operation
 - **Detailed Context**: Track PR numbers, attempt counts, durations
 - **Exportable Metrics**: JSON export for analysis and reporting
@@ -40,13 +45,13 @@ The Auto-Fix feature automatically attempts to resolve common CI failures by det
 ```yaml
 # .gpm.yml
 autoFix:
-  enabled: true              # Enable auto-fix globally
-  maxAttempts: 2             # Max fix attempts per error type
-  maxChangedLines: 1000      # Max lines that can be changed
-  requireTests: true         # Run tests after fixes
-  enableDryRun: false        # Dry-run mode (preview only)
-  autoMerge: false           # Auto-merge fix PRs if checks pass
-  createPR: true             # Create PR for fixes (vs direct commit)
+  enabled: true # Enable auto-fix globally
+  maxAttempts: 2 # Max fix attempts per error type
+  maxChangedLines: 1000 # Max lines that can be changed
+  requireTests: true # Run tests after fixes
+  enableDryRun: false # Dry-run mode (preview only)
+  autoMerge: false # Auto-merge fix PRs if checks pass
+  createPR: true # Create PR for fixes (vs direct commit)
 ```
 
 ### Basic Usage
@@ -73,7 +78,7 @@ Test fixes without making changes:
 # .gpm.yml
 autoFix:
   enabled: true
-  enableDryRun: true         # Enable dry-run mode
+  enableDryRun: true # Enable dry-run mode
 ```
 
 When dry-run is enabled, you'll see output like:
@@ -91,11 +96,13 @@ When dry-run is enabled, you'll see output like:
 #### 1. Linting Errors (`linting_error`)
 
 **JavaScript/TypeScript:**
+
 - ESLint errors with auto-fix capability
 - Uses: `npx eslint --fix <files>`
 - Fallback: `npx biome check --write <files>`
 
 **Python:**
+
 - Ruff linting errors
 - Uses: `ruff check --fix <files>`
 - Fallback: `flake8 <files>` (detection only)
@@ -105,11 +112,13 @@ When dry-run is enabled, you'll see output like:
 #### 2. Format Errors (`format_error`)
 
 **JavaScript/TypeScript:**
+
 - Prettier formatting issues
 - Uses: `npx prettier --write <files>`
 - Fallback: `npx biome format --write <files>`
 
 **Python:**
+
 - Black formatting issues
 - Uses: `black <files>`
 - Fallback: `ruff format <files>`
@@ -119,16 +128,19 @@ When dry-run is enabled, you'll see output like:
 #### 3. Security Issues (`security_issue`)
 
 **Dependency Vulnerabilities:**
+
 - npm audit issues
 - Uses: `npm audit fix`
 - Automatic mode: Applies fixes automatically
 - Fallback: `npm audit fix --force` for breaking changes
 
 **Python:**
+
 - pip-audit issues
 - Uses: `pip-audit --fix`
 
 **Secret Detection:**
+
 - Limited auto-fix capability
 - Manual intervention required for most cases
 - Returns `limited_auto_fix_capability` status
@@ -140,16 +152,19 @@ When dry-run is enabled, you'll see output like:
 These errors require manual intervention but auto-fix can provide helpful diagnostics:
 
 #### Type Errors (`type_error`)
+
 - TypeScript compilation errors
 - Requires code logic changes
 - Auto-fix provides: File locations, error context
 
 #### Build Errors (`build_error`)
+
 - Compilation/build failures
 - Often requires dependency or config changes
 - Auto-fix provides: Error classification, suggested investigation areas
 
 #### Test Failures (`test_failure`)
+
 - Unit/integration test failures
 - Requires code fixes or test updates
 - Auto-fix provides: Failed test names, error messages
@@ -161,35 +176,42 @@ These errors require manual intervention but auto-fix can provide helpful diagno
 ```yaml
 autoFix:
   # Global enable/disable
-  enabled: true              # Default: true
+  enabled: true # Default: true
 
   # Attempt limits
-  maxAttempts: 2             # Default: 2, Range: 1-5
-                             # Max fix attempts per error type per session
+  maxAttempts:
+    2 # Default: 2, Range: 1-5
+    # Max fix attempts per error type per session
 
   # Change size limits
-  maxChangedLines: 1000      # Default: 1000, Range: 1-10000
-                             # Max lines changed before triggering rollback
+  maxChangedLines:
+    1000 # Default: 1000, Range: 1-10000
+    # Max lines changed before triggering rollback
 
   # Verification settings
-  requireTests: true         # Default: true
-                             # Run tests after applying fixes
+  requireTests:
+    true # Default: true
+    # Run tests after applying fixes
 
   # Dry-run mode
-  enableDryRun: false        # Default: false
-                             # Simulate fixes without executing
+  enableDryRun:
+    false # Default: false
+    # Simulate fixes without executing
 
   # PR automation
-  createPR: true             # Default: true
-                             # Create PR for fixes vs direct commit
+  createPR:
+    true # Default: true
+    # Create PR for fixes vs direct commit
 
-  autoMerge: false           # Default: false
-                             # Auto-merge fix PRs if checks pass
+  autoMerge:
+    false # Default: false
+    # Auto-merge fix PRs if checks pass
 ```
 
 ### Configuration Presets
 
 **Basic** - Minimal auto-fix:
+
 ```yaml
 autoFix:
   enabled: true
@@ -202,6 +224,7 @@ autoFix:
 ```
 
 **Standard** - Balanced (recommended):
+
 ```yaml
 autoFix:
   enabled: true
@@ -214,6 +237,7 @@ autoFix:
 ```
 
 **Aggressive** - Maximum automation:
+
 ```yaml
 autoFix:
   enabled: true
@@ -222,7 +246,7 @@ autoFix:
   requireTests: true
   enableDryRun: false
   createPR: true
-  autoMerge: true            # ⚠️ Auto-merge enabled
+  autoMerge: true # ⚠️ Auto-merge enabled
 ```
 
 ## 🔄 Auto-Fix Workflow
@@ -295,6 +319,7 @@ autoFix:
 Auto-fix automatically rolls back changes in these cases:
 
 1. **Verification Failure**
+
    ```
    ❌ Verification failed: 3 tests failing
    🔄 Rolling back changes...
@@ -302,6 +327,7 @@ Auto-fix automatically rolls back changes in these cases:
    ```
 
 2. **Too Many Changes**
+
    ```
    ❌ Too many changes: 1,500 lines (limit: 1,000)
    🔄 Rolling back changes...
@@ -322,7 +348,7 @@ Auto-fix automatically rolls back changes in these cases:
 The AutoFixService tracks comprehensive metrics that can be accessed programmatically:
 
 ```typescript
-import { AutoFixService } from './services/AutoFixService';
+import { AutoFixService } from "./services/AutoFixService";
 
 const autoFix = new AutoFixService(git, github, config);
 
@@ -367,7 +393,7 @@ console.log(metrics);
 
 // Export metrics to JSON file
 const json = autoFix.exportMetrics();
-await fs.writeFile('metrics.json', json);
+await fs.writeFile("metrics.json", json);
 
 // Reset metrics (start fresh)
 autoFix.resetMetrics();
@@ -376,23 +402,28 @@ autoFix.resetMetrics();
 ### Metric Types
 
 #### Success Metrics
+
 - `totalAttempts`: Total fix attempts (excluding dry-run)
 - `successfulFixes`: Fixes that passed verification and created PRs
 - `failedFixes`: Fixes that failed for any reason
 
 #### Rollback Metrics
+
 - `rollbackCount`: Number of times changes were rolled back
 - `verificationFailures`: Rollbacks due to test failures
 
 #### Error Type Breakdown
+
 - `byErrorType`: Success/failure rates per error type
 - Useful for identifying which error types are most fixable
 
 #### Reason Analysis
+
 - `byReason`: Failure reasons (e.g., verification_failed, too_many_changes)
 - Helps identify common failure patterns
 
 #### Performance Metrics
+
 - `averageFixDuration`: Average time per fix attempt
 - `totalFixDuration`: Total time spent on auto-fix operations
 
@@ -401,12 +432,14 @@ autoFix.resetMetrics();
 ### Auto-Fix Not Running
 
 **Check configuration:**
+
 ```bash
 # Verify .gpm.yml exists and has autoFix section
 cat .gpm.yml | grep -A 7 "autoFix:"
 ```
 
 **Expected output:**
+
 ```yaml
 autoFix:
   enabled: true
@@ -447,13 +480,15 @@ pip install ruff black flake8 pip-audit
 ### Verification Always Failing
 
 **Disable verification temporarily:**
+
 ```yaml
 autoFix:
   enabled: true
-  requireTests: false        # Skip post-fix verification
+  requireTests: false # Skip post-fix verification
 ```
 
 **Then investigate:**
+
 - Review test suite for brittleness
 - Check for timing-dependent tests
 - Ensure tests don't depend on specific formatting
@@ -461,6 +496,7 @@ autoFix:
 ## 🎓 Best Practices
 
 ### 1. Start with Dry-Run
+
 ```yaml
 # Test auto-fix without risk
 autoFix:
@@ -469,15 +505,20 @@ autoFix:
 ```
 
 ### 2. Monitor Metrics
+
 ```typescript
 // Review metrics weekly
 const metrics = autoFix.getMetrics();
-console.log(`Success rate: ${
-  (metrics.successfulFixes / metrics.totalAttempts * 100).toFixed(1)
-}%`);
+console.log(
+  `Success rate: ${(
+    (metrics.successfulFixes / metrics.totalAttempts) *
+    100
+  ).toFixed(1)}%`,
+);
 ```
 
 ### 3. Gradual Rollout
+
 ```yaml
 # Week 1: Dry-run only
 enableDryRun: true
@@ -492,14 +533,16 @@ enableDryRun: false
 ```
 
 ### 4. Conservative Limits
+
 ```yaml
 # Start conservative
-maxAttempts: 1             # Only 1 attempt per error
-maxChangedLines: 500       # Strict change limit
-requireTests: true         # Always verify
+maxAttempts: 1 # Only 1 attempt per error
+maxChangedLines: 500 # Strict change limit
+requireTests: true # Always verify
 ```
 
 ### 5. Team Coordination
+
 - Communicate when enabling auto-fix
 - Share metrics with team
 - Review rollback patterns
@@ -510,6 +553,7 @@ requireTests: true         # Always verify
 ### Dependency Fixes
 
 Auto-fix uses `npm audit fix` which:
+
 - ✅ Only installs compatible versions
 - ✅ Respects semver ranges
 - ⚠️ May update sub-dependencies
@@ -520,6 +564,7 @@ Auto-fix uses `npm audit fix` which:
 ### Secret Detection
 
 Auto-fix has **limited capability** for secret detection:
+
 - ❌ Cannot automatically remove secrets
 - ✅ Can detect and report secret locations
 - ✅ Blocks PR merge if secrets found
@@ -529,6 +574,7 @@ Auto-fix has **limited capability** for secret detection:
 ### Change Review
 
 Even with auto-fix enabled:
+
 - Review fix PRs before merging
 - Check diff for unexpected changes
 - Verify tests actually pass in CI
@@ -545,14 +591,14 @@ class AutoFixService {
     github: GitHubService,
     config?: Partial<AutoFixConfig>,
     verify?: VerifyService,
-    enableLogging?: boolean
+    enableLogging?: boolean,
   );
 
   // Attempt to fix a specific failure
   async attemptFix(
     failure: FailureDetail,
     prNumber: number,
-    dryRun?: boolean
+    dryRun?: boolean,
   ): Promise<AutoFixResult>;
 
   // Check if error type is auto-fixable

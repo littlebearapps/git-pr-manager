@@ -18,9 +18,10 @@
 
 ### 1. Strict Mode (--strict Flag)
 
-**Problem**: Untracked files currently allowed (only blocks uncommitted *changes*)
+**Problem**: Untracked files currently allowed (only blocks uncommitted _changes_)
 
 **Use Case**:
+
 ```bash
 # Current: Allows untracked files
 git status
@@ -33,6 +34,7 @@ gpm ship --strict  # ❌ Fails: "Untracked files detected"
 ```
 
 **Implementation**:
+
 ```bash
 # Add to preflight validation
 if [[ "$*" == *"--strict"* ]]; then
@@ -57,6 +59,7 @@ fi
 **Problem**: Feature branches can become stale if main advances
 
 **Use Case**:
+
 ```bash
 # Scenario: Main has advanced since feature branch created
 git log --oneline main..feature/my-feature
@@ -66,6 +69,7 @@ gpm ship --rebase  # Rebases feature on latest main before PR
 ```
 
 **Implementation**:
+
 ```bash
 # Before creating PR
 if [[ "$*" == *"--rebase"* ]]; then
@@ -90,6 +94,7 @@ fi
 **Problem**: PR descriptions currently use basic `--fill` (just commit messages)
 
 **Current**:
+
 ```
 Title: feature/my-feature
 Body:
@@ -99,6 +104,7 @@ Body:
 ```
 
 **Enhanced**:
+
 ```
 Title: Add dark mode toggle
 
@@ -124,6 +130,7 @@ Implements dark mode toggle in settings panel with user preference persistence.
 ```
 
 **Implementation**:
+
 - Parse conventional commit messages (feat:, fix:, test:, chore:)
 - Group by type
 - Generate structured markdown
@@ -142,6 +149,7 @@ Implements dark mode toggle in settings panel with user preference persistence.
 **Problem**: If CI fails, need to fix and re-run manually
 
 **Use Case**:
+
 ```bash
 # Initial ship attempt
 gpm ship
@@ -156,6 +164,7 @@ gpm ship --retry-ci  # Detects existing PR, pushes updates, re-waits for CI
 ```
 
 **Implementation**:
+
 - Detect existing PR for current branch
 - Push additional commits
 - Re-poll CI checks
@@ -172,6 +181,7 @@ gpm ship --retry-ci  # Detects existing PR, pushes updates, re-waits for CI
 **Problem**: Merge conflicts cause workflow to fail
 
 **Current**:
+
 ```bash
 gpm ship
 # ❌ Merge conflict detected
@@ -179,6 +189,7 @@ gpm ship
 ```
 
 **Enhanced**:
+
 ```bash
 gpm ship
 # ❌ Merge conflict detected
@@ -193,6 +204,7 @@ gpm ship
 ```
 
 **Implementation**:
+
 - Detect merge conflicts
 - Provide step-by-step guidance
 - Offer rebase vs merge strategies
@@ -209,6 +221,7 @@ gpm ship
 **Problem**: No visibility into typical workflow duration
 
 **Use Case**:
+
 ```bash
 gpm ship
 # 🚀 Shipping feature...
@@ -221,6 +234,7 @@ gpm ship
 ```
 
 **Implementation**:
+
 - Store ship durations in `.gpm.yml` or `.git/gpm-history.json`
 - Track timing for each step
 - Calculate rolling averages (last 10-50 ships)
@@ -239,6 +253,7 @@ gpm ship
 **Problem**: Can't create dependent PR chains
 
 **Use Case**:
+
 ```bash
 # Create base feature
 git checkout -b feature/api-redesign
@@ -254,6 +269,7 @@ gpm ship --base=feature/api-redesign  # PR #2: feature/api-client → feature/ap
 ```
 
 **Implementation**:
+
 - Track PR dependencies
 - Allow custom `--base` branch
 - Auto-rebase dependent PRs when base merges
@@ -270,6 +286,7 @@ gpm ship --base=feature/api-redesign  # PR #2: feature/api-client → feature/ap
 **Problem**: Can't coordinate PRs across multiple repos
 
 **Use Case**:
+
 ```bash
 # In API repo
 cd ~/projects/my-api/
@@ -282,6 +299,7 @@ gpm ship --depends-on=https://github.com/org/my-api/pull/42
 ```
 
 **Implementation**:
+
 - Parse GitHub PR URLs
 - Poll multiple PRs across repos
 - Block client PR creation until dependencies merge
@@ -298,6 +316,7 @@ gpm ship --depends-on=https://github.com/org/my-api/pull/42
 **Problem**: No automatic changelog from PRs
 
 **Use Case**:
+
 ```bash
 # After shipping multiple features
 gpm changelog --since=v1.0.0
@@ -317,6 +336,7 @@ gpm changelog --since=v1.0.0
 ```
 
 **Implementation**:
+
 - Parse merged PR titles
 - Group by conventional commit type
 - Format as markdown changelog
@@ -333,6 +353,7 @@ gpm changelog --since=v1.0.0
 **Problem**: PR descriptions don't match team standards
 
 **Use Case**:
+
 ```bash
 # Create .github/pull_request_template.md
 ## Summary
@@ -352,6 +373,7 @@ gpm ship --template=.github/pull_request_template.md
 ```
 
 **Implementation**:
+
 - Detect PR templates in `.github/`
 - Parse template placeholders
 - Inject values from commits
@@ -366,19 +388,25 @@ gpm ship --template=.github/pull_request_template.md
 ## Enhancement Roadmap
 
 ### Phase 2.1 (Week 2-3) - Quick Wins
+
 **Effort**: 8-12 hours total
+
 1. 🔴 Strict Mode (1-2 hours)
 2. 🔴 Pre-Merge Branch Update (2-3 hours)
 3. 🔴 Rich PR Descriptions (4-6 hours)
 
 ### Phase 2.2 (Month 2) - Error Resilience
+
 **Effort**: 13-17 hours total
+
 1. 🟡 CI Failure Recovery (3-4 hours)
 2. 🟡 Interactive Conflict Resolution (6-8 hours)
 3. 🟡 Historical Time Estimates (4-5 hours)
 
 ### Phase 2.3 (Month 3-6) - Advanced Features
+
 **Effort**: 33-45 hours total
+
 1. 🟢 Stacked PRs Support (10-15 hours)
 2. 🟢 Multi-Repository Coordination (15-20 hours)
 3. 🟢 Automated Changelog Generation (5-6 hours)
@@ -412,11 +440,13 @@ For each enhancement:
 **Collect Feedback After 2-4 Weeks of Usage**:
 
 Questions:
+
 1. Which enhancements would save you the most time?
 2. What pain points are you experiencing?
 3. What features are missing from this list?
 
 **Priority Adjustment**:
+
 - Move highly requested features to HIGH
 - Defer low-impact features to Phase 3+
 - Add new suggestions from users
@@ -428,16 +458,19 @@ Questions:
 **Based on Test Results (2025-10-18)**:
 
 ### Must-Have (v0.3.0)
+
 1. 🔴 Strict Mode - Prevents incomplete ships
 2. 🔴 Rich PR Descriptions - Professional output
 3. 🟡 CI Failure Recovery - Common scenario
 
 ### Nice-to-Have (v0.4.0)
+
 1. 🟡 Interactive Conflict Resolution - Helps beginners
 2. 🟡 Historical Time Estimates - Visibility
 3. 🔴 Pre-Merge Branch Update - Prevents conflicts
 
 ### Future (v0.5.0+)
+
 1. 🟢 Stacked PRs - Complex workflows
 2. 🟢 Multi-Repo Coordination - Full-stack features
 3. 🟢 Changelog Generation - Release automation

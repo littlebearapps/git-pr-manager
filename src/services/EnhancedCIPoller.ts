@@ -1,4 +1,4 @@
-import { Octokit } from '@octokit/rest';
+import { Octokit } from "@octokit/rest";
 import {
   PollerOptions,
   CheckSummary,
@@ -9,11 +9,11 @@ import {
   CheckResult,
   TimeoutError,
   ErrorType,
-  PollStrategy
-} from '../types';
-import { ErrorClassifier } from '../utils/ErrorClassifier';
-import { SuggestionEngine } from '../utils/SuggestionEngine';
-import { logger } from '../utils/logger';
+  PollStrategy,
+} from "../types";
+import { ErrorClassifier } from "../utils/ErrorClassifier";
+import { SuggestionEngine } from "../utils/SuggestionEngine";
+import { logger } from "../utils/logger";
 
 /**
  * EnhancedCIPoller - Intelligent CI status polling with rich error reporting
@@ -41,7 +41,7 @@ export class EnhancedCIPoller {
     const { data: pr } = await this.github.rest.pulls.get({
       owner: this.owner,
       repo: this.repo,
-      pull_number: prNumber
+      pull_number: prNumber,
     });
 
     const headSha = pr.head.sha;
@@ -51,15 +51,16 @@ export class EnhancedCIPoller {
       owner: this.owner,
       repo: this.repo,
       ref: headSha,
-      per_page: 100
+      per_page: 100,
     });
 
     // Get commit statuses (legacy, external services)
-    const { data: commitStatus } = await this.github.rest.repos.getCombinedStatusForRef({
-      owner: this.owner,
-      repo: this.repo,
-      ref: headSha
-    });
+    const { data: commitStatus } =
+      await this.github.rest.repos.getCombinedStatusForRef({
+        owner: this.owner,
+        repo: this.repo,
+        ref: headSha,
+      });
 
     return this.parseCheckDetails(checkRuns, commitStatus);
   }
@@ -67,45 +68,47 @@ export class EnhancedCIPoller {
   /**
    * Parse check run details and extract actionable information
    */
-  private parseCheckDetails(
-    checkRuns: any,
-    commitStatus: any
-  ): CheckSummary {
+  private parseCheckDetails(checkRuns: any, commitStatus: any): CheckSummary {
     const allChecks = checkRuns.check_runs;
-    const failures = allChecks.filter((c: any) => c.conclusion === 'failure');
-    const pending = allChecks.filter((c: any) => c.status !== 'completed');
+    const failures = allChecks.filter((c: any) => c.conclusion === "failure");
+    const pending = allChecks.filter((c: any) => c.status !== "completed");
 
     const failureDetails: FailureDetail[] = failures.map((check: any) => {
       const errorType = this.errorClassifier.classify(check);
-      const affectedFiles = this.extractFiles(check.output?.text || '');
+      const affectedFiles = this.extractFiles(check.output?.text || "");
       const suggestedFix = this.suggestionEngine.getSuggestion(
-        check.output?.summary || '',
+        check.output?.summary || "",
         errorType,
-        affectedFiles
+        affectedFiles,
       );
 
       return {
         checkName: check.name,
         errorType,
-        summary: check.output?.summary || 'No summary available',
+        summary: check.output?.summary || "No summary available",
         affectedFiles,
-        annotations: [],  // Fetched separately if needed
+        annotations: [], // Fetched separately if needed
         suggestedFix,
-        url: check.html_url
+        url: check.html_url,
       };
     });
 
     return {
       total: allChecks.length + commitStatus.statuses.length,
-      passed: allChecks.filter((c: any) => c.conclusion === 'success').length,
+      passed: allChecks.filter((c: any) => c.conclusion === "success").length,
       failed: failures.length,
       pending: pending.length,
-      skipped: allChecks.filter((c: any) => c.conclusion === 'skipped').length,
+      skipped: allChecks.filter((c: any) => c.conclusion === "skipped").length,
       failureDetails,
-      overallStatus: failures.length > 0 ? 'failure' : pending.length > 0 ? 'pending' : 'success',
+      overallStatus:
+        failures.length > 0
+          ? "failure"
+          : pending.length > 0
+            ? "pending"
+            : "success",
       startedAt: new Date(allChecks[0]?.started_at || Date.now()),
       completedAt: pending.length === 0 ? new Date() : undefined,
-      duration: this.calculateDuration(allChecks)
+      duration: this.calculateDuration(allChecks),
     };
   }
 
@@ -124,7 +127,7 @@ export class EnhancedCIPoller {
       /File "([a-zA-Z0-9_\-\/\.]+\.(py|ts|tsx|js|jsx|go|rs))"/g,
 
       // ESLint: /path/to/file.js
-      /\/([a-zA-Z0-9_\-\/]+\.(py|ts|tsx|js|jsx|go|rs))/g
+      /\/([a-zA-Z0-9_\-\/]+\.(py|ts|tsx|js|jsx|go|rs))/g,
     ];
 
     const files = new Set<string>();
@@ -141,13 +144,18 @@ export class EnhancedCIPoller {
   /**
    * Fetch annotations for failed checks (detailed error info)
    */
-  async getCheckAnnotations(checkRunId: number, limit = 50): Promise<Annotation[]> {
-    const { data: annotations } = await this.github.rest.checks.listAnnotations({
-      owner: this.owner,
-      repo: this.repo,
-      check_run_id: checkRunId,
-      per_page: limit
-    });
+  async getCheckAnnotations(
+    checkRunId: number,
+    limit = 50,
+  ): Promise<Annotation[]> {
+    const { data: annotations } = await this.github.rest.checks.listAnnotations(
+      {
+        owner: this.owner,
+        repo: this.repo,
+        check_run_id: checkRunId,
+        per_page: limit,
+      },
+    );
 
     return annotations.map((ann: any) => ({
       path: ann.path,
@@ -156,7 +164,7 @@ export class EnhancedCIPoller {
       annotation_level: ann.annotation_level,
       message: ann.message,
       title: ann.title,
-      raw_details: ann.raw_details
+      raw_details: ann.raw_details,
     }));
   }
 
@@ -169,9 +177,9 @@ export class EnhancedCIPoller {
   private calculateNextInterval(
     currentInterval: number,
     strategy: PollStrategy,
-    checkDuration?: number
+    checkDuration?: number,
   ): number {
-    if (strategy.type === 'fixed') {
+    if (strategy.type === "fixed") {
       return strategy.initialInterval;
     }
 
@@ -196,21 +204,21 @@ export class EnhancedCIPoller {
    */
   async waitForChecks(
     prNumber: number,
-    options: WaitOptions = {}
+    options: WaitOptions = {},
   ): Promise<CheckResult> {
     const {
-      timeout = 600000,        // 10 minutes
-      pollInterval = 10000,    // 10 seconds (fallback for fixed strategy)
+      timeout = 600000, // 10 minutes
+      pollInterval = 10000, // 10 seconds (fallback for fixed strategy)
       pollStrategy = {
-        type: 'exponential',
+        type: "exponential",
         initialInterval: 5000,
         maxInterval: 30000,
-        multiplier: 1.5
+        multiplier: 1.5,
       },
       onProgress,
       failFast = true,
       retryFlaky = false,
-      retryOptions = { maxRetries: 3, retryDelay: 5000 }
+      retryOptions = { maxRetries: 3, retryDelay: 5000 },
     } = options;
 
     const startTime = Date.now();
@@ -228,7 +236,10 @@ export class EnhancedCIPoller {
         const MAX_WAIT_FOR_REGISTRATION = 20000; // 20 seconds
 
         if (elapsed < MAX_WAIT_FOR_REGISTRATION) {
-          const waitTime = Math.min(5000, 1000 * Math.pow(2, registrationPolls));
+          const waitTime = Math.min(
+            5000,
+            1000 * Math.pow(2, registrationPolls),
+          );
           registrationPolls++;
           await this.sleep(waitTime);
           // Do not emit progress spam for repeated 0/0 states
@@ -245,17 +256,17 @@ export class EnhancedCIPoller {
           failed: 0,
           pending: 0,
           newFailures: [],
-          newPasses: []
+          newPasses: [],
         });
 
-        logger.warn('No CI checks configured for this repository');
-        logger.info('Skipping CI check wait - no checks to monitor');
+        logger.warn("No CI checks configured for this repository");
+        logger.info("Skipping CI check wait - no checks to monitor");
 
         return {
           success: true,
           summary: status,
           duration: Date.now() - startTime,
-          retriesUsed: retryCount + registrationPolls
+          retriesUsed: retryCount + registrationPolls,
         };
       }
 
@@ -269,7 +280,7 @@ export class EnhancedCIPoller {
           failed: status.failed,
           pending: status.pending,
           newFailures: this.getNewFailures(previousStatus, status),
-          newPasses: this.getNewPasses(previousStatus, status)
+          newPasses: this.getNewPasses(previousStatus, status),
         };
 
         onProgress?.(progress);
@@ -281,12 +292,20 @@ export class EnhancedCIPoller {
 
         // Handle flaky test retries
         if (!success && retryFlaky && retryCount < retryOptions.maxRetries) {
-          const isRetryable = this.isRetryable(status, ['timeout', 'network', 'flaky']);
+          const isRetryable = this.isRetryable(status, [
+            "timeout",
+            "network",
+            "flaky",
+          ]);
 
           if (isRetryable) {
             retryCount++;
-            console.log(`⚠️  Retryable failure detected (attempt ${retryCount}/${retryOptions.maxRetries})`);
-            console.log(`   Waiting ${retryOptions.retryDelay}ms before retry...`);
+            console.log(
+              `⚠️  Retryable failure detected (attempt ${retryCount}/${retryOptions.maxRetries})`,
+            );
+            console.log(
+              `   Waiting ${retryOptions.retryDelay}ms before retry...`,
+            );
             await this.sleep(retryOptions.retryDelay);
             continue;
           }
@@ -296,7 +315,7 @@ export class EnhancedCIPoller {
           success,
           summary: status,
           duration: Date.now() - startTime,
-          retriesUsed: retryCount
+          retriesUsed: retryCount,
         };
       }
 
@@ -306,8 +325,8 @@ export class EnhancedCIPoller {
           success: false,
           summary: status,
           duration: Date.now() - startTime,
-          reason: 'critical_failure',
-          retriesUsed: retryCount
+          reason: "critical_failure",
+          retriesUsed: retryCount,
         };
       }
 
@@ -317,7 +336,7 @@ export class EnhancedCIPoller {
       currentInterval = this.calculateNextInterval(
         currentInterval,
         pollStrategy,
-        status.duration
+        status.duration,
       );
 
       await this.sleep(currentInterval);
@@ -330,10 +349,10 @@ export class EnhancedCIPoller {
    * Check if failures are retryable (flaky tests, network issues)
    */
   private isRetryable(status: CheckSummary, patterns: string[]): boolean {
-    return status.failureDetails.some(failure =>
-      patterns.some(pattern =>
-        failure.summary.toLowerCase().includes(pattern.toLowerCase())
-      )
+    return status.failureDetails.some((failure) =>
+      patterns.some((pattern) =>
+        failure.summary.toLowerCase().includes(pattern.toLowerCase()),
+      ),
     );
   }
 
@@ -341,17 +360,21 @@ export class EnhancedCIPoller {
    * Check for critical failures that should trigger fail-fast
    */
   private hasCriticalFailure(status: CheckSummary): boolean {
-    return status.failureDetails.some(f =>
-      f.errorType === ErrorType.TEST_FAILURE ||
-      f.errorType === ErrorType.BUILD_ERROR ||
-      f.errorType === ErrorType.SECURITY_ISSUE
+    return status.failureDetails.some(
+      (f) =>
+        f.errorType === ErrorType.TEST_FAILURE ||
+        f.errorType === ErrorType.BUILD_ERROR ||
+        f.errorType === ErrorType.SECURITY_ISSUE,
     );
   }
 
   /**
    * Detect status changes for progress reporting
    */
-  private hasStatusChanged(prev: CheckSummary | null, current: CheckSummary): boolean {
+  private hasStatusChanged(
+    prev: CheckSummary | null,
+    current: CheckSummary,
+  ): boolean {
     if (!prev) return true;
 
     return (
@@ -361,37 +384,46 @@ export class EnhancedCIPoller {
     );
   }
 
-  private getNewFailures(prev: CheckSummary | null, current: CheckSummary): string[] {
+  private getNewFailures(
+    prev: CheckSummary | null,
+    current: CheckSummary,
+  ): string[] {
     if (!prev) return [];
 
-    const prevFailed = new Set(prev.failureDetails.map(f => f.checkName));
+    const prevFailed = new Set(prev.failureDetails.map((f) => f.checkName));
     return current.failureDetails
-      .filter(f => !prevFailed.has(f.checkName))
-      .map(f => f.checkName);
+      .filter((f) => !prevFailed.has(f.checkName))
+      .map((f) => f.checkName);
   }
 
-  private getNewPasses(prev: CheckSummary | null, current: CheckSummary): string[] {
+  private getNewPasses(
+    prev: CheckSummary | null,
+    current: CheckSummary,
+  ): string[] {
     if (!prev) return [];
 
-    const prevFailed = new Set(prev.failureDetails.map(f => f.checkName));
-    const currentFailed = new Set(current.failureDetails.map(f => f.checkName));
+    const prevFailed = new Set(prev.failureDetails.map((f) => f.checkName));
+    const currentFailed = new Set(
+      current.failureDetails.map((f) => f.checkName),
+    );
 
-    return Array.from(prevFailed).filter(name => !currentFailed.has(name));
+    return Array.from(prevFailed).filter((name) => !currentFailed.has(name));
   }
 
   private calculateDuration(checks: any[]): number | undefined {
-    const completed = checks.filter(c => c.completed_at);
+    const completed = checks.filter((c) => c.completed_at);
     if (completed.length === 0) return undefined;
 
-    const durations = completed.map(c =>
-      new Date(c.completed_at!).getTime() - new Date(c.started_at).getTime()
+    const durations = completed.map(
+      (c) =>
+        new Date(c.completed_at!).getTime() - new Date(c.started_at).getTime(),
     );
 
     return Math.max(...durations);
   }
 
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       const timer = setTimeout(resolve, ms);
       // Prevent timer from keeping Node.js process alive
       timer.unref();

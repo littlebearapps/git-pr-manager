@@ -1,6 +1,6 @@
 export interface ExecutionStep {
   name: string;
-  status: 'completed' | 'skipped' | 'failed';
+  status: "completed" | "skipped" | "failed";
   duration?: number;
   reason?: string; // For skipped/failed steps
 }
@@ -10,15 +10,15 @@ export class ExecutionTracker {
   private startTime: number = Date.now();
 
   logCompleted(name: string, duration?: number): void {
-    this.steps.push({ name, status: 'completed', duration });
+    this.steps.push({ name, status: "completed", duration });
   }
 
   logSkipped(name: string, reason: string): void {
-    this.steps.push({ name, status: 'skipped', reason });
+    this.steps.push({ name, status: "skipped", reason });
   }
 
   logFailed(name: string, reason: string): void {
-    this.steps.push({ name, status: 'failed', reason });
+    this.steps.push({ name, status: "failed", reason });
   }
 
   getSummary(): {
@@ -32,8 +32,7 @@ export class ExecutionTracker {
       steps: [...this.steps],
       totalDuration: completedAt - this.startTime,
       startedAt: new Date(this.startTime).toISOString(),
-      completedAt: new Date(completedAt).toISOString()
+      completedAt: new Date(completedAt).toISOString(),
     };
   }
 }
-

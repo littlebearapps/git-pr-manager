@@ -18,6 +18,7 @@ Add a comprehensive repository audit tool to `gpm` that analyzes GitHub reposito
 ## 🎯 Goals
 
 ### Primary Goals
+
 1. **Security Assessment**: Audit branch protection, secret scanning, vulnerability alerts, and security features
 2. **CI/CD Analysis**: Parse GitHub Actions workflows to identify testing gaps, missing security scans, and optimization opportunities
 3. **Code Quality**: Detect linting/formatting tools and identify gaps across languages
@@ -25,6 +26,7 @@ Add a comprehensive repository audit tool to `gpm` that analyzes GitHub reposito
 5. **Developer-Friendly**: Beautiful terminal output + JSON mode for automation
 
 ### Non-Goals
+
 - Not a replacement for specialized security tools (Snyk, SonarQube, etc.)
 - Not an automated fixer (at least in Phase 1 - future enhancement)
 - Not a compliance certification tool (PCI, SOC2, etc.)
@@ -37,31 +39,32 @@ Add a comprehensive repository audit tool to `gpm` that analyzes GitHub reposito
 
 gpm already has 40% of the required infrastructure:
 
-| Component | Status | Coverage | Notes |
-|-----------|--------|----------|-------|
-| **BranchProtectionChecker** | ✅ Exists | 90.9% | `src/services/BranchProtectionChecker.ts` |
-| **SecurityScanner** | ✅ Exists | 86.45% | `src/services/SecurityScanner.ts` |
-| **GitHubService** | ✅ Exists | 87.23% | Octokit wrapper with auth, caching, rate limiting |
-| **JSON Output** | ✅ Exists | All commands | Consistent structured output |
-| **Error Handling** | ✅ Exists | 100% | `WorkflowError` with suggestions |
-| **Logger System** | ✅ Exists | 98.48% | Verbosity levels, CI detection |
+| Component                   | Status    | Coverage     | Notes                                             |
+| --------------------------- | --------- | ------------ | ------------------------------------------------- |
+| **BranchProtectionChecker** | ✅ Exists | 90.9%        | `src/services/BranchProtectionChecker.ts`         |
+| **SecurityScanner**         | ✅ Exists | 86.45%       | `src/services/SecurityScanner.ts`                 |
+| **GitHubService**           | ✅ Exists | 87.23%       | Octokit wrapper with auth, caching, rate limiting |
+| **JSON Output**             | ✅ Exists | All commands | Consistent structured output                      |
+| **Error Handling**          | ✅ Exists | 100%         | `WorkflowError` with suggestions                  |
+| **Logger System**           | ✅ Exists | 98.48%       | Verbosity levels, CI detection                    |
 
 ### GitHub API Coverage
 
 All audit features map to existing GitHub REST APIs:
 
-| Audit Area | GitHub API Endpoint | Token Scope Required | Status |
-|------------|---------------------|---------------------|--------|
-| **Branch Protection** | `GET /repos/{owner}/{repo}/branches/{branch}/protection` | `repo` ✅ | Have it |
-| **GitHub Actions** | `GET /repos/{owner}/{repo}/actions/workflows`<br>`GET /repos/{owner}/{repo}/contents/.github/workflows` | `repo` ✅ | Have it |
-| **Vulnerability Alerts** | `GET /repos/{owner}/{repo}/vulnerability-alerts` | `repo` ✅ | Have it |
-| **Code Scanning** | `GET /repos/{owner}/{repo}/code-scanning/alerts` | `security_events` ⚠️ | Optional scope |
-| **Secret Scanning** | `GET /repos/{owner}/{repo}/secret-scanning/alerts` | `security_events` ⚠️ | Optional scope |
-| **Dependabot** | `GET /repos/{owner}/{repo}/dependabot/alerts` | `security_events` ⚠️ | Optional scope |
-| **Repository Settings** | `GET /repos/{owner}/{repo}` | `repo` ✅ | Have it |
-| **File Contents** | `GET /repos/{owner}/{repo}/contents/{path}` | `repo` ✅ | Have it |
+| Audit Area               | GitHub API Endpoint                                                                                     | Token Scope Required | Status         |
+| ------------------------ | ------------------------------------------------------------------------------------------------------- | -------------------- | -------------- |
+| **Branch Protection**    | `GET /repos/{owner}/{repo}/branches/{branch}/protection`                                                | `repo` ✅            | Have it        |
+| **GitHub Actions**       | `GET /repos/{owner}/{repo}/actions/workflows`<br>`GET /repos/{owner}/{repo}/contents/.github/workflows` | `repo` ✅            | Have it        |
+| **Vulnerability Alerts** | `GET /repos/{owner}/{repo}/vulnerability-alerts`                                                        | `repo` ✅            | Have it        |
+| **Code Scanning**        | `GET /repos/{owner}/{repo}/code-scanning/alerts`                                                        | `security_events` ⚠️ | Optional scope |
+| **Secret Scanning**      | `GET /repos/{owner}/{repo}/secret-scanning/alerts`                                                      | `security_events` ⚠️ | Optional scope |
+| **Dependabot**           | `GET /repos/{owner}/{repo}/dependabot/alerts`                                                           | `security_events` ⚠️ | Optional scope |
+| **Repository Settings**  | `GET /repos/{owner}/{repo}`                                                                             | `repo` ✅            | Have it        |
+| **File Contents**        | `GET /repos/{owner}/{repo}/contents/{path}`                                                             | `repo` ✅            | Have it        |
 
 **Token Scope Strategy**:
+
 - Core features work with existing `repo` scope ✅
 - Advanced security features gracefully degrade if `security_events` scope missing
 - Display warning: "⚠️ Some security checks skipped (missing scope: security_events)"
@@ -78,9 +81,9 @@ Main orchestrator for all audit checks:
 
 ```typescript
 export interface AuditOptions {
-  checks?: 'all' | 'ci' | 'security' | 'linting' | 'branch-protection';
+  checks?: "all" | "ci" | "security" | "linting" | "branch-protection";
   detailed?: boolean;
-  baseline?: string;  // Path to baseline JSON for comparison
+  baseline?: string; // Path to baseline JSON for comparison
 }
 
 export interface AuditReport {
@@ -98,7 +101,7 @@ export class RepoAuditor {
   constructor(
     private github: GitHubService,
     private git: GitService,
-    private config: Config
+    private config: Config,
   ) {}
 
   async runAudit(options: AuditOptions): Promise<AuditReport> {
@@ -106,23 +109,23 @@ export class RepoAuditor {
 
     const results: Partial<AuditReport> = {};
 
-    if (checks.includes('ci')) {
+    if (checks.includes("ci")) {
       results.ci = await this.auditCI();
     }
 
-    if (checks.includes('branchProtection')) {
+    if (checks.includes("branchProtection")) {
       results.branchProtection = await this.auditBranchProtection();
     }
 
-    if (checks.includes('security')) {
+    if (checks.includes("security")) {
       results.security = await this.auditSecurity();
     }
 
-    if (checks.includes('linting')) {
+    if (checks.includes("linting")) {
       results.linting = await this.auditLinting();
     }
 
-    if (checks.includes('secrets')) {
+    if (checks.includes("secrets")) {
       results.secrets = await this.auditSecretsScanning();
     }
 
@@ -130,7 +133,7 @@ export class RepoAuditor {
     results.timestamp = new Date().toISOString();
     results.repository = {
       owner: this.github.owner,
-      repo: this.github.repo
+      repo: this.github.repo,
     };
 
     return results as AuditReport;
@@ -185,7 +188,7 @@ Parses GitHub Actions workflows:
 export interface WorkflowAnalysis {
   name: string;
   path: string;
-  triggers: string[];  // [push, pull_request, schedule, workflow_dispatch]
+  triggers: string[]; // [push, pull_request, schedule, workflow_dispatch]
   jobs: JobAnalysis[];
   hasTests: boolean;
   hasLinting: boolean;
@@ -198,7 +201,7 @@ export interface WorkflowAnalysis {
 
 export class CIAnalyzer {
   async analyzeWorkflows(
-    workflowFiles: Array<{ path: string; content: string }>
+    workflowFiles: Array<{ path: string; content: string }>,
   ): Promise<WorkflowAnalysis[]> {
     // Parse YAML
     // Detect test jobs (names containing: test, spec, jest, pytest, etc.)
@@ -208,7 +211,9 @@ export class CIAnalyzer {
     // Check for caching (actions/cache, setup-node with cache, etc.)
   }
 
-  private detectJobType(job: any): 'test' | 'lint' | 'security' | 'build' | 'deploy' | 'unknown' {
+  private detectJobType(
+    job: any,
+  ): "test" | "lint" | "security" | "build" | "deploy" | "unknown" {
     // Heuristic detection based on job name and steps
   }
 }
@@ -224,7 +229,7 @@ export interface LintingConfig {
   tools: Array<{
     name: string;
     configFile?: string;
-    scriptName?: string;  // In package.json
+    scriptName?: string; // In package.json
     detected: boolean;
   }>;
 }
@@ -247,7 +252,7 @@ export class LintConfigDetector {
 
     // Other languages...
 
-    return configs.filter(c => c.tools.length > 0);
+    return configs.filter((c) => c.tools.length > 0);
   }
 
   private async detectJavaScript(): Promise<LintingConfig> {
@@ -268,14 +273,16 @@ CLI interface:
 
 ```typescript
 export interface AuditCommandOptions {
-  check?: string;  // Specific check or 'all'
+  check?: string; // Specific check or 'all'
   json?: boolean;
   detailed?: boolean;
   baseline?: string;
-  output?: string;  // Save to file
+  output?: string; // Save to file
 }
 
-export async function auditCommand(options: AuditCommandOptions): Promise<void> {
+export async function auditCommand(
+  options: AuditCommandOptions,
+): Promise<void> {
   const logger = new Logger({ json: options.json });
 
   try {
@@ -287,13 +294,13 @@ export async function auditCommand(options: AuditCommandOptions): Promise<void> 
     const auditor = new RepoAuditor(github, git, config);
 
     // Run audit
-    const spinner = createSpinner('Running repository audit...');
+    const spinner = createSpinner("Running repository audit...");
     const results = await auditor.runAudit({
-      checks: options.check || 'all',
+      checks: options.check || "all",
       detailed: options.detailed || false,
-      baseline: options.baseline
+      baseline: options.baseline,
     });
-    spinner.succeed('Audit complete!');
+    spinner.succeed("Audit complete!");
 
     // Output results
     if (options.json) {
@@ -307,17 +314,17 @@ export async function auditCommand(options: AuditCommandOptions): Promise<void> 
       await fs.writeFile(
         options.output,
         JSON.stringify(results, null, 2),
-        'utf8'
+        "utf8",
       );
       logger.success(`Report saved to ${options.output}`);
     }
 
     // Exit code based on score
     if (results.overall.score < 60) {
-      process.exit(1);  // Fail if score < 60 (F/D grade)
+      process.exit(1); // Fail if score < 60 (F/D grade)
     }
   } catch (error) {
-    logger.error('Audit failed', toWorkflowError(error));
+    logger.error("Audit failed", toWorkflowError(error));
     process.exit(1);
   }
 }
@@ -491,9 +498,7 @@ Recommendations:
         "allowsDeletions": false
       }
     ],
-    "issues": [
-      "Signed commits not required on main"
-    ],
+    "issues": ["Signed commits not required on main"],
     "recommendations": [
       {
         "priority": "low",
@@ -593,9 +598,7 @@ Recommendations:
         "tools": []
       }
     ],
-    "issues": [
-      "No Python linting configured"
-    ],
+    "issues": ["No Python linting configured"],
     "recommendations": [
       {
         "priority": "medium",
@@ -663,6 +666,7 @@ Recommendations:
 **Goal**: Leverage existing services for quick win
 
 **Components**:
+
 - ✅ Use existing `BranchProtectionChecker`
 - ✅ Use existing `SecurityScanner`
 - 🆕 Add `RepoAuditor` service (basic orchestration)
@@ -670,6 +674,7 @@ Recommendations:
 - 🆕 Basic scoring system
 
 **Deliverables**:
+
 ```bash
 gpm audit  # Branch protection + secrets + basic security
 gpm audit --json
@@ -684,6 +689,7 @@ gpm audit --json
 **Goal**: Parse and analyze GitHub Actions workflows
 
 **Components**:
+
 - 🆕 Add `CIAnalyzer` utility
 - 🆕 Workflow parsing (YAML)
 - 🆕 Heuristic detection (tests, linting, security)
@@ -691,6 +697,7 @@ gpm audit --json
 - 🆕 Caching detection
 
 **Deliverables**:
+
 ```bash
 gpm audit --check=ci           # Just CI analysis
 gpm audit --check=ci --detailed  # Full CI breakdown
@@ -705,6 +712,7 @@ gpm audit --check=ci --detailed  # Full CI breakdown
 **Goal**: Detect linting/formatting tools across languages
 
 **Components**:
+
 - 🆕 Add `LintConfigDetector` utility
 - 🆕 JavaScript/TypeScript detection (eslint, prettier, biome)
 - 🆕 Python detection (black, flake8, pylint, mypy, ruff)
@@ -712,6 +720,7 @@ gpm audit --check=ci --detailed  # Full CI breakdown
 - 🆕 Rust detection (rustfmt, clippy)
 
 **Deliverables**:
+
 ```bash
 gpm audit --check=linting
 gpm audit --check=linting --detailed
@@ -726,18 +735,21 @@ gpm audit --check=linting --detailed
 **Goal**: Intelligent scoring and prioritization
 
 **Components**:
+
 - 🆕 Weighted scoring system
 - 🆕 Grade calculation (A-F)
 - 🆕 Recommendation prioritization (impact × effort)
 - 🆕 Baseline comparison support
 
 **Deliverables**:
+
 ```bash
 gpm audit --baseline baseline.json  # Compare against baseline
 gpm audit --output audit-report.json  # Save for baseline
 ```
 
 **Scoring Weights** (proposed):
+
 - Security: 40% (most critical)
 - Branch Protection: 25% (prevents mistakes)
 - CI/CD: 20% (ensures quality)
@@ -752,6 +764,7 @@ gpm audit --output audit-report.json  # Save for baseline
 **Goal**: Production-ready quality
 
 **Components**:
+
 - 🆕 Beautiful terminal output (colors, tables, boxes)
 - 🆕 Progress indicators
 - 🆕 Error handling for missing permissions
@@ -760,6 +773,7 @@ gpm audit --output audit-report.json  # Save for baseline
 - 🆕 Documentation (README, command help, examples)
 
 **Deliverables**:
+
 - All tests passing
 - Coverage >80%
 - README updated with `gpm audit` examples
@@ -778,6 +792,7 @@ gpm doctor --repo  # Include repo audit in health check
 ```
 
 **Output**:
+
 ```
 ▸ System Health Check
 ────────────────────────────────────────────────────────────────────────────────
@@ -807,6 +822,7 @@ gpm init --audit
 ```
 
 **Behavior**:
+
 1. Run lightweight audit (no linting/CI checks)
 2. Analyze branch protection and security
 3. Suggest appropriate template:
@@ -832,7 +848,7 @@ gpm audit --compare baseline.json  # Compare against baseline
 name: Weekly Audit
 on:
   schedule:
-    - cron: '0 9 * * 1'  # Monday at 9am
+    - cron: "0 9 * * 1" # Monday at 9am
   workflow_dispatch:
 
 jobs:
@@ -883,9 +899,11 @@ jobs:
 **Challenge**: Some features require `security_events` scope
 
 **Solution**:
+
 - Core features work with `repo` scope ✅
 - Gracefully skip advanced security checks if scope missing
 - Display clear warning:
+
   ```
   ⚠️  Some security checks skipped
 
@@ -904,6 +922,7 @@ jobs:
 **Challenge**: Audit = many API calls (10-20+ requests)
 
 **Solutions**:
+
 - ✅ Use existing `GitHubService` caching (ETag support)
 - ✅ Use existing rate limit handling
 - Show progress spinner during audit
@@ -911,6 +930,7 @@ jobs:
 - Cache audit results for 5 minutes (optional)
 
 **Estimated API Calls**:
+
 - Branch protection: 1-3 (per protected branch)
 - Workflows: 1 (list) + N (fetch each workflow file)
 - Security settings: 3-5 (repo settings, vulnerability alerts, etc.)
@@ -924,6 +944,7 @@ jobs:
 **Challenge**: Advanced Security features require GitHub Pro/Team/Enterprise
 
 **Solution**:
+
 - Check feature availability via repository settings API
 - Skip unavailable checks gracefully
 - Note in report: "⚠️ Code scanning not available (requires GitHub Advanced Security)"
@@ -935,6 +956,7 @@ jobs:
 **Challenge**: Large repos with many workflows = slow parsing
 
 **Solutions**:
+
 - Implement timeout (30 seconds default)
 - Parallel API requests where possible
 - Show progress: "Analyzing workflows... (2/5)"
@@ -947,14 +969,15 @@ jobs:
 **Challenge**: Heuristics may incorrectly identify job types
 
 **Solutions**:
+
 - Conservative detection (only flag clear cases)
 - Allow configuration overrides in `.gpm.yml`:
   ```yaml
   audit:
     ci:
-      testJobs: ['test', 'integration-test']
-      lintJobs: ['lint', 'check-format']
-      securityJobs: ['security-scan']
+      testJobs: ["test", "integration-test"]
+      lintJobs: ["lint", "check-format"]
+      securityJobs: ["security-scan"]
   ```
 - Show confidence levels in detailed mode
 
@@ -963,12 +986,14 @@ jobs:
 ## 🎯 Success Metrics
 
 ### Quantitative
+
 - **Adoption**: >50% of gpm users run audit within 30 days of v1.5 release
 - **Performance**: Audit completes in <30 seconds for typical repository
 - **Coverage**: >80% test coverage for new code
 - **API Efficiency**: <25 API calls per full audit (leverage caching)
 
 ### Qualitative
+
 - **Actionable**: Users can act on >80% of recommendations without research
 - **Accurate**: <5% false positive rate on issue detection
 - **Clear**: Non-technical users understand overall score/grade
@@ -984,6 +1009,7 @@ gpm audit --fix  # Automatically create PRs to fix issues
 ```
 
 **Auto-fixable issues**:
+
 - Enable Dependabot (create `.github/dependabot.yml`)
 - Add missing workflow steps (security scan, linting)
 - Add missing config files (`.eslintrc`, `.prettierrc`)
@@ -1001,6 +1027,7 @@ gpm audit --history  # Show trend over time
 ```
 
 **Output**:
+
 ```
 ▸ Audit History (Last 30 Days)
 ────────────────────────────────────────────────────────────────────────────────
@@ -1046,6 +1073,7 @@ gpm audit --benchmark=team  # Compare to org repos
 ```
 
 **Output**:
+
 ```
 Your score: 84/100 (B)
 
@@ -1065,20 +1093,23 @@ You're above average! 🎉
 
 Add new section:
 
-```markdown
+````markdown
 ### `gpm audit` - Repository Health Check
 
 Audit your repository's security posture, CI/CD setup, and code quality tooling.
 
 **Usage:**
+
 ```bash
 gpm audit                     # Full audit
 gpm audit --check=security    # Security only
 gpm audit --json              # JSON output
 gpm audit --detailed          # Detailed report
 ```
+````
 
 **What it checks:**
+
 - ✅ Branch protection settings
 - ✅ Secret scanning & vulnerability alerts
 - ✅ GitHub Actions workflows
@@ -1086,6 +1117,7 @@ gpm audit --detailed          # Detailed report
 - ✅ Security tools (Dependabot, CodeQL)
 
 **Example output:**
+
 ```
 Overall Score: 84/100 (B)
 
@@ -1094,7 +1126,8 @@ Top Recommendations:
   🟡 Add scheduled security workflows
   🟢 Configure Python linting
 ```
-```
+
+````
 
 ---
 
@@ -1109,8 +1142,9 @@ npm run dev -- audit                    # Full repo audit
 npm run dev -- audit --check=ci         # CI-only audit
 npm run dev -- audit --json             # JSON output
 npm run dev -- audit --detailed         # Detailed report
-```
-```
+````
+
+````
 
 Add to "Common Patterns" section:
 
@@ -1122,13 +1156,14 @@ Add to "Common Patterns" section:
 3. Implement scoring logic in `calculateOverallScore()`
 4. Add tests in `tests/services/RepoAuditor.test.ts`
 5. Update documentation
-```
+````
 
 ---
 
 ### New Documentation Files
 
 Create:
+
 - `docs/guides/AUDIT-GUIDE.md` - Comprehensive audit guide
 - `docs/guides/AUDIT-SCORING.md` - Scoring methodology
 - `docs/guides/AUDIT-RECOMMENDATIONS.md` - How to act on recommendations
@@ -1161,18 +1196,21 @@ To proceed with implementation:
 ## 💭 Alternative Approaches Considered
 
 ### Approach 1: External Tool Integration
+
 **Idea**: Integrate existing audit tools (npm audit, detect-secrets, etc.)
 **Pros**: Less code to write, leverage mature tools
 **Cons**: Inconsistent output formats, additional dependencies
 **Decision**: Hybrid - use existing tools where possible (detect-secrets) but wrap in consistent interface
 
 ### Approach 2: GitHub App
+
 **Idea**: Build as GitHub App that runs automatically on commits
 **Pros**: No local setup, automatic monitoring
 **Cons**: Major scope increase, hosting required, authentication complexity
 **Decision**: CLI-first for v1.5, GitHub App for future if demand exists
 
 ### Approach 3: Separate CLI Tool
+
 **Idea**: Build as standalone tool (`gh-audit`) instead of gpm feature
 **Pros**: Focused tool, independent versioning
 **Cons**: Duplicate infrastructure (GitHubService, auth, etc.)

@@ -1,9 +1,9 @@
-import { ConfigService } from '../../src/services/ConfigService';
-import { BranchProtectionChecker } from '../../src/services/BranchProtectionChecker';
-import { VerifyService } from '../../src/services/VerifyService';
-import * as fs from 'fs/promises';
-import * as yaml from 'yaml';
-import * as child_process from 'child_process';
+import { ConfigService } from "../../src/services/ConfigService";
+import { BranchProtectionChecker } from "../../src/services/BranchProtectionChecker";
+import { VerifyService } from "../../src/services/VerifyService";
+import * as fs from "fs/promises";
+import * as yaml from "yaml";
+import * as child_process from "child_process";
 
 /**
  * Integration tests for Configuration Service with other services
@@ -12,18 +12,24 @@ import * as child_process from 'child_process';
  * the behavior of other services.
  */
 
-jest.mock('fs/promises');
-jest.mock('yaml');
-jest.mock('child_process');
+jest.mock("fs/promises");
+jest.mock("yaml");
+jest.mock("child_process");
 
 const mockedFsAccess = fs.access as jest.MockedFunction<typeof fs.access>;
 const mockedFsReadFile = fs.readFile as jest.MockedFunction<typeof fs.readFile>;
-const mockedFsWriteFile = fs.writeFile as jest.MockedFunction<typeof fs.writeFile>;
+const mockedFsWriteFile = fs.writeFile as jest.MockedFunction<
+  typeof fs.writeFile
+>;
 const mockedYamlParse = yaml.parse as jest.MockedFunction<typeof yaml.parse>;
-const mockedYamlStringify = yaml.stringify as jest.MockedFunction<typeof yaml.stringify>;
-const mockedExec = child_process.exec as jest.MockedFunction<typeof child_process.exec>;
+const mockedYamlStringify = yaml.stringify as jest.MockedFunction<
+  typeof yaml.stringify
+>;
+const mockedExec = child_process.exec as jest.MockedFunction<
+  typeof child_process.exec
+>;
 
-describe('Configuration Integration', () => {
+describe("Configuration Integration", () => {
   let configService: ConfigService;
   let mockOctokit: any;
   let protectionChecker: BranchProtectionChecker;
@@ -32,7 +38,7 @@ describe('Configuration Integration', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    configService = new ConfigService('/test/dir');
+    configService = new ConfigService("/test/dir");
 
     mockOctokit = {
       rest: {
@@ -56,18 +62,22 @@ describe('Configuration Integration', () => {
       },
     };
 
-    protectionChecker = new BranchProtectionChecker(mockOctokit, 'owner', 'repo');
-    verifyService = new VerifyService('/test/dir');
+    protectionChecker = new BranchProtectionChecker(
+      mockOctokit,
+      "owner",
+      "repo",
+    );
+    verifyService = new VerifyService("/test/dir");
   });
 
-  describe('Configuration-Driven Workflows', () => {
-    it('should apply branch protection based on configuration', async () => {
+  describe("Configuration-Driven Workflows", () => {
+    it("should apply branch protection based on configuration", async () => {
       // Setup: Load config with strict protection
       const mockConfig = {
         branchProtection: {
           enabled: true,
           requireReviews: 2,
-          requireStatusChecks: ['ci', 'security', 'tests'],
+          requireStatusChecks: ["ci", "security", "tests"],
           enforceAdmins: true,
         },
         ci: {
@@ -82,13 +92,13 @@ describe('Configuration Integration', () => {
           allowedVulnerabilities: [],
         },
         pr: {
-          autoAssign: ['reviewer1', 'reviewer2'],
-          autoLabel: ['needs-review'],
+          autoAssign: ["reviewer1", "reviewer2"],
+          autoLabel: ["needs-review"],
         },
       };
 
       mockedFsAccess.mockResolvedValue(undefined);
-      mockedFsReadFile.mockResolvedValue('config content');
+      mockedFsReadFile.mockResolvedValue("config content");
       mockedYamlParse.mockReturnValue(mockConfig);
 
       // Act: Load config
@@ -103,14 +113,14 @@ describe('Configuration Integration', () => {
 
       // This would be done by an orchestrator reading the config
       if (config.branchProtection?.enabled) {
-        await protectionChecker.setupProtection('main', 'strict');
+        await protectionChecker.setupProtection("main", "strict");
       }
 
       // Assert: Protection was set up
       expect(mockOctokit.rest.repos.updateBranchProtection).toHaveBeenCalled();
     });
 
-    it('should skip checks when disabled in configuration', async () => {
+    it("should skip checks when disabled in configuration", async () => {
       // Setup: Load config with security disabled
       const mockConfig = {
         branchProtection: {
@@ -137,7 +147,7 @@ describe('Configuration Integration', () => {
       };
 
       mockedFsAccess.mockResolvedValue(undefined);
-      mockedFsReadFile.mockResolvedValue('config content');
+      mockedFsReadFile.mockResolvedValue("config content");
       mockedYamlParse.mockReturnValue(mockConfig);
 
       // Act: Load config
@@ -151,7 +161,7 @@ describe('Configuration Integration', () => {
       // We're just demonstrating the config is loaded correctly
     });
 
-    it('should use CI timeout from configuration', async () => {
+    it("should use CI timeout from configuration", async () => {
       // Setup: Config with custom timeout
       const mockConfig = {
         branchProtection: {
@@ -178,7 +188,7 @@ describe('Configuration Integration', () => {
       };
 
       mockedFsAccess.mockResolvedValue(undefined);
-      mockedFsReadFile.mockResolvedValue('config content');
+      mockedFsReadFile.mockResolvedValue("config content");
       mockedYamlParse.mockReturnValue(mockConfig);
 
       // Act: Load config
@@ -196,7 +206,7 @@ describe('Configuration Integration', () => {
           stdout: { on: jest.fn() },
           stderr: { on: jest.fn() },
           on: jest.fn((event, handler) => {
-            if (event === 'close') handler(0);
+            if (event === "close") handler(0);
           }),
         } as any;
       });
@@ -209,15 +219,15 @@ describe('Configuration Integration', () => {
     });
   });
 
-  describe('Configuration Validation and Workflow', () => {
-    it('should prevent invalid configuration from being used', async () => {
+  describe("Configuration Validation and Workflow", () => {
+    it("should prevent invalid configuration from being used", async () => {
       // Setup: Invalid config
-      mockedFsAccess.mockRejectedValue(new Error('not found'));
-      mockedYamlStringify.mockReturnValue('yaml content');
+      mockedFsAccess.mockRejectedValue(new Error("not found"));
+      mockedYamlStringify.mockReturnValue("yaml content");
       mockedFsWriteFile.mockResolvedValue(undefined);
 
       // Act: Try to set invalid timeout
-      await configService.set('ci', {
+      await configService.set("ci", {
         waitForChecks: true,
         failFast: true,
         retryFlaky: false,
@@ -229,25 +239,27 @@ describe('Configuration Integration', () => {
 
       // Assert: Should fail validation
       expect(validation.valid).toBe(false);
-      expect(validation.errors).toContain('CI timeout must be at most 120 minutes');
+      expect(validation.errors).toContain(
+        "CI timeout must be at most 120 minutes",
+      );
     });
 
-    it('should allow configuration changes and re-validation', async () => {
+    it("should allow configuration changes and re-validation", async () => {
       // Setup: Start with default config
-      mockedFsAccess.mockRejectedValue(new Error('not found'));
+      mockedFsAccess.mockRejectedValue(new Error("not found"));
 
       // Act: Get initial config
       const initialConfig = await configService.load();
       expect(initialConfig.branchProtection?.enabled).toBe(false);
 
       // Setup: Update config
-      mockedYamlStringify.mockReturnValue('yaml content');
+      mockedYamlStringify.mockReturnValue("yaml content");
       mockedFsWriteFile.mockResolvedValue(undefined);
 
-      await configService.set('branchProtection', {
+      await configService.set("branchProtection", {
         enabled: true,
         requireReviews: 1,
-        requireStatusChecks: ['ci', 'security'],
+        requireStatusChecks: ["ci", "security"],
         enforceAdmins: false,
       });
 
@@ -260,15 +272,15 @@ describe('Configuration Integration', () => {
     });
   });
 
-  describe('Template-Based Configuration', () => {
-    it('should initialize with basic template and validate', async () => {
+  describe("Template-Based Configuration", () => {
+    it("should initialize with basic template and validate", async () => {
       // Setup: No existing config
-      mockedFsAccess.mockRejectedValue(new Error('not found'));
-      mockedYamlStringify.mockReturnValue('yaml content');
+      mockedFsAccess.mockRejectedValue(new Error("not found"));
+      mockedYamlStringify.mockReturnValue("yaml content");
       mockedFsWriteFile.mockResolvedValue(undefined);
 
       // Act: Initialize with basic template
-      await configService.init('basic');
+      await configService.init("basic");
 
       // Act: Validate
       const validation = await configService.validate();
@@ -277,18 +289,18 @@ describe('Configuration Integration', () => {
       expect(validation.valid).toBe(true);
     });
 
-    it('should initialize with standard template and validate', async () => {
+    it("should initialize with standard template and validate", async () => {
       // Setup: No existing config
-      mockedFsAccess.mockRejectedValue(new Error('not found'));
+      mockedFsAccess.mockRejectedValue(new Error("not found"));
       mockedFsWriteFile.mockResolvedValue(undefined);
 
       // Act: Initialize with standard template
-      await configService.init('standard');
+      await configService.init("standard");
 
       // Act: Load and verify YAML content (second argument is content)
       const savedYaml = mockedFsWriteFile.mock.calls[0][1];
-      expect(savedYaml).toContain('enabled: true'); // branchProtection.enabled
-      expect(savedYaml).toContain('requireReviews: 0'); // branchProtection.requireReviews
+      expect(savedYaml).toContain("enabled: true"); // branchProtection.enabled
+      expect(savedYaml).toContain("requireReviews: 0"); // branchProtection.requireReviews
 
       // Act: Validate
       const validation = await configService.validate();
@@ -297,19 +309,19 @@ describe('Configuration Integration', () => {
       expect(validation.valid).toBe(true);
     });
 
-    it('should initialize with strict template and validate', async () => {
+    it("should initialize with strict template and validate", async () => {
       // Setup: No existing config
-      mockedFsAccess.mockRejectedValue(new Error('not found'));
+      mockedFsAccess.mockRejectedValue(new Error("not found"));
       mockedFsWriteFile.mockResolvedValue(undefined);
 
       // Act: Initialize with strict template
-      await configService.init('strict');
+      await configService.init("strict");
 
       // Act: Load and verify YAML content (second argument is content)
       const savedYaml = mockedFsWriteFile.mock.calls[0][1];
-      expect(savedYaml).toContain('enabled: true'); // branchProtection.enabled
-      expect(savedYaml).toContain('requireReviews: 1'); // branchProtection.requireReviews
-      expect(savedYaml).toContain('enforceAdmins: true'); // branchProtection.enforceAdmins
+      expect(savedYaml).toContain("enabled: true"); // branchProtection.enabled
+      expect(savedYaml).toContain("requireReviews: 1"); // branchProtection.requireReviews
+      expect(savedYaml).toContain("enforceAdmins: true"); // branchProtection.enforceAdmins
 
       // Act: Validate
       const validation = await configService.validate();
@@ -319,14 +331,14 @@ describe('Configuration Integration', () => {
     });
   });
 
-  describe('Configuration Persistence', () => {
-    it('should save and reload configuration correctly', async () => {
+  describe("Configuration Persistence", () => {
+    it("should save and reload configuration correctly", async () => {
       // Setup: Initial config
       const configToSave = {
         branchProtection: {
           enabled: true,
           requireReviews: 2,
-          requireStatusChecks: ['ci', 'security', 'tests'],
+          requireStatusChecks: ["ci", "security", "tests"],
           enforceAdmins: true,
         },
         ci: {
@@ -338,23 +350,23 @@ describe('Configuration Integration', () => {
         security: {
           scanSecrets: true,
           scanDependencies: true,
-          allowedVulnerabilities: ['CVE-2023-1234'],
+          allowedVulnerabilities: ["CVE-2023-1234"],
         },
         pr: {
-          templatePath: '.github/PULL_REQUEST_TEMPLATE.md',
-          autoAssign: ['reviewer1'],
-          autoLabel: ['needs-review', 'enhancement'],
+          templatePath: ".github/PULL_REQUEST_TEMPLATE.md",
+          autoAssign: ["reviewer1"],
+          autoLabel: ["needs-review", "enhancement"],
         },
       };
 
       // Act: Save config
-      mockedYamlStringify.mockReturnValue('yaml content');
+      mockedYamlStringify.mockReturnValue("yaml content");
       mockedFsWriteFile.mockResolvedValue(undefined);
       await configService.save(configToSave);
 
       // Setup: Reload config
       mockedFsAccess.mockResolvedValue(undefined);
-      mockedFsReadFile.mockResolvedValue('yaml content');
+      mockedFsReadFile.mockResolvedValue("yaml content");
       mockedYamlParse.mockReturnValue(configToSave);
 
       // Act: Load config
@@ -364,20 +376,25 @@ describe('Configuration Integration', () => {
       expect(reloadedConfig.branchProtection?.enabled).toBe(true);
       expect(reloadedConfig.branchProtection?.requireReviews).toBe(2);
       expect(reloadedConfig.ci?.timeout).toBe(45);
-      expect(reloadedConfig.security?.allowedVulnerabilities).toEqual(['CVE-2023-1234']);
-      expect(reloadedConfig.pr?.autoLabel).toEqual(['needs-review', 'enhancement']);
+      expect(reloadedConfig.security?.allowedVulnerabilities).toEqual([
+        "CVE-2023-1234",
+      ]);
+      expect(reloadedConfig.pr?.autoLabel).toEqual([
+        "needs-review",
+        "enhancement",
+      ]);
     });
 
-    it('should handle config reset to defaults', async () => {
+    it("should handle config reset to defaults", async () => {
       // Setup: Modified config
-      mockedFsAccess.mockRejectedValue(new Error('not found'));
-      mockedYamlStringify.mockReturnValue('yaml content');
+      mockedFsAccess.mockRejectedValue(new Error("not found"));
+      mockedYamlStringify.mockReturnValue("yaml content");
       mockedFsWriteFile.mockResolvedValue(undefined);
 
-      await configService.set('branchProtection', {
+      await configService.set("branchProtection", {
         enabled: true,
         requireReviews: 5,
-        requireStatusChecks: ['ci', 'security', 'tests', 'lint', 'format'],
+        requireStatusChecks: ["ci", "security", "tests", "lint", "format"],
         enforceAdmins: true,
       });
 
@@ -395,14 +412,14 @@ describe('Configuration Integration', () => {
     });
   });
 
-  describe('Cross-Service Configuration Effects', () => {
-    it('should demonstrate how config affects multiple services', async () => {
+  describe("Cross-Service Configuration Effects", () => {
+    it("should demonstrate how config affects multiple services", async () => {
       // Setup: Load comprehensive config
       const mockConfig = {
         branchProtection: {
           enabled: true,
           requireReviews: 1,
-          requireStatusChecks: ['ci', 'security'],
+          requireStatusChecks: ["ci", "security"],
           enforceAdmins: false,
         },
         ci: {
@@ -417,14 +434,14 @@ describe('Configuration Integration', () => {
           allowedVulnerabilities: [],
         },
         pr: {
-          templatePath: '.github/PULL_REQUEST_TEMPLATE.md',
-          autoAssign: ['reviewer1'],
-          autoLabel: ['needs-review'],
+          templatePath: ".github/PULL_REQUEST_TEMPLATE.md",
+          autoAssign: ["reviewer1"],
+          autoLabel: ["needs-review"],
         },
       };
 
       mockedFsAccess.mockResolvedValue(undefined);
-      mockedFsReadFile.mockResolvedValue('config content');
+      mockedFsReadFile.mockResolvedValue("config content");
       mockedYamlParse.mockReturnValue(mockConfig);
 
       // Act: Load config
@@ -433,8 +450,10 @@ describe('Configuration Integration', () => {
       // Demonstrate: Branch protection would be applied
       if (config.branchProtection?.enabled) {
         mockOctokit.rest.repos.updateBranchProtection.mockResolvedValue({});
-        await protectionChecker.setupProtection('main', 'standard');
-        expect(mockOctokit.rest.repos.updateBranchProtection).toHaveBeenCalled();
+        await protectionChecker.setupProtection("main", "standard");
+        expect(
+          mockOctokit.rest.repos.updateBranchProtection,
+        ).toHaveBeenCalled();
       }
 
       // Demonstrate: Security scans would run

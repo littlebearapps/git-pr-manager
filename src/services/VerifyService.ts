@@ -1,6 +1,6 @@
-import { exec } from 'child_process';
-import * as fs from 'fs/promises';
-import * as path from 'path';
+import { exec } from "child_process";
+import * as fs from "fs/promises";
+import * as path from "path";
 
 export interface VerifyResult {
   success: boolean;
@@ -37,13 +37,13 @@ export class VerifyService {
     if (!script) {
       return {
         success: true,
-        output: 'No verification script found',
+        output: "No verification script found",
         errors: [],
-        duration: Date.now() - startTime
+        duration: Date.now() - startTime,
       };
     }
 
-    options.onProgress?.('Running verification checks...');
+    options.onProgress?.("Running verification checks...");
 
     try {
       const result = await this.executeScript(script, options);
@@ -52,8 +52,13 @@ export class VerifyService {
       return {
         success: result.exitCode === 0,
         output: result.stdout + result.stderr,
-        errors: this.parseErrors(result.stdout, result.stderr, result.exitCode, script),
-        duration
+        errors: this.parseErrors(
+          result.stdout,
+          result.stderr,
+          result.exitCode,
+          script,
+        ),
+        duration,
       };
     } catch (error: any) {
       const duration = Date.now() - startTime;
@@ -62,7 +67,7 @@ export class VerifyService {
         success: false,
         output: error.message,
         errors: [`Failed to execute verification: ${error.message}`],
-        duration
+        duration,
       };
     }
   }
@@ -75,16 +80,16 @@ export class VerifyService {
     // 1. Check for built-in gpm verify command
     // This works when gpm is installed or we're in the built dist/
     try {
-      const { execSync } = require('child_process');
-      execSync('command -v gpm', { stdio: 'ignore' });
+      const { execSync } = require("child_process");
+      execSync("command -v gpm", { stdio: "ignore" });
       // Use --json flag to avoid spinner conflicts when running as subprocess
-      return 'gpm verify --json';
+      return "gpm verify --json";
     } catch {
       // gpm not in PATH, continue to other methods
     }
 
     // 2. Check for verify.sh
-    const verifyShPath = path.join(this.workingDir, 'verify.sh');
+    const verifyShPath = path.join(this.workingDir, "verify.sh");
     try {
       await fs.access(verifyShPath);
       return `bash ${verifyShPath}`;
@@ -93,48 +98,48 @@ export class VerifyService {
     }
 
     // 3. Check for package.json with verify script
-    const packageJsonPath = path.join(this.workingDir, 'package.json');
+    const packageJsonPath = path.join(this.workingDir, "package.json");
     try {
       const packageJson = JSON.parse(
-        await fs.readFile(packageJsonPath, 'utf-8')
+        await fs.readFile(packageJsonPath, "utf-8"),
       );
 
       // Check for common verification scripts
       const scripts = packageJson.scripts || {};
 
       if (scripts.verify) {
-        return 'npm run verify';
+        return "npm run verify";
       } else if (scripts.precommit) {
-        return 'npm run precommit';
-      } else if (scripts['pre-commit']) {
-        return 'npm run pre-commit';
+        return "npm run precommit";
+      } else if (scripts["pre-commit"]) {
+        return "npm run pre-commit";
       } else if (scripts.test && scripts.lint) {
         // Run both test and lint
-        return 'npm test && npm run lint';
+        return "npm test && npm run lint";
       } else if (scripts.test) {
-        return 'npm test';
+        return "npm test";
       }
     } catch {
       // package.json not found or invalid
     }
 
     // 4. Check for Python tox.ini
-    const toxIniPath = path.join(this.workingDir, 'tox.ini');
+    const toxIniPath = path.join(this.workingDir, "tox.ini");
     try {
       await fs.access(toxIniPath);
-      return 'tox';
+      return "tox";
     } catch {
       // Not found
     }
 
     // 5. Check for Makefile with verify target
-    const makefilePath = path.join(this.workingDir, 'Makefile');
+    const makefilePath = path.join(this.workingDir, "Makefile");
     try {
-      const makefile = await fs.readFile(makefilePath, 'utf-8');
-      if (makefile.includes('verify:')) {
-        return 'make verify';
-      } else if (makefile.includes('test:')) {
-        return 'make test';
+      const makefile = await fs.readFile(makefilePath, "utf-8");
+      if (makefile.includes("verify:")) {
+        return "make verify";
+      } else if (makefile.includes("test:")) {
+        return "make test";
       }
     } catch {
       // Not found
@@ -148,7 +153,7 @@ export class VerifyService {
    */
   private async executeScript(
     command: string,
-    options: VerifyOptions
+    options: VerifyOptions,
   ): Promise<{
     stdout: string;
     stderr: string;
@@ -160,32 +165,32 @@ export class VerifyService {
       const child = exec(command, {
         cwd: this.workingDir,
         timeout,
-        maxBuffer: 10 * 1024 * 1024 // 10MB
+        maxBuffer: 10 * 1024 * 1024, // 10MB
       });
 
-      let stdout = '';
-      let stderr = '';
+      let stdout = "";
+      let stderr = "";
 
-      child.stdout?.on('data', (data) => {
+      child.stdout?.on("data", (data) => {
         const text = data.toString();
         stdout += text;
         options.onProgress?.(text.trim());
       });
 
-      child.stderr?.on('data', (data) => {
+      child.stderr?.on("data", (data) => {
         const text = data.toString();
         stderr += text;
       });
 
-      child.on('close', (code) => {
+      child.on("close", (code) => {
         resolve({
           stdout,
           stderr,
-          exitCode: code || 0
+          exitCode: code || 0,
         });
       });
 
-      child.on('error', (error) => {
+      child.on("error", (error) => {
         reject(error);
       });
     });
@@ -198,7 +203,7 @@ export class VerifyService {
     stdout: string,
     stderr: string,
     exitCode: number,
-    command: string
+    command: string,
   ): string[] {
     const errors: string[] = [];
 
@@ -208,18 +213,18 @@ export class VerifyService {
       errors.push(`Exit code: ${exitCode}`);
 
       // Look for common error patterns
-      const combined = stdout + '\n' + stderr;
+      const combined = stdout + "\n" + stderr;
 
       // Filter out test console output to avoid false positives
       const isTestOutput = (line: string): boolean => {
         return (
-          line.includes('console.log') ||
-          line.includes('console.warn') ||
-          line.includes('console.error') ||
-          line.trim().startsWith('at ') || // Stack traces
+          line.includes("console.log") ||
+          line.includes("console.warn") ||
+          line.includes("console.error") ||
+          line.trim().startsWith("at ") || // Stack traces
           /^\s+\d+\s+\|/.test(line) || // Line number markers
           /^\s*>?\s*\d+\s*\|/.test(line) || // Code line markers (e.g., "> 691 |")
-          line.includes('AutoFix') || // AutoFix log messages
+          line.includes("AutoFix") || // AutoFix log messages
           /^error\s*\{/.test(line.trim()) // Object dumps starting with "error {"
         );
       };
@@ -228,56 +233,58 @@ export class VerifyService {
       const testFailures = combined.match(/FAILED?\s+.*$/gm);
       if (testFailures) {
         // Only include lines that look like actual test failures (not console output)
-        const realFailures = testFailures.filter(line => !isTestOutput(line));
+        const realFailures = testFailures.filter((line) => !isTestOutput(line));
         if (realFailures.length > 0) {
-          errors.push('');
-          errors.push('Test failures:');
+          errors.push("");
+          errors.push("Test failures:");
           errors.push(...realFailures.slice(0, 10));
         }
       }
 
       // Linting errors (exclude test console output)
       const lintErrors = combined
-        .split('\n')
-        .filter(line => /error\s+/.test(line) && !isTestOutput(line))
+        .split("\n")
+        .filter((line) => /error\s+/.test(line) && !isTestOutput(line))
         .slice(0, 10); // Limit to 10
       if (lintErrors.length > 0) {
-        errors.push('');
-        errors.push('Linting errors:');
+        errors.push("");
+        errors.push("Linting errors:");
         errors.push(...lintErrors);
       }
 
       // Type errors
       const typeErrors = combined.match(/TS\d+:.*$/gm);
       if (typeErrors) {
-        errors.push('');
-        errors.push('Type errors:');
+        errors.push("");
+        errors.push("Type errors:");
         errors.push(...typeErrors.slice(0, 10));
       }
 
       // If no specific errors found, include raw output for debugging
-      if (errors.length === 2) { // Only command and exit code
-        errors.push('');
-        errors.push('Unable to parse specific errors. Raw output:');
+      if (errors.length === 2) {
+        // Only command and exit code
+        errors.push("");
+        errors.push("Unable to parse specific errors. Raw output:");
 
         // Show last 20 lines of combined output (filtered)
-        const lines = combined.split('\n')
-          .filter(l => l.trim())
-          .filter(line => !isTestOutput(line)); // Apply same filtering
+        const lines = combined
+          .split("\n")
+          .filter((l) => l.trim())
+          .filter((line) => !isTestOutput(line)); // Apply same filtering
 
         const relevantLines = lines.slice(-20);
 
         if (relevantLines.length > 0) {
-          errors.push(...relevantLines.map(line => `  ${line}`));
+          errors.push(...relevantLines.map((line) => `  ${line}`));
         } else {
-          errors.push('  (no output captured)');
-          errors.push('');
-          errors.push('Debug info:');
+          errors.push("  (no output captured)");
+          errors.push("");
+          errors.push("Debug info:");
           errors.push(`  stdout length: ${stdout.length} chars`);
           errors.push(`  stderr length: ${stderr.length} chars`);
-          errors.push('');
-          errors.push('This may indicate a subprocess stdio conflict.');
-          errors.push('Try running the command directly: ' + command);
+          errors.push("");
+          errors.push("This may indicate a subprocess stdio conflict.");
+          errors.push("Try running the command directly: " + command);
         }
       }
     }

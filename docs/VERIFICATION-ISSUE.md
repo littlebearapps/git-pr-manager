@@ -12,6 +12,7 @@ The issue has been **RESOLVED** by modifying VerifyService to use JSON mode for 
 **Root Cause**: Ora spinner conflicts between parent process (ship) and subprocess (verify).
 
 **Solution**: Changed VerifyService.ts line 81 from `'gpm verify'` to `'gpm verify --json'`, which:
+
 - Disables spinners in the subprocess
 - Outputs machine-readable JSON instead
 - Eliminates stdio conflicts with parent spinner
@@ -27,6 +28,7 @@ The `gpm verify` command worked perfectly when run standalone, but failed with e
 ## Evidence
 
 ### ✅ Works Standalone
+
 ```bash
 $ gpm verify
 ▸ Running Verification Checks
@@ -45,6 +47,7 @@ Exit code: 0
 ```
 
 ### ✅ All Tests Pass
+
 ```bash
 $ npm test
 Test Suites: 31 passed, 31 total
@@ -52,6 +55,7 @@ Tests:       678 passed, 678 total
 ```
 
 ### ✅ VerifyService Works Directly
+
 ```javascript
 const verifyService = new VerifyService();
 const result = await verifyService.runChecks();
@@ -61,6 +65,7 @@ const result = await verifyService.runChecks();
 ### ❌ Fails When Called from gpm ship
 
 **OLD ERROR (not descriptive):**
+
 ```bash
 $ gpm ship
 - Running verification checks...
@@ -70,6 +75,7 @@ $ gpm ship
 ```
 
 **NEW ERROR (improved in v1.4.0):**
+
 ```bash
 $ gpm ship
 - Running verification checks...
@@ -90,6 +96,7 @@ $ gpm ship
 ```
 
 The improved error message now shows:
+
 - **What command failed** - makes it clear which command had the issue
 - **Exit code** - provides the actual return code
 - **Debug information** - shows if output was captured or not
@@ -97,6 +104,7 @@ The improved error message now shows:
 - **Root cause hint** - suggests it might be a subprocess stdio conflict
 
 **When actual errors exist** (lint/test failures), the output is even more helpful:
+
 ```bash
 ❌ Verification errors:
   Command failed: npm test
@@ -121,6 +129,7 @@ The issue appears to be related to **subprocess environment/context** when gpm c
 4. **But direct execution**: exits with code 0 (correct)
 
 Potential factors:
+
 - Spinner output interference (ora active during subprocess)
 - Environment variable differences in subprocess
 - TTY/stdio handling differences
@@ -142,10 +151,11 @@ The `--skip-verify` flag is still available if you want to skip verification for
 ## Impact (Original)
 
 **Low** - This was a testing/development quirk, not a production issue:
+
 - ✅ `gpm verify` command worked perfectly for developers
 - ✅ All tests passed (678/678)
 - ✅ Documentation is complete
-- ⚠️  Only failed when gpm called gpm (subprocess inception)
+- ⚠️ Only failed when gpm called gpm (subprocess inception)
 
 ## ~~Recommendation~~ (Issue Resolved)
 
@@ -160,6 +170,7 @@ The `--skip-verify` flag is still available if you want to skip verification for
 ## Implementation Details
 
 **Files Changed**:
+
 1. **src/services/VerifyService.ts** (line 81)
    - Changed: `return 'gpm verify';`
    - To: `return 'gpm verify --json';`
@@ -173,6 +184,7 @@ The `--skip-verify` flag is still available if you want to skip verification for
    - Ensures global `--json` flag is respected
 
 **Testing**:
+
 - Created `test-subprocess-issue.ts` to simulate the issue
 - Verified fix works with active spinner + subprocess
 - All 678 tests still pass

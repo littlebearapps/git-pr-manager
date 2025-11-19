@@ -5,10 +5,10 @@
  * Helps users verify their gpm setup and identify missing tools
  */
 
-import { execSync } from 'child_process';
-import { existsSync, readFileSync, readdirSync } from 'fs';
-import { join } from 'path';
-import { logger } from '../utils/logger';
+import { execSync } from "child_process";
+import { existsSync, readFileSync, readdirSync } from "fs";
+import { join } from "path";
+import { logger } from "../utils/logger";
 
 interface Tool {
   name: string;
@@ -19,9 +19,9 @@ interface Tool {
 }
 
 interface SetupOption {
-  priority: 'recommended' | 'alternative';
+  priority: "recommended" | "alternative";
   method: string;
-  security: 'high' | 'medium' | 'low';
+  security: "high" | "medium" | "low";
   steps: string[];
 }
 
@@ -51,45 +51,45 @@ interface DoctorOptions {
 
 const TOOLS: Tool[] = [
   {
-    name: 'git',
+    name: "git",
     required: true,
-    purpose: 'Version control - required for all gpm operations',
-    checkCommand: 'git --version'
+    purpose: "Version control - required for all gpm operations",
+    checkCommand: "git --version",
   },
   {
-    name: 'node',
+    name: "node",
     required: true,
-    purpose: 'JavaScript runtime - required to run gpm',
-    checkCommand: 'node --version'
+    purpose: "JavaScript runtime - required to run gpm",
+    checkCommand: "node --version",
   },
   {
-    name: 'gh',
+    name: "gh",
     required: false,
-    purpose: 'GitHub CLI - enhanced PR features',
-    installCommand: 'https://cli.github.com/',
-    checkCommand: 'gh --version'
+    purpose: "GitHub CLI - enhanced PR features",
+    installCommand: "https://cli.github.com/",
+    checkCommand: "gh --version",
   },
   {
-    name: 'detect-secrets',
+    name: "detect-secrets",
     required: false,
-    purpose: 'Secret scanning in code',
-    installCommand: 'pip install detect-secrets',
-    checkCommand: 'detect-secrets --version'
+    purpose: "Secret scanning in code",
+    installCommand: "pip install detect-secrets",
+    checkCommand: "detect-secrets --version",
   },
   {
-    name: 'pip-audit',
+    name: "pip-audit",
     required: false,
-    purpose: 'Python dependency vulnerability scanning',
-    installCommand: 'pip install pip-audit',
-    checkCommand: 'pip-audit --version'
+    purpose: "Python dependency vulnerability scanning",
+    installCommand: "pip install pip-audit",
+    checkCommand: "pip-audit --version",
   },
   {
-    name: 'npm',
+    name: "npm",
     required: false,
-    purpose: 'JavaScript/Node.js package manager',
-    installCommand: 'https://nodejs.org/',
-    checkCommand: 'npm --version'
-  }
+    purpose: "JavaScript/Node.js package manager",
+    installCommand: "https://nodejs.org/",
+    checkCommand: "npm --version",
+  },
 ];
 
 /**
@@ -97,7 +97,7 @@ const TOOLS: Tool[] = [
  */
 function commandExists(cmd: string): boolean {
   try {
-    execSync(`command -v ${cmd}`, { stdio: 'ignore' });
+    execSync(`command -v ${cmd}`, { stdio: "ignore" });
     return true;
   } catch {
     return false;
@@ -109,8 +109,8 @@ function commandExists(cmd: string): boolean {
  */
 function getVersion(checkCommand: string): string | null {
   try {
-    const output = execSync(checkCommand, { encoding: 'utf-8', stdio: 'pipe' });
-    return output.trim().split('\n')[0];
+    const output = execSync(checkCommand, { encoding: "utf-8", stdio: "pipe" });
+    return output.trim().split("\n")[0];
   } catch {
     return null;
   }
@@ -120,13 +120,13 @@ function getVersion(checkCommand: string): string | null {
  * Detect available token setup tools
  */
 function detectAvailableTools(): AvailableTools {
-  const homeDir = process.env.HOME || process.env.USERPROFILE || '';
+  const homeDir = process.env.HOME || process.env.USERPROFILE || "";
 
   return {
-    direnv: commandExists('direnv'),
-    keychain: existsSync(join(homeDir, 'bin', 'kc.sh')),
-    hasEnvrc: existsSync('.envrc'),
-    hasEnv: existsSync('.env')
+    direnv: commandExists("direnv"),
+    keychain: existsSync(join(homeDir, "bin", "kc.sh")),
+    hasEnvrc: existsSync(".envrc"),
+    hasEnv: existsSync(".env"),
   };
 }
 
@@ -139,68 +139,68 @@ function buildSetupOptions(tools: AvailableTools): SetupOption[] {
   // Option 1: direnv + keychain (most secure)
   if (tools.direnv && tools.keychain) {
     options.push({
-      priority: 'recommended',
-      method: 'direnv + keychain',
-      security: 'high',
+      priority: "recommended",
+      method: "direnv + keychain",
+      security: "high",
       steps: [
-        'Create .envrc with keychain integration:',
-        '  echo \'source ~/bin/kc.sh && export GITHUB_TOKEN=$(kc_get GITHUB_PAT)\' >> .envrc',
-        '  direnv allow',
-        '  echo \'.envrc\' >> .gitignore  # Prevent accidental commit'
-      ]
+        "Create .envrc with keychain integration:",
+        "  echo 'source ~/bin/kc.sh && export GITHUB_TOKEN=$(kc_get GITHUB_PAT)' >> .envrc",
+        "  direnv allow",
+        "  echo '.envrc' >> .gitignore  # Prevent accidental commit",
+      ],
     });
   }
 
   // Option 2: direnv with plaintext
   if (tools.direnv && !tools.keychain) {
     options.push({
-      priority: options.length === 0 ? 'recommended' : 'alternative',
-      method: 'direnv with .envrc',
-      security: 'medium',
+      priority: options.length === 0 ? "recommended" : "alternative",
+      method: "direnv with .envrc",
+      security: "medium",
       steps: [
-        'Create .envrc file:',
-        '  echo \'export GITHUB_TOKEN="ghp_your_token_here"\' >> .envrc',
-        '  direnv allow',
-        '  echo \'.envrc\' >> .gitignore  # IMPORTANT: Prevent token leak!'
-      ]
+        "Create .envrc file:",
+        "  echo 'export GITHUB_TOKEN=\"ghp_your_token_here\"' >> .envrc",
+        "  direnv allow",
+        "  echo '.envrc' >> .gitignore  # IMPORTANT: Prevent token leak!",
+      ],
     });
   }
 
   // Option 3: Shell profile (persistent)
   options.push({
-    priority: 'alternative',
-    method: 'shell profile',
-    security: 'medium',
+    priority: "alternative",
+    method: "shell profile",
+    security: "medium",
     steps: [
-      'Add to ~/.zshrc or ~/.bashrc:',
-      '  echo \'export GITHUB_TOKEN="ghp_your_token_here"\' >> ~/.zshrc',
-      '  source ~/.zshrc'
-    ]
+      "Add to ~/.zshrc or ~/.bashrc:",
+      "  echo 'export GITHUB_TOKEN=\"ghp_your_token_here\"' >> ~/.zshrc",
+      "  source ~/.zshrc",
+    ],
   });
 
   // Option 4: .env file
   options.push({
-    priority: 'alternative',
-    method: '.env file',
-    security: 'low',
+    priority: "alternative",
+    method: ".env file",
+    security: "low",
     steps: [
-      'Create .env file:',
-      '  echo \'GITHUB_TOKEN=ghp_your_token_here\' >> .env',
-      '  echo \'.env\' >> .gitignore  # CRITICAL: Prevent token leak!'
-    ]
+      "Create .env file:",
+      "  echo 'GITHUB_TOKEN=ghp_your_token_here' >> .env",
+      "  echo '.env' >> .gitignore  # CRITICAL: Prevent token leak!",
+    ],
   });
 
   // Option 5: Current session only
   options.push({
-    priority: 'alternative',
-    method: 'current session',
-    security: 'low',
+    priority: "alternative",
+    method: "current session",
+    security: "low",
     steps: [
-      'Export in current shell (temporary):',
+      "Export in current shell (temporary):",
       '  export GITHUB_TOKEN="ghp_your_token_here"',
-      '',
-      'Note: Token will be lost when you close the terminal'
-    ]
+      "",
+      "Note: Token will be lost when you close the terminal",
+    ],
   });
 
   return options;
@@ -212,10 +212,10 @@ function buildSetupOptions(tools: AvailableTools): SetupOption[] {
 function checkGitHubToken(): TokenCheckResult {
   // Check if token is already set (any method works!)
   if (process.env.GITHUB_TOKEN) {
-    return { found: true, source: 'GITHUB_TOKEN' };
+    return { found: true, source: "GITHUB_TOKEN" };
   }
   if (process.env.GH_TOKEN) {
-    return { found: true, source: 'GH_TOKEN' };
+    return { found: true, source: "GH_TOKEN" };
   }
 
   // Token not found - detect available tools and provide suggestions
@@ -224,7 +224,7 @@ function checkGitHubToken(): TokenCheckResult {
 
   return {
     found: false,
-    setupOptions
+    setupOptions,
   };
 }
 
@@ -233,29 +233,30 @@ function checkGitHubToken(): TokenCheckResult {
  */
 const PRE_RELEASE_CHECKS: PreReleaseCheck[] = [
   {
-    name: 'Workflow files exist',
+    name: "Workflow files exist",
     check: () => {
       const workflows = [
-        '.github/workflows/ci.yml',
-        '.github/workflows/publish.yml'
+        ".github/workflows/ci.yml",
+        ".github/workflows/publish.yml",
       ];
-      return workflows.every(w => existsSync(w));
+      return workflows.every((w) => existsSync(w));
     },
-    error: 'Required workflow files missing'
+    error: "Required workflow files missing",
   },
   {
-    name: 'Badge URLs match workflows',
+    name: "Badge URLs match workflows",
     check: () => {
-      if (!existsSync('README.md')) return false;
-      if (!existsSync('.github/workflows')) return false;
+      if (!existsSync("README.md")) return false;
+      if (!existsSync(".github/workflows")) return false;
 
-      const readme = readFileSync('README.md', 'utf-8');
-      const workflowFiles = readdirSync('.github/workflows')
-        .filter(f => f.endsWith('.yml') && !f.endsWith('.deprecated'));
+      const readme = readFileSync("README.md", "utf-8");
+      const workflowFiles = readdirSync(".github/workflows").filter(
+        (f) => f.endsWith(".yml") && !f.endsWith(".deprecated"),
+      );
 
       const workflowNames: string[] = [];
       for (const file of workflowFiles) {
-        const content = readFileSync(`.github/workflows/${file}`, 'utf-8');
+        const content = readFileSync(`.github/workflows/${file}`, "utf-8");
         const nameMatch = content.match(/^name:\s*(.+)$/m);
         if (nameMatch) {
           workflowNames.push(nameMatch[1].trim());
@@ -272,97 +273,109 @@ const PRE_RELEASE_CHECKS: PreReleaseCheck[] = [
       }
       return true;
     },
-    error: 'README badges reference non-existent workflows'
+    error: "README badges reference non-existent workflows",
   },
   {
-    name: 'package.json version is placeholder',
+    name: "package.json version is placeholder",
     check: () => {
-      if (!existsSync('package.json')) {
+      if (!existsSync("package.json")) {
         return false;
       }
-      const packageJson = JSON.parse(readFileSync('package.json', 'utf-8'));
-      return packageJson.version === '0.0.0-development';
+      const packageJson = JSON.parse(readFileSync("package.json", "utf-8"));
+      return packageJson.version === "0.0.0-development";
     },
-    error: 'package.json version should be "0.0.0-development" for single source of truth',
-    warning: true
+    error:
+      'package.json version should be "0.0.0-development" for single source of truth',
+    warning: true,
   },
   {
-    name: '@semantic-release/git plugin NOT present',
+    name: "@semantic-release/git plugin NOT present",
     check: () => {
-      if (!existsSync('.releaserc.json')) {
+      if (!existsSync(".releaserc.json")) {
         return true; // OK if no config file
       }
-      const releaserc = JSON.parse(readFileSync('.releaserc.json', 'utf-8'));
+      const releaserc = JSON.parse(readFileSync(".releaserc.json", "utf-8"));
       if (!releaserc.plugins) {
         return true; // OK if no plugins
       }
       // Check that git plugin is NOT present
-      return !releaserc.plugins.some((p: any) =>
-        p === '@semantic-release/git' ||
-        (Array.isArray(p) && p[0] === '@semantic-release/git')
+      return !releaserc.plugins.some(
+        (p: any) =>
+          p === "@semantic-release/git" ||
+          (Array.isArray(p) && p[0] === "@semantic-release/git"),
       );
     },
-    error: '@semantic-release/git plugin found - should be removed for Alternative D',
-    warning: true
+    error:
+      "@semantic-release/git plugin found - should be removed for Alternative D",
+    warning: true,
   },
   {
-    name: 'Working directory clean',
+    name: "Working directory clean",
     check: () => {
       try {
-        const status = execSync('git status --porcelain', { encoding: 'utf-8' });
+        const status = execSync("git status --porcelain", {
+          encoding: "utf-8",
+        });
         return status.trim().length === 0;
       } catch {
         return false;
       }
     },
-    error: 'Uncommitted changes detected'
+    error: "Uncommitted changes detected",
   },
   {
-    name: 'On main branch',
+    name: "On main branch",
     check: () => {
       try {
-        const branch = execSync('git branch --show-current', { encoding: 'utf-8' });
-        return branch.trim() === 'main';
+        const branch = execSync("git branch --show-current", {
+          encoding: "utf-8",
+        });
+        return branch.trim() === "main";
       } catch {
         return false;
       }
     },
-    error: 'Not on main branch - releases must be from main'
+    error: "Not on main branch - releases must be from main",
   },
   {
-    name: 'All CI checks passed',
+    name: "All CI checks passed",
     check: () => {
       try {
         // Get latest commit SHA
-        const sha = execSync('git rev-parse HEAD', { encoding: 'utf-8' }).trim();
+        const sha = execSync("git rev-parse HEAD", {
+          encoding: "utf-8",
+        }).trim();
 
         // Check if all required workflows passed for this commit
         const result = execSync(
           `gh run list --commit ${sha} --json conclusion,status`,
-          { encoding: 'utf-8', stdio: 'pipe' }
+          { encoding: "utf-8", stdio: "pipe" },
         );
         const runs = JSON.parse(result);
 
-        return runs.every((run: any) =>
-          run.status === 'completed' && run.conclusion === 'success'
+        return runs.every(
+          (run: any) =>
+            run.status === "completed" && run.conclusion === "success",
         );
       } catch {
         // gh CLI not available or other error - skip this check
         return true;
       }
     },
-    error: 'CI checks have not all passed for HEAD commit',
-    warning: true // Warning because gh CLI might not be available
-  }
+    error: "CI checks have not all passed for HEAD commit",
+    warning: true, // Warning because gh CLI might not be available
+  },
 ];
 
 /**
  * Doctor command - check system requirements
  */
-export async function doctorCommand(options: DoctorOptions = {}): Promise<void> {
+export async function doctorCommand(
+  options: DoctorOptions = {},
+): Promise<void> {
   // Pre-release validation mode
   if (options.preRelease) {
-    logger.section('Pre-Release Validation');
+    logger.section("Pre-Release Validation");
 
     let hasErrors = false;
     let hasWarnings = false;
@@ -382,7 +395,9 @@ export async function doctorCommand(options: DoctorOptions = {}): Promise<void> 
           }
         }
       } catch (error: any) {
-        logger.error(`❌ ${check.name}: Check failed - ${error.message || error}`);
+        logger.error(
+          `❌ ${check.name}: Check failed - ${error.message || error}`,
+        );
         hasErrors = true;
       }
     }
@@ -391,22 +406,22 @@ export async function doctorCommand(options: DoctorOptions = {}): Promise<void> 
     logger.divider();
 
     if (hasErrors) {
-      logger.error('⛔ Pre-release validation FAILED');
-      logger.info('   Fix the errors above before publishing');
+      logger.error("⛔ Pre-release validation FAILED");
+      logger.info("   Fix the errors above before publishing");
       process.exit(1);
     } else if (hasWarnings) {
-      logger.warn('⚠️  Pre-release validation passed with warnings');
-      logger.info('   Review warnings - they may indicate issues');
+      logger.warn("⚠️  Pre-release validation passed with warnings");
+      logger.info("   Review warnings - they may indicate issues");
     } else {
-      logger.success('✅ Pre-release validation PASSED');
-      logger.info('   Ready to publish!');
+      logger.success("✅ Pre-release validation PASSED");
+      logger.info("   Ready to publish!");
     }
 
     return;
   }
 
   // Standard system health check
-  logger.section('System Health Check');
+  logger.section("System Health Check");
 
   let hasErrors = false;
   let hasWarnings = false;
@@ -416,21 +431,27 @@ export async function doctorCommand(options: DoctorOptions = {}): Promise<void> 
   if (tokenStatus.found) {
     logger.success(`GitHub token: ${tokenStatus.source}`);
   } else {
-    logger.warn('GitHub token: Not found');
+    logger.warn("GitHub token: Not found");
     logger.blank();
 
     // Show ranked setup options
     if (tokenStatus.setupOptions && tokenStatus.setupOptions.length > 0) {
-      logger.log('Setup Options (ranked by security & your system):');
+      logger.log("Setup Options (ranked by security & your system):");
       logger.blank();
 
       // Show recommended option first
-      const recommended = tokenStatus.setupOptions.filter(opt => opt.priority === 'recommended');
-      const alternatives = tokenStatus.setupOptions.filter(opt => opt.priority === 'alternative');
+      const recommended = tokenStatus.setupOptions.filter(
+        (opt) => opt.priority === "recommended",
+      );
+      const alternatives = tokenStatus.setupOptions.filter(
+        (opt) => opt.priority === "alternative",
+      );
 
       if (recommended.length > 0) {
         for (const option of recommended) {
-          logger.success(`✨ Recommended: ${option.method} (${option.security} security)`);
+          logger.success(
+            `✨ Recommended: ${option.method} (${option.security} security)`,
+          );
           for (const step of option.steps) {
             logger.log(`   ${step}`);
           }
@@ -442,7 +463,9 @@ export async function doctorCommand(options: DoctorOptions = {}): Promise<void> 
       if (alternatives.length > 0) {
         for (let i = 0; i < alternatives.length; i++) {
           const option = alternatives[i];
-          logger.log(`Alternative ${i + 1}: ${option.method} (${option.security} security)`);
+          logger.log(
+            `Alternative ${i + 1}: ${option.method} (${option.security} security)`,
+          );
           for (const step of option.steps) {
             logger.log(`   ${step}`);
           }
@@ -453,24 +476,26 @@ export async function doctorCommand(options: DoctorOptions = {}): Promise<void> 
       }
 
       logger.blank();
-      logger.log('Generate token at: https://github.com/settings/tokens');
-      logger.log('Required scopes: repo (full control of private repositories)');
+      logger.log("Generate token at: https://github.com/settings/tokens");
+      logger.log(
+        "Required scopes: repo (full control of private repositories)",
+      );
     }
 
     hasWarnings = true;
   }
 
   logger.blank();
-  logger.log('Required Tools:');
+  logger.log("Required Tools:");
   logger.divider();
 
   // Check required tools
-  const requiredTools = TOOLS.filter(t => t.required);
+  const requiredTools = TOOLS.filter((t) => t.required);
   for (const tool of requiredTools) {
     const exists = commandExists(tool.name);
     if (exists) {
       const version = tool.checkCommand ? getVersion(tool.checkCommand) : null;
-      logger.success(`${tool.name.padEnd(20)} ${version || '(installed)'}`);
+      logger.success(`${tool.name.padEnd(20)} ${version || "(installed)"}`);
     } else {
       logger.error(`${tool.name.padEnd(20)} NOT FOUND`);
       logger.info(`  ${tool.purpose}`);
@@ -482,16 +507,16 @@ export async function doctorCommand(options: DoctorOptions = {}): Promise<void> 
   }
 
   logger.blank();
-  logger.log('Optional Tools:');
+  logger.log("Optional Tools:");
   logger.divider();
 
   // Check optional tools
-  const optionalTools = TOOLS.filter(t => !t.required);
+  const optionalTools = TOOLS.filter((t) => !t.required);
   for (const tool of optionalTools) {
     const exists = commandExists(tool.name);
     if (exists) {
       const version = tool.checkCommand ? getVersion(tool.checkCommand) : null;
-      logger.success(`${tool.name.padEnd(20)} ${version || '(installed)'}`);
+      logger.success(`${tool.name.padEnd(20)} ${version || "(installed)"}`);
     } else {
       logger.warn(`${tool.name.padEnd(20)} NOT FOUND (optional)`);
       logger.info(`  ${tool.purpose}`);
@@ -507,21 +532,21 @@ export async function doctorCommand(options: DoctorOptions = {}): Promise<void> 
 
   // Summary
   if (hasErrors) {
-    logger.error('⚠️  Required tools are missing - gpm may not work correctly');
-    logger.info('   Please install missing required tools before using gpm');
+    logger.error("⚠️  Required tools are missing - gpm may not work correctly");
+    logger.info("   Please install missing required tools before using gpm");
   } else if (hasWarnings) {
-    logger.warn('ℹ️  Some optional tools are missing');
-    logger.info('   gpm will work but some features may be limited:');
-    logger.info('   • Secret scanning requires detect-secrets');
-    logger.info('   • Python security scans require pip-audit');
-    logger.info('   • Enhanced GitHub features require gh CLI');
+    logger.warn("ℹ️  Some optional tools are missing");
+    logger.info("   gpm will work but some features may be limited:");
+    logger.info("   • Secret scanning requires detect-secrets");
+    logger.info("   • Python security scans require pip-audit");
+    logger.info("   • Enhanced GitHub features require gh CLI");
   } else {
-    logger.success('✅ All tools installed - your setup is complete!');
+    logger.success("✅ All tools installed - your setup is complete!");
   }
 
   logger.blank();
-  logger.log('Next Steps:');
-  logger.info('  gpm init              - Initialize .gpm.yml configuration');
-  logger.info('  gpm docs              - View documentation');
-  logger.info('  gpm --help            - Show all commands');
+  logger.log("Next Steps:");
+  logger.info("  gpm init              - Initialize .gpm.yml configuration");
+  logger.info("  gpm docs              - View documentation");
+  logger.info("  gpm --help            - Show all commands");
 }
