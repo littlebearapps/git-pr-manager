@@ -147,7 +147,6 @@ describe("GitHubService", () => {
           url: "https://api.github.com/user",
           headers: {},
           data: {},
-          retryCount: 0,
         },
       });
 
@@ -318,7 +317,6 @@ describe("GitHubService", () => {
             url: "https://api.github.com/repos/testowner/testrepo/pulls/999",
             headers: {},
             data: {},
-            retryCount: 0,
           },
         });
 
@@ -449,7 +447,6 @@ describe("GitHubService", () => {
             url: "https://api.github.com/repos/testowner/testrepo/pulls/123/merge",
             headers: {},
             data: {},
-            retryCount: 0,
           },
         });
 
@@ -475,7 +472,6 @@ describe("GitHubService", () => {
             url: "https://api.github.com/repos/testowner/testrepo/pulls/123/merge",
             headers: {},
             data: {},
-            retryCount: 0,
           },
         });
 
@@ -524,7 +520,6 @@ describe("GitHubService", () => {
           url: "https://api.github.com/repos/testowner/testrepo/git/refs/heads/nonexistent",
           headers: {},
           data: {},
-          retryCount: 0,
         },
       });
 
