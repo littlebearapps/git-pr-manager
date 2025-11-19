@@ -77,26 +77,51 @@ export class SecurityScanner {
         };
       }
 
-      // Run detect-secrets scan
-      const { stdout, stderr } = await execAsync(
-        'detect-secrets scan --baseline .secrets.baseline 2>&1 || true',
-        { cwd: this.workingDir }
-      );
+      // Save original baseline file to prevent timestamp-only changes
+      // (detect-secrets scan updates the generated_at timestamp on every run)
+      const baselinePath = `${this.workingDir}/.secrets.baseline`;
+      let originalBaseline: string | null = null;
 
-      const output = stdout + stderr;
-
-      // Parse output for potential secrets
-      const secrets = this.parseSecrets(output);
-
-      if (secrets.length > 0) {
-        return {
-          found: true,
-          secrets,
-          blocked: true
-        };
+      try {
+        originalBaseline = await fs.readFile(baselinePath, 'utf-8');
+      } catch {
+        // Baseline file doesn't exist yet - that's OK
       }
 
-      return { found: false, secrets: [] };
+      try {
+        // Run detect-secrets scan
+        const { stdout, stderr } = await execAsync(
+          'detect-secrets scan --baseline .secrets.baseline 2>&1 || true',
+          { cwd: this.workingDir }
+        );
+
+        const output = stdout + stderr;
+
+        // Parse output for potential secrets
+        const secrets = this.parseSecrets(output);
+
+        if (secrets.length > 0) {
+          return {
+            found: true,
+            secrets,
+            blocked: true
+          };
+        }
+
+        return { found: false, secrets: [] };
+      } finally {
+        // Restore original baseline file to prevent timestamp-only changes
+        if (originalBaseline !== null) {
+          try {
+            await fs.writeFile(baselinePath, originalBaseline, 'utf-8');
+          } catch (error: any) {
+            // Log warning but don't fail the scan
+            if (process.env.DEBUG) {
+              console.warn(`Warning: Failed to restore .secrets.baseline: ${error.message}`);
+            }
+          }
+        }
+      }
     } catch (error: any) {
       // If detect-secrets errors out, warn but don't block
       return {

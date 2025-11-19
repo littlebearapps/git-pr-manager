@@ -8,6 +8,8 @@ jest.mock('fs/promises');
 
 const mockedExec = child_process.exec as jest.MockedFunction<typeof child_process.exec>;
 const mockedFsAccess = fs.access as jest.MockedFunction<typeof fs.access>;
+const mockedReadFile = fs.readFile as jest.MockedFunction<typeof fs.readFile>;
+const mockedWriteFile = fs.writeFile as jest.MockedFunction<typeof fs.writeFile>;
 
 describe('SecurityScanner', () => {
   let scanner: SecurityScanner;
@@ -73,6 +75,117 @@ describe('SecurityScanner', () => {
 
       expect(result.skipped).toBe(true);
       expect(result.reason).toContain('not installed');
+    });
+
+    it('should restore baseline file after scanning to prevent timestamp-only changes', async () => {
+      const originalBaseline = '{"version":"1.0.0","generated_at":"2025-11-18T10:00:00Z"}';
+
+      // Mock readFile to return original baseline
+      mockedReadFile.mockResolvedValueOnce(originalBaseline as any);
+
+      // Mock which command succeeds
+      mockedExec.mockImplementationOnce((_cmd, _opts, callback: any) => {
+        callback(null, { stdout: '', stderr: '' });
+        return {} as any;
+      });
+
+      // Mock detect-secrets finds nothing
+      mockedExec.mockImplementationOnce((_cmd, _opts, callback: any) => {
+        callback(null, { stdout: '', stderr: '' });
+        return {} as any;
+      });
+
+      // Mock writeFile to capture restored baseline
+      mockedWriteFile.mockResolvedValueOnce(undefined);
+
+      await scanner.scanForSecrets();
+
+      // Verify baseline was saved
+      expect(mockedReadFile).toHaveBeenCalledWith('/test/dir/.secrets.baseline', 'utf-8');
+
+      // Verify baseline was restored
+      expect(mockedWriteFile).toHaveBeenCalledWith('/test/dir/.secrets.baseline', originalBaseline, 'utf-8');
+    });
+
+    it('should restore baseline file even when secrets are found', async () => {
+      const originalBaseline = '{"version":"1.0.0","generated_at":"2025-11-18T10:00:00Z"}';
+
+      // Mock readFile to return original baseline
+      mockedReadFile.mockResolvedValueOnce(originalBaseline as any);
+
+      // Mock which command succeeds
+      mockedExec.mockImplementationOnce((_cmd, _opts, callback: any) => {
+        callback(null, { stdout: '', stderr: '' });
+        return {} as any;
+      });
+
+      // Mock detect-secrets finds secrets
+      mockedExec.mockImplementationOnce((_cmd, _opts, callback: any) => {
+        callback(null, { stdout: 'config.py:25: Potential secret', stderr: '' });
+        return {} as any;
+      });
+
+      // Mock writeFile to capture restored baseline
+      mockedWriteFile.mockResolvedValueOnce(undefined);
+
+      const result = await scanner.scanForSecrets();
+
+      expect(result.found).toBe(true);
+
+      // Verify baseline was restored even when secrets found
+      expect(mockedWriteFile).toHaveBeenCalledWith('/test/dir/.secrets.baseline', originalBaseline, 'utf-8');
+    });
+
+    it('should handle missing baseline file gracefully', async () => {
+      // Mock readFile to fail (baseline doesn't exist)
+      mockedReadFile.mockRejectedValueOnce(new Error('ENOENT: no such file'));
+
+      // Mock which command succeeds
+      mockedExec.mockImplementationOnce((_cmd, _opts, callback: any) => {
+        callback(null, { stdout: '', stderr: '' });
+        return {} as any;
+      });
+
+      // Mock detect-secrets finds nothing
+      mockedExec.mockImplementationOnce((_cmd, _opts, callback: any) => {
+        callback(null, { stdout: '', stderr: '' });
+        return {} as any;
+      });
+
+      const result = await scanner.scanForSecrets();
+
+      expect(result.found).toBe(false);
+
+      // Verify writeFile was NOT called (no baseline to restore)
+      expect(mockedWriteFile).not.toHaveBeenCalled();
+    });
+
+    it('should continue scanning if baseline restore fails', async () => {
+      const originalBaseline = '{"version":"1.0.0","generated_at":"2025-11-18T10:00:00Z"}';
+
+      // Mock readFile to return original baseline
+      mockedReadFile.mockResolvedValueOnce(originalBaseline as any);
+
+      // Mock which command succeeds
+      mockedExec.mockImplementationOnce((_cmd, _opts, callback: any) => {
+        callback(null, { stdout: '', stderr: '' });
+        return {} as any;
+      });
+
+      // Mock detect-secrets finds nothing
+      mockedExec.mockImplementationOnce((_cmd, _opts, callback: any) => {
+        callback(null, { stdout: '', stderr: '' });
+        return {} as any;
+      });
+
+      // Mock writeFile to fail (permission error)
+      mockedWriteFile.mockRejectedValueOnce(new Error('EACCES: permission denied'));
+
+      // Should not throw - scan should complete successfully
+      const result = await scanner.scanForSecrets();
+
+      expect(result.found).toBe(false);
+      expect(result.skipped).toBeUndefined();
     });
   });
 
