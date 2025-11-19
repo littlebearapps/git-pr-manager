@@ -1,0 +1,404 @@
+# llms.txt - AI Agent Metadata for Git PR Manager (GPM)
+
+## Package Information
+- Name: @littlebearapps/git-pr-manager
+- Binary: gpm
+- Type: CLI tool for GitHub workflow automation
+- Languages Supported: Python, Node.js, Go, Rust (auto-detected)
+- Platform: Cross-platform (Linux, macOS, Windows)
+- License: MIT
+
+## Installation
+```bash
+npm install -g @littlebearapps/git-pr-manager
+```
+
+## Quick Start
+```bash
+export GITHUB_TOKEN="ghp_..."
+gpm init --interactive
+gpm auto
+```
+
+## Core Capabilities
+1. Automated PR workflow (feature branch → PR → CI → merge)
+2. Multi-language verification (Python/Node.js/Go/Rust auto-detection)
+3. Security scanning (secrets + vulnerabilities)
+4. CI status monitoring with intelligent polling
+5. Branch protection validation
+6. Git worktree support
+
+## Machine-Readable Output
+All commands support `--json` flag for structured output.
+JSON schemas documented in: docs/guides/JSON-OUTPUT-SCHEMAS.md
+
+## Command Categories
+
+### Workflow Automation
+- gpm auto: Full automated workflow
+- gpm ship: Manual PR workflow with more control
+- gpm feature <name>: Create feature branch
+
+### CI & Status
+- gpm checks <pr>: CI status for PR number
+- gpm status: Git and workflow status
+
+### Configuration & Security
+- gpm init: Initialize .gpm.yml configuration
+- gpm security: Run security scans
+- gpm doctor: System health check
+- gpm protect: Branch protection management
+
+### Git Operations
+- gpm install-hooks: Install git hooks
+- gpm uninstall-hooks: Remove git hooks
+- gpm worktree list: List worktrees
+- gpm worktree prune: Clean stale worktree data
+
+### Verification
+- gpm verify: Pre-commit checks (format, lint, test, typecheck, build)
+
+### Utilities
+- gpm check-update: Check for package updates
+- gpm docs: View documentation
+
+## API Patterns
+
+### Python Example
+```python
+import subprocess, json
+result = subprocess.run(['gpm', 'auto', '--json'], capture_output=True, text=True)
+data = json.loads(result.stdout)
+```
+
+### JavaScript Example
+```javascript
+const { execSync } = require('child_process');
+const output = execSync('gpm checks 47 --json', { encoding: 'utf-8' });
+const status = JSON.parse(output);
+```
+
+### Go Example
+```go
+cmd := exec.Command("gpm", "doctor", "--json")
+output, _ := cmd.Output()
+json.Unmarshal(output, &result)
+```
+
+## JSON Output Schemas
+
+### gpm auto --json
+```json
+{
+  "prNumber": 47,
+  "url": "https://github.com/owner/repo/pull/47",
+  "ciStatus": "success",
+  "merged": true,
+  "workflow": {
+    "verify": {"passed": true, "duration": 2500},
+    "security": {"passed": true, "duration": 1200},
+    "pr": {"created": true, "duration": 800},
+    "ci": {"passed": true, "duration": 180000},
+    "merge": {"merged": true, "duration": 1500}
+  }
+}
+```
+
+### gpm checks <pr> --json
+```json
+{
+  "total": 5,
+  "passed": 5,
+  "failed": 0,
+  "pending": 0,
+  "skipped": 0,
+  "overallStatus": "success",
+  "failureDetails": [],
+  "startedAt": "2025-11-19T10:30:00Z"
+}
+```
+
+### gpm status --json
+```json
+{
+  "branch": "feature/my-feature",
+  "clean": true,
+  "ahead": 2,
+  "behind": 0,
+  "hooks": {
+    "prePush": true,
+    "postCommit": false
+  },
+  "worktree": {
+    "isWorktree": false,
+    "mainWorktree": null
+  }
+}
+```
+
+### gpm security --json
+```json
+{
+  "passed": true,
+  "secretsFound": 0,
+  "vulnerabilities": {
+    "critical": 0,
+    "high": 0,
+    "moderate": 0,
+    "low": 0
+  }
+}
+```
+
+### gpm doctor --json
+```json
+{
+  "token": {
+    "found": true,
+    "source": "GITHUB_TOKEN"
+  },
+  "tools": [
+    {"name": "git", "found": true, "version": "2.51.0", "required": true},
+    {"name": "node", "found": true, "version": "v20.10.0", "required": true},
+    {"name": "gh", "found": true, "version": "2.78.0", "required": false},
+    {"name": "detect-secrets", "found": false, "required": false}
+  ],
+  "checks": []
+}
+```
+
+## Configuration Schema (.gpm.yml)
+
+```yaml
+branchProtection:
+  enabled: true
+  requireReviews: 1
+  requireStatusChecks: [test, lint]
+
+ci:
+  waitForChecks: true
+  failFast: true
+  timeout: 30
+
+security:
+  scanSecrets: true
+  scanDependencies: true
+
+verification:
+  detectionEnabled: true
+  preferMakefile: true
+  commands:
+    lint: "make lint"
+    test: "make test"
+  tasks: [format, lint, typecheck, test, build]
+  skipTasks: []
+  stopOnFirstFailure: true
+```
+
+## Environment Variables
+- **GITHUB_TOKEN** (required): GitHub personal access token
+- **DEBUG** (optional): Enable verbose logging
+- **NO_UPDATE_NOTIFIER** (optional): Disable update checks
+- **CI** (auto-detected): CI environment indicator
+
+## Exit Codes
+- 0: Success
+- 1: General failure
+- 2: Validation error
+- 3: Authentication error
+- 4: Rate limit exceeded
+
+## Links
+- Documentation: docs/guides/AI-AGENT-INTEGRATION.md
+- JSON Schemas: docs/guides/JSON-OUTPUT-SCHEMAS.md
+- GitHub Actions: docs/guides/GITHUB-ACTIONS-INTEGRATION.md
+- npm Package: https://www.npmjs.com/package/@littlebearapps/git-pr-manager
+- Source Code: https://github.com/littlebearapps/git-pr-manager
+
+## AI Agent Integration Patterns
+
+### Task: Create PR for current feature
+```bash
+gpm auto --json
+```
+
+### Task: Check if PR is ready to merge
+```bash
+gpm checks <pr-number> --json | jq '.overallStatus == "success"'
+```
+
+### Task: Get PR number from git branch
+```bash
+git rev-parse --abbrev-ref HEAD | grep -oP 'feature/\K.*'
+```
+
+### Task: Monitor CI status until completion
+```bash
+while true; do
+  status=$(gpm checks 47 --json | jq -r '.overallStatus')
+  [[ "$status" != "pending" ]] && break
+  sleep 30
+done
+```
+
+### Task: Verify repository health
+```bash
+gpm doctor --json | jq -e '.token.found and all(.tools[] | select(.required==true) | .found)'
+```
+
+## Common Issues and Solutions
+
+### Issue: "No GitHub token found"
+**Solution**: `export GITHUB_TOKEN="ghp_..."`
+
+### Issue: "Rate limit exceeded"
+**Solution**: Wait for rate limit reset or use authenticated requests
+
+### Issue: "detect-secrets not found"
+**Solution**: `pip install detect-secrets` (optional - npm audit still runs)
+
+### Issue: "Branch checked out in another worktree"
+**Solution**: `gpm worktree list` to find conflicting worktree
+
+## Performance Characteristics
+- CI wait time: 30-40% faster with exponential backoff
+- API calls: 40-60% reduction via caching (LRU + ETag)
+- Config loads: 98% faster when cached
+- Update checks: <10ms impact (fire-and-forget)
+
+## Testing
+- Total: 846 tests (845 passing, 1 skipped)
+- Coverage: 89.67% statements, 82.82% branches
+- Test framework: Jest with TypeScript
+
+## Language Detection (Multi-Language Support)
+
+### Python
+- **Markers**: pyproject.toml, Pipfile, requirements.txt
+- **Package Managers**: poetry, pipenv, uv, pip
+- **Commands**: `poetry run ruff check .`, `poetry run mypy .`, `poetry run pytest`
+
+### Node.js
+- **Markers**: package.json
+- **Package Managers**: pnpm, yarn, bun, npm
+- **Commands**: `npm run lint`, `npx tsc --noEmit`, `npm test`, `npm run build`
+
+### Go
+- **Markers**: go.mod
+- **Package Manager**: go modules
+- **Commands**: `golangci-lint run`, `go test ./...`, `go build`
+
+### Rust
+- **Markers**: Cargo.toml
+- **Package Manager**: cargo
+- **Commands**: `cargo clippy`, `cargo test`, `cargo build`
+
+### Makefile Integration
+If `Makefile` exists with targets (lint, test, build), gpm prefers Makefile over native tools.
+
+## Flag Reference
+
+### Global Flags (All Commands)
+- `--json`: Machine-readable JSON output
+- `--quiet`: Errors and warnings only
+- `--silent`: No output (exit codes only)
+- `--verbose`: Detailed output with debug info
+
+### Command-Specific Flags
+
+**gpm auto**
+- `--draft`: Create draft PR (not ready for review)
+- `--no-merge`: Stop after CI passes (don't auto-merge)
+- `--skip-security`: Skip security scan step
+- `--skip-verify`: Skip pre-commit verification
+
+**gpm ship**
+- `--no-wait`: Don't wait for CI checks
+- `--skip-verify`: Skip pre-commit checks
+- `--skip-security`: Skip security scan
+- `--draft`: Create draft PR
+- `--title <title>`: Custom PR title
+- `--template <path>`: PR template path
+
+**gpm verify**
+- `--skip-format`: Skip code formatting check
+- `--skip-lint`: Skip linting
+- `--skip-typecheck`: Skip type checking
+- `--skip-test`: Skip tests
+- `--skip-build`: Skip build
+- `--skip-install`: Skip dependency installation
+- `--no-stop-on-first-failure`: Continue through all tasks
+
+**gpm checks**
+- `--details`: Show full error details
+- `--files`: Show affected files only
+
+**gpm doctor**
+- `--pre-release`: Run pre-release validation checks
+
+**gpm install-hooks**
+- `--post-commit`: Install both pre-push and post-commit hooks
+- `--force`: Overwrite existing hooks
+
+**gpm worktree prune**
+- `--dry-run`: Preview what would be pruned
+
+**gpm check-update**
+- `--channel <next|latest>`: Check prerelease channel
+- `--clear-cache`: Force fresh check
+
+## Typical AI Agent Workflow
+
+```bash
+# 1. Verify environment setup
+gpm doctor --json
+
+# 2. Start feature development
+gpm feature add-new-endpoint
+
+# 3. Make changes (AI agent writes code)
+# ... code changes ...
+
+# 4. Run full automated workflow
+gpm auto --json
+
+# 5. Parse result
+# {
+#   "prNumber": 47,
+#   "url": "https://github.com/owner/repo/pull/47",
+#   "ciStatus": "success",
+#   "merged": true
+# }
+
+# 6. Report success to user
+echo "✅ Feature shipped in PR #47"
+```
+
+## Advanced Patterns
+
+### Conditional merge based on CI
+```bash
+status=$(gpm checks 47 --json | jq -r '.overallStatus')
+if [ "$status" = "success" ]; then
+  gh pr merge 47 --squash
+else
+  echo "CI failed, not merging"
+fi
+```
+
+### Batch PR validation
+```bash
+for pr in $(gh pr list --json number -q '.[].number'); do
+  gpm checks $pr --json
+done
+```
+
+### Automated security reporting
+```bash
+result=$(gpm security --json)
+secrets=$(echo $result | jq -r '.secretsFound')
+if [ "$secrets" -gt 0 ]; then
+  # Alert security team
+  echo "⚠️ Found $secrets secrets in code"
+fi
+```

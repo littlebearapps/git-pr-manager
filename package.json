@@ -12,7 +12,8 @@
     "quickrefs/",
     "README.md",
     "CLAUDE.md",
-    "LICENSE"
+    "LICENSE",
+    "llms.txt"
   ],
   "scripts": {
     "build": "tsc",
