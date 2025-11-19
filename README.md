@@ -1,12 +1,23 @@
-# Git Workflow Manager v1.7.0
+# Git Workflow Manager
 
-Production-ready git workflow automation for GitHub with Claude Code integration. Streamlines feature development with intelligent CI polling, comprehensive error reporting, automated PR workflows, and **multi-language verification** (Python, Node.js, Go, Rust).
+Production-ready git workflow automation for GitHub with Claude Code integration. Streamlines feature development with intelligent CI polling, comprehensive error reporting, automated PR workflows, **multi-language verification** (Python, Node.js, Go, Rust), and **automated release validation**.
 
 [![npm version](https://badge.fury.io/js/%40littlebearapps%2Fgit-pr-manager.svg)](https://www.npmjs.com/package/@littlebearapps/git-pr-manager)
 [![Node.js CI](https://github.com/littlebearapps/git-pr-manager/workflows/CI/badge.svg)](https://github.com/littlebearapps/git-pr-manager/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## ✨ What's New in v1.7.0
+## ✨ What's New
+
+### Release Validation Strategy (Alternative D) - Nov 2025
+- ✅ **Zero-drift version management**: package.json uses `0.0.0-development` placeholder; semantic-release determines actual versions
+- ✅ **Pre-release validation**: `gpm doctor --pre-release` runs 7 automated checks before publishing
+  - Verifies workflow files exist and badge URLs are correct
+  - Ensures working directory is clean and on main branch
+  - Validates all CI checks have passed
+- ✅ **Automated publish workflow integration**: Pre-release validation integrated into `.github/workflows/publish.yml`
+- ✅ **Smart CLI version detection**: Runtime version lookup via git tags (development) or npm (production)
+- ✅ **Single source of truth**: npm registry is authoritative; eliminates version drift between git and npm
+- 📚 See [docs/RELEASE-VALIDATION-STRATEGY.md](docs/RELEASE-VALIDATION-STRATEGY.md) for complete details
 
 ### Sprint 3 – Output Polish & Documentation (Nov 2025)
 - ✅ Cross-command spacing review: redundant `logger.blank()` → `logger.section()` pairs removed so sections render with a single intentional spacer everywhere.
