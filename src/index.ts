@@ -176,6 +176,7 @@ program
 program
   .command('doctor')
   .description('Check system requirements and optional dependencies')
+  .option('--pre-release', 'Run pre-release validation checks')
   .action(doctorCommand);
 
 program
