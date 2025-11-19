@@ -46,6 +46,13 @@ jobs:
         run: npm run build
         # Ensure package builds successfully
 
+      - name: Pre-release validation
+        run: |
+          npm install -g .
+          gpm doctor --pre-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Release
         id: release
         continue-on-error: true
