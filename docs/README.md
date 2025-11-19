@@ -1,6 +1,6 @@
 # Documentation Index
 
-Complete documentation for Git Workflow Manager organized by category.
+Complete documentation for Git PR Manager (GPM) organized by category.
 
 ## 📂 Documentation Structure
 

@@ -156,7 +156,7 @@ function showIndex(basePath: string): void {
 
   // Human-readable output below (will only output if jsonMode disabled)
   console.log(`
-📚 Git Workflow Manager Documentation (v${pkg.version})
+📚 Git PR Manager Documentation (v${pkg.version})
 
 📍 Installation Location: ${basePath}
 

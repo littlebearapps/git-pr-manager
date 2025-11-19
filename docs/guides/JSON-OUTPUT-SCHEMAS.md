@@ -763,7 +763,7 @@ All JSON responses follow a consistent structure:
     "path": "/usr/local/lib/node_modules/@littlebearapps/git-pr-manager/docs/README.md",
     "found": true,
     "contentLength": 4985,
-    "contentPreview": "# Documentation Index\n\nComplete documentation for Git Workflow Manager..."
+    "contentPreview": "# Documentation Index\n\nComplete documentation for Git PR Manager (GPM)..."
   },
   "metadata": {
     "timestamp": "2025-11-14T05:31:18.242Z",

@@ -1,4 +1,4 @@
-# Git Workflow Manager
+# Git PR Manager (GPM)
 
 Production-ready git workflow automation for GitHub with Claude Code integration. Streamlines feature development with intelligent CI polling, comprehensive error reporting, automated PR workflows, **multi-language verification** (Python, Node.js, Go, Rust), and **automated release validation**.
 

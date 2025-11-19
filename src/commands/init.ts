@@ -16,7 +16,7 @@ export async function initCommand(options: InitOptions): Promise<void> {
 
   // Interactive mode
   if (options.interactive && !options.template) {
-    logger.section('🚀 Git Workflow Manager - Configuration Setup');
+    logger.section('🚀 Git PR Manager - Configuration Setup');
     logger.blank();
 
     const answers = await prompts([
