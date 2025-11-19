@@ -5,8 +5,16 @@
 export interface CheckRunDetails {
   id: number;
   name: string;
-  status: 'queued' | 'in_progress' | 'completed';
-  conclusion: 'success' | 'failure' | 'neutral' | 'cancelled' | 'skipped' | 'timed_out' | 'action_required' | null;
+  status: "queued" | "in_progress" | "completed";
+  conclusion:
+    | "success"
+    | "failure"
+    | "neutral"
+    | "cancelled"
+    | "skipped"
+    | "timed_out"
+    | "action_required"
+    | null;
   html_url: string;
   details_url: string;
   output: {
@@ -31,7 +39,7 @@ export interface CheckSummary {
   failureDetails: FailureDetail[];
 
   // Overall status
-  overallStatus: 'success' | 'failure' | 'pending';
+  overallStatus: "success" | "failure" | "pending";
 
   // Timing
   startedAt: Date;
@@ -50,20 +58,20 @@ export interface FailureDetail {
 }
 
 export enum ErrorType {
-  TEST_FAILURE = 'test_failure',
-  LINTING_ERROR = 'linting_error',
-  TYPE_ERROR = 'type_error',
-  SECURITY_ISSUE = 'security_issue',
-  BUILD_ERROR = 'build_error',
-  FORMAT_ERROR = 'format_error',
-  UNKNOWN = 'unknown'
+  TEST_FAILURE = "test_failure",
+  LINTING_ERROR = "linting_error",
+  TYPE_ERROR = "type_error",
+  SECURITY_ISSUE = "security_issue",
+  BUILD_ERROR = "build_error",
+  FORMAT_ERROR = "format_error",
+  UNKNOWN = "unknown",
 }
 
 export interface Annotation {
   path: string;
   start_line: number;
   end_line: number;
-  annotation_level: 'failure' | 'warning' | 'notice';
+  annotation_level: "failure" | "warning" | "notice";
   message: string;
   title: string;
   raw_details?: string;
@@ -122,24 +130,24 @@ export interface WorkflowConfig {
 
   // Session 3.1: Auto-fix settings
   autoFix?: {
-    enabled?: boolean;           // Enable/disable auto-fix globally
-    maxAttempts?: number;        // Max fix attempts per error type (default: 2)
-    maxChangedLines?: number;    // Max lines that can be changed (default: 1000)
-    requireTests?: boolean;      // Run tests after fix (default: true)
-    enableDryRun?: boolean;      // Enable dry-run mode by default (default: false)
-    autoMerge?: boolean;         // Auto-merge fix PRs if checks pass (default: false)
-    createPR?: boolean;          // Create PR for fixes (default: true)
+    enabled?: boolean; // Enable/disable auto-fix globally
+    maxAttempts?: number; // Max fix attempts per error type (default: 2)
+    maxChangedLines?: number; // Max lines that can be changed (default: 1000)
+    requireTests?: boolean; // Run tests after fix (default: true)
+    enableDryRun?: boolean; // Enable dry-run mode by default (default: false)
+    autoMerge?: boolean; // Auto-merge fix PRs if checks pass (default: false)
+    createPR?: boolean; // Create PR for fixes (default: true)
   };
 
   // Phase 2: Git Hooks settings
   hooks?: {
     prePush?: {
-      enabled?: boolean;         // Pre-push hook installed (default: false)
-      reminder?: boolean;        // Show reminder message (default: true)
+      enabled?: boolean; // Pre-push hook installed (default: false)
+      reminder?: boolean; // Show reminder message (default: true)
     };
     postCommit?: {
-      enabled?: boolean;         // Post-commit hook installed (default: false)
-      reminder?: boolean;        // Show reminder message (default: true)
+      enabled?: boolean; // Post-commit hook installed (default: false)
+      reminder?: boolean; // Show reminder message (default: true)
     };
   };
 
@@ -159,14 +167,14 @@ export interface BranchInfo {
 }
 
 export interface MergeOptions {
-  method?: 'merge' | 'squash' | 'rebase';
+  method?: "merge" | "squash" | "rebase";
   commitTitle?: string;
   commitMessage?: string;
   sha?: string;
 }
 
 export interface PollStrategy {
-  type: 'fixed' | 'exponential';
+  type: "fixed" | "exponential";
   initialInterval: number;
   maxInterval?: number;
   multiplier?: number;
@@ -207,7 +215,7 @@ export interface CheckResult {
 export class TimeoutError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = 'TimeoutError';
+    this.name = "TimeoutError";
   }
 }
 
@@ -233,7 +241,7 @@ export interface ValidationResult {
   protection?: ProtectionStatus;
 }
 
-export type ProtectionPreset = 'basic' | 'standard' | 'strict';
+export type ProtectionPreset = "basic" | "standard" | "strict";
 
 // Phase 3: Security Scanner Types
 export interface SecretFinding {
@@ -254,7 +262,7 @@ export interface SecretScanResult {
 export interface Vulnerability {
   package: string;
   version: string;
-  severity: 'critical' | 'high' | 'medium' | 'low';
+  severity: "critical" | "high" | "medium" | "low";
   cve: string;
   description: string;
 }
@@ -281,10 +289,10 @@ export interface SecurityScanResult {
 
 // Phase 6: Auto-Fix Types
 export interface AutoFixConfig {
-  maxAttempts: number;        // Default: 2
-  maxChangedLines: number;    // Default: 1000
-  requireTests: boolean;      // Default: true
-  enableDryRun: boolean;      // Default: true
+  maxAttempts: number; // Default: 2
+  maxChangedLines: number; // Default: 1000
+  requireTests: boolean; // Default: true
+  enableDryRun: boolean; // Default: true
 }
 
 export interface AutoFixResult {
@@ -304,7 +312,7 @@ export interface AutoFixResult {
 export interface AutoFixSuggestion {
   command: string;
   autoFixable: boolean;
-  executionStrategy: 'deterministic' | 'ai' | 'manual';
+  executionStrategy: "deterministic" | "ai" | "manual";
   confidence?: number;
 }
 
@@ -345,10 +353,10 @@ export interface AutoFixMetrics {
  * Git worktree information
  */
 export interface WorktreeInfo {
-  path: string;          // Absolute path to worktree
-  commit: string;        // Current commit hash
+  path: string; // Absolute path to worktree
+  commit: string; // Current commit hash
   branch: string | null; // Branch name (null if detached HEAD)
-  isMain: boolean;       // True if this is the main/bare worktree
+  isMain: boolean; // True if this is the main/bare worktree
 }
 
 /**
@@ -356,7 +364,7 @@ export interface WorktreeInfo {
  */
 export interface WorktreeConflict {
   branchName: string;
-  worktrees: string[];   // Paths where branch is checked out
+  worktrees: string[]; // Paths where branch is checked out
 }
 
 // Phase 1a: Multi-Language Support Types
@@ -364,35 +372,35 @@ export interface WorktreeConflict {
 /**
  * Supported programming languages
  */
-export type Language = 'python' | 'nodejs' | 'go' | 'rust';
+export type Language = "python" | "nodejs" | "go" | "rust";
 
 /**
  * Supported package managers by language
  */
 export type PackageManager =
   // Python
-  | 'poetry'
-  | 'pipenv'
-  | 'uv'
-  | 'pip'
+  | "poetry"
+  | "pipenv"
+  | "uv"
+  | "pip"
   // Node.js
-  | 'pnpm'
-  | 'yarn'
-  | 'bun'
-  | 'npm'
+  | "pnpm"
+  | "yarn"
+  | "bun"
+  | "npm"
   // Go (single package manager)
-  | 'go-mod'
+  | "go-mod"
   // Rust (single package manager)
-  | 'cargo';
+  | "cargo";
 
 /**
  * Detected language information
  */
 export interface DetectedLanguage {
-  primary: Language;           // Main language of the project
-  additional: Language[];      // Additional languages (for monorepos)
-  confidence: number;          // Detection confidence (0-100)
-  sources: string[];          // Files that led to detection
+  primary: Language; // Main language of the project
+  additional: Language[]; // Additional languages (for monorepos)
+  confidence: number; // Detection confidence (0-100)
+  sources: string[]; // Files that led to detection
 }
 
 /**
@@ -400,29 +408,29 @@ export interface DetectedLanguage {
  */
 export interface DetectedPackageManager {
   packageManager: PackageManager;
-  lockFile: string | null;     // Path to lock file (if exists)
-  confidence: number;          // Detection confidence (0-100)
+  lockFile: string | null; // Path to lock file (if exists)
+  confidence: number; // Detection confidence (0-100)
 }
 
 /**
  * Tool commands for a specific language/task
  */
 export interface ToolCommands {
-  lint: string[];              // Lint commands (fallback chain)
-  test: string[];              // Test commands (fallback chain)
-  typecheck?: string[];        // Type check commands (optional)
-  format?: string[];           // Format commands (optional)
-  build?: string[];            // Build commands (optional)
-  install?: string[];          // Install commands (optional)
+  lint: string[]; // Lint commands (fallback chain)
+  test: string[]; // Test commands (fallback chain)
+  typecheck?: string[]; // Type check commands (optional)
+  format?: string[]; // Format commands (optional)
+  build?: string[]; // Build commands (optional)
+  install?: string[]; // Install commands (optional)
 }
 
 /**
  * Language detection configuration
  */
 export interface LanguageConfig {
-  primary?: Language;          // Explicit language override
-  additional?: Language[];     // Additional languages for monorepos
-  autoDetect?: boolean;        // Enable auto-detection (default: true)
+  primary?: Language; // Explicit language override
+  additional?: Language[]; // Additional languages for monorepos
+  autoDetect?: boolean; // Enable auto-detection (default: true)
   packageManager?: PackageManager; // Explicit package manager override
 }
 
@@ -443,7 +451,7 @@ export interface VerificationConfig {
   };
 
   // Makefile integration
-  preferMakefile?: boolean;    // Prefer Makefile targets (default: true)
+  preferMakefile?: boolean; // Prefer Makefile targets (default: true)
   makefileTargets?: {
     lint?: string;
     test?: string;
@@ -454,16 +462,26 @@ export interface VerificationConfig {
   };
 
   // Phase 1b: Makefile target name aliases
-  makefileAliases?: Record<string, 'lint' | 'test' | 'typecheck' | 'format' | 'build' | 'install'>;  // Map actual target names to tasks (e.g., { check: 'test', verify: 'lint' })
+  makefileAliases?: Record<
+    string,
+    "lint" | "test" | "typecheck" | "format" | "build" | "install"
+  >; // Map actual target names to tasks (e.g., { check: 'test', verify: 'lint' })
 
   // Detection
-  detectionEnabled?: boolean;  // Enable language detection (default: true)
+  detectionEnabled?: boolean; // Enable language detection (default: true)
 
   // Phase 1b: Install step support
-  allowInstall?: boolean;      // Allow automatic dependency installation (default: false)
+  allowInstall?: boolean; // Allow automatic dependency installation (default: false)
 
   // Phase 1c: Verification task ordering and control
-  tasks?: ('lint' | 'test' | 'typecheck' | 'format' | 'build' | 'install')[];  // Task execution order (default: ['format', 'lint', 'typecheck', 'test', 'build'])
-  skipTasks?: ('lint' | 'test' | 'typecheck' | 'format' | 'build' | 'install')[];  // Tasks to skip
-  stopOnFirstFailure?: boolean;  // Stop verification on first failure (default: true)
+  tasks?: ("lint" | "test" | "typecheck" | "format" | "build" | "install")[]; // Task execution order (default: ['format', 'lint', 'typecheck', 'test', 'build'])
+  skipTasks?: (
+    | "lint"
+    | "test"
+    | "typecheck"
+    | "format"
+    | "build"
+    | "install"
+  )[]; // Tasks to skip
+  stopOnFirstFailure?: boolean; // Stop verification on first failure (default: true)
 }

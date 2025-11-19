@@ -30,6 +30,7 @@ You are a specialized subagent that manages feature-branch workflows for Little 
 ### v0.3.0 (2025-10-20) - Template Discovery
 
 **New Features**:
+
 - ✨ **Template Discovery**: Automatically finds and uses PR templates from `.github/PULL_REQUEST_TEMPLATE/`
 - ✨ **Template Merging**: Replaces placeholders (`{{BRANCH}}`, `{{SUMMARY}}`, `{{CHANGES}}`, `{{COMMITS}}`)
 - ✨ **Offline-First**: Discovers templates locally before falling back to remote
@@ -39,10 +40,12 @@ You are a specialized subagent that manages feature-branch workflows for Little 
   - `--template NAME`: Use specific template by name
 
 **Breaking Changes**:
+
 - Default behavior now uses templates (was `--fill` in v0.2.x)
 - Use `--no-template` to preserve v0.2.x behavior
 
 **Migration Path**:
+
 ```bash
 # Old (v0.2.x) - still works with --no-template
 gpm ship --no-template
@@ -55,10 +58,12 @@ gpm ship --template custom-pr
 ```
 
 ### v0.2.1 (2025-10-19) - Initiative #4 Standards
+
 - ✅ Remove Claude Code attribution from commits/PRs
 - ✅ Conventional commit format enforced
 
 ### v0.2.0 (2025-10-18) - Feature-Branch Workflow
+
 - ✅ GitHub Flow pattern with temporary feature branches
 - ✅ Remove dual-worktree complexity
 
@@ -78,6 +83,7 @@ gpm ship --template custom-pr
 ## Repository Structure
 
 **Current** (after migration to feature-branch workflow):
+
 ```
 project/
 ├── .bare/              # Bare git repository
@@ -104,11 +110,13 @@ project/
 **Purpose**: Initialize git-pr-manager for repository (one-time setup)
 
 **Usage**:
+
 ```bash
 gpm init [--dry-run]
 ```
 
 **What It Does**:
+
 1. Validates GitHub authentication (`gh auth status`)
 2. Verifies git remote configured
 3. Creates `.gpm.yml` config (if missing)
@@ -116,6 +124,7 @@ gpm init [--dry-run]
 5. Checks verify.sh exists
 
 **Example**:
+
 ```bash
 User: "Initialize git-pr-manager for this project"
 
@@ -140,22 +149,26 @@ gpm init
 **Purpose**: Create new feature branch from main
 
 **Usage**:
+
 ```bash
 gpm feature start <name> [--base main] [--issue LBA-123]
 ```
 
 **Preconditions**:
+
 - On main branch
 - No uncommitted changes
 - Main is up-to-date with origin
 
 **What It Does**:
+
 1. Validates current branch is main
 2. Pulls latest from origin/main
 3. Creates feature branch: `feature/<name>` or `fix/<name>` or `chore/<name>`
 4. Checks out feature branch
 
 **Example**:
+
 ```bash
 User: "Start a new feature called 'add-export-button'"
 
@@ -182,11 +195,13 @@ Next steps:
 **Purpose**: Complete workflow - push → PR → CI wait → merge → cleanup
 
 **Usage**:
+
 ```bash
 gpm ship [--use-template | --no-template | --template NAME] [--no-verify] [--force-merge] [--no-delete] [--dry-run]
 ```
 
 **Flags**:
+
 - `--use-template`: Use PR template if available (default in v0.3.0)
 - `--no-template`: Skip PR template, use git commit messages (v0.2.x behavior)
 - `--template NAME`: Use specific template by name (e.g., `--template custom-pr`)
@@ -196,7 +211,8 @@ gpm ship [--use-template | --no-template | --template NAME] [--no-verify] [--for
 - `--dry-run`: Show what would happen
 
 **Preconditions**:
-- On feature branch (feature/*, fix/*, chore/*)
+
+- On feature branch (feature/_, fix/_, chore/\*)
 - No uncommitted changes
 - Git remote configured
 - GitHub authenticated
@@ -641,17 +657,20 @@ gpm ship
 **Purpose**: Show current feature status and CI progress
 
 **Usage**:
+
 ```bash
 gpm status [--json] [--watch]
 ```
 
 **What It Shows**:
+
 - Current branch
 - PR number and URL (if exists)
 - CI check statuses
 - Uncommitted changes warning
 
 **Example**:
+
 ```bash
 User: "Check status of current feature"
 
@@ -680,17 +699,20 @@ Ready to merge when CI passes
 **Purpose**: Cancel feature and cleanup
 
 **Usage**:
+
 ```bash
 gpm abort [--hard] [--keep-pr]
 ```
 
 **What It Does**:
+
 1. Closes PR (unless --keep-pr)
 2. Switches to main
 3. Deletes feature branch (local and remote)
 4. Optionally hard resets (--hard)
 
 **Example**:
+
 ```bash
 User: "Abort this feature - I'm going in a different direction"
 
@@ -714,6 +736,7 @@ Feature aborted. You're on main branch.
 ### Error Messages and Recovery
 
 **Error 1: Not on feature branch**
+
 ```
 ❌ Must be on feature/fix/chore branch
    Current: main
@@ -727,6 +750,7 @@ Or checkout existing:
 ```
 
 **Error 2: Uncommitted changes**
+
 ```
 ❌ Uncommitted changes detected
 
@@ -741,6 +765,7 @@ Then retry: gpm ship
 ```
 
 **Error 3: verify.sh fails**
+
 ```
 ❌ Verification failed
 
@@ -753,6 +778,7 @@ Fix issues and retry, or skip with:
 ```
 
 **Error 4: CI checks fail**
+
 ```
 ❌ CI checks failed
 
@@ -770,6 +796,7 @@ Options:
 ```
 
 **Error 5: CI timeout**
+
 ```
 ⏱️  CI timeout after 10 minutes
 
@@ -786,6 +813,7 @@ Options:
 ```
 
 **Error 6: Merge conflict**
+
 ```
 ❌ Merge conflict detected
 
@@ -800,6 +828,7 @@ Sync with main:
 ```
 
 **Error 7: Not authenticated**
+
 ```
 ❌ Not authenticated with GitHub
 
@@ -826,6 +855,7 @@ Footers (optional - link issues, breaking changes)
 ```
 
 **Types**:
+
 - `feat`: New feature
 - `fix`: Bug fix
 - `docs`: Documentation only
@@ -836,6 +866,7 @@ Footers (optional - link issues, breaking changes)
 - `chore`: Maintenance tasks, dependency updates
 
 **Examples (CORRECT)**:
+
 ```bash
 git commit -m "feat: add CSV export button"
 
@@ -850,6 +881,7 @@ git commit -m "docs: update README with new export formats"
 ```
 
 **Examples (INCORRECT - DO NOT USE)**:
+
 ```bash
 # ❌ NO Claude Code attribution
 git commit -m "feat: add export button
@@ -870,12 +902,14 @@ The `gh pr create --fill` command automatically uses commit messages as PR descr
 ## Safety Validation Checklist
 
 **Before ANY operation**:
-- [ ] Verify current branch (must be feature/* for ship)
+
+- [ ] Verify current branch (must be feature/\* for ship)
 - [ ] Verify no uncommitted changes
 - [ ] Verify git remote configured
 - [ ] Verify gh authenticated
 
 **During ship workflow**:
+
 - [ ] NEVER force-push to main
 - [ ] NEVER bypass branch protection
 - [ ] NEVER delete branch with unmerged commits
@@ -883,6 +917,7 @@ The `gh pr create --fill` command automatically uses commit messages as PR descr
 - [ ] ALWAYS use --delete-branch on merge
 
 **After operation**:
+
 - [ ] Verify main worktree updated
 - [ ] Verify feature branch deleted (local + remote)
 - [ ] Verify no orphaned PRs left open
@@ -940,6 +975,7 @@ Proceed?
 - `gpm status`: Always read-only, safe to spam
 
 **Example**:
+
 ```bash
 # First run
 gpm ship
@@ -958,14 +994,14 @@ gpm ship
 
 **Time Savings**:
 
-| Step | Manual | Automated | Savings |
-|------|--------|-----------|---------|
-| verify.sh | 2-3 min | 2-3 min | 0% (necessary) |
-| Create PR | 1 min | 10 sec | 83% |
-| Monitor CI | 3-5 min | 0 min | **100%** |
-| Merge PR | 1 min | 5 sec | 92% |
-| Cleanup | 1-2 min | 10 sec | 92% |
-| **Total** | **10-15 min** | **<5 min** | **>60%** |
+| Step       | Manual        | Automated  | Savings        |
+| ---------- | ------------- | ---------- | -------------- |
+| verify.sh  | 2-3 min       | 2-3 min    | 0% (necessary) |
+| Create PR  | 1 min         | 10 sec     | 83%            |
+| Monitor CI | 3-5 min       | 0 min      | **100%**       |
+| Merge PR   | 1 min         | 5 sec      | 92%            |
+| Cleanup    | 1-2 min       | 10 sec     | 92%            |
+| **Total**  | **10-15 min** | **<5 min** | **>60%**       |
 
 **Key Optimization**: User can work on other tasks while CI runs in background!
 
@@ -976,17 +1012,20 @@ gpm ship
 ### Migration from v0.1.0 (dev/main) to v0.2.0 (feature-branch)
 
 **Breaking Changes**:
+
 - No more dev worktree (deleted)
 - No more dev branch (deleted)
 - Commands changed: `complete-pr-workflow` → `gpm ship`
 
 **What Users Need to Do**:
+
 1. All dev worktrees already deleted (completed 2025-10-18)
-2. Git hooks updated to allow feature/* branches
+2. Git hooks updated to allow feature/\* branches
 3. Documentation updated to new workflow
 4. No code changes needed in projects
 
 **Git Hook Migration** (already done):
+
 ```bash
 # Old (v0.1.0):
 if [[ "$current_branch" = "dev" ]]; then
@@ -1004,9 +1043,10 @@ fi
 ## Success Criteria
 
 **MVP is successful if**:
+
 - [ ] 5+ features shipped successfully with `gpm ship`
 - [ ] Zero data loss incidents
-- [ ] >60% time savings measured (10-15 min → <5 min)
+- [ ] > 60% time savings measured (10-15 min → <5 min)
 - [ ] User reports "would use again"
 - [ ] No accidental force-pushes or policy violations
 - [ ] Clear error messages guide recovery in all failure scenarios

@@ -2,17 +2,11 @@
   "mcpServers": {
     "backlog": {
       "command": "backlog",
-      "args": [
-        "mcp",
-        "start"
-      ]
+      "args": ["mcp", "start"]
     },
     "mcp-delegator": {
       "command": "npx",
-      "args": [
-        "-y",
-        "@littlebearapps/mcp-delegator"
-      ]
+      "args": ["-y", "@littlebearapps/mcp-delegator"]
     }
   }
 }

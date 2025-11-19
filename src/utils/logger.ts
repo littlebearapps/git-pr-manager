@@ -1,15 +1,15 @@
-import chalk from 'chalk';
-import simpleGit from 'simple-git';
+import chalk from "chalk";
+import simpleGit from "simple-git";
 
 /**
  * Verbosity levels for logger
  */
 export enum VerbosityLevel {
-  SILENT = 0,   // No output
-  QUIET = 1,    // Errors only
-  NORMAL = 2,   // Errors + warnings + success
-  VERBOSE = 3,  // + info messages
-  DEBUG = 4,    // + debug logs
+  SILENT = 0, // No output
+  QUIET = 1, // Errors only
+  NORMAL = 2, // Errors + warnings + success
+  VERBOSE = 3, // + info messages
+  DEBUG = 4, // + debug logs
 }
 
 /**
@@ -38,12 +38,12 @@ export interface JsonResponse {
 async function getWorktreeContext(): Promise<string | null> {
   try {
     const git = simpleGit(process.cwd());
-    const output = await git.raw(['worktree', 'list']);
+    const output = await git.raw(["worktree", "list"]);
 
     // Find current worktree from output
     const cwd = process.cwd();
-    const lines = output.split('\n');
-    const currentLine = lines.find(line => line.startsWith(cwd));
+    const lines = output.split("\n");
+    const currentLine = lines.find((line) => line.startsWith(cwd));
 
     if (currentLine) {
       // Extract branch from line
@@ -69,11 +69,13 @@ export class Logger {
   private jsonMode: boolean;
   private startTime: number;
 
-  constructor(options: {
-    verbose?: boolean;
-    jsonMode?: boolean;
-    level?: VerbosityLevel;
-  } = {}) {
+  constructor(
+    options: {
+      verbose?: boolean;
+      jsonMode?: boolean;
+      level?: VerbosityLevel;
+    } = {},
+  ) {
     this.jsonMode = options.jsonMode ?? false;
     this.startTime = Date.now();
 
@@ -92,7 +94,7 @@ export class Logger {
    */
   static detectEnvironment(): VerbosityLevel {
     // CI environments should be quiet by default
-    if (process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true') {
+    if (process.env.CI === "true" || process.env.GITHUB_ACTIONS === "true") {
       return VerbosityLevel.QUIET;
     }
     return VerbosityLevel.NORMAL;
@@ -135,7 +137,7 @@ export class Logger {
         // In JSON mode, info messages are suppressed unless verbose
         return;
       }
-      console.log(chalk.blue('ℹ'), message);
+      console.log(chalk.blue("ℹ"), message);
     }
   }
 
@@ -147,7 +149,7 @@ export class Logger {
       if (this.jsonMode && data) {
         this.outputJson({ success: true, data });
       } else if (!this.jsonMode) {
-        console.log(chalk.green('✅'), message);
+        console.log(chalk.green("✅"), message);
       }
     }
   }
@@ -161,25 +163,30 @@ export class Logger {
         // Warnings in JSON mode are part of metadata
         return;
       }
-      console.log(chalk.yellow('⚠️ '), message);
+      console.log(chalk.yellow("⚠️ "), message);
     }
   }
 
   /**
    * Log error message
    */
-  error(message: string, code?: string, details?: any, suggestions?: string[]): void {
+  error(
+    message: string,
+    code?: string,
+    details?: any,
+    suggestions?: string[],
+  ): void {
     if (this.level >= VerbosityLevel.QUIET) {
       if (this.jsonMode) {
         this.outputJson({
           success: false,
-          error: { code: code ?? 'ERROR', message, details, suggestions }
+          error: { code: code ?? "ERROR", message, details, suggestions },
         });
       } else {
-        console.error(chalk.red('❌'), message);
+        console.error(chalk.red("❌"), message);
         if (suggestions && suggestions.length > 0) {
-          console.error(chalk.yellow('\nSuggestions:'));
-          suggestions.forEach(s => console.error(chalk.yellow(`  • ${s}`)));
+          console.error(chalk.yellow("\nSuggestions:"));
+          suggestions.forEach((s) => console.error(chalk.yellow(`  • ${s}`)));
         }
       }
     }
@@ -193,7 +200,7 @@ export class Logger {
     message: string,
     code?: string,
     details?: any,
-    suggestions?: string[]
+    suggestions?: string[],
   ): Promise<void> {
     const worktreeBranch = await getWorktreeContext();
 
@@ -215,7 +222,7 @@ export class Logger {
   debug(message: string): void {
     if (this.level >= VerbosityLevel.DEBUG) {
       if (!this.jsonMode) {
-        console.log(chalk.gray('🔍'), message);
+        console.log(chalk.gray("🔍"), message);
       }
     }
   }
@@ -234,7 +241,7 @@ export class Logger {
    */
   divider(): void {
     if (this.level >= VerbosityLevel.NORMAL && !this.jsonMode) {
-      console.log(chalk.gray('─'.repeat(80)));
+      console.log(chalk.gray("─".repeat(80)));
     }
   }
 
@@ -243,7 +250,7 @@ export class Logger {
    */
   blank(): void {
     if (this.level >= VerbosityLevel.NORMAL && !this.jsonMode) {
-      console.log('');
+      console.log("");
     }
   }
 
@@ -274,7 +281,7 @@ export class Logger {
     };
 
     // Emit a single-line JSON object followed by a newline (stdout)
-    process.stdout.write(JSON.stringify(fullResponse) + '\n');
+    process.stdout.write(JSON.stringify(fullResponse) + "\n");
   }
 
   /**
@@ -282,17 +289,21 @@ export class Logger {
    */
   private getVersion(): string {
     try {
-      const pkg = require('../../package.json');
+      const pkg = require("../../package.json");
       return pkg.version;
     } catch {
-      return 'unknown';
+      return "unknown";
     }
   }
 
   /**
    * Output final JSON result
    */
-  outputJsonResult(success: boolean, data?: any, error?: JsonResponse['error']): void {
+  outputJsonResult(
+    success: boolean,
+    data?: any,
+    error?: JsonResponse["error"],
+  ): void {
     if (this.jsonMode) {
       this.outputJson({ success, data, error });
     }
@@ -307,10 +318,12 @@ export const logger = new Logger();
 /**
  * Create a logger with custom options
  */
-export function createLogger(options: {
-  verbose?: boolean;
-  jsonMode?: boolean;
-  level?: VerbosityLevel;
-} = {}): Logger {
+export function createLogger(
+  options: {
+    verbose?: boolean;
+    jsonMode?: boolean;
+    level?: VerbosityLevel;
+  } = {},
+): Logger {
   return new Logger(options);
 }

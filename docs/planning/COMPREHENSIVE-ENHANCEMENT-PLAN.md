@@ -1,4 +1,5 @@
 # git-pr-manager: Comprehensive Enhancement Plan
+
 ## Full SDK Migration + CI/Security Improvements
 
 **Version**: 2.0.0
@@ -24,19 +25,20 @@ This plan **supersedes** the original Option 2 migration plan by integrating fin
 
 ### Key Benefits
 
-| Aspect | Current (Bash + gh CLI) | After Enhancement | Improvement |
-|--------|-------------------------|-------------------|-------------|
-| **Error Visibility** | ⚠️ Generic "CI failed" | ✅ Detailed errors with file:line | 95% faster identification |
-| **CI Polling** | ⚠️ Blocking `gh pr checks` | ✅ Async with progress updates | 50-75% faster feedback |
-| **Error Resolution** | ⚠️ 30-60 min debugging | ✅ 5-10 min with suggested fixes | 80-90% time savings |
-| **Type Safety** | ❌ No types | ✅ Full TypeScript | Compile-time validation |
-| **Testing** | ❌ Manual only | ✅ Jest + Nock automated tests | 100% coverage possible |
-| **Security** | ⚠️ Post-push only | ✅ Pre-commit + PR scanning | Proactive protection |
-| **PR/Merge Time** | ⚠️ 2-4 hours average | ✅ 30-60 min average | 50-75% faster |
+| Aspect               | Current (Bash + gh CLI)    | After Enhancement                 | Improvement               |
+| -------------------- | -------------------------- | --------------------------------- | ------------------------- |
+| **Error Visibility** | ⚠️ Generic "CI failed"     | ✅ Detailed errors with file:line | 95% faster identification |
+| **CI Polling**       | ⚠️ Blocking `gh pr checks` | ✅ Async with progress updates    | 50-75% faster feedback    |
+| **Error Resolution** | ⚠️ 30-60 min debugging     | ✅ 5-10 min with suggested fixes  | 80-90% time savings       |
+| **Type Safety**      | ❌ No types                | ✅ Full TypeScript                | Compile-time validation   |
+| **Testing**          | ❌ Manual only             | ✅ Jest + Nock automated tests    | 100% coverage possible    |
+| **Security**         | ⚠️ Post-push only          | ✅ Pre-commit + PR scanning       | Proactive protection      |
+| **PR/Merge Time**    | ⚠️ 2-4 hours average       | ✅ 30-60 min average              | 50-75% faster             |
 
 ### Migration Effort
 
 **Estimated Time**: 4-5 weeks (100-120 hours)
+
 - **Week 1**: Core SDK infrastructure + Enhanced error reporting (25-30 hours)
 - **Week 2**: PR automation + Intelligent CI polling (25-30 hours)
 - **Week 3**: Branch protection + Security integration (25-30 hours)
@@ -66,6 +68,7 @@ This plan **supersedes** the original Option 2 migration plan by integrating fin
 ### GitHub Organization Analysis (littlebearapps)
 
 **Organization**: littlebearapps (Enterprise plan)
+
 - **Total Repositories**: 28 (23 private, 5 public)
 - **Audited**: 10 active repositories
 - **Branch Protection**: 4/10 repos (40%)
@@ -74,11 +77,13 @@ This plan **supersedes** the original Option 2 migration plan by integrating fin
 ### Critical Issues Identified
 
 #### 🔴 High Priority
+
 1. **Inconsistent Branch Protection** - Only 40% of repos protected
 2. **Failing Security Scans** - CodeQL, Dependency Review failing on multiple repos
 3. **Poor Error Visibility** - CI failures show "undefined" summaries
 
 #### 🟡 Medium Priority
+
 1. **No Standardized CI Template** - Each repo uses different patterns
 2. **Limited Test Reporting** - Only some repos use test-reporter with annotations
 3. **Incomplete Check Enforcement** - Required checks not consistently enforced
@@ -86,12 +91,14 @@ This plan **supersedes** the original Option 2 migration plan by integrating fin
 #### 🟢 Best Practice Examples
 
 **⭐ auditor-toolkit** - Excellent CI:
+
 - Rich test reporting with annotations (max 50)
 - GitHub Step Summary with test statistics
 - Smart error handling with continue-on-error
 - Test reporter integration
 
 **⭐ wp-navigator-pro** - Good patterns:
+
 - Parallel test jobs (smoke, full, CLI)
 - TAP output for Codex compatibility
 - Strict branch protection
@@ -99,6 +106,7 @@ This plan **supersedes** the original Option 2 migration plan by integrating fin
 ### Key Takeaway for git-pr-manager
 
 **Claude Code needs better error information**:
+
 1. **Quick classification** - Test failure? Linting? Type error? Security issue?
 2. **Actionable messages** - File:line, exact error, suggested fix
 3. **Prioritization** - Critical vs warning vs info
@@ -335,32 +343,32 @@ gpm ship
 
 ### Core Commands (Existing)
 
-| Command | Current (Bash) | New (TypeScript) | Notes |
-|---------|----------------|------------------|-------|
-| `gpm init` | ✅ Bash script | ✅ TypeScript | Add template option |
-| `gpm feature start <name>` | ✅ Bash script | ✅ TypeScript | Same functionality |
-| `gpm ship` | ✅ Bash script | ✅ TypeScript + Enhanced | Major improvements |
-| `gpm status` | ✅ Bash script | ✅ TypeScript | Better formatting |
+| Command                    | Current (Bash) | New (TypeScript)         | Notes               |
+| -------------------------- | -------------- | ------------------------ | ------------------- |
+| `gpm init`                 | ✅ Bash script | ✅ TypeScript            | Add template option |
+| `gpm feature start <name>` | ✅ Bash script | ✅ TypeScript            | Same functionality  |
+| `gpm ship`                 | ✅ Bash script | ✅ TypeScript + Enhanced | Major improvements  |
+| `gpm status`               | ✅ Bash script | ✅ TypeScript            | Better formatting   |
 
 ### New Commands ⭐
 
-| Command | Purpose | Example |
-|---------|---------|---------|
-| `gpm checks <pr-number>` | Show detailed CI check status | `gpm checks 123` |
-| `gpm protect [branch]` | Configure branch protection | `gpm protect main --preset standard` |
-| `gpm security` | Run pre-commit security checks | `gpm security --secrets --deps` |
-| `gpm init --template <type>` | Initialize with CI template | `gpm init --template python` |
+| Command                      | Purpose                        | Example                              |
+| ---------------------------- | ------------------------------ | ------------------------------------ |
+| `gpm checks <pr-number>`     | Show detailed CI check status  | `gpm checks 123`                     |
+| `gpm protect [branch]`       | Configure branch protection    | `gpm protect main --preset standard` |
+| `gpm security`               | Run pre-commit security checks | `gpm security --secrets --deps`      |
+| `gpm init --template <type>` | Initialize with CI template    | `gpm init --template python`         |
 
 ### Enhanced Flags
 
-| Flag | Command | Purpose |
-|------|---------|---------|
-| `--wait` | `gpm ship` | Wait for CI (default: true) |
-| `--fail-fast` | `gpm ship` | Exit on first critical failure (default: true) |
-| `--retry-flaky` | `gpm ship` | Retry flaky tests (default: false) |
-| `--skip-security` | `gpm ship` | Skip pre-commit security checks |
-| `--details` | `gpm checks` | Show full error details with annotations |
-| `--files` | `gpm checks` | List affected files only |
+| Flag              | Command      | Purpose                                        |
+| ----------------- | ------------ | ---------------------------------------------- |
+| `--wait`          | `gpm ship`   | Wait for CI (default: true)                    |
+| `--fail-fast`     | `gpm ship`   | Exit on first critical failure (default: true) |
+| `--retry-flaky`   | `gpm ship`   | Retry flaky tests (default: false)             |
+| `--skip-security` | `gpm ship`   | Skip pre-commit security checks                |
+| `--details`       | `gpm checks` | Show full error details with annotations       |
+| `--files`         | `gpm checks` | List affected files only                       |
 
 ---
 
@@ -376,8 +384,16 @@ gpm ship
 interface CheckRunDetails {
   id: number;
   name: string;
-  status: 'queued' | 'in_progress' | 'completed';
-  conclusion: 'success' | 'failure' | 'neutral' | 'cancelled' | 'skipped' | 'timed_out' | 'action_required' | null;
+  status: "queued" | "in_progress" | "completed";
+  conclusion:
+    | "success"
+    | "failure"
+    | "neutral"
+    | "cancelled"
+    | "skipped"
+    | "timed_out"
+    | "action_required"
+    | null;
   html_url: string;
   details_url: string;
   output: {
@@ -402,7 +418,7 @@ interface CheckSummary {
   failureDetails: FailureDetail[];
 
   // Overall status
-  overallStatus: 'success' | 'failure' | 'pending';
+  overallStatus: "success" | "failure" | "pending";
 
   // Timing
   startedAt: Date;
@@ -421,20 +437,20 @@ interface FailureDetail {
 }
 
 enum ErrorType {
-  TEST_FAILURE = 'test_failure',
-  LINTING_ERROR = 'linting_error',
-  TYPE_ERROR = 'type_error',
-  SECURITY_ISSUE = 'security_issue',
-  BUILD_ERROR = 'build_error',
-  FORMAT_ERROR = 'format_error',
-  UNKNOWN = 'unknown'
+  TEST_FAILURE = "test_failure",
+  LINTING_ERROR = "linting_error",
+  TYPE_ERROR = "type_error",
+  SECURITY_ISSUE = "security_issue",
+  BUILD_ERROR = "build_error",
+  FORMAT_ERROR = "format_error",
+  UNKNOWN = "unknown",
 }
 
 interface Annotation {
   path: string;
   start_line: number;
   end_line: number;
-  annotation_level: 'failure' | 'warning' | 'notice';
+  annotation_level: "failure" | "warning" | "notice";
   message: string;
   title: string;
   raw_details?: string;
@@ -469,7 +485,7 @@ export class EnhancedCIPoller {
     const { data: pr } = await this.github.pulls.get({
       owner: this.owner,
       repo: this.repo,
-      pull_number: prNumber
+      pull_number: prNumber,
     });
 
     const headSha = pr.head.sha;
@@ -479,15 +495,16 @@ export class EnhancedCIPoller {
       owner: this.owner,
       repo: this.repo,
       ref: headSha,
-      per_page: 100
+      per_page: 100,
     });
 
     // Get commit statuses (legacy, external services)
-    const { data: commitStatus } = await this.github.repos.getCombinedStatusForRef({
-      owner: this.owner,
-      repo: this.repo,
-      ref: headSha
-    });
+    const { data: commitStatus } =
+      await this.github.repos.getCombinedStatusForRef({
+        owner: this.owner,
+        repo: this.repo,
+        ref: headSha,
+      });
 
     return this.parseCheckDetails(checkRuns, commitStatus);
   }
@@ -497,39 +514,47 @@ export class EnhancedCIPoller {
    */
   private parseCheckDetails(
     checkRuns: CheckRunsResponse,
-    commitStatus: CombinedStatusResponse
+    commitStatus: CombinedStatusResponse,
   ): CheckSummary {
     const allChecks = checkRuns.check_runs;
-    const failures = allChecks.filter(c => c.conclusion === 'failure');
-    const pending = allChecks.filter(c => c.status !== 'completed');
+    const failures = allChecks.filter((c) => c.conclusion === "failure");
+    const pending = allChecks.filter((c) => c.status !== "completed");
 
-    const failureDetails: FailureDetail[] = failures.map(check => {
+    const failureDetails: FailureDetail[] = failures.map((check) => {
       const errorType = this.errorClassifier.classify(check);
-      const affectedFiles = this.extractFiles(check.output?.text || '');
-      const suggestedFix = this.suggestionEngine.getSuggestion(check, errorType);
+      const affectedFiles = this.extractFiles(check.output?.text || "");
+      const suggestedFix = this.suggestionEngine.getSuggestion(
+        check,
+        errorType,
+      );
 
       return {
         checkName: check.name,
         errorType,
-        summary: check.output?.summary || 'No summary available',
+        summary: check.output?.summary || "No summary available",
         affectedFiles,
-        annotations: [],  // Fetched separately if needed
+        annotations: [], // Fetched separately if needed
         suggestedFix,
-        url: check.html_url
+        url: check.html_url,
       };
     });
 
     return {
       total: allChecks.length + commitStatus.statuses.length,
-      passed: allChecks.filter(c => c.conclusion === 'success').length,
+      passed: allChecks.filter((c) => c.conclusion === "success").length,
       failed: failures.length,
       pending: pending.length,
-      skipped: allChecks.filter(c => c.conclusion === 'skipped').length,
+      skipped: allChecks.filter((c) => c.conclusion === "skipped").length,
       failureDetails,
-      overallStatus: failures.length > 0 ? 'failure' : pending.length > 0 ? 'pending' : 'success',
+      overallStatus:
+        failures.length > 0
+          ? "failure"
+          : pending.length > 0
+            ? "pending"
+            : "success",
       startedAt: new Date(allChecks[0]?.started_at || Date.now()),
       completedAt: pending.length === 0 ? new Date() : undefined,
-      duration: this.calculateDuration(allChecks)
+      duration: this.calculateDuration(allChecks),
     };
   }
 
@@ -548,7 +573,7 @@ export class EnhancedCIPoller {
       /File "([a-zA-Z0-9_\-\/\.]+\.(py|ts|tsx|js|jsx|go|rs))"/g,
 
       // ESLint: /path/to/file.js
-      /\/([a-zA-Z0-9_\-\/]+\.(py|ts|tsx|js|jsx|go|rs))/g
+      /\/([a-zA-Z0-9_\-\/]+\.(py|ts|tsx|js|jsx|go|rs))/g,
     ];
 
     const files = new Set<string>();
@@ -565,22 +590,25 @@ export class EnhancedCIPoller {
   /**
    * Fetch annotations for failed checks (detailed error info)
    */
-  async getCheckAnnotations(checkRunId: number, limit = 50): Promise<Annotation[]> {
+  async getCheckAnnotations(
+    checkRunId: number,
+    limit = 50,
+  ): Promise<Annotation[]> {
     const { data: annotations } = await this.github.checks.listAnnotations({
       owner: this.owner,
       repo: this.repo,
       check_run_id: checkRunId,
-      per_page: limit
+      per_page: limit,
     });
 
-    return annotations.map(ann => ({
+    return annotations.map((ann) => ({
       path: ann.path,
       start_line: ann.start_line,
       end_line: ann.end_line,
       annotation_level: ann.annotation_level,
       message: ann.message,
       title: ann.title,
-      raw_details: ann.raw_details
+      raw_details: ann.raw_details,
     }));
   }
 
@@ -589,15 +617,15 @@ export class EnhancedCIPoller {
    */
   async waitForChecks(
     prNumber: number,
-    options: WaitOptions = {}
+    options: WaitOptions = {},
   ): Promise<CheckResult> {
     const {
-      timeout = 600000,        // 10 minutes
-      pollInterval = 10000,    // 10 seconds
+      timeout = 600000, // 10 minutes
+      pollInterval = 10000, // 10 seconds
       onProgress,
       failFast = true,
       retryFlaky = false,
-      retryOptions = { maxRetries: 3, retryDelay: 5000 }
+      retryOptions = { maxRetries: 3, retryDelay: 5000 },
     } = options;
 
     const startTime = Date.now();
@@ -617,7 +645,7 @@ export class EnhancedCIPoller {
           failed: status.failed,
           pending: status.pending,
           newFailures: this.getNewFailures(previousStatus, status),
-          newPasses: this.getNewPasses(previousStatus, status)
+          newPasses: this.getNewPasses(previousStatus, status),
         };
 
         onProgress?.(progress);
@@ -629,12 +657,20 @@ export class EnhancedCIPoller {
 
         // Handle flaky test retries
         if (!success && retryFlaky && retryCount < retryOptions.maxRetries) {
-          const isRetryable = this.isRetryable(status, ['timeout', 'network', 'flaky']);
+          const isRetryable = this.isRetryable(status, [
+            "timeout",
+            "network",
+            "flaky",
+          ]);
 
           if (isRetryable) {
             retryCount++;
-            console.log(`⚠️  Retryable failure detected (attempt ${retryCount}/${retryOptions.maxRetries})`);
-            console.log(`   Waiting ${retryOptions.retryDelay}ms before retry...`);
+            console.log(
+              `⚠️  Retryable failure detected (attempt ${retryCount}/${retryOptions.maxRetries})`,
+            );
+            console.log(
+              `   Waiting ${retryOptions.retryDelay}ms before retry...`,
+            );
             await this.sleep(retryOptions.retryDelay);
             continue;
           }
@@ -644,7 +680,7 @@ export class EnhancedCIPoller {
           success,
           summary: status,
           duration: Date.now() - startTime,
-          retriesUsed: retryCount
+          retriesUsed: retryCount,
         };
       }
 
@@ -654,8 +690,8 @@ export class EnhancedCIPoller {
           success: false,
           summary: status,
           duration: Date.now() - startTime,
-          reason: 'critical_failure',
-          retriesUsed: retryCount
+          reason: "critical_failure",
+          retriesUsed: retryCount,
         };
       }
 
@@ -670,10 +706,10 @@ export class EnhancedCIPoller {
    * Check if failures are retryable (flaky tests, network issues)
    */
   private isRetryable(status: CheckSummary, patterns: string[]): boolean {
-    return status.failureDetails.some(failure =>
-      patterns.some(pattern =>
-        failure.summary.toLowerCase().includes(pattern.toLowerCase())
-      )
+    return status.failureDetails.some((failure) =>
+      patterns.some((pattern) =>
+        failure.summary.toLowerCase().includes(pattern.toLowerCase()),
+      ),
     );
   }
 
@@ -681,17 +717,21 @@ export class EnhancedCIPoller {
    * Check for critical failures that should trigger fail-fast
    */
   private hasCriticalFailure(status: CheckSummary): boolean {
-    return status.failureDetails.some(f =>
-      f.errorType === ErrorType.TEST_FAILURE ||
-      f.errorType === ErrorType.BUILD_ERROR ||
-      f.errorType === ErrorType.SECURITY_ISSUE
+    return status.failureDetails.some(
+      (f) =>
+        f.errorType === ErrorType.TEST_FAILURE ||
+        f.errorType === ErrorType.BUILD_ERROR ||
+        f.errorType === ErrorType.SECURITY_ISSUE,
     );
   }
 
   /**
    * Detect status changes for progress reporting
    */
-  private hasStatusChanged(prev: CheckSummary | null, current: CheckSummary): boolean {
+  private hasStatusChanged(
+    prev: CheckSummary | null,
+    current: CheckSummary,
+  ): boolean {
     if (!prev) return true;
 
     return (
@@ -701,37 +741,46 @@ export class EnhancedCIPoller {
     );
   }
 
-  private getNewFailures(prev: CheckSummary | null, current: CheckSummary): string[] {
+  private getNewFailures(
+    prev: CheckSummary | null,
+    current: CheckSummary,
+  ): string[] {
     if (!prev) return [];
 
-    const prevFailed = new Set(prev.failureDetails.map(f => f.checkName));
+    const prevFailed = new Set(prev.failureDetails.map((f) => f.checkName));
     return current.failureDetails
-      .filter(f => !prevFailed.has(f.checkName))
-      .map(f => f.checkName);
+      .filter((f) => !prevFailed.has(f.checkName))
+      .map((f) => f.checkName);
   }
 
-  private getNewPasses(prev: CheckSummary | null, current: CheckSummary): string[] {
+  private getNewPasses(
+    prev: CheckSummary | null,
+    current: CheckSummary,
+  ): string[] {
     if (!prev) return [];
 
-    const prevFailed = new Set(prev.failureDetails.map(f => f.checkName));
-    const currentFailed = new Set(current.failureDetails.map(f => f.checkName));
+    const prevFailed = new Set(prev.failureDetails.map((f) => f.checkName));
+    const currentFailed = new Set(
+      current.failureDetails.map((f) => f.checkName),
+    );
 
-    return Array.from(prevFailed).filter(name => !currentFailed.has(name));
+    return Array.from(prevFailed).filter((name) => !currentFailed.has(name));
   }
 
   private calculateDuration(checks: CheckRun[]): number | undefined {
-    const completed = checks.filter(c => c.completed_at);
+    const completed = checks.filter((c) => c.completed_at);
     if (completed.length === 0) return undefined;
 
-    const durations = completed.map(c =>
-      new Date(c.completed_at!).getTime() - new Date(c.started_at).getTime()
+    const durations = completed.map(
+      (c) =>
+        new Date(c.completed_at!).getTime() - new Date(c.started_at).getTime(),
     );
 
     return Math.max(...durations);
   }
 
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }
 ```
@@ -747,8 +796,8 @@ export class ErrorClassifier {
    */
   classify(check: CheckRun): ErrorType {
     const name = check.name.toLowerCase();
-    const summary = (check.output?.summary || '').toLowerCase();
-    const title = (check.output?.title || '').toLowerCase();
+    const summary = (check.output?.summary || "").toLowerCase();
+    const title = (check.output?.title || "").toLowerCase();
 
     // Test failures
     if (this.isTestFailure(name, summary, title)) {
@@ -784,44 +833,52 @@ export class ErrorClassifier {
   }
 
   private isTestFailure(name: string, summary: string, title: string): boolean {
-    const keywords = ['test', 'spec', 'pytest', 'jest', 'mocha', 'unittest'];
-    return keywords.some(kw =>
-      name.includes(kw) || summary.includes(kw) || title.includes(kw)
+    const keywords = ["test", "spec", "pytest", "jest", "mocha", "unittest"];
+    return keywords.some(
+      (kw) => name.includes(kw) || summary.includes(kw) || title.includes(kw),
     );
   }
 
-  private isLintingError(name: string, summary: string, title: string): boolean {
-    const keywords = ['lint', 'eslint', 'pylint', 'flake8', 'ruff'];
-    return keywords.some(kw =>
-      name.includes(kw) || summary.includes(kw) || title.includes(kw)
+  private isLintingError(
+    name: string,
+    summary: string,
+    title: string,
+  ): boolean {
+    const keywords = ["lint", "eslint", "pylint", "flake8", "ruff"];
+    return keywords.some(
+      (kw) => name.includes(kw) || summary.includes(kw) || title.includes(kw),
     );
   }
 
   private isTypeError(name: string, summary: string, title: string): boolean {
-    const keywords = ['type', 'typecheck', 'mypy', 'typescript', 'tsc'];
-    return keywords.some(kw =>
-      name.includes(kw) || summary.includes(kw) || title.includes(kw)
+    const keywords = ["type", "typecheck", "mypy", "typescript", "tsc"];
+    return keywords.some(
+      (kw) => name.includes(kw) || summary.includes(kw) || title.includes(kw),
     );
   }
 
-  private isSecurityIssue(name: string, summary: string, title: string): boolean {
-    const keywords = ['security', 'codeql', 'secret', 'vuln', 'dependency'];
-    return keywords.some(kw =>
-      name.includes(kw) || summary.includes(kw) || title.includes(kw)
+  private isSecurityIssue(
+    name: string,
+    summary: string,
+    title: string,
+  ): boolean {
+    const keywords = ["security", "codeql", "secret", "vuln", "dependency"];
+    return keywords.some(
+      (kw) => name.includes(kw) || summary.includes(kw) || title.includes(kw),
     );
   }
 
   private isBuildError(name: string, summary: string, title: string): boolean {
-    const keywords = ['build', 'compile', 'webpack', 'tsc', 'babel'];
-    return keywords.some(kw =>
-      name.includes(kw) || summary.includes(kw) || title.includes(kw)
+    const keywords = ["build", "compile", "webpack", "tsc", "babel"];
+    return keywords.some(
+      (kw) => name.includes(kw) || summary.includes(kw) || title.includes(kw),
     );
   }
 
   private isFormatError(name: string, summary: string, title: string): boolean {
-    const keywords = ['format', 'prettier', 'black', 'autopep8'];
-    return keywords.some(kw =>
-      name.includes(kw) || summary.includes(kw) || title.includes(kw)
+    const keywords = ["format", "prettier", "black", "autopep8"];
+    return keywords.some(
+      (kw) => name.includes(kw) || summary.includes(kw) || title.includes(kw),
     );
   }
 }
@@ -837,37 +894,40 @@ export class SuggestionEngine {
    * Get suggested fix for a failed check
    */
   getSuggestion(check: CheckRun, errorType: ErrorType): string | null {
-    const summary = check.output?.summary || '';
+    const summary = check.output?.summary || "";
     const files = this.extractFiles(summary);
 
     switch (errorType) {
       case ErrorType.TEST_FAILURE:
         if (files.length > 0) {
-          return `pytest ${files.join(' ')} -v`;
+          return `pytest ${files.join(" ")} -v`;
         }
-        return 'npm test -- --verbose';
+        return "npm test -- --verbose";
 
       case ErrorType.LINTING_ERROR:
-        return 'npm run lint -- --fix';
+        return "npm run lint -- --fix";
 
       case ErrorType.TYPE_ERROR:
-        return 'npm run typecheck';
+        return "npm run typecheck";
 
       case ErrorType.FORMAT_ERROR:
-        return 'npm run format';
+        return "npm run format";
 
       case ErrorType.BUILD_ERROR:
-        return 'npm run build';
+        return "npm run build";
 
       case ErrorType.SECURITY_ISSUE:
-        if (summary.includes('secret')) {
-          return 'Review and remove secrets from code';
-        } else if (summary.includes('dependency') || summary.includes('vulnerability')) {
-          return 'npm audit fix';
-        } else if (summary.includes('codeql')) {
-          return 'Review CodeQL findings at check details URL';
+        if (summary.includes("secret")) {
+          return "Review and remove secrets from code";
+        } else if (
+          summary.includes("dependency") ||
+          summary.includes("vulnerability")
+        ) {
+          return "npm audit fix";
+        } else if (summary.includes("codeql")) {
+          return "Review CodeQL findings at check details URL";
         }
-        return 'Review security scan findings';
+        return "Review security scan findings";
 
       default:
         return null;
@@ -879,7 +939,7 @@ export class SuggestionEngine {
     const patterns = [
       /([a-zA-Z0-9_\-\/\.]+\.(py|ts|tsx|js|jsx|go|rs))::/g,
       /([a-zA-Z0-9_\-\/\.]+\.(py|ts|tsx|js|jsx|go|rs))\(\d+,\d+\)/g,
-      /File "([a-zA-Z0-9_\-\/\.]+\.(py|ts|tsx|js|jsx|go|rs))"/g
+      /File "([a-zA-Z0-9_\-\/\.]+\.(py|ts|tsx|js|jsx|go|rs))"/g,
     ];
 
     const files = new Set<string>();
@@ -908,21 +968,23 @@ export class OutputFormatter {
     const lines: string[] = [];
 
     // Header
-    if (summary.overallStatus === 'success') {
-      lines.push('✅ All CI Checks Passed!');
-    } else if (summary.overallStatus === 'pending') {
-      lines.push('⏳ CI Checks In Progress...');
+    if (summary.overallStatus === "success") {
+      lines.push("✅ All CI Checks Passed!");
+    } else if (summary.overallStatus === "pending") {
+      lines.push("⏳ CI Checks In Progress...");
     } else {
       lines.push(`🔴 CI Checks Failed (${summary.failed}/${summary.total})`);
     }
 
-    lines.push('');
+    lines.push("");
 
     // Critical failures (if any)
     if (summary.failureDetails.length > 0) {
-      lines.push('Critical Failures:');
+      lines.push("Critical Failures:");
       for (const failure of summary.failureDetails) {
-        lines.push(`  ${this.getErrorIcon(failure.errorType)} ${failure.checkName} (${failure.errorType})`);
+        lines.push(
+          `  ${this.getErrorIcon(failure.errorType)} ${failure.checkName} (${failure.errorType})`,
+        );
         lines.push(`     Summary: ${failure.summary}`);
 
         if (failure.affectedFiles.length > 0) {
@@ -931,7 +993,9 @@ export class OutputFormatter {
             lines.push(`       - ${file}`);
           }
           if (failure.affectedFiles.length > 5) {
-            lines.push(`       ... and ${failure.affectedFiles.length - 5} more`);
+            lines.push(
+              `       ... and ${failure.affectedFiles.length - 5} more`,
+            );
           }
         }
 
@@ -940,7 +1004,7 @@ export class OutputFormatter {
         }
 
         lines.push(`     Details: ${failure.url}`);
-        lines.push('');
+        lines.push("");
       }
     }
 
@@ -949,17 +1013,17 @@ export class OutputFormatter {
     if (passedCount > 0) {
       lines.push(`Passed (${passedCount}):`);
       lines.push(`  ✅ ${passedCount} check(s) passed`);
-      lines.push('');
+      lines.push("");
     }
 
     // Pending checks
     if (summary.pending > 0) {
       lines.push(`Pending (${summary.pending}):`);
       lines.push(`  ⏳ ${summary.pending} check(s) in progress`);
-      lines.push('');
+      lines.push("");
     }
 
-    return lines.join('\n');
+    return lines.join("\n");
   }
 
   /**
@@ -969,10 +1033,12 @@ export class OutputFormatter {
     const elapsed = Math.floor(progress.elapsed / 1000);
     const minutes = Math.floor(elapsed / 60);
     const seconds = elapsed % 60;
-    const timeStr = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    const timeStr = `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
 
     const lines: string[] = [];
-    lines.push(`[${timeStr}] ${progress.passed + progress.failed}/${progress.total} checks completed`);
+    lines.push(
+      `[${timeStr}] ${progress.passed + progress.failed}/${progress.total} checks completed`,
+    );
 
     if (progress.newPasses.length > 0) {
       for (const name of progress.newPasses) {
@@ -990,25 +1056,25 @@ export class OutputFormatter {
       lines.push(`  ⏳ ${progress.pending} in progress...`);
     }
 
-    return lines.join('\n');
+    return lines.join("\n");
   }
 
   private getErrorIcon(errorType: ErrorType): string {
     switch (errorType) {
       case ErrorType.TEST_FAILURE:
-        return '🧪';
+        return "🧪";
       case ErrorType.LINTING_ERROR:
-        return '📝';
+        return "📝";
       case ErrorType.TYPE_ERROR:
-        return '🔤';
+        return "🔤";
       case ErrorType.SECURITY_ISSUE:
-        return '🔒';
+        return "🔒";
       case ErrorType.BUILD_ERROR:
-        return '🔨';
+        return "🔨";
       case ErrorType.FORMAT_ERROR:
-        return '✨';
+        return "✨";
       default:
-        return '❌';
+        return "❌";
     }
   }
 }
@@ -1029,26 +1095,34 @@ export class BranchProtectionChecker {
   /**
    * Get branch protection configuration
    */
-  async getProtection(branch: string = 'main'): Promise<ProtectionStatus> {
+  async getProtection(branch: string = "main"): Promise<ProtectionStatus> {
     try {
       const { data: protection } = await this.github.repos.getBranchProtection({
         owner: this.owner,
         repo: this.repo,
-        branch
+        branch,
       });
 
       return {
         enabled: true,
         requiredStatusChecks: protection.required_status_checks?.contexts || [],
         strictChecks: protection.required_status_checks?.strict || false,
-        requiredReviews: protection.required_pull_request_reviews?.required_approving_review_count || 0,
-        dismissStaleReviews: protection.required_pull_request_reviews?.dismiss_stale_reviews || false,
-        requireCodeOwnerReviews: protection.required_pull_request_reviews?.require_code_owner_reviews || false,
+        requiredReviews:
+          protection.required_pull_request_reviews
+            ?.required_approving_review_count || 0,
+        dismissStaleReviews:
+          protection.required_pull_request_reviews?.dismiss_stale_reviews ||
+          false,
+        requireCodeOwnerReviews:
+          protection.required_pull_request_reviews
+            ?.require_code_owner_reviews || false,
         enforceAdmins: protection.enforce_admins?.enabled || false,
-        requireConversationResolution: protection.required_conversation_resolution?.enabled || false,
-        requireLinearHistory: protection.required_linear_history?.enabled || false,
+        requireConversationResolution:
+          protection.required_conversation_resolution?.enabled || false,
+        requireLinearHistory:
+          protection.required_linear_history?.enabled || false,
         allowForcePushes: protection.allow_force_pushes?.enabled || false,
-        allowDeletions: protection.allow_deletions?.enabled || false
+        allowDeletions: protection.allow_deletions?.enabled || false,
       };
     } catch (error) {
       if (error.status === 404) {
@@ -1065,7 +1139,7 @@ export class BranchProtectionChecker {
     const { data: pr } = await this.github.pulls.get({
       owner: this.owner,
       repo: this.repo,
-      pull_number: prNumber
+      pull_number: prNumber,
     });
 
     const protection = await this.getProtection(pr.base.ref);
@@ -1073,7 +1147,7 @@ export class BranchProtectionChecker {
     if (!protection.enabled) {
       return {
         ready: true,
-        warnings: ['No branch protection configured - consider enabling it']
+        warnings: ["No branch protection configured - consider enabling it"],
       };
     }
 
@@ -1084,20 +1158,28 @@ export class BranchProtectionChecker {
     if (protection.requiredStatusChecks.length > 0) {
       const checkStatus = await this.getCheckStatus(pr.head.sha);
 
-      const missingChecks = protection.requiredStatusChecks.filter(required =>
-        !checkStatus.allChecks.some(check => check.name === required || check.context === required)
+      const missingChecks = protection.requiredStatusChecks.filter(
+        (required) =>
+          !checkStatus.allChecks.some(
+            (check) => check.name === required || check.context === required,
+          ),
       );
 
       if (missingChecks.length > 0) {
-        issues.push(`Missing required checks: ${missingChecks.join(', ')}`);
+        issues.push(`Missing required checks: ${missingChecks.join(", ")}`);
       }
 
-      const failedRequiredChecks = protection.requiredStatusChecks.filter(required =>
-        checkStatus.failedChecks.some(f => f.name === required || f.context === required)
+      const failedRequiredChecks = protection.requiredStatusChecks.filter(
+        (required) =>
+          checkStatus.failedChecks.some(
+            (f) => f.name === required || f.context === required,
+          ),
       );
 
       if (failedRequiredChecks.length > 0) {
-        issues.push(`Failed required checks: ${failedRequiredChecks.join(', ')}`);
+        issues.push(
+          `Failed required checks: ${failedRequiredChecks.join(", ")}`,
+        );
       }
 
       // Warn if strict checks enabled and branch is out of date
@@ -1106,11 +1188,13 @@ export class BranchProtectionChecker {
           owner: this.owner,
           repo: this.repo,
           base: pr.base.sha,
-          head: pr.head.sha
+          head: pr.head.sha,
         });
 
         if (comparison.behind_by > 0) {
-          warnings.push(`Branch is ${comparison.behind_by} commit(s) behind base - strict checks require update`);
+          warnings.push(
+            `Branch is ${comparison.behind_by} commit(s) behind base - strict checks require update`,
+          );
         }
       }
     }
@@ -1120,18 +1204,24 @@ export class BranchProtectionChecker {
       const { data: reviews } = await this.github.pulls.listReviews({
         owner: this.owner,
         repo: this.repo,
-        pull_number: prNumber
+        pull_number: prNumber,
       });
 
       const latestReviews = this.getLatestReviews(reviews);
-      const approvals = latestReviews.filter(r => r.state === 'APPROVED').length;
+      const approvals = latestReviews.filter(
+        (r) => r.state === "APPROVED",
+      ).length;
 
       if (approvals < protection.requiredReviews) {
-        issues.push(`Need ${protection.requiredReviews - approvals} more approval(s)`);
+        issues.push(
+          `Need ${protection.requiredReviews - approvals} more approval(s)`,
+        );
       }
 
       // Check for requested changes
-      const changesRequested = latestReviews.filter(r => r.state === 'CHANGES_REQUESTED').length;
+      const changesRequested = latestReviews.filter(
+        (r) => r.state === "CHANGES_REQUESTED",
+      ).length;
       if (changesRequested > 0) {
         issues.push(`${changesRequested} reviewer(s) requested changes`);
       }
@@ -1142,28 +1232,34 @@ export class BranchProtectionChecker {
       const { data: comments } = await this.github.issues.listComments({
         owner: this.owner,
         repo: this.repo,
-        issue_number: prNumber
+        issue_number: prNumber,
       });
 
-      const { data: reviewComments } = await this.github.pulls.listReviewComments({
-        owner: this.owner,
-        repo: this.repo,
-        pull_number: prNumber
-      });
+      const { data: reviewComments } =
+        await this.github.pulls.listReviewComments({
+          owner: this.owner,
+          repo: this.repo,
+          pull_number: prNumber,
+        });
 
       // Count unresolved threads (heuristic: comments without "resolved" or checkmark)
-      const unresolvedIssueComments = comments.filter(c =>
-        !c.body?.includes('✓') && !c.body?.toLowerCase().includes('resolved')
+      const unresolvedIssueComments = comments.filter(
+        (c) =>
+          !c.body?.includes("✓") && !c.body?.toLowerCase().includes("resolved"),
       );
 
-      const unresolvedReviewComments = reviewComments.filter(c =>
-        !c.body?.includes('✓') && !c.body?.toLowerCase().includes('resolved')
+      const unresolvedReviewComments = reviewComments.filter(
+        (c) =>
+          !c.body?.includes("✓") && !c.body?.toLowerCase().includes("resolved"),
       );
 
-      const totalUnresolved = unresolvedIssueComments.length + unresolvedReviewComments.length;
+      const totalUnresolved =
+        unresolvedIssueComments.length + unresolvedReviewComments.length;
 
       if (totalUnresolved > 0) {
-        warnings.push(`Possibly ${totalUnresolved} unresolved conversation(s) - verify manually`);
+        warnings.push(
+          `Possibly ${totalUnresolved} unresolved conversation(s) - verify manually`,
+        );
       }
     }
 
@@ -1171,7 +1267,7 @@ export class BranchProtectionChecker {
       ready: issues.length === 0,
       issues,
       warnings,
-      protection
+      protection,
     };
   }
 
@@ -1179,8 +1275,8 @@ export class BranchProtectionChecker {
    * Auto-configure branch protection
    */
   async setupProtection(
-    branch: string = 'main',
-    preset: 'basic' | 'standard' | 'strict' = 'standard'
+    branch: string = "main",
+    preset: "basic" | "standard" | "strict" = "standard",
   ): Promise<void> {
     const configs = {
       basic: {
@@ -1188,49 +1284,49 @@ export class BranchProtectionChecker {
         enforce_admins: false,
         required_pull_request_reviews: null,
         restrictions: null,
-        required_conversation_resolution: false
+        required_conversation_resolution: false,
       },
       standard: {
         required_status_checks: {
           strict: true,
-          contexts: ['ci', 'security']
+          contexts: ["ci", "security"],
         },
         enforce_admins: false,
         required_pull_request_reviews: {
           required_approving_review_count: 0,
           dismiss_stale_reviews: true,
-          require_code_owner_reviews: false
+          require_code_owner_reviews: false,
         },
         restrictions: null,
         required_conversation_resolution: true,
         required_linear_history: false,
         allow_force_pushes: false,
-        allow_deletions: false
+        allow_deletions: false,
       },
       strict: {
         required_status_checks: {
           strict: true,
-          contexts: ['ci', 'security', 'tests', 'lint']
+          contexts: ["ci", "security", "tests", "lint"],
         },
         enforce_admins: true,
         required_pull_request_reviews: {
           required_approving_review_count: 1,
           dismiss_stale_reviews: true,
-          require_code_owner_reviews: true
+          require_code_owner_reviews: true,
         },
         restrictions: null,
         required_conversation_resolution: true,
         required_linear_history: true,
         allow_force_pushes: false,
-        allow_deletions: false
-      }
+        allow_deletions: false,
+      },
     };
 
     await this.github.repos.updateBranchProtection({
       owner: this.owner,
       repo: this.repo,
       branch,
-      ...configs[preset]
+      ...configs[preset],
     });
   }
 
@@ -1238,8 +1334,10 @@ export class BranchProtectionChecker {
     // Group by user, keep only latest review from each user
     const reviewsByUser = new Map<number, Review>();
 
-    for (const review of reviews.sort((a, b) =>
-      new Date(b.submitted_at!).getTime() - new Date(a.submitted_at!).getTime()
+    for (const review of reviews.sort(
+      (a, b) =>
+        new Date(b.submitted_at!).getTime() -
+        new Date(a.submitted_at!).getTime(),
     )) {
       if (!reviewsByUser.has(review.user!.id)) {
         reviewsByUser.set(review.user!.id, review);
@@ -1253,22 +1351,29 @@ export class BranchProtectionChecker {
     const { data: checkRuns } = await this.github.checks.listForRef({
       owner: this.owner,
       repo: this.repo,
-      ref: sha
+      ref: sha,
     });
 
-    const { data: commitStatus } = await this.github.repos.getCombinedStatusForRef({
-      owner: this.owner,
-      repo: this.repo,
-      ref: sha
-    });
+    const { data: commitStatus } =
+      await this.github.repos.getCombinedStatusForRef({
+        owner: this.owner,
+        repo: this.repo,
+        ref: sha,
+      });
 
     const allChecks = [
-      ...checkRuns.check_runs.map(c => ({ name: c.name, status: c.conclusion })),
-      ...commitStatus.statuses.map(s => ({ context: s.context, status: s.state }))
+      ...checkRuns.check_runs.map((c) => ({
+        name: c.name,
+        status: c.conclusion,
+      })),
+      ...commitStatus.statuses.map((s) => ({
+        context: s.context,
+        status: s.state,
+      })),
     ];
 
-    const failedChecks = allChecks.filter(c =>
-      c.status === 'failure' || c.status === 'error'
+    const failedChecks = allChecks.filter(
+      (c) => c.status === "failure" || c.status === "error",
     );
 
     return { allChecks, failedChecks };
@@ -1290,20 +1395,22 @@ export class SecurityScanner {
   async scanForSecrets(): Promise<SecretScanResult> {
     try {
       // Use detect-secrets or TruffleHog
-      const result = await execAsync('detect-secrets scan --baseline .secrets.baseline');
+      const result = await execAsync(
+        "detect-secrets scan --baseline .secrets.baseline",
+      );
 
       if (result.exitCode !== 0) {
         const secrets = this.parseSecrets(result.stdout);
         return {
           found: true,
           secrets,
-          blocked: true
+          blocked: true,
         };
       }
 
       return { found: false, secrets: [] };
     } catch (error) {
-      console.warn('Secret scanning not available - install detect-secrets');
+      console.warn("Secret scanning not available - install detect-secrets");
       return { found: false, secrets: [], skipped: true };
     }
   }
@@ -1317,12 +1424,12 @@ export class SecurityScanner {
       const language = await this.detectLanguage();
 
       let result;
-      if (language === 'python') {
-        result = await execAsync('pip-audit --format json');
-      } else if (language === 'node') {
-        result = await execAsync('npm audit --json');
+      if (language === "python") {
+        result = await execAsync("pip-audit --format json");
+      } else if (language === "node") {
+        result = await execAsync("npm audit --json");
       } else {
-        return { skipped: true, reason: 'Unsupported language' };
+        return { skipped: true, reason: "Unsupported language" };
       }
 
       const vulns = JSON.parse(result.stdout);
@@ -1335,27 +1442,30 @@ export class SecurityScanner {
         medium: this.filterMedium(vulns).length,
         low: this.filterLow(vulns).length,
         shouldBlock: critical.length > 0,
-        vulnerabilities: critical
+        vulnerabilities: critical,
       };
     } catch (error) {
-      console.warn('Dependency scanning not available');
-      return { skipped: true, reason: 'Tool not installed' };
+      console.warn("Dependency scanning not available");
+      return { skipped: true, reason: "Tool not installed" };
     }
   }
 
-  private async detectLanguage(): Promise<'python' | 'node' | 'unknown'> {
-    if (await fs.pathExists('requirements.txt') || await fs.pathExists('setup.py')) {
-      return 'python';
-    } else if (await fs.pathExists('package.json')) {
-      return 'node';
+  private async detectLanguage(): Promise<"python" | "node" | "unknown"> {
+    if (
+      (await fs.pathExists("requirements.txt")) ||
+      (await fs.pathExists("setup.py"))
+    ) {
+      return "python";
+    } else if (await fs.pathExists("package.json")) {
+      return "node";
     }
-    return 'unknown';
+    return "unknown";
   }
 
   private parseSecrets(output: string): SecretFinding[] {
     // Parse detect-secrets output
     // Format: filename:line: potential secret found
-    const lines = output.split('\n');
+    const lines = output.split("\n");
     const secrets: SecretFinding[] = [];
 
     for (const line of lines) {
@@ -1364,7 +1474,7 @@ export class SecurityScanner {
         secrets.push({
           file: match[1],
           line: parseInt(match[2]),
-          type: match[3]
+          type: match[3],
         });
       }
     }
@@ -1373,27 +1483,29 @@ export class SecurityScanner {
   }
 
   private filterCritical(vulns: any[]): Vulnerability[] {
-    return vulns.filter(v =>
-      v.severity === 'critical' || v.severity === 'CRITICAL'
-    ).map(v => ({
-      package: v.package || v.name,
-      version: v.version,
-      severity: 'critical',
-      cve: v.cve || v.id,
-      description: v.description || v.title
-    }));
+    return vulns
+      .filter((v) => v.severity === "critical" || v.severity === "CRITICAL")
+      .map((v) => ({
+        package: v.package || v.name,
+        version: v.version,
+        severity: "critical",
+        cve: v.cve || v.id,
+        description: v.description || v.title,
+      }));
   }
 
   private filterHigh(vulns: any[]): Vulnerability[] {
-    return vulns.filter(v => v.severity === 'high' || v.severity === 'HIGH');
+    return vulns.filter((v) => v.severity === "high" || v.severity === "HIGH");
   }
 
   private filterMedium(vulns: any[]): Vulnerability[] {
-    return vulns.filter(v => v.severity === 'medium' || v.severity === 'MEDIUM');
+    return vulns.filter(
+      (v) => v.severity === "medium" || v.severity === "MEDIUM",
+    );
   }
 
   private filterLow(vulns: any[]): Vulnerability[] {
-    return vulns.filter(v => v.severity === 'low' || v.severity === 'LOW');
+    return vulns.filter((v) => v.severity === "low" || v.severity === "LOW");
   }
 }
 ```
@@ -1405,6 +1517,7 @@ export class SecurityScanner {
 ### 1. Rich Error Output Example
 
 **Before** (bash + gh CLI):
+
 ```
 $ gpm ship
 ✓ Verified locally
@@ -1413,6 +1526,7 @@ Error: Some checks were not successful
 ```
 
 **After** (Node.js + Octokit SDK):
+
 ```
 $ gpm ship
 
@@ -1561,58 +1675,61 @@ Continue anyway? [y/N]:
 export class GitWorkflowError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = 'GitWorkflowError';
+    this.name = "GitWorkflowError";
   }
 }
 
 export class CIFailureError extends GitWorkflowError {
   constructor(
     public checkSummary: CheckSummary,
-    message = 'CI checks failed'
+    message = "CI checks failed",
   ) {
     super(message);
-    this.name = 'CIFailureError';
+    this.name = "CIFailureError";
   }
 }
 
 export class BranchProtectionError extends GitWorkflowError {
   constructor(
     public validation: ValidationResult,
-    message = 'Branch protection requirements not met'
+    message = "Branch protection requirements not met",
   ) {
     super(message);
-    this.name = 'BranchProtectionError';
+    this.name = "BranchProtectionError";
   }
 }
 
 export class SecurityScanError extends GitWorkflowError {
   constructor(
     public scanResult: SecretScanResult | VulnerabilityResult,
-    message = 'Security scan failed'
+    message = "Security scan failed",
   ) {
     super(message);
-    this.name = 'SecurityScanError';
+    this.name = "SecurityScanError";
   }
 }
 
 export class TimeoutError extends GitWorkflowError {
   constructor(message: string) {
     super(message);
-    this.name = 'TimeoutError';
+    this.name = "TimeoutError";
   }
 }
 
 export class PRExistsError extends GitWorkflowError {
-  constructor(public existingPR: number, message = 'Pull request already exists') {
+  constructor(
+    public existingPR: number,
+    message = "Pull request already exists",
+  ) {
     super(message);
-    this.name = 'PRExistsError';
+    this.name = "PRExistsError";
   }
 }
 
 export class MergeConflictError extends GitWorkflowError {
-  constructor(message = 'Merge conflicts detected') {
+  constructor(message = "Merge conflicts detected") {
     super(message);
-    this.name = 'MergeConflictError';
+    this.name = "MergeConflictError";
   }
 }
 ```
@@ -1626,7 +1743,7 @@ try {
   // ... workflow steps
   const result = await ciPoller.waitForChecks(prNumber, {
     failFast: true,
-    retryFlaky: true
+    retryFlaky: true,
   });
 
   if (!result.success) {
@@ -1636,8 +1753,8 @@ try {
   if (error instanceof CIFailureError) {
     // Show rich error output
     console.error(formatter.formatCheckSummary(error.checkSummary));
-    console.error('\n❌ Ship failed - fix errors and try again');
-    console.error('\nQuick Actions:');
+    console.error("\n❌ Ship failed - fix errors and try again");
+    console.error("\nQuick Actions:");
 
     for (const failure of error.checkSummary.failureDetails) {
       if (failure.suggestedFix) {
@@ -1647,19 +1764,19 @@ try {
 
     process.exit(1);
   } else if (error instanceof BranchProtectionError) {
-    console.error('❌ Cannot merge - branch protection requirements not met');
-    console.error('\nIssues:');
+    console.error("❌ Cannot merge - branch protection requirements not met");
+    console.error("\nIssues:");
     for (const issue of error.validation.issues) {
       console.error(`  - ${issue}`);
     }
     process.exit(1);
   } else if (error instanceof SecurityScanError) {
-    console.error('🔒 Security scan failed');
+    console.error("🔒 Security scan failed");
     // ... show details
     process.exit(1);
   } else if (error instanceof TimeoutError) {
-    console.error('⏱️  CI checks timed out');
-    console.error('Check status: gpm checks <pr-number>');
+    console.error("⏱️  CI checks timed out");
+    console.error("Check status: gpm checks <pr-number>");
     process.exit(1);
   } else {
     // Unknown error
@@ -1721,6 +1838,7 @@ try {
    - [ ] Add error handling middleware
 
 **Deliverables**:
+
 - ✅ Working TypeScript project
 - ✅ Core services (GitHub, Git, Config)
 - ✅ EnhancedCIPoller with rich error reporting
@@ -1728,12 +1846,14 @@ try {
 - ✅ CLI framework
 
 **Testing**:
+
 - Unit tests for EnhancedCIPoller (mock with Nock)
 - Unit tests for ErrorClassifier
 - Unit tests for SuggestionEngine
 - Integration test: Fetch real check run from test PR
 
 **Success Criteria**:
+
 - Can fetch detailed check status from a PR
 - Can classify error types correctly (90%+ accuracy)
 - Can extract file paths from check outputs
@@ -1786,18 +1906,21 @@ try {
    - [ ] Add error recovery
 
 **Deliverables**:
+
 - ✅ Complete `gpm ship` command
 - ✅ PR creation with templates
 - ✅ Intelligent CI polling with progress
 - ✅ Fail-fast and retry logic
 
 **Testing**:
+
 - Integration test: Full ship workflow (create PR → wait CI → merge)
 - Test with auditor-toolkit repo (Python, pytest)
 - Test with wp-navigator-pro repo (Node.js, Jest)
 - Mock flaky tests to verify retry logic
 
 **Success Criteria**:
+
 - Can create PR from feature branch
 - Can poll CI with real-time progress updates
 - Can detect and classify CI failures
@@ -1847,6 +1970,7 @@ try {
    - [ ] Implement `gpm init` (with --template flag)
 
 **Deliverables**:
+
 - ✅ Branch protection integration
 - ✅ Pre-commit security scanning
 - ✅ `gpm checks` command
@@ -1855,12 +1979,14 @@ try {
 - ✅ All core commands implemented
 
 **Testing**:
+
 - Test branch protection validation with protected repos
 - Test security scanner with known secrets (test files)
 - Test dependency scanning with vulnerable packages
 - Integration test: Full workflow with all features
 
 **Success Criteria**:
+
 - Can validate branch protection requirements
 - Can detect secrets before commit
 - Can check dependency vulnerabilities
@@ -1922,18 +2048,21 @@ try {
    - [ ] Performance optimization
 
 **Deliverables**:
+
 - ✅ 80%+ test coverage
 - ✅ Complete documentation
 - ✅ Workflow templates
 - ✅ Polished CLI experience
 
 **Testing**:
+
 - Run full test suite
 - Test on multiple repos
 - Test with different CI configurations
 - Validate templates work as expected
 
 **Success Criteria**:
+
 - All tests pass
 - Documentation is clear and complete
 - Templates are production-ready
@@ -1972,11 +2101,13 @@ try {
    - [ ] Performance tuning
 
 **Deliverables**:
+
 - ✅ Deployed to all repos
 - ✅ Issues resolved
 - ✅ v1.0.0 stable
 
 **Success Criteria**:
+
 - No critical bugs
 - Positive feedback from usage
 - 50-75% reduction in PR/merge time
@@ -1991,6 +2122,7 @@ try {
 **Coverage Goal**: 80%+
 
 **Test Files**:
+
 - `tests/unit/github.test.ts`
 - `tests/unit/enhanced-ci-poller.test.ts` ⭐
 - `tests/unit/error-classifier.test.ts` ⭐
@@ -2004,36 +2136,36 @@ try {
 ```typescript
 // tests/unit/enhanced-ci-poller.test.ts
 
-import { EnhancedCIPoller } from '../../src/services/EnhancedCIPoller';
-import { mockCheckRuns, mockCombinedStatus } from '../fixtures/check-runs';
-import nock from 'nock';
+import { EnhancedCIPoller } from "../../src/services/EnhancedCIPoller";
+import { mockCheckRuns, mockCombinedStatus } from "../fixtures/check-runs";
+import nock from "nock";
 
-describe('EnhancedCIPoller', () => {
+describe("EnhancedCIPoller", () => {
   let poller: EnhancedCIPoller;
 
   beforeEach(() => {
     poller = new EnhancedCIPoller({
-      token: 'test-token',
-      owner: 'littlebearapps',
-      repo: 'test-repo'
+      token: "test-token",
+      owner: "littlebearapps",
+      repo: "test-repo",
     });
   });
 
-  describe('getDetailedCheckStatus', () => {
-    it('should parse check runs and extract failure details', async () => {
+  describe("getDetailedCheckStatus", () => {
+    it("should parse check runs and extract failure details", async () => {
       // Mock PR API
-      nock('https://api.github.com')
-        .get('/repos/littlebearapps/test-repo/pulls/123')
-        .reply(200, { head: { sha: 'abc123' } });
+      nock("https://api.github.com")
+        .get("/repos/littlebearapps/test-repo/pulls/123")
+        .reply(200, { head: { sha: "abc123" } });
 
       // Mock check runs API
-      nock('https://api.github.com')
-        .get('/repos/littlebearapps/test-repo/commits/abc123/check-runs')
+      nock("https://api.github.com")
+        .get("/repos/littlebearapps/test-repo/commits/abc123/check-runs")
         .reply(200, mockCheckRuns);
 
       // Mock combined status API
-      nock('https://api.github.com')
-        .get('/repos/littlebearapps/test-repo/commits/abc123/status')
+      nock("https://api.github.com")
+        .get("/repos/littlebearapps/test-repo/commits/abc123/status")
         .reply(200, mockCombinedStatus);
 
       const summary = await poller.getDetailedCheckStatus(123);
@@ -2043,53 +2175,55 @@ describe('EnhancedCIPoller', () => {
       expect(summary.failed).toBe(1);
       expect(summary.pending).toBe(2);
       expect(summary.failureDetails).toHaveLength(1);
-      expect(summary.failureDetails[0].errorType).toBe('test_failure');
-      expect(summary.failureDetails[0].affectedFiles).toContain('tests/test_auth.py');
+      expect(summary.failureDetails[0].errorType).toBe("test_failure");
+      expect(summary.failureDetails[0].affectedFiles).toContain(
+        "tests/test_auth.py",
+      );
     });
 
-    it('should classify error types correctly', async () => {
+    it("should classify error types correctly", async () => {
       // Test with different check run outputs
       // ... test each error type
     });
 
-    it('should extract file paths from various formats', async () => {
+    it("should extract file paths from various formats", async () => {
       const testCases = [
         {
-          input: 'tests/test_auth.py::test_login FAILED',
-          expected: ['tests/test_auth.py']
+          input: "tests/test_auth.py::test_login FAILED",
+          expected: ["tests/test_auth.py"],
         },
         {
-          input: 'src/Button.tsx(45,12): error TS2322',
-          expected: ['src/Button.tsx']
+          input: "src/Button.tsx(45,12): error TS2322",
+          expected: ["src/Button.tsx"],
         },
         {
           input: 'File "app/models/user.py", line 123',
-          expected: ['app/models/user.py']
-        }
+          expected: ["app/models/user.py"],
+        },
       ];
 
       for (const { input, expected } of testCases) {
-        const files = poller['extractFiles'](input);
+        const files = poller["extractFiles"](input);
         expect(files).toEqual(expected);
       }
     });
   });
 
-  describe('waitForChecks', () => {
-    it('should poll until checks complete', async () => {
+  describe("waitForChecks", () => {
+    it("should poll until checks complete", async () => {
       // Mock multiple polling rounds
       // ... test polling logic
     });
 
-    it('should fail fast on critical errors', async () => {
+    it("should fail fast on critical errors", async () => {
       // ... test fail-fast logic
     });
 
-    it('should retry flaky tests', async () => {
+    it("should retry flaky tests", async () => {
       // ... test retry logic
     });
 
-    it('should timeout after specified duration', async () => {
+    it("should timeout after specified duration", async () => {
       // ... test timeout
     });
   });
@@ -2099,6 +2233,7 @@ describe('EnhancedCIPoller', () => {
 ### Integration Tests
 
 **Test Real Workflows**:
+
 - `tests/integration/ship-workflow.test.ts`
 - `tests/integration/error-reporting.test.ts` ⭐
 - `tests/integration/branch-protection.test.ts` ⭐
@@ -2109,29 +2244,29 @@ describe('EnhancedCIPoller', () => {
 ```typescript
 // tests/integration/error-reporting.test.ts
 
-describe('Error Reporting Integration', () => {
-  it('should show rich error output for failed CI', async () => {
+describe("Error Reporting Integration", () => {
+  it("should show rich error output for failed CI", async () => {
     // Create test PR with known failures
     const pr = await createTestPR({
-      branch: 'test-error-reporting',
+      branch: "test-error-reporting",
       introduceErrors: {
-        testFailure: ['tests/test_auth.py:45'],
-        lintingError: ['src/Button.tsx:23']
-      }
+        testFailure: ["tests/test_auth.py:45"],
+        lintingError: ["src/Button.tsx:23"],
+      },
     });
 
     // Run ship command
     const result = await runShipCommand({
-      failFast: true
+      failFast: true,
     });
 
     // Verify error output
     expect(result.exitCode).toBe(1);
-    expect(result.stdout).toContain('test_failure');
-    expect(result.stdout).toContain('tests/test_auth.py:45');
-    expect(result.stdout).toContain('Suggested fix: pytest');
-    expect(result.stdout).toContain('linting_error');
-    expect(result.stdout).toContain('src/Button.tsx:23');
+    expect(result.stdout).toContain("test_failure");
+    expect(result.stdout).toContain("tests/test_auth.py:45");
+    expect(result.stdout).toContain("Suggested fix: pytest");
+    expect(result.stdout).toContain("linting_error");
+    expect(result.stdout).toContain("src/Button.tsx:23");
   });
 });
 ```
@@ -2139,12 +2274,14 @@ describe('Error Reporting Integration', () => {
 ### Manual Testing Checklist
 
 **Repos to Test**:
+
 - [ ] auditor-toolkit (Python, pytest, comprehensive CI)
 - [ ] wp-navigator-pro (Node.js, Jest, PHP)
 - [ ] brand-copilot (Python, security scans)
 - [ ] platform (TypeScript, failing security scans)
 
 **Scenarios**:
+
 - [ ] Create PR with passing CI
 - [ ] Create PR with failing tests
 - [ ] Create PR with failing security scans
@@ -2163,6 +2300,7 @@ describe('Error Reporting Integration', () => {
 **Target**: auditor-toolkit (best CI setup, good test case)
 
 **Steps**:
+
 1. Install git-pr-manager v1.0.0
 2. Test `gpm ship` with passing CI
 3. Test `gpm ship` with failing tests (introduce test failure)
@@ -2171,6 +2309,7 @@ describe('Error Reporting Integration', () => {
 6. Document any issues
 
 **Success Criteria**:
+
 - No critical bugs
 - Error reporting is helpful
 - Developer feedback is positive
@@ -2180,12 +2319,14 @@ describe('Error Reporting Integration', () => {
 **Targets**: wp-navigator-pro, brand-copilot, platform
 
 **Steps**:
+
 1. Install v1.0.0 in each repo
 2. Test full workflow in each
 3. Compare experiences across repos
 4. Document repo-specific issues
 
 **Success Criteria**:
+
 - Works across different tech stacks (Python, Node.js, PHP)
 - Works with different CI configurations
 - No major issues
@@ -2195,12 +2336,14 @@ describe('Error Reporting Integration', () => {
 **Targets**: All remaining repos
 
 **Steps**:
+
 1. Install v1.0.0 globally
 2. Update documentation
 3. Announce to team
 4. Monitor usage
 
 **Success Criteria**:
+
 - Deployed to all repos
 - Documentation is clear
 - Team can use effectively
@@ -2216,27 +2359,28 @@ describe('Error Reporting Integration', () => {
 ```typescript
 interface PRMetrics {
   // Timing
-  prCreateToMerge: number;        // Total PR lifecycle time
-  ciWaitTime: number;             // Time waiting for CI
-  debuggingTime: number;          // Time spent understanding CI errors
+  prCreateToMerge: number; // Total PR lifecycle time
+  ciWaitTime: number; // Time waiting for CI
+  debuggingTime: number; // Time spent understanding CI errors
 
   // Efficiency
-  ciRunsPerPR: number;            // Number of CI runs before merge
-  iterationsPerPR: number;        // Number of code pushes per PR
+  ciRunsPerPR: number; // Number of CI runs before merge
+  iterationsPerPR: number; // Number of code pushes per PR
 
   // Error Handling
-  errorReportingUsed: boolean;    // Used enhanced error reporting?
-  suggestedFixUsed: boolean;      // Used suggested fix?
-  failFastTriggered: boolean;     // Failed fast on critical error?
-  retryUsed: boolean;             // Used retry for flaky tests?
+  errorReportingUsed: boolean; // Used enhanced error reporting?
+  suggestedFixUsed: boolean; // Used suggested fix?
+  failFastTriggered: boolean; // Failed fast on critical error?
+  retryUsed: boolean; // Used retry for flaky tests?
 
   // Security
-  secretsDetected: number;        // Secrets blocked pre-commit
+  secretsDetected: number; // Secrets blocked pre-commit
   vulnerabilitiesDetected: number; // Vulnerabilities found
 }
 ```
 
 **Target Improvements**:
+
 - **PR/Merge Time**: 2-4 hours → 30-60 min (50-75% reduction)
 - **CI Debugging**: 30-60 min → 5-10 min (80-90% reduction)
 - **Error Identification**: 5-10 min → 10-30 sec (95% reduction)
@@ -2245,6 +2389,7 @@ interface PRMetrics {
 ### Qualitative Metrics
 
 **Developer Feedback**:
+
 - [ ] Error messages are clear and actionable
 - [ ] Suggested fixes are helpful
 - [ ] Progress updates are informative
@@ -2253,6 +2398,7 @@ interface PRMetrics {
 - [ ] Overall workflow is faster and less frustrating
 
 **Example Survey Questions**:
+
 1. How satisfied are you with the new error reporting? (1-5)
 2. Do suggested fixes help you resolve issues faster? (Yes/No)
 3. How often do you use `gpm checks` to debug CI? (Never/Sometimes/Often/Always)
@@ -2275,6 +2421,7 @@ interface PRMetrics {
 6. **Resume rollout** once stable
 
 **Revert Command**:
+
 ```bash
 npm uninstall -g git-pr-manager
 npm install -g git-pr-manager@0.3.0
@@ -2300,10 +2447,11 @@ npm install -g git-pr-manager@0.3.0
 4. **Re-enable** once stable
 
 **Example** (disable security scanning):
+
 ```yaml
 # .gpm.yml
 security:
-  enabled: false  # Disable until fixed
+  enabled: false # Disable until fixed
 ```
 
 ---
@@ -2311,6 +2459,7 @@ security:
 ## Conclusion
 
 This comprehensive enhancement plan combines:
+
 1. **Full SDK migration** (Option 2 from original plan)
 2. **Enhanced error reporting** (from GitHub audit findings)
 3. **Intelligent CI polling** (async, fail-fast, retry)

@@ -1,9 +1,15 @@
-import { exec } from 'child_process';
-import { promisify } from 'util';
-import { GitService } from './GitService';
-import { GitHubService } from './GitHubService';
-import { VerifyService } from './VerifyService';
-import { ErrorType, FailureDetail, AutoFixResult, AutoFixConfig, AutoFixMetrics } from '../types';
+import { exec } from "child_process";
+import { promisify } from "util";
+import { GitService } from "./GitService";
+import { GitHubService } from "./GitHubService";
+import { VerifyService } from "./VerifyService";
+import {
+  ErrorType,
+  FailureDetail,
+  AutoFixResult,
+  AutoFixConfig,
+  AutoFixMetrics,
+} from "../types";
 
 const execAsync = promisify(exec);
 
@@ -29,7 +35,7 @@ export class AutoFixService {
     github: GitHubService,
     config?: Partial<AutoFixConfig>,
     verify?: VerifyService,
-    enableLogging: boolean = true
+    enableLogging: boolean = true,
   ) {
     this.git = git;
     this.github = github;
@@ -39,8 +45,8 @@ export class AutoFixService {
       maxAttempts: 2,
       maxChangedLines: 1000,
       requireTests: true,
-      enableDryRun: false,  // Session 2.3: Dry-run is opt-in, not opt-out
-      ...config
+      enableDryRun: false, // Session 2.3: Dry-run is opt-in, not opt-out
+      ...config,
     };
     this.attemptTracker = new Map();
 
@@ -56,7 +62,7 @@ export class AutoFixService {
       byReason: {},
       totalFixDuration: 0,
       startTime: new Date(),
-      lastUpdated: new Date()
+      lastUpdated: new Date(),
     };
   }
 
@@ -65,13 +71,21 @@ export class AutoFixService {
    * Session 2.3: Added dryRun parameter for simulation mode
    * Session 3.2: Added logging and metrics tracking
    */
-  async attemptFix(failure: FailureDetail, prNumber: number, dryRun?: boolean): Promise<AutoFixResult> {
+  async attemptFix(
+    failure: FailureDetail,
+    prNumber: number,
+    dryRun?: boolean,
+  ): Promise<AutoFixResult> {
     const startTime = Date.now();
 
     // Check if auto-fixable
     if (!this.isAutoFixable(failure.errorType)) {
-      this.log('info', `Error type ${failure.errorType} is not auto-fixable`);
-      return { success: false, reason: 'not_auto_fixable', errorType: failure.errorType };
+      this.log("info", `Error type ${failure.errorType} is not auto-fixable`);
+      return {
+        success: false,
+        reason: "not_auto_fixable",
+        errorType: failure.errorType,
+      };
     }
 
     // Check attempt limit
@@ -79,18 +93,21 @@ export class AutoFixService {
     const attempts = this.attemptTracker.get(attemptKey) || 0;
 
     if (attempts >= this.config.maxAttempts) {
-      this.log('warn', `Max attempts (${this.config.maxAttempts}) reached for ${failure.errorType}`);
-      return { success: false, reason: 'max_attempts_reached', attempts };
+      this.log(
+        "warn",
+        `Max attempts (${this.config.maxAttempts}) reached for ${failure.errorType}`,
+      );
+      return { success: false, reason: "max_attempts_reached", attempts };
     }
 
     // Use config default if not specified
     const useDryRun = dryRun !== undefined ? dryRun : this.config.enableDryRun;
 
-    this.log('info', `Starting auto-fix attempt for ${failure.errorType}`, {
+    this.log("info", `Starting auto-fix attempt for ${failure.errorType}`, {
       prNumber,
       dryRun: useDryRun,
       attempt: attempts + 1,
-      maxAttempts: this.config.maxAttempts
+      maxAttempts: this.config.maxAttempts,
     });
 
     // Route to specific fixer
@@ -109,8 +126,8 @@ export class AutoFixService {
         result = await this.fixSecurityIssues(failure, useDryRun);
         break;
       default:
-        this.log('error', `Unsupported error type: ${failure.errorType}`);
-        return { success: false, reason: 'unsupported_type' };
+        this.log("error", `Unsupported error type: ${failure.errorType}`);
+        return { success: false, reason: "unsupported_type" };
     }
 
     // Track attempt (only for actual fixes, not dry runs)
@@ -124,17 +141,17 @@ export class AutoFixService {
 
     // Log result
     if (result.success) {
-      this.log('info', `Auto-fix successful for ${failure.errorType}`, {
+      this.log("info", `Auto-fix successful for ${failure.errorType}`, {
         prNumber: result.prNumber,
         changedLines: result.changedLines,
-        duration: `${duration}ms`
+        duration: `${duration}ms`,
       });
     } else {
-      this.log('warn', `Auto-fix failed for ${failure.errorType}`, {
+      this.log("warn", `Auto-fix failed for ${failure.errorType}`, {
         reason: result.reason,
         rolledBack: result.rolledBack,
         verificationFailed: result.verificationFailed,
-        duration: `${duration}ms`
+        duration: `${duration}ms`,
       });
     }
 
@@ -145,77 +162,85 @@ export class AutoFixService {
    * Fix linting errors using project's linter
    * Session 2.3: Added dryRun parameter
    */
-  private async fixLintingErrors(files: string[], dryRun: boolean = false): Promise<AutoFixResult> {
+  private async fixLintingErrors(
+    files: string[],
+    dryRun: boolean = false,
+  ): Promise<AutoFixResult> {
     const language = this.detectLanguage(files);
 
     try {
       // Session 2.3: Dry-run mode - simulate without executing
       if (dryRun) {
-        if (language === 'javascript' || language === 'typescript') {
-          if (await this.hasCommand('eslint')) {
+        if (language === "javascript" || language === "typescript") {
+          if (await this.hasCommand("eslint")) {
             return {
               success: true,
-              reason: 'dry_run',
-              error: `Would run: npx eslint --fix ${files.join(' ')}`
+              reason: "dry_run",
+              error: `Would run: npx eslint --fix ${files.join(" ")}`,
             };
-          } else if (await this.hasPackageScript('lint:fix')) {
+          } else if (await this.hasPackageScript("lint:fix")) {
             return {
               success: true,
-              reason: 'dry_run',
-              error: 'Would run: npm run lint:fix'
+              reason: "dry_run",
+              error: "Would run: npm run lint:fix",
             };
           } else {
-            return { success: false, reason: 'no_lint_tool' };
+            return { success: false, reason: "no_lint_tool" };
           }
-        } else if (language === 'python') {
-          if (await this.hasCommand('ruff')) {
+        } else if (language === "python") {
+          if (await this.hasCommand("ruff")) {
             return {
               success: true,
-              reason: 'dry_run',
-              error: `Would run: ruff check --fix ${files.join(' ')}`
+              reason: "dry_run",
+              error: `Would run: ruff check --fix ${files.join(" ")}`,
             };
           } else {
-            return { success: false, reason: 'no_lint_tool' };
+            return { success: false, reason: "no_lint_tool" };
           }
         } else {
-          return { success: false, reason: 'unsupported_language', language };
+          return { success: false, reason: "unsupported_language", language };
         }
       }
 
       // Session 2.2: Save state before making changes
       await this.saveState();
 
-      if (language === 'javascript' || language === 'typescript') {
+      if (language === "javascript" || language === "typescript") {
         // Try eslint first
-        if (await this.hasCommand('eslint')) {
-          await execAsync(`npx eslint --fix ${files.join(' ')}`);
-        } else if (await this.hasPackageScript('lint:fix')) {
-          await execAsync('npm run lint:fix');
+        if (await this.hasCommand("eslint")) {
+          await execAsync(`npx eslint --fix ${files.join(" ")}`);
+        } else if (await this.hasPackageScript("lint:fix")) {
+          await execAsync("npm run lint:fix");
         } else {
-          return { success: false, reason: 'no_lint_tool' };
+          return { success: false, reason: "no_lint_tool" };
         }
-      } else if (language === 'python') {
+      } else if (language === "python") {
         // Try ruff, then fallback to pylint
-        if (await this.hasCommand('ruff')) {
-          await execAsync(`ruff check --fix ${files.join(' ')}`);
+        if (await this.hasCommand("ruff")) {
+          await execAsync(`ruff check --fix ${files.join(" ")}`);
         } else {
-          return { success: false, reason: 'no_lint_tool' };
+          return { success: false, reason: "no_lint_tool" };
         }
       } else {
-        return { success: false, reason: 'unsupported_language', language };
+        return { success: false, reason: "unsupported_language", language };
       }
 
       // Verify changes
       const diff = await this.git.getDiff();
       if (!diff || diff.length === 0) {
-        return { success: false, reason: 'no_changes' };
+        return { success: false, reason: "no_changes" };
       }
 
       // Check change size
       const changedLines = this.countChangedLines(diff);
       if (changedLines > this.config.maxChangedLines) {
         await this.restoreState();
-        return { success: false, reason: 'too_many_changes', changedLines, rolledBack: true };
+        return {
+          success: false,
+          reason: "too_many_changes",
+          changedLines,
+          rolledBack: true,
+        };
       }
 
       // Session 2.1: Verify changes after fix
@@ -224,25 +249,29 @@ export class AutoFixService {
         await this.restoreState();
         return {
           success: false,
-          reason: 'verification_failed',
+          reason: "verification_failed",
           verificationFailed: true,
           verificationErrors: verification.errors,
-          rolledBack: true
+          rolledBack: true,
         };
       }
 
       // Create fix PR
       const prResult = await this.createFixPR(
-        'fix: auto-fix linting errors',
-        `Automatically fixed linting errors in:\n${files.map(f => `- ${f}`).join('\n')}`,
-        files
+        "fix: auto-fix linting errors",
+        `Automatically fixed linting errors in:\n${files.map((f) => `- ${f}`).join("\n")}`,
+        files,
       );
 
       return { success: true, prNumber: prResult.number, changedLines };
-
     } catch (error) {
       await this.restoreState();
-      return { success: false, reason: 'execution_failed', error: (error as Error).message, rolledBack: true };
+      return {
+        success: false,
+        reason: "execution_failed",
+        error: (error as Error).message,
+        rolledBack: true,
+      };
     }
   }
 
@@ -250,82 +279,90 @@ export class AutoFixService {
    * Fix formatting errors
    * Session 2.3: Added dryRun parameter
    */
-  private async fixFormatErrors(files: string[], dryRun: boolean = false): Promise<AutoFixResult> {
+  private async fixFormatErrors(
+    files: string[],
+    dryRun: boolean = false,
+  ): Promise<AutoFixResult> {
     const language = this.detectLanguage(files);
 
     try {
       // Session 2.3: Dry-run mode - simulate without executing
       if (dryRun) {
-        if (language === 'javascript' || language === 'typescript') {
-          if (await this.hasCommand('prettier')) {
+        if (language === "javascript" || language === "typescript") {
+          if (await this.hasCommand("prettier")) {
             return {
               success: true,
-              reason: 'dry_run',
-              error: `Would run: npx prettier --write ${files.join(' ')}`
+              reason: "dry_run",
+              error: `Would run: npx prettier --write ${files.join(" ")}`,
             };
-          } else if (await this.hasPackageScript('format')) {
+          } else if (await this.hasPackageScript("format")) {
             return {
               success: true,
-              reason: 'dry_run',
-              error: 'Would run: npm run format'
-            };
-          } else {
-            return { success: false, reason: 'no_format_tool' };
-          }
-        } else if (language === 'python') {
-          if (await this.hasCommand('black')) {
-            return {
-              success: true,
-              reason: 'dry_run',
-              error: `Would run: black ${files.join(' ')}`
+              reason: "dry_run",
+              error: "Would run: npm run format",
             };
           } else {
-            return { success: false, reason: 'no_format_tool' };
+            return { success: false, reason: "no_format_tool" };
           }
-        } else if (language === 'go') {
+        } else if (language === "python") {
+          if (await this.hasCommand("black")) {
+            return {
+              success: true,
+              reason: "dry_run",
+              error: `Would run: black ${files.join(" ")}`,
+            };
+          } else {
+            return { success: false, reason: "no_format_tool" };
+          }
+        } else if (language === "go") {
           return {
             success: true,
-            reason: 'dry_run',
-            error: 'Would run: go fmt ./...'
+            reason: "dry_run",
+            error: "Would run: go fmt ./...",
           };
         } else {
-          return { success: false, reason: 'unsupported_language', language };
+          return { success: false, reason: "unsupported_language", language };
         }
       }
 
       // Session 2.2: Save state before making changes
       await this.saveState();
 
-      if (language === 'javascript' || language === 'typescript') {
-        if (await this.hasCommand('prettier')) {
-          await execAsync(`npx prettier --write ${files.join(' ')}`);
-        } else if (await this.hasPackageScript('format')) {
-          await execAsync('npm run format');
+      if (language === "javascript" || language === "typescript") {
+        if (await this.hasCommand("prettier")) {
+          await execAsync(`npx prettier --write ${files.join(" ")}`);
+        } else if (await this.hasPackageScript("format")) {
+          await execAsync("npm run format");
         } else {
-          return { success: false, reason: 'no_format_tool' };
+          return { success: false, reason: "no_format_tool" };
         }
-      } else if (language === 'python') {
-        if (await this.hasCommand('black')) {
-          await execAsync(`black ${files.join(' ')}`);
+      } else if (language === "python") {
+        if (await this.hasCommand("black")) {
+          await execAsync(`black ${files.join(" ")}`);
         } else {
-          return { success: false, reason: 'no_format_tool' };
+          return { success: false, reason: "no_format_tool" };
         }
-      } else if (language === 'go') {
-        await execAsync('go fmt ./...');
+      } else if (language === "go") {
+        await execAsync("go fmt ./...");
       } else {
-        return { success: false, reason: 'unsupported_language', language };
+        return { success: false, reason: "unsupported_language", language };
       }
 
       const diff = await this.git.getDiff();
       if (!diff || diff.length === 0) {
-        return { success: false, reason: 'no_changes' };
+        return { success: false, reason: "no_changes" };
       }
 
       // Check change size
       const changedLines = this.countChangedLines(diff);
       if (changedLines > this.config.maxChangedLines) {
         await this.restoreState();
-        return { success: false, reason: 'too_many_changes', changedLines, rolledBack: true };
+        return {
+          success: false,
+          reason: "too_many_changes",
+          changedLines,
+          rolledBack: true,
+        };
       }
 
       // Session 2.1: Verify changes after fix
@@ -334,24 +371,28 @@ export class AutoFixService {
         await this.restoreState();
         return {
           success: false,
-          reason: 'verification_failed',
+          reason: "verification_failed",
           verificationFailed: true,
           verificationErrors: verification.errors,
-          rolledBack: true
+          rolledBack: true,
         };
       }
 
       const prResult = await this.createFixPR(
-        'style: auto-format code',
+        "style: auto-format code",
         `Automatically formatted code using ${language} formatter.`,
-        files
+        files,
       );
 
       return { success: true, prNumber: prResult.number, changedLines };
-
     } catch (error) {
       await this.restoreState();
-      return { success: false, reason: 'execution_failed', error: (error as Error).message, rolledBack: true };
+      return {
+        success: false,
+        reason: "execution_failed",
+        error: (error as Error).message,
+        rolledBack: true,
+      };
     }
   }
 
@@ -359,63 +400,80 @@ export class AutoFixService {
    * Fix type errors (limited capability)
    * Session 2.3: Added dryRun parameter
    */
-  private async fixTypeErrors(_files: string[], dryRun: boolean = false): Promise<AutoFixResult> {
+  private async fixTypeErrors(
+    _files: string[],
+    dryRun: boolean = false,
+  ): Promise<AutoFixResult> {
     // TypeScript: Use tsc with --noEmit to identify, but limited auto-fix
     // This is a stretch goal - most type errors need manual intervention
 
     if (dryRun) {
       return {
         success: false,
-        reason: 'limited_auto_fix_capability',
-        error: 'Type errors require manual intervention (Phase 7: Codex)'
+        reason: "limited_auto_fix_capability",
+        error: "Type errors require manual intervention (Phase 7: Codex)",
       };
     }
 
     // For now, return not_auto_fixable
     // Phase 7 (Codex) will handle this better
-    return { success: false, reason: 'limited_auto_fix_capability' };
+    return { success: false, reason: "limited_auto_fix_capability" };
   }
 
   /**
    * Fix security issues (npm audit fix, limited scope)
    * Session 2.3: Added dryRun parameter
    */
-  private async fixSecurityIssues(failure: FailureDetail, dryRun: boolean = false): Promise<AutoFixResult> {
+  private async fixSecurityIssues(
+    failure: FailureDetail,
+    dryRun: boolean = false,
+  ): Promise<AutoFixResult> {
     const language = this.detectLanguage(failure.affectedFiles);
 
     try {
       // Session 2.3: Dry-run mode - simulate without executing
       if (dryRun) {
-        if (language === 'javascript' || language === 'typescript') {
-          if (failure.summary.includes('dependency') || failure.summary.includes('vulnerability')) {
+        if (language === "javascript" || language === "typescript") {
+          if (
+            failure.summary.includes("dependency") ||
+            failure.summary.includes("vulnerability")
+          ) {
             return {
               success: true,
-              reason: 'dry_run',
-              error: 'Would run: npm audit fix'
+              reason: "dry_run",
+              error: "Would run: npm audit fix",
             };
           }
         }
-        return { success: false, reason: 'limited_auto_fix_capability' };
+        return { success: false, reason: "limited_auto_fix_capability" };
       }
 
       // Session 2.2: Save state before making changes
       await this.saveState();
 
-      if (language === 'javascript' || language === 'typescript') {
+      if (language === "javascript" || language === "typescript") {
         // Only for dependency vulnerabilities
-        if (failure.summary.includes('dependency') || failure.summary.includes('vulnerability')) {
-          await execAsync('npm audit fix');
+        if (
+          failure.summary.includes("dependency") ||
+          failure.summary.includes("vulnerability")
+        ) {
+          await execAsync("npm audit fix");
 
           const diff = await this.git.getDiff();
           if (!diff) {
-            return { success: false, reason: 'no_changes' };
+            return { success: false, reason: "no_changes" };
           }
 
           // Check change size
           const changedLines = this.countChangedLines(diff);
           if (changedLines > this.config.maxChangedLines) {
             await this.restoreState();
-            return { success: false, reason: 'too_many_changes', changedLines, rolledBack: true };
+            return {
+              success: false,
+              reason: "too_many_changes",
+              changedLines,
+              rolledBack: true,
+            };
           }
 
           // Session 2.1: Verify changes after fix
@@ -424,17 +482,17 @@ export class AutoFixService {
             await this.restoreState();
             return {
               success: false,
-              reason: 'verification_failed',
+              reason: "verification_failed",
               verificationFailed: true,
               verificationErrors: verification.errors,
-              rolledBack: true
+              rolledBack: true,
             };
           }
 
           const prResult = await this.createFixPR(
-            'fix: auto-fix dependency vulnerabilities',
-            'Automatically fixed npm audit vulnerabilities.',
-            ['package-lock.json']
+            "fix: auto-fix dependency vulnerabilities",
+            "Automatically fixed npm audit vulnerabilities.",
+            ["package-lock.json"],
           );
 
           return { success: true, prNumber: prResult.number, changedLines };
@@ -442,11 +500,15 @@ export class AutoFixService {
       }
 
       // Secret detection and other security issues -> Phase 7 (Codex)
-      return { success: false, reason: 'limited_auto_fix_capability' };
-
+      return { success: false, reason: "limited_auto_fix_capability" };
     } catch (error) {
       await this.restoreState();
-      return { success: false, reason: 'execution_failed', error: (error as Error).message, rolledBack: true };
+      return {
+        success: false,
+        reason: "execution_failed",
+        error: (error as Error).message,
+        rolledBack: true,
+      };
     }
   }
 
@@ -456,7 +518,7 @@ export class AutoFixService {
   private async createFixPR(
     title: string,
     body: string,
-    files: string[]
+    files: string[],
   ): Promise<{ number: number; url: string }> {
     // Get current branch
     const branch = await this.git.getCurrentBranch();
@@ -467,10 +529,12 @@ export class AutoFixService {
 
     // Stage and commit
     await this.git.add(files);
-    await this.git.commit(`${title}\n\n${body}\n\n🤖 Auto-generated by git-pr-manager`);
+    await this.git.commit(
+      `${title}\n\n${body}\n\n🤖 Auto-generated by git-pr-manager`,
+    );
 
     // Push
-    await this.git.push('origin', fixBranch, true);
+    await this.git.push("origin", fixBranch, true);
 
     // Create PR
     const pr = await this.github.createPR({
@@ -478,7 +542,7 @@ export class AutoFixService {
       body: `${body}\n\n**Auto-Fix Details**:\n- Affected files: ${files.length}\n- Original branch: ${branch}\n\n🤖 This PR was automatically generated by git-pr-manager`,
       head: fixBranch,
       base: branch,
-      draft: false
+      draft: false,
     });
 
     return { number: pr.number, url: pr.html_url };
@@ -491,7 +555,7 @@ export class AutoFixService {
     return [
       ErrorType.LINTING_ERROR,
       ErrorType.FORMAT_ERROR,
-      ErrorType.SECURITY_ISSUE,  // Limited - only npm audit for dependencies
+      ErrorType.SECURITY_ISSUE, // Limited - only npm audit for dependencies
       // ErrorType.TYPE_ERROR,  // Limited - Phase 7
     ].includes(errorType);
   }
@@ -501,17 +565,25 @@ export class AutoFixService {
    */
   private detectLanguage(files: string[]): string {
     // Check for JavaScript/TypeScript files (including package-lock.json for npm audit)
-    if (files.some(f =>
-      f.endsWith('.ts') || f.endsWith('.tsx') ||
-      f.endsWith('.js') || f.endsWith('.jsx') ||
-      f.endsWith('package-lock.json') || f.endsWith('package.json')
-    )) {
-      return files.some(f => f.endsWith('.ts') || f.endsWith('.tsx')) ? 'typescript' : 'javascript';
+    if (
+      files.some(
+        (f) =>
+          f.endsWith(".ts") ||
+          f.endsWith(".tsx") ||
+          f.endsWith(".js") ||
+          f.endsWith(".jsx") ||
+          f.endsWith("package-lock.json") ||
+          f.endsWith("package.json"),
+      )
+    ) {
+      return files.some((f) => f.endsWith(".ts") || f.endsWith(".tsx"))
+        ? "typescript"
+        : "javascript";
     }
-    if (files.some(f => f.endsWith('.py'))) return 'python';
-    if (files.some(f => f.endsWith('.go'))) return 'go';
-    if (files.some(f => f.endsWith('.rs'))) return 'rust';
-    return 'unknown';
+    if (files.some((f) => f.endsWith(".py"))) return "python";
+    if (files.some((f) => f.endsWith(".go"))) return "go";
+    if (files.some((f) => f.endsWith(".rs"))) return "rust";
+    return "unknown";
   }
 
   /**
@@ -531,7 +603,7 @@ export class AutoFixService {
    */
   private async hasPackageScript(script: string): Promise<boolean> {
     try {
-      const { stdout } = await execAsync('npm run');
+      const { stdout } = await execAsync("npm run");
       return stdout.includes(script);
     } catch {
       return false;
@@ -558,16 +630,18 @@ export class AutoFixService {
   private async saveState(): Promise<void> {
     try {
       // Check if there are any changes to stash
-      const status = await execAsync('git status --porcelain');
+      const status = await execAsync("git status --porcelain");
 
       if (status.stdout.trim()) {
         // Stash current changes
-        const stashResult = await execAsync('git stash push -m "gpm-autofix-backup"');
+        const stashResult = await execAsync(
+          'git stash push -m "gpm-autofix-backup"',
+        );
         this.stashedChanges = stashResult.stdout;
       }
     } catch (error) {
       // If stash fails, continue (changes might already be committed)
-      console.warn('Warning: Could not save state:', (error as Error).message);
+      console.warn("Warning: Could not save state:", (error as Error).message);
     }
   }
 
@@ -581,11 +655,11 @@ export class AutoFixService {
       }
 
       // Restore stashed changes
-      await execAsync('git stash pop');
+      await execAsync("git stash pop");
       this.stashedChanges = null;
       return true;
     } catch (error) {
-      console.error('Error restoring state:', (error as Error).message);
+      console.error("Error restoring state:", (error as Error).message);
       return false;
     }
   }
@@ -594,7 +668,10 @@ export class AutoFixService {
    * Session 2.1: Verify changes after auto-fix
    * Returns true if verification passes, false otherwise
    */
-  private async verifyChanges(): Promise<{ success: boolean; errors: string[] }> {
+  private async verifyChanges(): Promise<{
+    success: boolean;
+    errors: string[];
+  }> {
     // Skip verification if VerifyService not provided or requireTests is false
     if (!this.verify || !this.config.requireTests) {
       return { success: true, errors: [] };
@@ -604,12 +681,12 @@ export class AutoFixService {
       const result = await this.verify.runChecks({ timeout: 120000 }); // 2 minutes
       return {
         success: result.success,
-        errors: result.errors
+        errors: result.errors,
       };
     } catch (error) {
       return {
         success: false,
-        errors: [(error as Error).message]
+        errors: [(error as Error).message],
       };
     }
   }
@@ -621,7 +698,7 @@ export class AutoFixService {
     errorType: ErrorType,
     result: AutoFixResult,
     dryRun: boolean,
-    duration: number
+    duration: number,
   ): void {
     this.metrics.lastUpdated = new Date();
     this.metrics.totalFixDuration += duration;
@@ -653,7 +730,7 @@ export class AutoFixService {
       this.metrics.byErrorType[errorType] = {
         attempts: 0,
         successes: 0,
-        failures: 0
+        failures: 0,
       };
     }
     this.metrics.byErrorType[errorType]!.attempts++;
@@ -665,33 +742,39 @@ export class AutoFixService {
 
     // Track by reason
     if (result.reason) {
-      this.metrics.byReason[result.reason] = (this.metrics.byReason[result.reason] || 0) + 1;
+      this.metrics.byReason[result.reason] =
+        (this.metrics.byReason[result.reason] || 0) + 1;
     }
 
     // Update average duration
     if (this.metrics.totalAttempts > 0) {
-      this.metrics.averageFixDuration = this.metrics.totalFixDuration / this.metrics.totalAttempts;
+      this.metrics.averageFixDuration =
+        this.metrics.totalFixDuration / this.metrics.totalAttempts;
     }
   }
 
   /**
    * Session 3.2: Log auto-fix attempt
    */
-  private log(level: 'info' | 'warn' | 'error', message: string, data?: any): void {
+  private log(
+    level: "info" | "warn" | "error",
+    message: string,
+    data?: any,
+  ): void {
     if (!this.enableLogging) return;
 
     const timestamp = new Date().toISOString();
     const prefix = `[AutoFix ${timestamp}]`;
 
     switch (level) {
-      case 'info':
-        console.log(`${prefix} ${message}`, data || '');
+      case "info":
+        console.log(`${prefix} ${message}`, data || "");
         break;
-      case 'warn':
-        console.warn(`${prefix} ${message}`, data || '');
+      case "warn":
+        console.warn(`${prefix} ${message}`, data || "");
         break;
-      case 'error':
-        console.error(`${prefix} ${message}`, data || '');
+      case "error":
+        console.error(`${prefix} ${message}`, data || "");
         break;
     }
   }
@@ -718,7 +801,7 @@ export class AutoFixService {
       byReason: {},
       totalFixDuration: 0,
       startTime: new Date(),
-      lastUpdated: new Date()
+      lastUpdated: new Date(),
     };
   }
 

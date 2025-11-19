@@ -16,7 +16,9 @@ All JSON responses follow a consistent structure:
 ```json
 {
   "success": true,
-  "data": { /* command-specific data */ },
+  "data": {
+    /* command-specific data */
+  },
   "metadata": {
     "timestamp": "2025-11-14T05:17:11.755Z",
     "duration": 1.223,
@@ -37,10 +39,7 @@ All JSON responses follow a consistent structure:
       "worktree": "/path/to/current/worktree",
       "worktreeBranch": "feature/my-feature"
     },
-    "suggestions": [
-      "Suggestion 1",
-      "Suggestion 2"
-    ]
+    "suggestions": ["Suggestion 1", "Suggestion 2"]
   },
   "metadata": {
     "timestamp": "2025-11-14T05:17:11.755Z",
@@ -51,6 +50,7 @@ All JSON responses follow a consistent structure:
 ```
 
 **Enhanced Error Context (Phase 2)**:
+
 - `details.worktree` (string, optional): Current working directory (worktree path) - automatically included in git-related errors
 - `details.worktreeBranch` (string, optional): Current branch name in the worktree - included when available
 - `suggestions` (array, optional): Actionable fix suggestions for the error
@@ -73,6 +73,7 @@ All JSON responses follow a consistent structure:
 **Command**: Display current git and workflow status
 
 **Success Response**:
+
 ```json
 {
   "success": true,
@@ -102,6 +103,7 @@ All JSON responses follow a consistent structure:
 ```
 
 **Fields**:
+
 - `branch.current` (string): Current branch name
 - `branch.default` (string): Default branch (main/master)
 - `branch.upstream` (string|null): Upstream tracking branch
@@ -119,6 +121,7 @@ All JSON responses follow a consistent structure:
 **Command**: Display branch protection settings
 
 **Success Response**:
+
 ```json
 {
   "success": true,
@@ -148,6 +151,7 @@ All JSON responses follow a consistent structure:
 ```
 
 **Fields**:
+
 - `branch` (string): Branch name
 - `enabled` (boolean): Whether protection is enabled
 - `requiredStatusChecks` (string[]): Required CI checks
@@ -168,6 +172,7 @@ All JSON responses follow a consistent structure:
 **Command**: Run security scanning (secrets + vulnerabilities)
 
 **Success Response**:
+
 ```json
 {
   "success": true,
@@ -204,6 +209,7 @@ All JSON responses follow a consistent structure:
 ```
 
 **Fields**:
+
 - `passed` (boolean): Overall pass/fail status
 - `secrets.scanned` (boolean): Whether secret scanning was performed
 - `secrets.found` (boolean): Whether secrets were found
@@ -222,6 +228,7 @@ All JSON responses follow a consistent structure:
 - `blockers` (string[]): Blocking issues
 
 **Example with Findings**:
+
 ```json
 {
   "success": false,
@@ -259,10 +266,7 @@ All JSON responses follow a consistent structure:
       "reason": null
     },
     "warnings": [],
-    "blockers": [
-      "2 secrets found",
-      "1 critical vulnerability"
-    ]
+    "blockers": ["2 secrets found", "1 critical vulnerability"]
   }
 }
 ```
@@ -274,6 +278,7 @@ All JSON responses follow a consistent structure:
 **Command**: Get CI check status for a pull request
 
 **Success Response**:
+
 ```json
 {
   "success": true,
@@ -297,6 +302,7 @@ All JSON responses follow a consistent structure:
 ```
 
 **Fields**:
+
 - `prNumber` (number): Pull request number
 - `total` (number): Total number of checks
 - `passed` (number): Number of passed checks
@@ -308,6 +314,7 @@ All JSON responses follow a consistent structure:
 - `startedAt` (string): ISO timestamp when checks started
 
 **Example with Failures**:
+
 ```json
 {
   "success": false,
@@ -349,6 +356,7 @@ All JSON responses follow a consistent structure:
 **Command**: Create a new feature branch
 
 **Success Response**:
+
 ```json
 {
   "success": true,
@@ -366,11 +374,13 @@ All JSON responses follow a consistent structure:
 ```
 
 **Fields**:
+
 - `branch` (string): Created feature branch name
 - `baseBranch` (string): Base branch used for creation
 - `created` (boolean): Whether branch was created successfully
 
 **Error Response** (Dirty Working Directory):
+
 ```json
 {
   "success": false,
@@ -387,6 +397,7 @@ All JSON responses follow a consistent structure:
 ```
 
 **Error Response** (Worktree Conflict):
+
 ```json
 {
   "success": false,
@@ -419,6 +430,7 @@ All JSON responses follow a consistent structure:
 **Command**: Ship feature (create PR, wait for CI, merge)
 
 **Success Response**:
+
 ```json
 {
   "success": true,
@@ -439,6 +451,7 @@ All JSON responses follow a consistent structure:
 ```
 
 **Fields**:
+
 - `merged` (boolean): Whether PR was merged
 - `prNumber` (number): Pull request number
 - `prUrl` (string): GitHub PR URL
@@ -453,6 +466,7 @@ All JSON responses follow a consistent structure:
 **Command**: Automated workflow (push, create PR, wait for CI, optionally merge)
 
 **Success Response (Merged)**:
+
 ```json
 {
   "success": true,
@@ -472,6 +486,7 @@ All JSON responses follow a consistent structure:
 ```
 
 **Success Response (No Merge - `--no-merge` flag)**:
+
 ```json
 {
   "success": true,
@@ -491,6 +506,7 @@ All JSON responses follow a consistent structure:
 ```
 
 **Fields**:
+
 - `merged` (boolean): Whether PR was merged (false if --no-merge)
 - `prNumber` (number): Pull request number
 - `prUrl` (string): GitHub PR URL
@@ -504,6 +520,7 @@ All JSON responses follow a consistent structure:
 **Command**: Check for npm package updates
 
 **Success Response (Update Available)**:
+
 ```json
 {
   "success": true,
@@ -522,6 +539,7 @@ All JSON responses follow a consistent structure:
 ```
 
 **Success Response (No Update)**:
+
 ```json
 {
   "success": true,
@@ -540,6 +558,7 @@ All JSON responses follow a consistent structure:
 ```
 
 **Fields**:
+
 - `updateAvailable` (boolean): Whether an update is available
 - `currentVersion` (string): Currently installed version
 - `latestVersion` (string): Latest available version
@@ -552,6 +571,7 @@ All JSON responses follow a consistent structure:
 **Command**: Install git hooks
 
 **Success Response**:
+
 ```json
 {
   "success": true,
@@ -568,6 +588,7 @@ All JSON responses follow a consistent structure:
 ```
 
 **Fields**:
+
 - `installed` (boolean): Whether hooks were installed
 - `hooks` (string[]): List of installed hooks
 
@@ -578,6 +599,7 @@ All JSON responses follow a consistent structure:
 **Command**: Uninstall git hooks
 
 **Success Response**:
+
 ```json
 {
   "success": true,
@@ -594,6 +616,7 @@ All JSON responses follow a consistent structure:
 ```
 
 **Fields**:
+
 - `uninstalled` (boolean): Whether hooks were uninstalled
 - `hooks` (string[]): List of uninstalled hooks
 
@@ -604,6 +627,7 @@ All JSON responses follow a consistent structure:
 **Command**: Initialize .gpm.yml configuration
 
 **Success Response**:
+
 ```json
 {
   "success": true,
@@ -663,12 +687,14 @@ All JSON responses follow a consistent structure:
 ```
 
 **Fields**:
+
 - `created` (boolean): Whether config was created successfully
 - `template` (string): Template used ("basic" | "standard" | "strict")
 - `filePath` (string): Path to created config file
 - `config` (object): Full configuration object created
 
 **Error Response** (Config Already Exists):
+
 ```json
 {
   "success": false,
@@ -676,9 +702,7 @@ All JSON responses follow a consistent structure:
   "error": {
     "code": "ERROR",
     "message": ".gpm.yml already exists",
-    "suggestions": [
-      "Delete the existing file or use --force flag to overwrite"
-    ]
+    "suggestions": ["Delete the existing file or use --force flag to overwrite"]
   },
   "metadata": {
     "timestamp": "2025-11-14T05:31:34.380Z",
@@ -695,6 +719,7 @@ All JSON responses follow a consistent structure:
 **Command**: Show documentation index
 
 **Success Response** (Index):
+
 ```json
 {
   "success": true,
@@ -748,6 +773,7 @@ All JSON responses follow a consistent structure:
 ```
 
 **Fields** (Index):
+
 - `version` (string): Package version
 - `installationPath` (string): Package installation directory
 - `availableGuides` (object[]): List of available documentation guides
@@ -755,6 +781,7 @@ All JSON responses follow a consistent structure:
 - `links` (object): Online documentation links
 
 **Success Response** (Specific Guide):
+
 ```json
 {
   "success": true,
@@ -763,7 +790,7 @@ All JSON responses follow a consistent structure:
     "path": "/usr/local/lib/node_modules/@littlebearapps/git-pr-manager/docs/README.md",
     "found": true,
     "contentLength": 4985,
-    "contentPreview": "# Documentation Index\n\nComplete documentation for Git Workflow Manager..."
+    "contentPreview": "# Documentation Index\n\nComplete documentation for Git PR Manager (GPM)..."
   },
   "metadata": {
     "timestamp": "2025-11-14T05:31:18.242Z",
@@ -774,6 +801,7 @@ All JSON responses follow a consistent structure:
 ```
 
 **Fields** (Specific Guide):
+
 - `guide` (string): Guide name requested
 - `path` (string): Full path to guide file
 - `found` (boolean): Whether guide was found
@@ -783,6 +811,7 @@ All JSON responses follow a consistent structure:
 **Note**: In JSON mode, only a preview of the content is returned to keep output manageable. For full content, use the command without `--json` flag.
 
 **Error Response** (Guide Not Found):
+
 ```json
 {
   "success": false,
@@ -961,7 +990,7 @@ interface ChecksData {
   failed: number;
   pending: number;
   skipped: number;
-  overallStatus: 'success' | 'failure' | 'pending';
+  overallStatus: "success" | "failure" | "pending";
   failureDetails: Array<{
     checkName: string;
     status: string;
@@ -1000,7 +1029,7 @@ interface UpdateCheckData {
   updateAvailable: boolean;
   currentVersion: string;
   latestVersion: string;
-  channel: 'latest' | 'next';
+  channel: "latest" | "next";
 }
 
 interface HooksData {
@@ -1011,7 +1040,7 @@ interface HooksData {
 
 interface InitData {
   created: boolean;
-  template: 'basic' | 'standard' | 'strict';
+  template: "basic" | "standard" | "strict";
   filePath: string;
   config: {
     branchProtection: {
@@ -1149,18 +1178,18 @@ echo "[$TIMESTAMP] gpm v$VERSION: scan completed"
 function isValidGpmResponse<T>(data: unknown): data is GpmResponse<T> {
   const response = data as GpmResponse<T>;
   return (
-    typeof response.success === 'boolean' &&
+    typeof response.success === "boolean" &&
     response.metadata !== undefined &&
-    typeof response.metadata.timestamp === 'string' &&
-    typeof response.metadata.duration === 'number' &&
-    typeof response.metadata.version === 'string'
+    typeof response.metadata.timestamp === "string" &&
+    typeof response.metadata.duration === "number" &&
+    typeof response.metadata.version === "string"
   );
 }
 
 // Usage
 const parsed = JSON.parse(output);
 if (!isValidGpmResponse(parsed)) {
-  throw new Error('Invalid gpm response format');
+  throw new Error("Invalid gpm response format");
 }
 ```
 
@@ -1214,6 +1243,7 @@ gpm status --json | jq -r '.metadata.version'
 **Problem**: Command runs but produces no JSON output
 
 **Solutions**:
+
 1. Ensure `--json` flag is used: `gpm status --json`
 2. Check that command supports JSON (all commands v1.4.0+)
 3. Verify output isn't being filtered (spinner output is suppressed in JSON mode)
@@ -1223,6 +1253,7 @@ gpm status --json | jq -r '.metadata.version'
 **Problem**: `jq` reports parse errors
 
 **Solutions**:
+
 1. Check for debug output mixed with JSON (use `gpm --json` not `DEBUG=1 gpm --json`)
 2. Ensure you're parsing the correct output (not stderr)
 3. Validate JSON manually: `gpm status --json | jq .`
@@ -1232,6 +1263,7 @@ gpm status --json | jq -r '.metadata.version'
 **Problem**: Expected fields are `null` or missing
 
 **Solutions**:
+
 1. Check that you're using the correct command (`gpm protect --show --json` not `gpm protect --json`)
 2. Verify the operation completed successfully (check `success: true`)
 3. Check metadata.version for schema compatibility
@@ -1250,5 +1282,6 @@ gpm status --json | jq -r '.metadata.version'
 ## Feedback
 
 For schema suggestions or issues:
+
 - Open an issue: https://github.com/littlebearapps/git-pr-manager/issues
 - Reference this schema version in bug reports

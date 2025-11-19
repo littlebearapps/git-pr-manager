@@ -1,11 +1,11 @@
-import chalk from 'chalk';
-import { checkForUpdate, clearUpdateCache } from '../utils/update-check';
-import { logger } from '../utils/logger';
+import chalk from "chalk";
+import { checkForUpdate, clearUpdateCache } from "../utils/update-check";
+import { logger } from "../utils/logger";
 
 interface CheckUpdateOptions {
   json?: boolean;
   clearCache?: boolean;
-  channel?: 'latest' | 'next';
+  channel?: "latest" | "next";
 }
 
 /**
@@ -34,20 +34,23 @@ interface CheckUpdateOptions {
  * gpm check-update --channel next
  * ```
  */
-export async function checkUpdateCommand(options: CheckUpdateOptions): Promise<void> {
-  const pkg = require('../../package.json');
+export async function checkUpdateCommand(
+  options: CheckUpdateOptions,
+): Promise<void> {
+  const pkg = require("../../package.json");
 
   try {
     // Clear cache if requested
     if (options.clearCache) {
       await clearUpdateCache();
       if (!options.json) {
-        logger.info('Update cache cleared');
+        logger.info("Update cache cleared");
       }
     }
 
     // Determine channel
-    const channel = options.channel || (pkg.version.includes('-') ? 'next' : 'latest');
+    const channel =
+      options.channel || (pkg.version.includes("-") ? "next" : "latest");
 
     // Check for updates
     const result = await checkForUpdate({
@@ -68,8 +71,8 @@ export async function checkUpdateCommand(options: CheckUpdateOptions): Promise<v
               channel,
             },
             null,
-            2
-          )
+            2,
+          ),
         );
       } else {
         logger.error(`Failed to check for updates: ${result.error}`);
@@ -90,34 +93,34 @@ export async function checkUpdateCommand(options: CheckUpdateOptions): Promise<v
             cached: result.cached,
           },
           null,
-          2
-        )
+          2,
+        ),
       );
     } else {
       // Human-readable output
-      console.log('');
-      console.log(chalk.bold('Update Check Results'));
-      console.log('─'.repeat(50));
-      console.log(`${chalk.dim('Current version:')}  ${result.currentVersion}`);
-      console.log(`${chalk.dim('Latest version:')}   ${result.latestVersion}`);
-      console.log(`${chalk.dim('Channel:')}          ${result.channel}`);
+      console.log("");
+      console.log(chalk.bold("Update Check Results"));
+      console.log("─".repeat(50));
+      console.log(`${chalk.dim("Current version:")}  ${result.currentVersion}`);
+      console.log(`${chalk.dim("Latest version:")}   ${result.latestVersion}`);
+      console.log(`${chalk.dim("Channel:")}          ${result.channel}`);
       console.log(
-        `${chalk.dim('Cached:')}           ${result.cached ? chalk.yellow('Yes') : chalk.green('No')}`
+        `${chalk.dim("Cached:")}           ${result.cached ? chalk.yellow("Yes") : chalk.green("No")}`,
       );
-      console.log('─'.repeat(50));
+      console.log("─".repeat(50));
 
       if (result.updateAvailable) {
-        console.log('');
-        console.log(chalk.green.bold('✓ Update available!'));
-        console.log('');
+        console.log("");
+        console.log(chalk.green.bold("✓ Update available!"));
+        console.log("");
         console.log(
-          `Run ${chalk.cyan(`npm install -g ${pkg.name}`)} to update.`
+          `Run ${chalk.cyan(`npm install -g ${pkg.name}`)} to update.`,
         );
-        console.log('');
+        console.log("");
       } else {
-        console.log('');
-        console.log(chalk.green.bold('✓ You are using the latest version'));
-        console.log('');
+        console.log("");
+        console.log(chalk.green.bold("✓ You are using the latest version"));
+        console.log("");
       }
     }
 
@@ -129,16 +132,16 @@ export async function checkUpdateCommand(options: CheckUpdateOptions): Promise<v
         JSON.stringify(
           {
             success: false,
-            error: error instanceof Error ? error.message : 'Unknown error',
+            error: error instanceof Error ? error.message : "Unknown error",
             currentVersion: pkg.version,
           },
           null,
-          2
-        )
+          2,
+        ),
       );
     } else {
       logger.error(
-        `Failed to check for updates: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to check for updates: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
     }
     process.exit(2);

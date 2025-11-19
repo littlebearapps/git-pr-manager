@@ -1,30 +1,30 @@
-import * as fs from 'fs/promises';
-import * as path from 'path';
-import * as yaml from 'yaml';
-import { WorkflowConfig } from '../types';
+import * as fs from "fs/promises";
+import * as path from "path";
+import * as yaml from "yaml";
+import { WorkflowConfig } from "../types";
 
 const DEFAULT_CONFIG: WorkflowConfig = {
   branchProtection: {
     enabled: false,
     requireReviews: 0,
     requireStatusChecks: [],
-    enforceAdmins: false
+    enforceAdmins: false,
   },
   ci: {
     waitForChecks: true,
     failFast: true,
     retryFlaky: false,
-    timeout: 30 // 30 minutes
+    timeout: 30, // 30 minutes
   },
   security: {
     scanSecrets: true,
     scanDependencies: true,
-    allowedVulnerabilities: []
+    allowedVulnerabilities: [],
   },
   pr: {
     templatePath: undefined,
     autoAssign: [],
-    autoLabel: []
+    autoLabel: [],
   },
   // Session 3.1: Auto-fix defaults
   autoFix: {
@@ -34,27 +34,27 @@ const DEFAULT_CONFIG: WorkflowConfig = {
     requireTests: true,
     enableDryRun: false,
     autoMerge: false,
-    createPR: true
+    createPR: true,
   },
   // Phase 2: Git hooks defaults
   hooks: {
     prePush: {
       enabled: false,
-      reminder: true
+      reminder: true,
     },
     postCommit: {
       enabled: false,
-      reminder: true
-    }
+      reminder: true,
+    },
   },
   // Phase 1a: Multi-language verification defaults
   verification: {
     detectionEnabled: true,
-    preferMakefile: true
-  }
+    preferMakefile: true,
+  },
 };
 
-const CONFIG_FILENAME = '.gpm.yml';
+const CONFIG_FILENAME = ".gpm.yml";
 
 /**
  * ConfigService - Manages .gpm.yml configuration file
@@ -82,7 +82,7 @@ export class ConfigService {
     const now = Date.now();
 
     // Return cached config if still fresh
-    if (this.config && (now - this.cacheTime) < this.cacheTTL) {
+    if (this.config && now - this.cacheTime < this.cacheTTL) {
       return this.config;
     }
 
@@ -94,7 +94,7 @@ export class ConfigService {
         return this.config;
       }
 
-      const fileContent = await fs.readFile(this.configPath, 'utf-8');
+      const fileContent = await fs.readFile(this.configPath, "utf-8");
       const parsed = yaml.parse(fileContent);
 
       // Merge with defaults to ensure all fields are present
@@ -102,7 +102,9 @@ export class ConfigService {
       this.cacheTime = now;
       return this.config;
     } catch (error) {
-      throw new Error(`Failed to load config from ${this.configPath}: ${error}`);
+      throw new Error(
+        `Failed to load config from ${this.configPath}: ${error}`,
+      );
     }
   }
 
@@ -113,10 +115,10 @@ export class ConfigService {
     try {
       const yamlContent = yaml.stringify(config, {
         indent: 2,
-        lineWidth: 0
+        lineWidth: 0,
       });
 
-      await fs.writeFile(this.configPath, yamlContent, 'utf-8');
+      await fs.writeFile(this.configPath, yamlContent, "utf-8");
       this.config = config;
       this.cacheTime = Date.now();
     } catch (error) {
@@ -151,46 +153,46 @@ export class ConfigService {
   /**
    * Get template configuration without saving
    */
-  getTemplateConfig(template: 'basic' | 'standard' | 'strict'): WorkflowConfig {
+  getTemplateConfig(template: "basic" | "standard" | "strict"): WorkflowConfig {
     let config: WorkflowConfig;
 
     switch (template) {
-      case 'strict':
+      case "strict":
         config = {
           ...DEFAULT_CONFIG,
           branchProtection: {
             enabled: true,
             requireReviews: 1,
-            requireStatusChecks: ['test', 'lint', 'typecheck'],
-            enforceAdmins: true
+            requireStatusChecks: ["test", "lint", "typecheck"],
+            enforceAdmins: true,
           },
           ci: {
             waitForChecks: true,
             failFast: true,
             retryFlaky: true,
-            timeout: 30
+            timeout: 30,
           },
           security: {
             scanSecrets: true,
             scanDependencies: true,
-            allowedVulnerabilities: []
-          }
+            allowedVulnerabilities: [],
+          },
         };
         break;
 
-      case 'standard':
+      case "standard":
         config = {
           ...DEFAULT_CONFIG,
           branchProtection: {
             enabled: true,
             requireReviews: 0,
-            requireStatusChecks: ['test'],
-            enforceAdmins: false
-          }
+            requireStatusChecks: ["test"],
+            enforceAdmins: false,
+          },
         };
         break;
 
-      case 'basic':
+      case "basic":
       default:
         config = { ...DEFAULT_CONFIG };
         break;
@@ -203,7 +205,9 @@ export class ConfigService {
    * Generate YAML with AI-readable comments
    * Makes it easy for AI agents to understand preferred workflows
    */
-  private generateYamlWithComments(template: 'basic' | 'standard' | 'strict'): string {
+  private generateYamlWithComments(
+    template: "basic" | "standard" | "strict",
+  ): string {
     const config = this.getTemplateConfig(template);
 
     // Extract values with defaults to satisfy TypeScript strict null checks
@@ -238,7 +242,7 @@ branchProtection:
   enabled: ${bp!.enabled}
   requireReviews: ${bp!.requireReviews}  # 0 = no reviews (solo dev), 1+ = team
   requireStatusChecks:
-${(bp!.requireStatusChecks || []).map(check => `    - ${check}`).join('\n') || '    []'}
+${(bp!.requireStatusChecks || []).map((check) => `    - ${check}`).join("\n") || "    []"}
   enforceAdmins: ${bp!.enforceAdmins}
 
 # CI Configuration
@@ -263,7 +267,7 @@ security:
 # autoAssign: []  = list of GitHub usernames to auto-assign
 # autoLabel: []   = list of labels to auto-add
 pr:
-  templatePath: ${pr!.templatePath || 'null'}
+  templatePath: ${pr!.templatePath || "null"}
   autoAssign: []
   autoLabel: []
 
@@ -316,31 +320,35 @@ verification:
     return yaml;
   }
 
-  async init(template?: 'basic' | 'standard' | 'strict'): Promise<void> {
+  async init(template?: "basic" | "standard" | "strict"): Promise<void> {
     const exists = await this.exists();
     if (exists) {
       throw new Error(`Config file already exists at ${this.configPath}`);
     }
 
     // Generate YAML with AI-readable comments
-    const yamlContent = this.generateYamlWithComments(template || 'basic');
+    const yamlContent = this.generateYamlWithComments(template || "basic");
 
     try {
-      await fs.writeFile(this.configPath, yamlContent, 'utf-8');
+      await fs.writeFile(this.configPath, yamlContent, "utf-8");
 
       // Update cache
-      const config = this.getTemplateConfig(template || 'basic');
+      const config = this.getTemplateConfig(template || "basic");
       this.config = config;
       this.cacheTime = Date.now();
     } catch (error) {
-      throw new Error(`Failed to create config at ${this.configPath}: ${error}`);
+      throw new Error(
+        `Failed to create config at ${this.configPath}: ${error}`,
+      );
     }
   }
 
   /**
    * Get a specific config value
    */
-  async get<K extends keyof WorkflowConfig>(key: K): Promise<WorkflowConfig[K] | undefined> {
+  async get<K extends keyof WorkflowConfig>(
+    key: K,
+  ): Promise<WorkflowConfig[K] | undefined> {
     const config = await this.load();
     return config[key];
   }
@@ -348,7 +356,10 @@ verification:
   /**
    * Set a specific config value
    */
-  async set<K extends keyof WorkflowConfig>(key: K, value: WorkflowConfig[K]): Promise<void> {
+  async set<K extends keyof WorkflowConfig>(
+    key: K,
+    value: WorkflowConfig[K],
+  ): Promise<void> {
     const config = await this.load();
     config[key] = value;
     await this.save(config);
@@ -367,44 +378,52 @@ verification:
   private mergeWithDefaults(parsed: Partial<WorkflowConfig>): WorkflowConfig {
     return {
       branchProtection: {
-        enabled: parsed.branchProtection?.enabled ?? DEFAULT_CONFIG.branchProtection!.enabled,
-        requireReviews: parsed.branchProtection?.requireReviews ?? DEFAULT_CONFIG.branchProtection!.requireReviews,
-        requireStatusChecks: parsed.branchProtection?.requireStatusChecks ?? DEFAULT_CONFIG.branchProtection!.requireStatusChecks,
-        enforceAdmins: parsed.branchProtection?.enforceAdmins ?? DEFAULT_CONFIG.branchProtection!.enforceAdmins
+        enabled:
+          parsed.branchProtection?.enabled ??
+          DEFAULT_CONFIG.branchProtection!.enabled,
+        requireReviews:
+          parsed.branchProtection?.requireReviews ??
+          DEFAULT_CONFIG.branchProtection!.requireReviews,
+        requireStatusChecks:
+          parsed.branchProtection?.requireStatusChecks ??
+          DEFAULT_CONFIG.branchProtection!.requireStatusChecks,
+        enforceAdmins:
+          parsed.branchProtection?.enforceAdmins ??
+          DEFAULT_CONFIG.branchProtection!.enforceAdmins,
       },
       ci: {
         ...DEFAULT_CONFIG.ci,
-        ...parsed.ci
+        ...parsed.ci,
       },
       security: {
         ...DEFAULT_CONFIG.security,
-        ...parsed.security
+        ...parsed.security,
       },
       pr: {
         ...DEFAULT_CONFIG.pr,
-        ...parsed.pr
+        ...parsed.pr,
       },
       // Session 3.1: Merge autoFix config
       autoFix: {
         ...DEFAULT_CONFIG.autoFix,
-        ...parsed.autoFix
+        ...parsed.autoFix,
       },
       // Phase 2: Merge hooks config
       hooks: {
         prePush: {
           ...DEFAULT_CONFIG.hooks!.prePush,
-          ...parsed.hooks?.prePush
+          ...parsed.hooks?.prePush,
         },
         postCommit: {
           ...DEFAULT_CONFIG.hooks!.postCommit,
-          ...parsed.hooks?.postCommit
-        }
+          ...parsed.hooks?.postCommit,
+        },
       },
       // Phase 1a: Merge verification config
       verification: {
         ...DEFAULT_CONFIG.verification,
-        ...parsed.verification
-      }
+        ...parsed.verification,
+      },
     };
   }
 
@@ -425,44 +444,50 @@ verification:
 
     // Validate CI timeout
     if (config.ci?.timeout && config.ci.timeout < 1) {
-      errors.push('CI timeout must be at least 1 minute');
+      errors.push("CI timeout must be at least 1 minute");
     }
 
     if (config.ci?.timeout && config.ci.timeout > 120) {
-      errors.push('CI timeout must be at most 120 minutes');
+      errors.push("CI timeout must be at most 120 minutes");
     }
 
     // Validate branch protection
-    if (config.branchProtection?.requireReviews && config.branchProtection.requireReviews < 0) {
-      errors.push('Required reviews must be non-negative');
+    if (
+      config.branchProtection?.requireReviews &&
+      config.branchProtection.requireReviews < 0
+    ) {
+      errors.push("Required reviews must be non-negative");
     }
 
-    if (config.branchProtection?.requireReviews && config.branchProtection.requireReviews > 6) {
-      errors.push('Required reviews must be at most 6');
+    if (
+      config.branchProtection?.requireReviews &&
+      config.branchProtection.requireReviews > 6
+    ) {
+      errors.push("Required reviews must be at most 6");
     }
 
     // Session 3.1: Validate autoFix configuration
     if (config.autoFix?.maxAttempts !== undefined) {
       if (config.autoFix.maxAttempts < 1) {
-        errors.push('autoFix.maxAttempts must be at least 1');
+        errors.push("autoFix.maxAttempts must be at least 1");
       }
       if (config.autoFix.maxAttempts > 5) {
-        errors.push('autoFix.maxAttempts must be at most 5');
+        errors.push("autoFix.maxAttempts must be at most 5");
       }
     }
 
     if (config.autoFix?.maxChangedLines !== undefined) {
       if (config.autoFix.maxChangedLines < 1) {
-        errors.push('autoFix.maxChangedLines must be at least 1');
+        errors.push("autoFix.maxChangedLines must be at least 1");
       }
       if (config.autoFix.maxChangedLines > 10000) {
-        errors.push('autoFix.maxChangedLines must be at most 10000');
+        errors.push("autoFix.maxChangedLines must be at most 10000");
       }
     }
 
     return {
       valid: errors.length === 0,
-      errors
+      errors,
     };
   }
 }

@@ -1,4 +1,4 @@
-import { ErrorType } from '../types';
+import { ErrorType } from "../types";
 
 /**
  * ErrorClassifier - Classifies CI check failures into error types
@@ -9,8 +9,8 @@ export class ErrorClassifier {
    */
   classify(check: any): ErrorType {
     const name = check.name.toLowerCase();
-    const summary = (check.output?.summary || '').toLowerCase();
-    const title = (check.output?.title || '').toLowerCase();
+    const summary = (check.output?.summary || "").toLowerCase();
+    const title = (check.output?.title || "").toLowerCase();
 
     // Test failures
     if (this.isTestFailure(name, summary, title)) {
@@ -46,44 +46,68 @@ export class ErrorClassifier {
   }
 
   private isTestFailure(name: string, summary: string, title: string): boolean {
-    const keywords = ['test', 'spec', 'pytest', 'jest', 'mocha', 'unittest', 'vitest'];
-    return keywords.some(kw =>
-      name.includes(kw) || summary.includes(kw) || title.includes(kw)
+    const keywords = [
+      "test",
+      "spec",
+      "pytest",
+      "jest",
+      "mocha",
+      "unittest",
+      "vitest",
+    ];
+    return keywords.some(
+      (kw) => name.includes(kw) || summary.includes(kw) || title.includes(kw),
     );
   }
 
-  private isLintingError(name: string, summary: string, title: string): boolean {
-    const keywords = ['lint', 'eslint', 'pylint', 'flake8', 'ruff'];
-    return keywords.some(kw =>
-      name.includes(kw) || summary.includes(kw) || title.includes(kw)
+  private isLintingError(
+    name: string,
+    summary: string,
+    title: string,
+  ): boolean {
+    const keywords = ["lint", "eslint", "pylint", "flake8", "ruff"];
+    return keywords.some(
+      (kw) => name.includes(kw) || summary.includes(kw) || title.includes(kw),
     );
   }
 
   private isTypeError(name: string, summary: string, title: string): boolean {
-    const keywords = ['type', 'typecheck', 'mypy', 'typescript', 'tsc'];
-    return keywords.some(kw =>
-      name.includes(kw) || summary.includes(kw) || title.includes(kw)
+    const keywords = ["type", "typecheck", "mypy", "typescript", "tsc"];
+    return keywords.some(
+      (kw) => name.includes(kw) || summary.includes(kw) || title.includes(kw),
     );
   }
 
-  private isSecurityIssue(name: string, summary: string, title: string): boolean {
-    const keywords = ['security', 'codeql', 'secret', 'vuln', 'dependency'];
-    return keywords.some(kw =>
-      name.includes(kw) || summary.includes(kw) || title.includes(kw)
+  private isSecurityIssue(
+    name: string,
+    summary: string,
+    title: string,
+  ): boolean {
+    const keywords = ["security", "codeql", "secret", "vuln", "dependency"];
+    return keywords.some(
+      (kw) => name.includes(kw) || summary.includes(kw) || title.includes(kw),
     );
   }
 
   private isBuildError(name: string, summary: string, title: string): boolean {
-    const keywords = ['build', 'compile', 'webpack', 'tsc', 'babel', 'rollup', 'vite'];
-    return keywords.some(kw =>
-      name.includes(kw) || summary.includes(kw) || title.includes(kw)
+    const keywords = [
+      "build",
+      "compile",
+      "webpack",
+      "tsc",
+      "babel",
+      "rollup",
+      "vite",
+    ];
+    return keywords.some(
+      (kw) => name.includes(kw) || summary.includes(kw) || title.includes(kw),
     );
   }
 
   private isFormatError(name: string, summary: string, title: string): boolean {
-    const keywords = ['format', 'prettier', 'black', 'autopep8'];
-    return keywords.some(kw =>
-      name.includes(kw) || summary.includes(kw) || title.includes(kw)
+    const keywords = ["format", "prettier", "black", "autopep8"];
+    return keywords.some(
+      (kw) => name.includes(kw) || summary.includes(kw) || title.includes(kw),
     );
   }
 }

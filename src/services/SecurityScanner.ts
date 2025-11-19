@@ -1,13 +1,13 @@
-import { exec } from 'child_process';
-import { promisify } from 'util';
-import * as fs from 'fs/promises';
+import { exec } from "child_process";
+import { promisify } from "util";
+import * as fs from "fs/promises";
 import {
   SecretScanResult,
   SecretFinding,
   VulnerabilityResult,
   Vulnerability,
-  SecurityScanResult
-} from '../types';
+  SecurityScanResult,
+} from "../types";
 
 const execAsync = promisify(exec);
 
@@ -34,21 +34,29 @@ export class SecurityScanner {
 
     // Critical vulnerabilities are blockers
     if (vulnerabilities.shouldBlock) {
-      blockers.push(`Found ${vulnerabilities.critical} critical vulnerabilit${vulnerabilities.critical === 1 ? 'y' : 'ies'}`);
+      blockers.push(
+        `Found ${vulnerabilities.critical} critical vulnerabilit${vulnerabilities.critical === 1 ? "y" : "ies"}`,
+      );
     }
 
     // High vulnerabilities are warnings
     if (vulnerabilities.high && vulnerabilities.high > 0) {
-      warnings.push(`Found ${vulnerabilities.high} high severity vulnerabilit${vulnerabilities.high === 1 ? 'y' : 'ies'}`);
+      warnings.push(
+        `Found ${vulnerabilities.high} high severity vulnerabilit${vulnerabilities.high === 1 ? "y" : "ies"}`,
+      );
     }
 
     // Add skip warnings
     if (secrets.skipped) {
-      warnings.push(`Secret scanning skipped: ${secrets.reason || 'tool not installed'}`);
+      warnings.push(
+        `Secret scanning skipped: ${secrets.reason || "tool not installed"}`,
+      );
     }
 
     if (vulnerabilities.skipped) {
-      warnings.push(`Vulnerability scanning skipped: ${vulnerabilities.reason || 'tool not installed'}`);
+      warnings.push(
+        `Vulnerability scanning skipped: ${vulnerabilities.reason || "tool not installed"}`,
+      );
     }
 
     return {
@@ -56,7 +64,7 @@ export class SecurityScanner {
       vulnerabilities,
       passed: blockers.length === 0,
       blockers,
-      warnings
+      warnings,
     };
   }
 
@@ -67,43 +75,70 @@ export class SecurityScanner {
     try {
       // Check if detect-secrets is installed
       try {
-        await execAsync('which detect-secrets', { cwd: this.workingDir });
+        await execAsync("which detect-secrets", { cwd: this.workingDir });
       } catch {
         return {
           found: false,
           secrets: [],
           skipped: true,
-          reason: 'detect-secrets not installed (pip install detect-secrets)'
+          reason: "detect-secrets not installed (pip install detect-secrets)",
         };
       }
 
-      // Run detect-secrets scan
-      const { stdout, stderr } = await execAsync(
-        'detect-secrets scan --baseline .secrets.baseline 2>&1 || true',
-        { cwd: this.workingDir }
-      );
+      // Save original baseline file to prevent timestamp-only changes
+      // (detect-secrets scan updates the generated_at timestamp on every run)
+      const baselinePath = `${this.workingDir}/.secrets.baseline`;
+      let originalBaseline: string | null = null;
 
-      const output = stdout + stderr;
-
-      // Parse output for potential secrets
-      const secrets = this.parseSecrets(output);
-
-      if (secrets.length > 0) {
-        return {
-          found: true,
-          secrets,
-          blocked: true
-        };
+      try {
+        originalBaseline = await fs.readFile(baselinePath, "utf-8");
+      } catch {
+        // Baseline file doesn't exist yet - that's OK
       }
 
-      return { found: false, secrets: [] };
+      try {
+        // Run detect-secrets scan
+        const { stdout, stderr } = await execAsync(
+          "detect-secrets scan --baseline .secrets.baseline 2>&1 || true",
+          { cwd: this.workingDir },
+        );
+
+        const output = stdout + stderr;
+
+        // Parse output for potential secrets
+        const secrets = this.parseSecrets(output);
+
+        if (secrets.length > 0) {
+          return {
+            found: true,
+            secrets,
+            blocked: true,
+          };
+        }
+
+        return { found: false, secrets: [] };
+      } finally {
+        // Restore original baseline file to prevent timestamp-only changes
+        if (originalBaseline !== null) {
+          try {
+            await fs.writeFile(baselinePath, originalBaseline, "utf-8");
+          } catch (error: any) {
+            // Log warning but don't fail the scan
+            if (process.env.DEBUG) {
+              console.warn(
+                `Warning: Failed to restore .secrets.baseline: ${error.message}`,
+              );
+            }
+          }
+        }
+      }
     } catch (error: any) {
       // If detect-secrets errors out, warn but don't block
       return {
         found: false,
         secrets: [],
         skipped: true,
-        reason: `Secret scanning error: ${error.message}`
+        reason: `Secret scanning error: ${error.message}`,
       };
     }
   }
@@ -116,28 +151,28 @@ export class SecurityScanner {
       // Detect language
       const language = await this.detectLanguage();
 
-      if (language === 'unknown') {
+      if (language === "unknown") {
         return {
           skipped: true,
-          reason: 'Unsupported language (no package.json or requirements.txt)'
+          reason: "Unsupported language (no package.json or requirements.txt)",
         };
       }
 
       let vulns: any[] = [];
 
-      if (language === 'python') {
+      if (language === "python") {
         try {
-          await execAsync('which pip-audit', { cwd: this.workingDir });
+          await execAsync("which pip-audit", { cwd: this.workingDir });
         } catch {
           return {
             skipped: true,
-            reason: 'pip-audit not installed (pip install pip-audit)'
+            reason: "pip-audit not installed (pip install pip-audit)",
           };
         }
 
         try {
-          const { stdout } = await execAsync('pip-audit --format json', {
-            cwd: this.workingDir
+          const { stdout } = await execAsync("pip-audit --format json", {
+            cwd: this.workingDir,
           });
           vulns = JSON.parse(stdout).vulnerabilities || [];
         } catch (error: any) {
@@ -148,20 +183,20 @@ export class SecurityScanner {
             } catch {
               return {
                 skipped: true,
-                reason: 'Failed to parse pip-audit output'
+                reason: "Failed to parse pip-audit output",
               };
             }
           } else {
             return {
               skipped: true,
-              reason: `pip-audit error: ${error.message}`
+              reason: `pip-audit error: ${error.message}`,
             };
           }
         }
-      } else if (language === 'node') {
+      } else if (language === "node") {
         try {
-          const { stdout } = await execAsync('npm audit --json', {
-            cwd: this.workingDir
+          const { stdout } = await execAsync("npm audit --json", {
+            cwd: this.workingDir,
           });
           const auditData = JSON.parse(stdout);
           // Convert npm audit format to our format
@@ -175,13 +210,13 @@ export class SecurityScanner {
             } catch {
               return {
                 skipped: true,
-                reason: 'Failed to parse npm audit output'
+                reason: "Failed to parse npm audit output",
               };
             }
           } else {
             return {
               skipped: true,
-              reason: `npm audit error: ${error.message}`
+              reason: `npm audit error: ${error.message}`,
             };
           }
         }
@@ -199,12 +234,12 @@ export class SecurityScanner {
         medium: medium.length,
         low: low.length,
         shouldBlock: critical.length > 0,
-        vulnerabilities: critical
+        vulnerabilities: critical,
       };
     } catch (error: any) {
       return {
         skipped: true,
-        reason: `Dependency scanning error: ${error.message}`
+        reason: `Dependency scanning error: ${error.message}`,
       };
     }
   }
@@ -212,29 +247,29 @@ export class SecurityScanner {
   /**
    * Detect project language
    */
-  private async detectLanguage(): Promise<'python' | 'node' | 'unknown'> {
+  private async detectLanguage(): Promise<"python" | "node" | "unknown"> {
     try {
       await fs.access(`${this.workingDir}/requirements.txt`);
-      return 'python';
+      return "python";
     } catch {
       // Not Python
     }
 
     try {
       await fs.access(`${this.workingDir}/setup.py`);
-      return 'python';
+      return "python";
     } catch {
       // Not Python
     }
 
     try {
       await fs.access(`${this.workingDir}/package.json`);
-      return 'node';
+      return "node";
     } catch {
       // Not Node
     }
 
-    return 'unknown';
+    return "unknown";
   }
 
   /**
@@ -244,7 +279,7 @@ export class SecurityScanner {
     const secrets: SecretFinding[] = [];
 
     // Pattern: filename:line: description
-    const lines = output.split('\n');
+    const lines = output.split("\n");
 
     for (const line of lines) {
       // Match patterns like:
@@ -255,7 +290,7 @@ export class SecurityScanner {
         secrets.push({
           file: match[1],
           line: parseInt(match[2]),
-          type: match[3].trim()
+          type: match[3].trim(),
         });
       }
     }
@@ -268,16 +303,16 @@ export class SecurityScanner {
    */
   private filterCritical(vulns: any[]): Vulnerability[] {
     return vulns
-      .filter(v => {
-        const severity = (v.severity || '').toLowerCase();
-        return severity === 'critical';
+      .filter((v) => {
+        const severity = (v.severity || "").toLowerCase();
+        return severity === "critical";
       })
-      .map(v => ({
-        package: v.package || v.name || 'unknown',
-        version: v.version || 'unknown',
-        severity: 'critical' as const,
-        cve: v.cve || v.id || 'N/A',
-        description: v.description || v.title || 'No description'
+      .map((v) => ({
+        package: v.package || v.name || "unknown",
+        version: v.version || "unknown",
+        severity: "critical" as const,
+        cve: v.cve || v.id || "N/A",
+        description: v.description || v.title || "No description",
       }));
   }
 
@@ -285,9 +320,9 @@ export class SecurityScanner {
    * Filter high vulnerabilities
    */
   private filterHigh(vulns: any[]): Vulnerability[] {
-    return vulns.filter(v => {
-      const severity = (v.severity || '').toLowerCase();
-      return severity === 'high';
+    return vulns.filter((v) => {
+      const severity = (v.severity || "").toLowerCase();
+      return severity === "high";
     });
   }
 
@@ -295,9 +330,9 @@ export class SecurityScanner {
    * Filter medium vulnerabilities
    */
   private filterMedium(vulns: any[]): Vulnerability[] {
-    return vulns.filter(v => {
-      const severity = (v.severity || '').toLowerCase();
-      return severity === 'medium' || severity === 'moderate';
+    return vulns.filter((v) => {
+      const severity = (v.severity || "").toLowerCase();
+      return severity === "medium" || severity === "moderate";
     });
   }
 
@@ -305,9 +340,9 @@ export class SecurityScanner {
    * Filter low vulnerabilities
    */
   private filterLow(vulns: any[]): Vulnerability[] {
-    return vulns.filter(v => {
-      const severity = (v.severity || '').toLowerCase();
-      return severity === 'low';
+    return vulns.filter((v) => {
+      const severity = (v.severity || "").toLowerCase();
+      return severity === "low";
     });
   }
 }

@@ -16,6 +16,7 @@ This directory has been configured for optimal development workflow with automat
 **Purpose**: Automatic environment variable loading via direnv
 
 **Contents**:
+
 ```bash
 # Load keychain helper
 source ~/bin/kc.sh
@@ -25,18 +26,21 @@ export GITHUB_TOKEN=$(kc_get GITHUB_PAT)
 ```
 
 **How it works**:
+
 1. When you `cd` into this directory, direnv automatically sources `.envrc`
 2. The keychain helper (`kc.sh`) is loaded
 3. `GITHUB_TOKEN` is retrieved from macOS Keychain (secret: `GITHUB_PAT`)
 4. Token is available for all gpm commands
 
 **Setup (one-time)**:
+
 ```bash
 # Already done - direnv allow executed during setup
 direnv allow .
 ```
 
 **Verification**:
+
 ```bash
 # Check if GITHUB_TOKEN is loaded
 echo $GITHUB_TOKEN
@@ -49,6 +53,7 @@ echo $GITHUB_TOKEN
 **Purpose**: Lock Claude Code sessions to this working directory
 
 **Contents**:
+
 ```json
 {
   "workingDirectory": "/Users/nathanschram/claude-code-tools/lba/apps/subagents/git-pr-manager",
@@ -66,6 +71,7 @@ echo $GITHUB_TOKEN
 ```
 
 **What it does**:
+
 - Locks Claude Code to this directory (prevents accidental work in wrong location)
 - Configures Zen MCP server on port 7518 (root instance - instH)
 
@@ -108,6 +114,7 @@ source .envrc && npm run dev -- doctor
 ```
 
 **Expected output**:
+
 ```
 Token: SET ✓
 ✅ GitHub token: GITHUB_TOKEN
@@ -129,11 +136,13 @@ npm pack --dry-run 2>&1 | grep -E "(envrc|claude-settings)"
 ### Starting a Session
 
 1. **cd into directory**:
+
    ```bash
    cd /Users/nathanschram/claude-code-tools/lba/apps/subagents/git-pr-manager
    ```
 
 2. **direnv auto-loads** (if configured in shell):
+
    ```
    direnv: loading ~/claude-code-tools/lba/apps/subagents/git-pr-manager/.envrc
    ```
@@ -169,17 +178,20 @@ npm run dev -- security
 ### Issue: "No GitHub token found"
 
 **Solution 1**: Source .envrc manually
+
 ```bash
 source .envrc
 npm run dev -- doctor
 ```
 
 **Solution 2**: Verify direnv is allowed
+
 ```bash
 direnv allow .
 ```
 
 **Solution 3**: Check keychain secret exists
+
 ```bash
 source ~/bin/kc.sh
 kc_get GITHUB_PAT
@@ -188,6 +200,7 @@ kc_get GITHUB_PAT
 ### Issue: "Permission denied: .envrc"
 
 **Solution**: Ensure correct permissions
+
 ```bash
 chmod 600 .envrc
 ```
@@ -195,6 +208,7 @@ chmod 600 .envrc
 ### Issue: Changes to .envrc or .claude-settings.json appear in git status
 
 **Solution**: Verify .gitignore is working
+
 ```bash
 git check-ignore -v .envrc
 git check-ignore -v .claude-settings.json
@@ -246,6 +260,7 @@ The .envrc will automatically load when the tmux session starts in this director
 ### Adding New Environment Variables
 
 Edit `.envrc`:
+
 ```bash
 # Example: Add debug mode
 export DEBUG=1
@@ -257,6 +272,7 @@ direnv allow .
 ### Updating MCP Configuration
 
 Edit `.claude-settings.json`:
+
 ```json
 {
   "workingDirectory": "...",

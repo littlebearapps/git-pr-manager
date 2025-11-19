@@ -53,9 +53,11 @@ When using `git-pr-manager`:
 ### Recommended Token Scopes
 
 Minimum required scopes for GitHub Personal Access Token:
+
 - `repo` (full control of private repositories)
 
 Optional scopes for enhanced features:
+
 - `workflow` (for GitHub Actions management)
 - `admin:org` (for organization-wide operations)
 
@@ -81,12 +83,14 @@ Optional scopes for enhanced features:
 ### 1. Secret Scanning (`gpm security`)
 
 Detects hardcoded secrets in code:
+
 - API keys and tokens
 - Passwords and credentials
 - Private keys and certificates
 - Database connection strings
 
 **Requires**: `detect-secrets` (optional dependency)
+
 ```bash
 pip install detect-secrets
 gpm security
@@ -95,11 +99,13 @@ gpm security
 ### 2. Dependency Vulnerability Scanning
 
 Detects known vulnerabilities in npm packages:
+
 - Critical/High/Medium/Low severity classification
 - Actionable fix suggestions
 - Integration with `npm audit`
 
 **Requires**: `npm` (included with Node.js)
+
 ```bash
 gpm security --json
 ```
@@ -107,11 +113,13 @@ gpm security --json
 ### 3. Branch Protection Validation
 
 Ensures main branch is protected:
+
 - Required status checks
 - Prevent force pushes
 - Prevent deletions
 
 **Configure**:
+
 ```bash
 gpm protect --show
 ```
@@ -119,6 +127,7 @@ gpm protect --show
 ## Third-Party Dependencies
 
 We regularly scan dependencies for vulnerabilities:
+
 - **Automated**: Dependabot (weekly scans)
 - **Manual**: `npm audit` (on every build)
 - **CodeQL**: Weekly automated code analysis

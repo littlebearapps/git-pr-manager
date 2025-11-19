@@ -1,6 +1,6 @@
 {
   "name": "@littlebearapps/git-pr-manager",
-  "version": "1.7.0",
+  "version": "0.0.0-development",
   "description": "Production-ready git workflow automation for GitHub with Claude Code integration",
   "main": "dist/index.js",
   "bin": {
@@ -12,7 +12,8 @@
     "quickrefs/",
     "README.md",
     "CLAUDE.md",
-    "LICENSE"
+    "LICENSE",
+    "llms.txt"
   ],
   "scripts": {
     "build": "tsc",
@@ -21,6 +22,7 @@
     "test:coverage": "jest --coverage",
     "dev": "ts-node src/index.ts",
     "lint": "eslint src tests --ext .ts",
+    "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run build",
     "postinstall": "test -f dist/scripts/postinstall.js && node dist/scripts/postinstall.js || exit 0"
@@ -74,7 +76,6 @@
   },
   "devDependencies": {
     "@semantic-release/changelog": "^6.0.3",
-    "@semantic-release/git": "^10.0.1",
     "@semantic-release/github": "^12.0.2",
     "@semantic-release/npm": "^13.1.2",
     "@types/jest": "^29.5.11",

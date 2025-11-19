@@ -12,21 +12,21 @@ on:
   workflow_dispatch:
     inputs:
       branch:
-        description: 'Branch to protect'
+        description: "Branch to protect"
         required: true
-        default: 'main'
+        default: "main"
         type: string
       preset:
-        description: 'Protection preset'
+        description: "Protection preset"
         required: true
-        default: 'standard'
+        default: "standard"
         type: choice
         options:
           - basic
           - standard
           - strict
       dry_run:
-        description: 'Dry run (show changes without applying)'
+        description: "Dry run (show changes without applying)"
         required: false
         default: false
         type: boolean
@@ -47,7 +47,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
 
       - name: Install git-pr-manager
         run: npm install -g @your-org/git-pr-manager

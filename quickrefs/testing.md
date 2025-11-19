@@ -18,6 +18,7 @@
 ## Running Tests
 
 ### All Tests
+
 ```bash
 npm test                       # Run all 535 tests
 npm run test:watch             # Watch mode
@@ -25,6 +26,7 @@ npm run test:coverage          # With coverage report
 ```
 
 ### Specific Test Suites
+
 ```bash
 # By category
 npm test -- tests/services/    # Service tests
@@ -38,6 +40,7 @@ npm test -- tests/commands/auto.test.ts
 ```
 
 ### Coverage Reports
+
 ```bash
 npm run test:coverage
 open coverage/lcov-report/index.html
@@ -48,17 +51,18 @@ open coverage/lcov-report/index.html
 ## Test Structure
 
 ### Standard Test Pattern
-```typescript
-import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 
-describe('ServiceName', () => {
+```typescript
+import { jest, describe, it, expect, beforeEach } from "@jest/globals";
+
+describe("ServiceName", () => {
   // Setup
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  describe('methodName', () => {
-    it('should handle success case', async () => {
+  describe("methodName", () => {
+    it("should handle success case", async () => {
       // Arrange - Setup test data and mocks
       const mockFn = jest.fn().mockResolvedValue(data);
 
@@ -71,12 +75,12 @@ describe('ServiceName', () => {
       expect(mockFn).toHaveBeenCalledWith(expectedArgs);
     });
 
-    it('should handle error case', async () => {
+    it("should handle error case", async () => {
       // Arrange
-      const mockFn = jest.fn().mockRejectedValue(new Error('Test error'));
+      const mockFn = jest.fn().mockRejectedValue(new Error("Test error"));
 
       // Act & Assert
-      await expect(service.method()).rejects.toThrow('Test error');
+      await expect(service.method()).rejects.toThrow("Test error");
     });
   });
 });
@@ -87,8 +91,9 @@ describe('ServiceName', () => {
 ## Mocking Patterns
 
 ### Service Mocking (Octokit)
+
 ```typescript
-jest.mock('@octokit/rest');
+jest.mock("@octokit/rest");
 const mockOctokit = {
   pulls: {
     create: jest.fn(),
@@ -105,21 +110,23 @@ const mockOctokit = {
 ```
 
 ### External Module Mocking
+
 ```typescript
 // Mock package-json (ESM module)
 const mockPackageJson = jest.fn();
-jest.mock('package-json', () => mockPackageJson);
+jest.mock("package-json", () => mockPackageJson);
 
 // Then in tests
-mockPackageJson.mockResolvedValue({ version: '2.0.0' });
+mockPackageJson.mockResolvedValue({ version: "2.0.0" });
 ```
 
 ### File System Mocking
-```typescript
-jest.mock('fs/promises');
-const mockFs = require('fs/promises');
 
-mockFs.readFile.mockResolvedValue('file content');
+```typescript
+jest.mock("fs/promises");
+const mockFs = require("fs/promises");
+
+mockFs.readFile.mockResolvedValue("file content");
 mockFs.writeFile.mockResolvedValue(undefined);
 ```
 
@@ -128,39 +135,43 @@ mockFs.writeFile.mockResolvedValue(undefined);
 ## Common Test Scenarios
 
 ### Testing Async Functions
+
 ```typescript
-it('should handle async operations', async () => {
+it("should handle async operations", async () => {
   const result = await asyncFunction();
   expect(result).toBe(expected);
 });
 ```
 
 ### Testing Promises
+
 ```typescript
-it('should resolve promise', async () => {
+it("should resolve promise", async () => {
   await expect(promiseFunction()).resolves.toBe(value);
 });
 
-it('should reject promise', async () => {
-  await expect(promiseFunction()).rejects.toThrow('Error');
+it("should reject promise", async () => {
+  await expect(promiseFunction()).rejects.toThrow("Error");
 });
 ```
 
 ### Testing Error Handling
+
 ```typescript
-it('should throw WorkflowError', () => {
+it("should throw WorkflowError", () => {
   expect(() => functionThatThrows()).toThrow(WorkflowError);
-  expect(() => functionThatThrows()).toThrow('Error message');
+  expect(() => functionThatThrows()).toThrow("Error message");
 });
 
-it('should handle async errors', async () => {
+it("should handle async errors", async () => {
   await expect(asyncFunction()).rejects.toThrow(WorkflowError);
 });
 ```
 
 ### Testing Callbacks
+
 ```typescript
-it('should call callback', () => {
+it("should call callback", () => {
   const callback = jest.fn();
   functionWithCallback(callback);
   expect(callback).toHaveBeenCalledWith(expectedArgs);
@@ -172,6 +183,7 @@ it('should call callback', () => {
 ## Coverage Requirements
 
 ### Thresholds (jest.config.js)
+
 ```javascript
 coverageThreshold: {
   global: {
@@ -184,18 +196,20 @@ coverageThreshold: {
 ```
 
 ### Current Coverage by Category
-| Category | Coverage | Status |
-|----------|----------|--------|
-| Overall | 89.67% | ✅ Excellent |
-| Services | 88.30% | ✅ Excellent |
-| Utils | 93.19% | ✅ Excellent |
-| Types | 100% | ✅ Perfect |
+
+| Category | Coverage | Status       |
+| -------- | -------- | ------------ |
+| Overall  | 89.67%   | ✅ Excellent |
+| Services | 88.30%   | ✅ Excellent |
+| Utils    | 93.19%   | ✅ Excellent |
+| Types    | 100%     | ✅ Perfect   |
 
 ---
 
 ## Test Organization
 
 ### Directory Structure
+
 ```
 tests/
 ├── commands/              # Command tests (1:1 with src/commands/)
@@ -228,6 +242,7 @@ tests/
 ## Testing Best Practices
 
 ### ✅ Do
+
 - **Test behavior, not implementation**: Focus on what, not how
 - **One assertion per test**: Keep tests focused
 - **Clear test names**: `should <expected behavior> when <condition>`
@@ -237,6 +252,7 @@ tests/
 - **Maintain coverage**: >80% for all metrics
 
 ### ❌ Don't
+
 - **Test private methods**: Test public interface only
 - **Share state between tests**: Use beforeEach for setup
 - **Skip cleanup**: Use afterEach to restore mocks
@@ -249,11 +265,12 @@ tests/
 ## Common Testing Utilities
 
 ### Jest Matchers
+
 ```typescript
 // Equality
-expect(value).toBe(expected);           // ===
-expect(value).toEqual(expected);        // Deep equality
-expect(value).toStrictEqual(expected);  // Strict deep equality
+expect(value).toBe(expected); // ===
+expect(value).toEqual(expected); // Deep equality
+expect(value).toStrictEqual(expected); // Strict deep equality
 
 // Truthiness
 expect(value).toBeTruthy();
@@ -265,24 +282,24 @@ expect(value).toBeDefined();
 // Numbers
 expect(value).toBeGreaterThan(3);
 expect(value).toBeLessThan(5);
-expect(value).toBeCloseTo(0.3, 1);  // Floating point
+expect(value).toBeCloseTo(0.3, 1); // Floating point
 
 // Strings
 expect(string).toMatch(/pattern/);
-expect(string).toContain('substring');
+expect(string).toContain("substring");
 
 // Arrays
 expect(array).toHaveLength(3);
 expect(array).toContain(item);
 
 // Objects
-expect(obj).toHaveProperty('key');
+expect(obj).toHaveProperty("key");
 expect(obj).toMatchObject({ key: value });
 
 // Exceptions
 expect(() => fn()).toThrow();
 expect(() => fn()).toThrow(ErrorClass);
-expect(() => fn()).toThrow('message');
+expect(() => fn()).toThrow("message");
 
 // Async
 await expect(promise).resolves.toBe(value);
@@ -300,6 +317,7 @@ expect(mockFn).toHaveBeenLastCalledWith(arg);
 ## Debugging Tests
 
 ### Run Specific Test
+
 ```bash
 # Single file
 npm test -- tests/utils/update-check.test.ts
@@ -312,12 +330,14 @@ npm test -- tests/utils/update-check.test.ts -t "should detect update available"
 ```
 
 ### Verbose Output
+
 ```bash
 npm test -- --verbose
 npm test -- tests/utils/update-check.test.ts --verbose
 ```
 
 ### Debug Mode
+
 ```bash
 # Node debugger
 node --inspect-brk node_modules/.bin/jest tests/utils/update-check.test.ts
@@ -335,6 +355,7 @@ node --inspect-brk node_modules/.bin/jest tests/utils/update-check.test.ts
 ```
 
 ### Clear Cache
+
 ```bash
 npx jest --clearCache
 npm test
@@ -345,36 +366,41 @@ npm test
 ## Adding New Tests
 
 ### 1. Create Test File
+
 ```bash
 # Match source file structure
 src/utils/my-util.ts → tests/utils/my-util.test.ts
 ```
 
 ### 2. Write Test
-```typescript
-import { describe, it, expect } from '@jest/globals';
-import { myUtil } from '../../src/utils/my-util';
 
-describe('myUtil', () => {
-  it('should do something', () => {
-    const result = myUtil('input');
-    expect(result).toBe('expected');
+```typescript
+import { describe, it, expect } from "@jest/globals";
+import { myUtil } from "../../src/utils/my-util";
+
+describe("myUtil", () => {
+  it("should do something", () => {
+    const result = myUtil("input");
+    expect(result).toBe("expected");
   });
 });
 ```
 
 ### 3. Run Test
+
 ```bash
 npm test -- tests/utils/my-util.test.ts
 ```
 
 ### 4. Check Coverage
+
 ```bash
 npm run test:coverage
 # Ensure new file has >80% coverage
 ```
 
 ### 5. Update TESTS.md
+
 ```bash
 # Document new test suite in docs/TESTS.md
 # Update coverage metrics
@@ -386,6 +412,7 @@ npm run test:coverage
 ## Test Maintenance
 
 ### Regular Tasks
+
 - **Run full suite**: `npm test` before every commit
 - **Check coverage**: `npm run test:coverage` weekly
 - **Update snapshots**: `npm test -- -u` when UI changes
@@ -393,6 +420,7 @@ npm run test:coverage
 - **Document changes**: Update TESTS.md when adding test categories
 
 ### Before Release
+
 - ✅ All tests pass: `npm test`
 - ✅ Coverage >80%: `npm run test:coverage`
 - ✅ No skipped tests: Remove `.skip()` or `xit()`
@@ -404,18 +432,20 @@ npm run test:coverage
 ## Integration Tests
 
 ### Purpose
+
 - Test multiple components working together
 - Verify end-to-end workflows
 - Validate error handling across layers
 
 ### Example
+
 ```typescript
-describe('Auto Workflow Integration', () => {
-  it('should complete full workflow', async () => {
+describe("Auto Workflow Integration", () => {
+  it("should complete full workflow", async () => {
     // Setup all mocks
-    mockGit.status.mockResolvedValue({ current: 'feature/test' });
+    mockGit.status.mockResolvedValue({ current: "feature/test" });
     mockGithub.createPR.mockResolvedValue({ number: 123 });
-    mockCI.waitForChecks.mockResolvedValue({ status: 'success' });
+    mockCI.waitForChecks.mockResolvedValue({ status: "success" });
 
     // Execute workflow
     await autoCommand({ json: false });
@@ -433,8 +463,9 @@ describe('Auto Workflow Integration', () => {
 ## Performance Testing
 
 ### Timing Tests
+
 ```typescript
-it('should complete within time limit', async () => {
+it("should complete within time limit", async () => {
   const start = Date.now();
   await performanceIntensiveOperation();
   const duration = Date.now() - start;
@@ -444,8 +475,9 @@ it('should complete within time limit', async () => {
 ```
 
 ### Memory Testing
+
 ```typescript
-it('should not leak memory', async () => {
+it("should not leak memory", async () => {
   const initialMemory = process.memoryUsage().heapUsed;
 
   for (let i = 0; i < 1000; i++) {

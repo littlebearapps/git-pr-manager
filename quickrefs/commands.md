@@ -7,12 +7,14 @@
 ## Development Scripts
 
 ### Installation & Setup
+
 ```bash
 npm install                    # Install all dependencies
 npm ci                         # Clean install (CI/production)
 ```
 
 ### Build & Compile
+
 ```bash
 npm run build                  # Build TypeScript → dist/
 npm run clean                  # Remove dist/ directory
@@ -20,6 +22,7 @@ npm run prepublishOnly         # Pre-publish hook (build + test)
 ```
 
 ### Development
+
 ```bash
 npm run dev                    # Run CLI in development mode with ts-node
 npm run dev -- <command>       # Run specific command in dev
@@ -28,6 +31,7 @@ npm run dev -- auto --json     # Test auto workflow with JSON output
 ```
 
 ### Testing
+
 ```bash
 npm test                       # Run all tests
 npm run test:watch             # Run tests in watch mode
@@ -37,6 +41,7 @@ npm test -- --verbose          # Verbose test output
 ```
 
 #### Specific Test Suites
+
 ```bash
 # By category
 npm test -- tests/services/    # All service tests
@@ -50,6 +55,7 @@ npm test -- tests/commands/auto.test.ts
 ```
 
 ### Code Quality
+
 ```bash
 npm run lint                   # Run ESLint
 npm run lint -- --fix          # Auto-fix ESLint issues
@@ -60,6 +66,7 @@ npm run lint -- --fix          # Auto-fix ESLint issues
 ## Optional Security Enhancements
 
 ### Secret Scanning (detect-secrets)
+
 ```bash
 pip install detect-secrets
 detect-secrets scan --baseline .secrets.baseline  # optional baseline management
@@ -74,6 +81,7 @@ detect-secrets scan --baseline .secrets.baseline  # optional baseline management
 ## Git Workflow
 
 ### Local Development
+
 ```bash
 # Create feature branch
 git checkout -b feature/my-feature
@@ -90,6 +98,7 @@ git push origin feature/my-feature
 ```
 
 ### Pre-Commit Checklist
+
 ```bash
 # Run this before every commit
 npm run build     # ✅ Build succeeds
@@ -122,12 +131,14 @@ gpmstatus  # Shows hooks in workflow status
 ```
 
 **Hook Behavior**:
+
 - Non-blocking (never prevents commits/pushes)
 - Displays helpful workflow reminders
 - Auto-skips in CI environments
 - Config syncs automatically
 
 **Common Issues**:
+
 ```bash
 # Issue: Hook not executable
 chmod +x .git/hooks/pre-push
@@ -149,9 +160,11 @@ cat .git/hooks/pre-push | head -3  # Should show gpm signature
 ## Package Publishing
 
 ### ⚠️ AUTOMATED via semantic-release
+
 **Publishing is fully automated** - no manual version bumping or npm publish needed!
 
 ### Publishing Flow (semantic-release)
+
 **Trigger**: Push conventional commit to main branch
 
 ```bash
@@ -178,6 +191,7 @@ gh pr create
 ```
 
 ### Conventional Commit Types
+
 ```bash
 feat:     # New feature (minor version bump: 1.5.0 → 1.6.0)
 fix:      # Bug fix (patch version bump: 1.5.0 → 1.5.1)
@@ -196,6 +210,7 @@ BREAKING CHANGE: description in footer
 ```
 
 ### Version Management (DEPRECATED - use semantic-release)
+
 ```bash
 # ❌ DON'T manually bump versions anymore
 # npm version patch/minor/major
@@ -208,6 +223,7 @@ npm version
 ```
 
 ### Verification
+
 ```bash
 # Check published version on npm
 npm view @littlebearapps/git-pr-manager version
@@ -220,6 +236,7 @@ gh run list --limit 1
 ```
 
 ### Workflow Configuration
+
 - **File**: `.github/workflows/publish.yml`
 - **Trigger**: Push to main (conventional commits only)
 - **Steps**: Install → Test → Build → semantic-release → npm publish (OIDC)
@@ -231,6 +248,7 @@ gh run list --limit 1
 ## Local CLI Usage
 
 ### Install Globally (for testing)
+
 ```bash
 # Link local package
 npm link
@@ -245,6 +263,7 @@ npm unlink -g @littlebearapps/git-pr-manager
 ```
 
 ### Direct Execution
+
 ```bash
 # Using npm run dev
 npm run dev -- feature my-feature
@@ -260,6 +279,7 @@ node dist/index.js feature my-feature
 ## Git Worktree Management
 
 ### List Worktrees
+
 ```bash
 # List all worktrees (plain text)
 gpmworktree list
@@ -270,6 +290,7 @@ gpmworktree list --json
 ```
 
 ### Prune Stale Worktrees
+
 ```bash
 # Dry-run (preview what would be pruned)
 gpmworktree prune --dry-run
@@ -283,6 +304,7 @@ gpmworktree prune --dry-run --json
 ```
 
 **When to use**:
+
 - Working with multiple feature branches simultaneously
 - Cleaning up after manually deleted worktree directories
 - Maintaining clean worktree administrative data
@@ -310,6 +332,7 @@ npm run dev -- doctor  # Development mode
 ```
 
 **Example output (token found)**:
+
 ```
 ▸ System Health Check
 ────────────────────────────────────────────────────────────────────────────────
@@ -333,6 +356,7 @@ Optional Tools:
 ```
 
 **Example output (token not found, with smart setup suggestions)**:
+
 ```
 ▸ System Health Check
 ────────────────────────────────────────────────────────────────────────────────
@@ -367,12 +391,14 @@ Required scopes: repo (full control of private repositories)
 ```
 
 **Smart Setup Detection**:
+
 - Detects available tools (direnv, keychain helper at ~/bin/kc.sh)
 - Ranks suggestions by security: High (keychain) > Medium (direnv, shell) > Low (.env, session)
 - Provides copy-paste commands for immediate setup
 - Always shows all alternatives so you have choices
 
 **When to use**:
+
 - After first installation
 - Before running security scans
 - When debugging "tool not found" errors
@@ -383,6 +409,7 @@ Required scopes: repo (full control of private repositories)
 ## Debugging
 
 ### TypeScript Compilation
+
 ```bash
 # Check for type errors without building
 npx tsc --noEmit
@@ -392,6 +419,7 @@ npx tsc --watch
 ```
 
 ### Jest Debugging
+
 ```bash
 # Run single test with verbose output
 npm test -- tests/utils/update-check.test.ts --verbose
@@ -404,6 +432,7 @@ npx jest --clearCache
 ```
 
 ### ESLint Debugging
+
 ```bash
 # Show all lint errors
 npm run lint
@@ -420,6 +449,7 @@ npx eslint src/utils/update-check.ts
 ## Coverage Analysis
 
 ### Generate Report
+
 ```bash
 npm run test:coverage
 
@@ -428,6 +458,7 @@ open coverage/lcov-report/index.html
 ```
 
 ### Check Specific File Coverage
+
 ```bash
 # Run coverage for single file
 npm test -- tests/utils/update-check.test.ts --coverage
@@ -441,6 +472,7 @@ npm run test:coverage -- --verbose
 ## GitHub Actions (CI)
 
 ### Manual Workflow Dispatch
+
 ```bash
 # Trigger publish workflow
 gh workflow run publish.yml
@@ -454,6 +486,7 @@ gh run view <run-id>
 ```
 
 ### Check CI Status
+
 ```bash
 # View latest run
 gh run list --limit 1
@@ -470,6 +503,7 @@ gh run watch
 ## Useful Git Commands
 
 ### Branch Management
+
 ```bash
 # List branches
 git branch -a
@@ -485,6 +519,7 @@ git fetch --all --prune
 ```
 
 ### Tag Management
+
 ```bash
 # List tags
 git tag
@@ -507,12 +542,14 @@ git push origin --delete v1.4.0-beta.1
 ## Quick Fixes
 
 ### Node Modules Issues
+
 ```bash
 rm -rf node_modules package-lock.json
 npm install
 ```
 
 ### Build Cache Issues
+
 ```bash
 npm run clean
 rm -rf dist/ .tsbuildinfo coverage/
@@ -520,12 +557,14 @@ npm run build
 ```
 
 ### Test Cache Issues
+
 ```bash
 npx jest --clearCache
 npm test
 ```
 
 ### Git Issues
+
 ```bash
 # Reset to remote
 git fetch origin
@@ -540,6 +579,7 @@ git clean -fd
 ## Performance Testing
 
 ### Bundle Size
+
 ```bash
 # Check dist/ size
 du -sh dist/
@@ -549,6 +589,7 @@ du -h dist/
 ```
 
 ### Load Time Testing
+
 ```bash
 # Time CLI startup
 time gpm --help
@@ -562,12 +603,14 @@ time gpm status --json
 ## Documentation Updates
 
 ### When Adding Commands
+
 1. Update `README.md` - Commands section
 2. Update `CLAUDE.md` - Quick reference
 3. Update `docs/guides/AI-AGENT-INTEGRATION.md` - New workflow
 4. Update `docs/guides/GITHUB-ACTIONS-INTEGRATION.md` - New pattern
 
 ### When Adding Tests
+
 1. Update `docs/TESTS.md` - Coverage metrics
 2. Run coverage: `npm run test:coverage`
 3. Document new patterns or utilities
@@ -577,6 +620,7 @@ time gpm status --json
 ## NPM Package Commands
 
 ### Package Info
+
 ```bash
 # View published versions
 npm view @littlebearapps/git-pr-manager versions
@@ -592,6 +636,7 @@ npm view @littlebearapps/git-pr-manager dist-tags
 ```
 
 ### Install Specific Version
+
 ```bash
 npm install -g @littlebearapps/git-pr-manager@latest
 npm install -g @littlebearapps/git-pr-manager@next

@@ -29,8 +29,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 'lts/*' # Use latest LTS
-          cache: 'npm'
+          node-version: "lts/*" # Use latest LTS
+          cache: "npm"
 
       - name: Install dependencies
         run: npm clean-install --ignore-scripts
@@ -45,6 +45,13 @@ jobs:
       - name: Build package
         run: npm run build
         # Ensure package builds successfully
+
+      - name: Pre-release validation
+        run: |
+          npm install -g .
+          gpm doctor --pre-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Release
         id: release
@@ -67,3 +74,56 @@ jobs:
           echo "✅ Release workflow completed successfully"
           echo "Check npm: https://www.npmjs.com/package/@littlebearapps/git-pr-manager"
           echo "Check GitHub releases: ${{ github.server_url }}/${{ github.repository }}/releases"
+
+      - name: Post-publish verification
+        if: success()
+        run: |
+          echo "Waiting for npm registry propagation..."
+          sleep 120  # 2 minutes for npm CDN
+
+          # Fetch versions from the TWO sources of truth
+          NPM_VERSION=$(npm view @littlebearapps/git-pr-manager version)
+          GITHUB_RELEASE=$(gh release view --json tagName -q .tagName 2>/dev/null | sed 's/v//' || echo "none")
+
+          echo "📦 Version Summary:"
+          echo "  npm registry:    $NPM_VERSION"
+          echo "  GitHub release:  $GITHUB_RELEASE"
+          echo "  package.json:    0.0.0-development (expected)"
+
+          # Critical check: npm vs GitHub release must match
+          if [ "$NPM_VERSION" != "$GITHUB_RELEASE" ]; then
+            echo "❌ CRITICAL: Version mismatch detected!"
+            echo "   npm registry ($NPM_VERSION) != GitHub release ($GITHUB_RELEASE)"
+
+            gh issue create \
+              --title "🚨 Version mismatch after v$NPM_VERSION release" \
+              --body "## Version Mismatch Detected
+
+          **npm registry**: \`$NPM_VERSION\`
+          **GitHub release**: \`$GITHUB_RELEASE\`
+
+          ### Impact
+          The published package version on npm doesn't match the GitHub release version. This indicates a problem with semantic-release.
+
+          ### Likely Causes
+          1. semantic-release published to npm but GitHub release step failed
+          2. GitHub release created but npm publish step failed
+          3. Race condition or timing issue
+
+          ### Fix
+          1. Check workflow logs for semantic-release errors
+          2. Verify both plugins ran successfully:
+             - \`@semantic-release/npm\` (publishes to registry)
+             - \`@semantic-release/github\` (creates release + git tags)
+
+          ### Workflow Run
+          https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+              --label "bug,release,critical"
+
+            exit 1
+          fi
+
+          echo "✅ npm registry matches GitHub release"
+          echo "✅ Post-publish verification PASSED"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

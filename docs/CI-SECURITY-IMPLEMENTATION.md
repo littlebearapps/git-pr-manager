@@ -13,9 +13,10 @@
 
 This document outlines a comprehensive CI/CD and security setup for git-pr-manager, a public npm package that automates git workflows. The plan emphasizes **dogfooding** (using gpm in its own CI) to demonstrate credibility, multi-layer security for a tool that handles GitHub tokens, and cross-platform testing for production reliability.
 
-**Key Principle**: *git-pr-manager SHOULD have MORE rigorous CI than typical packages because it IS a CI/security tool.*
+**Key Principle**: _git-pr-manager SHOULD have MORE rigorous CI than typical packages because it IS a CI/security tool._
 
 **Confidence Level**: This plan has reached **"very high" (95%) confidence** through:
+
 - ✅ Expert-validated working YAML implementations (not conceptual)
 - ✅ Security-hardened dogfooding strategy (dry-run on PRs, write on trusted refs)
 - ✅ Cross-platform test case documentation
@@ -31,6 +32,7 @@ This document outlines a comprehensive CI/CD and security setup for git-pr-manag
 **Last Updated**: 2025-11-17 (Implementation phase)
 
 ### 1. Node Version Matrix (Phase 1) ✅ RESOLVED
+
 **Original Plan**: Node 18.x and 20.x
 **Issue**: Node 18 reaches EOL April 2025 (soon). Comparison table mentions Node 20, 22 for mcp-delegator.
 **Resolution**: Updated ci.yml to test Node 20.x and 22.x (current + latest LTS)
@@ -38,28 +40,34 @@ This document outlines a comprehensive CI/CD and security setup for git-pr-manag
 **Status**: ✅ Implemented - Matrix now uses Node 20.x and 22.x
 
 ### 2. Dogfood Dry-Run Effectiveness (Phase 1) ✅ RESOLVED
+
 **Original Plan**: `node dist/index.js status --json || true`
 **Issue**: The `|| true` makes this always succeed, not actually validating anything.
 **Resolution**: Updated to use commands that validate CLI without side effects:
+
 ```yaml
 node dist/index.js --version
-node dist/index.js doctor  # Validates setup without GITHUB_TOKEN
+node dist/index.js doctor # Validates setup without GITHUB_TOKEN
 ```
+
 **Location**: `.github/workflows/ci.yml` lines 76-79
 **Status**: ✅ Implemented - Real validation without false positives
 
 ### 3. Job Count Discrepancy (Phase 1) ✅ RESOLVED
+
 **Original Plan**: "8 jobs total"
 **Issue**: Actual count was unclear (documentation inconsistency)
 **Resolution**: Implemented ci.yml with 9 jobs total:
-  - test (matrix: 3 OS × 2 Node = 6 jobs)
-  - dogfood (1 job)
-  - coverage (1 job)
-  - all-checks-passed (1 job)
-**Location**: `.github/workflows/ci.yml` - complete implementation
-**Status**: ✅ Implemented - 9 jobs total (6 matrix + 3 single)
+
+- test (matrix: 3 OS × 2 Node = 6 jobs)
+- dogfood (1 job)
+- coverage (1 job)
+- all-checks-passed (1 job)
+  **Location**: `.github/workflows/ci.yml` - complete implementation
+  **Status**: ✅ Implemented - 9 jobs total (6 matrix + 3 single)
 
 ### 4. CodeQL Manual Build Steps (Phase 2) 🟡
+
 **Current Plan**: Manual npm install and build before CodeQL analysis
 **Issue**: JavaScript/TypeScript CodeQL typically uses autobuild - manual steps may be unnecessary
 **Action**: Test if autobuild works, simplify if possible
@@ -67,6 +75,7 @@ node dist/index.js doctor  # Validates setup without GITHUB_TOKEN
 **Priority**: MEDIUM - workflow simplification
 
 ### 5. SBOM Attachment to Releases (Phase 1) 🟢
+
 **Current Plan**: SBOM uploaded as artifact only
 **Issue**: SBOM should be attached to GitHub releases for supply chain transparency
 **Action**: Add `gh release upload` step to attach sbom.json to releases
@@ -74,6 +83,7 @@ node dist/index.js doctor  # Validates setup without GITHUB_TOKEN
 **Priority**: LOW - supply chain transparency improvement
 
 ### 6. Dependabot Groups Feature (Phase 2) 🟢
+
 **Current Plan**: Use `groups` feature to reduce PR count
 **Issue**: Feature is relatively new (~2023) - verify availability
 **Action**: Confirm Dependabot groups feature is available in current version
@@ -81,6 +91,7 @@ node dist/index.js doctor  # Validates setup without GITHUB_TOKEN
 **Priority**: LOW - feature availability check
 
 ### 7. Branch Protection Approvals (Phase 1) 🟢
+
 **Current Plan**: Required status checks, up-to-date branches
 **Issue**: No mention of required approvals for a security tool
 **Action**: Consider requiring at least 1 approval for PRs
@@ -92,6 +103,7 @@ node dist/index.js doctor  # Validates setup without GITHUB_TOKEN
 ## Current State vs. Target
 
 ### Current State
+
 - ✅ Automated publishing (semantic-release + OIDC)
 - ✅ Single workflow: `publish.yml` (tests, builds, publishes)
 - ✅ 622 tests, 89.67% coverage
@@ -102,6 +114,7 @@ node dist/index.js doctor  # Validates setup without GITHUB_TOKEN
 - ⚠️ No dogfooding (gpm not used in its own CI)
 
 ### Target State
+
 - ✅ Three workflows: `ci.yml`, `codeql.yml`, `publish.yml`
 - ✅ Test matrix: 3 OS × 2 Node versions (6 jobs)
 - ✅ Security: CodeQL + Dependabot + gpm security scan
@@ -114,6 +127,7 @@ node dist/index.js doctor  # Validates setup without GITHUB_TOKEN
 ## Implementation Priorities
 
 ### Phase 1: HIGH Priority (Week 1) ✅ IMPLEMENTED
+
 **Goal**: Establish credibility through rigorous CI and dogfooding
 
 1. **CI Workflow** (`ci.yml`) ✅ COMPLETE
@@ -129,18 +143,21 @@ node dist/index.js doctor  # Validates setup without GITHUB_TOKEN
    - Enforce on main branch
 
 **Deliverables**:
+
 - ✅ `.github/workflows/ci.yml` (9 jobs total: 6 matrix + dogfood + coverage + aggregate)
 - ✅ Deprecated old `test.yml` workflow (superseded by ci.yml)
 - 🔜 Branch protection rules configured
 - 🔜 Documentation: CI setup guide
 
 **Implementation Notes**:
+
 - Fixed Node version matrix: 20.x/22.x (removed Node 18 - EOL April 2025)
 - Fixed dogfood validation: uses `--version` and `doctor` (no `|| true` false positives)
 - Added coverage job from existing test.yml (Codecov integration)
 - Security-hardened dogfooding: dry-run on PRs, write permissions only on trusted refs
 
 **Success Metrics**:
+
 - ✅ All PRs tested on 6 OS/Node combinations
 - ✅ gpm CLI validated in CI (dogfooding implemented)
 - 🔜 No merge to main without passing checks (after branch protection configured)
@@ -148,6 +165,7 @@ node dist/index.js doctor  # Validates setup without GITHUB_TOKEN
 ---
 
 ### Phase 2: MEDIUM Priority (Week 2) ✅ IMPLEMENTED
+
 **Goal**: Enhance security posture and automation
 
 1. **CodeQL Analysis** (`codeql.yml`) ✅ COMPLETE
@@ -169,11 +187,13 @@ node dist/index.js doctor  # Validates setup without GITHUB_TOKEN
    - Best practices for token management
 
 **Deliverables**: ✅ ALL COMPLETE
+
 - `.github/workflows/codeql.yml` - Automated security scanning
 - `.github/dependabot.yml` - Automated dependency updates
 - `SECURITY.md` - Public security policy
 
 **Success Metrics**: ✅ ACHIEVED
+
 - CodeQL workflow created and ready to run
 - Dependabot configured for weekly updates
 - Security policy publicly visible on GitHub
@@ -181,6 +201,7 @@ node dist/index.js doctor  # Validates setup without GITHUB_TOKEN
 ---
 
 ### Phase 3: LOW Priority (Week 3) ✅ IMPLEMENTED
+
 **Goal**: Quality-of-life improvements
 
 1. **Coverage Upload** (Codecov) ✅ COMPLETE
@@ -202,11 +223,13 @@ node dist/index.js doctor  # Validates setup without GITHUB_TOKEN
    - Config (disable blank issues, link to security advisories)
 
 **Deliverables**: ✅ ALL COMPLETE
+
 - Codecov integration in `ci.yml` ✅
 - Auto-merge workflow for Dependabot ✅
 - `.github/ISSUE_TEMPLATE/` files ✅
 
 **Success Metrics**: ✅ ACHIEVED
+
 - Coverage trends visible in Codecov dashboard
 - Dependabot PRs auto-merge within 24 hours
 - Community can report issues with templates
@@ -230,9 +253,9 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 concurrency:
@@ -251,8 +274,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest, macos-latest, windows-latest ]
-        node: [ '18.x', '20.x' ]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        node: ["18.x", "20.x"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -331,33 +354,39 @@ jobs:
 #### Key Features
 
 **Concurrency**:
+
 ```yaml
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 ```
+
 - Cancels superseded runs on same ref
 - Saves GitHub Actions minutes
 
 **Paths Ignore**:
+
 ```yaml
 on:
   pull_request:
     paths-ignore:
-      - '**.md'
-      - 'docs/**'
-      - '.github/ISSUE_TEMPLATE/**'
+      - "**.md"
+      - "docs/**"
+      - ".github/ISSUE_TEMPLATE/**"
 ```
+
 - Skip CI for docs-only changes
 - Faster feedback for code changes
 
 **Caching**:
+
 ```yaml
 - uses: actions/setup-node@v4
   with:
     node-version: ${{ matrix.node }}
-    cache: 'npm'
+    cache: "npm"
 ```
+
 - Native npm caching via setup-node
 - Reduces install time by ~50%
 
@@ -372,6 +401,7 @@ on:
 **Design Principle**: Never give write permissions to untrusted PR code. Use dry-run for validation, write permissions only on trusted refs.
 
 #### Mode 1: PR Dry-Run (Safe Validation)
+
 **When**: All pull requests (including forks)
 **How**: Build PR code, run in dry-run mode (read-only)
 **Permissions**: `contents: read`, `pull-requests: read` (minimal)
@@ -387,12 +417,14 @@ on:
 ```
 
 **Safety**:
+
 - ✅ Tests PR code (validates changes work)
 - ✅ No write permissions (can't create PRs, branches, etc.)
 - ✅ Safe for forks (malicious code can't escalate)
 - ✅ Validates CLI works without side effects
 
 #### Mode 2: Trusted Write (Production Validation)
+
 **When**: Push to main or manual workflow_dispatch
 **How**: Execute gpm with write permissions
 **Permissions**: `contents: write`, `pull-requests: write`, etc.
@@ -415,6 +447,7 @@ on:
 ```
 
 **Safety**:
+
 - ✅ Only on trusted refs (main branch, manual dispatch)
 - ✅ Never on PRs (avoids privilege escalation)
 - ✅ Tests production code (already merged)
@@ -423,6 +456,7 @@ on:
 #### Security Controls
 
 **Privilege Minimization**:
+
 ```yaml
 # Workflow-level: minimal by default
 permissions:
@@ -432,7 +466,7 @@ permissions:
 # Job-level escalation: only when needed
 dogfood:
   permissions:
-    contents: write  # Only on trusted refs
+    contents: write # Only on trusted refs
     pull-requests: write
 ```
 
@@ -455,11 +489,11 @@ name: CodeQL
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
   schedule:
-    - cron: "0 3 * * 1"  # Weekly Monday 03:00 UTC (low-traffic window)
+    - cron: "0 3 * * 1" # Weekly Monday 03:00 UTC (low-traffic window)
 
 permissions:
   contents: read
@@ -478,7 +512,7 @@ jobs:
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
-          languages: javascript  # TypeScript auto-detected
+          languages: javascript # TypeScript auto-detected
           queries: security-and-quality
 
       - name: Setup Node
@@ -501,12 +535,14 @@ jobs:
 ```
 
 **Why CodeQL for git-pr-manager**:
+
 - Detects command injection (git command execution via `simple-git`)
 - Detects path traversal (file operations)
 - Detects authentication issues (GitHub API token handling)
 - Critical for tool that executes system commands and handles secrets
 
 **Query Suite**: `security-and-quality`
+
 - Includes security vulnerabilities + code quality issues
 - Good balance: comprehensive without excessive false positives
 - Recommended for production tools with external APIs
@@ -526,7 +562,7 @@ updates:
     schedule:
       interval: "weekly"
       day: "monday"
-      time: "03:00"  # UTC - low traffic window, aligns with CodeQL
+      time: "03:00" # UTC - low traffic window, aligns with CodeQL
     open-pull-requests-limit: 10
     labels:
       - "dependencies"
@@ -548,7 +584,7 @@ updates:
     schedule:
       interval: "weekly"
       day: "monday"
-      time: "03:00"  # UTC - low traffic window
+      time: "03:00" # UTC - low traffic window
     labels:
       - "dependencies"
       - "github-actions"
@@ -559,6 +595,7 @@ updates:
 ```
 
 **Auto-Merge Strategy** (Phase 3):
+
 ```yaml
 # Separate workflow: auto-merge-dependabot.yml
 name: Auto-merge Dependabot
@@ -590,6 +627,7 @@ jobs:
 ```
 
 **Rationale**:
+
 - Patch/minor: Low risk, auto-merge after CI passes
 - Major: Require manual review (breaking changes)
 - Weekly schedule: Balance freshness vs PR spam
@@ -617,11 +655,13 @@ We release patches for security vulnerabilities. Currently supported versions:
 **Please do not report security vulnerabilities through public GitHub issues.**
 
 Instead, please report them via GitHub Security Advisories:
+
 1. Go to https://github.com/littlebearapps/git-pr-manager/security/advisories
 2. Click "Report a vulnerability"
 3. Provide detailed information about the vulnerability
 
 ### What to Include
+
 - Type of vulnerability (e.g., command injection, path traversal)
 - Steps to reproduce
 - Affected versions
@@ -629,6 +669,7 @@ Instead, please report them via GitHub Security Advisories:
 - Suggested fix (if known)
 
 ### Response Timeline
+
 - **Initial Response**: Within 48 hours
 - **Fix Timeline**: Critical vulnerabilities within 7 days, others within 30 days
 - **Disclosure**: After fix is released and users have been notified
@@ -636,18 +677,23 @@ Instead, please report them via GitHub Security Advisories:
 ## Security Considerations
 
 ### GitHub Token Handling
+
 git-pr-manager requires a GitHub token (`GITHUB_TOKEN` or `GH_TOKEN`) to interact with the GitHub API. This token:
+
 - Should have minimal required permissions (repo scope)
 - Is never logged or transmitted to third parties
 - Should be stored as an environment variable (not committed to code)
 
 ### Command Execution
+
 git-pr-manager executes git commands locally via `simple-git`. Users should:
+
 - Only use in trusted repositories
 - Review command output in verbose mode
 - Avoid running with elevated privileges
 
 ### Known Limitations
+
 - Requires write access to repository (to create branches, PRs)
 - Cannot enforce branch protection rules (GitHub API limitation)
 - Designed for single-user workflows (not multi-tenant environments)
@@ -655,6 +701,7 @@ git-pr-manager executes git commands locally via `simple-git`. Users should:
 ## Security Tools
 
 We use the following tools to maintain security:
+
 - **CodeQL**: Automated code scanning (weekly + on PR/push)
 - **Dependabot**: Automated dependency updates (weekly)
 - **npm audit**: Dependency vulnerability scanning (in CI)
@@ -707,6 +754,7 @@ We follow responsible disclosure practices and will credit security researchers 
 ```
 
 **Rationale**:
+
 - Integration test validates package works when installed globally
 - SBOM (Software Bill of Materials) provides supply chain transparency
 - Both enhance credibility for security-focused tool
@@ -718,6 +766,7 @@ We follow responsible disclosure practices and will credit security researchers 
 **Configure on GitHub**: Settings → Branches → Add rule (main)
 
 Required Settings:
+
 - ✅ Require a pull request before merging
 - ✅ Require status checks to pass before merging:
   - `All Checks Passed` (aggregate from ci.yml)
@@ -727,6 +776,7 @@ Required Settings:
 - ⚠️ Require signed commits (optional, for maintainers)
 
 **Rationale**:
+
 - Prevents accidental direct pushes to main
 - Ensures all code is tested before merge
 - Maintains high quality bar for production tool
@@ -736,38 +786,48 @@ Required Settings:
 ## Risk Mitigation
 
 ### Risk: Dogfooding Creates Circular Dependency
+
 **Impact**: If gpm bugs break CI, can't merge fixes
 **Mitigation**:
+
 - Keep core tests independent (use Jest/npm test directly)
 - Use gpm only for enhanced validation (separate job, needs: test)
 - Two-Mode approach: dry-run on PRs (read-only), write on trusted refs only
 
 ### Risk: Test Matrix Increases CI Time
+
 **Impact**: 6× jobs = longer feedback loop
 **Mitigation**:
+
 - Run jobs in parallel (GitHub Actions default)
 - Optimize each job (~3-5 min target)
 - Use caching (npm, setup-node)
 - Skip CI for docs-only changes (paths-ignore)
 
 ### Risk: CodeQL False Positives
+
 **Impact**: Developers waste time triaging
 **Mitigation**:
+
 - Use `security-and-quality` (comprehensive but balanced)
 - Document suppressions with justifications
 - Tune over time based on patterns
 
 ### Risk: Dependabot PR Spam
+
 **Impact**: Too many PRs to review
 **Mitigation**:
+
 - Weekly schedule (not daily)
 - Group dev dependencies
 - Auto-merge patch/minor (Phase 3)
 - Manual review for major updates only
 
 ### Risk: Privilege Escalation via Dogfooding
+
 **Impact**: Malicious PR could exploit gpm in CI
 **Mitigation**:
+
 - Never use `pull_request_target` with untrusted code
 - Two-Mode approach: PR dry-run has contents: read only, no writes
 - Write permissions only on trusted refs (main branch, workflow_dispatch)
@@ -778,6 +838,7 @@ Required Settings:
 ## Success Metrics
 
 ### Phase 1 (Week 1)
+
 - [ ] CI workflow with 2 jobs deployed (test matrix + dogfood)
 - [ ] Test matrix covers 6 OS/Node combinations (3 OS × 2 Node)
 - [ ] gpm security runs in CI (dogfooding validated)
@@ -785,12 +846,14 @@ Required Settings:
 - [ ] All PRs tested before merge
 
 ### Phase 2 (Week 2)
+
 - [ ] CodeQL scans complete weekly + on PR/push
 - [ ] Dependabot creates update PRs weekly
 - [ ] SECURITY.md visible on GitHub repository
 - [ ] Zero critical security findings from CodeQL
 
 ### Phase 3 (Week 3)
+
 - [ ] Coverage reports uploaded to Codecov
 - [ ] Dependabot PRs auto-merge (patch/minor)
 - [ ] Issue templates available for community
@@ -801,6 +864,7 @@ Required Settings:
 ## Cost Analysis
 
 ### GitHub Actions (Free Tier)
+
 - **Limit**: 2000 minutes/month (public repos)
 - **Current usage**: ~53s per publish (negligible)
 - **Projected usage**:
@@ -812,11 +876,13 @@ Required Settings:
 - **Conclusion**: Well within limits ✅
 
 ### Codecov (Free Tier)
+
 - **Limit**: Unlimited public repos
 - **Cost**: $0
 - **Benefit**: PR diff coverage, trends, badge
 
 ### Dependabot
+
 - **Cost**: Free (built-in GitHub feature)
 - **Benefit**: Automated security updates
 
@@ -825,17 +891,20 @@ Required Settings:
 ## Next Steps
 
 ### Immediate Actions (Before Phase 1)
+
 1. Review this document with stakeholders
 2. Get approval for implementation plan
 3. Create GitHub milestone: "CI/Security Setup v1.6.0"
 4. Create implementation tasks (one per deliverable)
 
 ### Implementation Order
+
 1. **Week 1**: Implement ci.yml + branch protection
 2. **Week 2**: Implement CodeQL + Dependabot + SECURITY.md
 3. **Week 3**: Implement coverage upload + auto-merge + templates
 
 ### Rollout Strategy
+
 1. Create feature branch: `feature/ci-security-setup`
 2. Implement one workflow at a time
 3. Test each workflow on feature branch
@@ -850,6 +919,7 @@ Required Settings:
 ### Platform-Specific Considerations
 
 #### Windows
+
 - **Path separators**: Use `path.join()` (not hardcoded `/` or `\\`)
 - **Line endings**: Git config handles CRLF → LF automatically
 - **Shell commands**: PowerShell vs cmd.exe differences
@@ -859,6 +929,7 @@ Required Settings:
   - Ensure process execution works on PowerShell
 
 #### macOS
+
 - **Case sensitivity**: Filesystem is case-insensitive by default
 - **Git location**: Pre-installed but may be outdated
 - **Test cases**:
@@ -866,6 +937,7 @@ Required Settings:
   - Validate git version compatibility (require ≥2.30)
 
 #### Ubuntu (Linux)
+
 - **Baseline platform**: Most straightforward, minimal edge cases
 - **Git**: Installed via apt, usually recent version
 - **Test cases**:
@@ -875,22 +947,24 @@ Required Settings:
 ### Node Version Compatibility
 
 #### Node 18.x (LTS until April 2025)
+
 - **Why test**: Still widely used in production environments
 - **Test focus**: Ensure all features work with older LTS
 - **Known issues**: None expected (package.json engines: ">=18.0.0")
 
 #### Node 20.x (Current LTS until April 2026)
+
 - **Why test**: Recommended version for new projects
 - **Test focus**: Primary development target
 - **Benefits**: Better performance, latest npm features
 
 ### Test Matrix Coverage
 
-| Scenario | ubuntu-latest | macos-latest | windows-latest |
-|----------|---------------|--------------|----------------|
-| Node 18.x | ✅ | ✅ | ✅ |
-| Node 20.x | ✅ | ✅ | ✅ |
-| Total | 2 | 2 | 2 |
+| Scenario  | ubuntu-latest | macos-latest | windows-latest |
+| --------- | ------------- | ------------ | -------------- |
+| Node 18.x | ✅            | ✅           | ✅             |
+| Node 20.x | ✅            | ✅           | ✅             |
+| Total     | 2             | 2            | 2              |
 
 **Total combinations**: 6 (3 OS × 2 Node versions)
 
@@ -919,6 +993,7 @@ git push
 ```
 
 **Branch protection impact**: If ci.yml required by protection rules, temporarily remove requirement:
+
 1. Go to Settings → Branches → main protection rule
 2. Uncheck "Require status checks to pass"
 3. Save changes
@@ -928,6 +1003,7 @@ git push
 ### Phase 2 Rollback (CodeQL + Dependabot)
 
 **CodeQL rollback**:
+
 ```bash
 # Disable CodeQL workflow
 git mv .github/workflows/codeql.yml .github/workflows/codeql.yml.disabled
@@ -938,6 +1014,7 @@ git push
 **Impact**: No blocking issues - CodeQL runs asynchronously, doesn't block PRs.
 
 **Dependabot rollback**:
+
 ```bash
 # Disable Dependabot
 git mv .github/dependabot.yml .github/dependabot.yml.disabled
@@ -950,10 +1027,12 @@ git push
 ### Phase 3 Rollback (Coverage + Auto-merge)
 
 **Coverage upload rollback**:
+
 - Remove codecov upload step from ci.yml
 - No impact on existing workflows
 
 **Auto-merge rollback**:
+
 ```bash
 # Disable auto-merge workflow
 git mv .github/workflows/auto-merge-dependabot.yml .github/workflows/auto-merge-dependabot.yml.disabled
@@ -966,6 +1045,7 @@ git push
 ### Emergency Procedures
 
 **Complete CI bypass** (critical bugs blocking all PRs):
+
 1. Temporarily remove branch protection from main
 2. Merge critical fix directly to main
 3. Fix CI issues
@@ -978,11 +1058,13 @@ git push
 ## References
 
 ### Internal
+
 - mcp-delegator workflows: `/lba/apps/mcp-servers/mcp-delegator/.github/workflows/`
 - Current publish.yml: `.github/workflows/publish.yml`
 - Test suite: `tests/` (622 tests, 89.67% coverage)
 
 ### External
+
 - CodeQL: https://codeql.github.com/
 - Dependabot: https://docs.github.com/en/code-security/dependabot
 - GitHub Actions best practices: https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions
@@ -992,16 +1074,16 @@ git push
 
 ## Appendix A: Workflow Comparison
 
-| Feature | mcp-delegator | git-pr-manager (current) | git-pr-manager (target) |
-|---------|---------------|--------------------------|-------------------------|
-| Test OS | 3 (u/m/w) | 1 (ubuntu) | 3 (u/m/w) ✅ |
-| Node versions | 2 (20, 22) | 1 (LTS) | 2 (18, 20) ✅ |
-| CodeQL | ✅ | ❌ | ✅ |
-| Dependabot | ✅ | ❌ | ✅ |
-| Dogfooding | N/A | ❌ | ✅ (unique!) |
-| Coverage upload | ❌ | ❌ | ✅ (Phase 3) |
-| SECURITY.md | ❌ | ❌ | ✅ |
-| Branch protection | ✅ | ⚠️ (manual) | ✅ |
+| Feature           | mcp-delegator | git-pr-manager (current) | git-pr-manager (target) |
+| ----------------- | ------------- | ------------------------ | ----------------------- |
+| Test OS           | 3 (u/m/w)     | 1 (ubuntu)               | 3 (u/m/w) ✅            |
+| Node versions     | 2 (20, 22)    | 1 (LTS)                  | 2 (18, 20) ✅           |
+| CodeQL            | ✅            | ❌                       | ✅                      |
+| Dependabot        | ✅            | ❌                       | ✅                      |
+| Dogfooding        | N/A           | ❌                       | ✅ (unique!)            |
+| Coverage upload   | ❌            | ❌                       | ✅ (Phase 3)            |
+| SECURITY.md       | ❌            | ❌                       | ✅                      |
+| Branch protection | ✅            | ⚠️ (manual)              | ✅                      |
 
 ---
 

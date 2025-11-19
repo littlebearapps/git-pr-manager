@@ -1,6 +1,6 @@
-import simpleGit, { SimpleGit, StatusResult } from 'simple-git';
-import { GitServiceOptions, BranchInfo, WorktreeInfo } from '../types';
-import { parseWorktreeList } from '../utils/worktree-parser';
+import simpleGit, { SimpleGit, StatusResult } from "simple-git";
+import { GitServiceOptions, BranchInfo, WorktreeInfo } from "../types";
+import { parseWorktreeList } from "../utils/worktree-parser";
 
 /**
  * GitService - Wraps simple-git for local git operations
@@ -19,7 +19,7 @@ export class GitService {
    */
   async getCurrentBranch(): Promise<string> {
     const status = await this.git.status();
-    return status.current || 'unknown';
+    return status.current || "unknown";
   }
 
   /**
@@ -30,10 +30,12 @@ export class GitService {
     const branches = await this.git.branch();
 
     return {
-      current: status.current || 'unknown',
+      current: status.current || "unknown",
       isClean: status.isClean(),
       hasUncommittedChanges: !status.isClean(),
-      remoteBranches: Object.keys(branches.branches).filter(b => b.startsWith('remotes/'))
+      remoteBranches: Object.keys(branches.branches).filter((b) =>
+        b.startsWith("remotes/"),
+      ),
     };
   }
 
@@ -72,11 +74,15 @@ export class GitService {
   /**
    * Push branch to remote
    */
-  async push(remote: string = 'origin', branch?: string, setUpstream: boolean = false): Promise<void> {
-    const currentBranch = branch || await this.getCurrentBranch();
+  async push(
+    remote: string = "origin",
+    branch?: string,
+    setUpstream: boolean = false,
+  ): Promise<void> {
+    const currentBranch = branch || (await this.getCurrentBranch());
 
     if (setUpstream) {
-      await this.git.push(['-u', remote, currentBranch]);
+      await this.git.push(["-u", remote, currentBranch]);
     } else {
       await this.git.push(remote, currentBranch);
     }
@@ -85,7 +91,7 @@ export class GitService {
   /**
    * Pull from remote
    */
-  async pull(remote: string = 'origin', branch?: string): Promise<void> {
+  async pull(remote: string = "origin", branch?: string): Promise<void> {
     if (branch) {
       await this.git.pull(remote, branch);
     } else {
@@ -96,14 +102,17 @@ export class GitService {
   /**
    * Fetch from remote
    */
-  async fetch(remote: string = 'origin'): Promise<void> {
+  async fetch(remote: string = "origin"): Promise<void> {
     await this.git.fetch(remote);
   }
 
   /**
    * Delete local branch
    */
-  async deleteBranch(branchName: string, force: boolean = false): Promise<void> {
+  async deleteBranch(
+    branchName: string,
+    force: boolean = false,
+  ): Promise<void> {
     if (force) {
       await this.git.deleteLocalBranch(branchName, true);
     } else {
@@ -130,9 +139,9 @@ export class GitService {
   /**
    * Get remote URL
    */
-  async getRemoteUrl(remote: string = 'origin'): Promise<string> {
+  async getRemoteUrl(remote: string = "origin"): Promise<string> {
     const remotes = await this.git.getRemotes(true);
-    const targetRemote = remotes.find(r => r.name === remote);
+    const targetRemote = remotes.find((r) => r.name === remote);
 
     if (!targetRemote || !targetRemote.refs || !targetRemote.refs.fetch) {
       throw new Error(`Remote '${remote}' not found`);
@@ -170,13 +179,17 @@ export class GitService {
    * Get diff for staged changes
    */
   async getStagedDiff(): Promise<string> {
-    return await this.git.diff(['--cached']);
+    return await this.git.diff(["--cached"]);
   }
 
   /**
    * Get commit log
    */
-  async getLog(options?: { maxCount?: number; from?: string; to?: string }): Promise<any> {
+  async getLog(options?: {
+    maxCount?: number;
+    from?: string;
+    to?: string;
+  }): Promise<any> {
     const logOptions: any = {};
 
     if (options?.maxCount) {
@@ -196,7 +209,7 @@ export class GitService {
    */
   async stash(message?: string): Promise<void> {
     if (message) {
-      await this.git.stash(['push', '-m', message]);
+      await this.git.stash(["push", "-m", message]);
     } else {
       await this.git.stash();
     }
@@ -206,7 +219,7 @@ export class GitService {
    * Pop stashed changes
    */
   async stashPop(): Promise<void> {
-    await this.git.stash(['pop']);
+    await this.git.stash(["pop"]);
   }
 
   /**
@@ -215,7 +228,10 @@ export class GitService {
   async getDefaultBranch(): Promise<string> {
     try {
       // Try to get the default branch from the remote
-      const result = await this.git.raw(['symbolic-ref', 'refs/remotes/origin/HEAD']);
+      const result = await this.git.raw([
+        "symbolic-ref",
+        "refs/remotes/origin/HEAD",
+      ]);
       const match = result.trim().match(/refs\/remotes\/origin\/(.+)/);
       if (match) {
         return match[1];
@@ -223,16 +239,16 @@ export class GitService {
     } catch (error) {
       // If that fails, check common default branch names
       const branches = await this.listBranches();
-      if (branches.includes('main')) {
-        return 'main';
+      if (branches.includes("main")) {
+        return "main";
       }
-      if (branches.includes('master')) {
-        return 'master';
+      if (branches.includes("master")) {
+        return "master";
       }
     }
 
     // Default to 'main' if we can't determine
-    return 'main';
+    return "main";
   }
 
   /**
@@ -241,7 +257,7 @@ export class GitService {
    */
   async getWorktrees(): Promise<WorktreeInfo[]> {
     try {
-      const output = await this.git.raw(['worktree', 'list', '--porcelain']);
+      const output = await this.git.raw(["worktree", "list", "--porcelain"]);
       return parseWorktreeList(output);
     } catch (error) {
       // Not a worktree repository, return current directory as single worktree
@@ -249,12 +265,14 @@ export class GitService {
         const currentBranch = await this.getCurrentBranch();
         const commit = await this.getCurrentCommit();
 
-        return [{
-          path: this.workingDir,
-          commit,
-          branch: currentBranch,
-          isMain: true
-        }];
+        return [
+          {
+            path: this.workingDir,
+            commit,
+            branch: currentBranch,
+            isMain: true,
+          },
+        ];
       } catch {
         // If we can't get branch/commit info, return empty array
         return [];
@@ -268,9 +286,7 @@ export class GitService {
    */
   async getBranchWorktrees(branchName: string): Promise<string[]> {
     const worktrees = await this.getWorktrees();
-    return worktrees
-      .filter(w => w.branch === branchName)
-      .map(w => w.path);
+    return worktrees.filter((w) => w.branch === branchName).map((w) => w.path);
   }
 
   /**
@@ -278,7 +294,7 @@ export class GitService {
    */
   async isWorktreeRepository(): Promise<boolean> {
     try {
-      await this.git.raw(['worktree', 'list']);
+      await this.git.raw(["worktree", "list"]);
       return true;
     } catch {
       return false;
@@ -292,27 +308,27 @@ export class GitService {
    * @returns Output from git worktree prune command (from stderr since git outputs there)
    */
   async pruneWorktrees(dryRun = false, verbose = false): Promise<string> {
-    const args = ['worktree', 'prune'];
-    if (dryRun) args.push('--dry-run');
-    if (verbose) args.push('--verbose');
+    const args = ["worktree", "prune"];
+    if (dryRun) args.push("--dry-run");
+    if (verbose) args.push("--verbose");
 
     // Git worktree prune outputs to stderr, not stdout
     // We need to use exec() to capture both streams
-    const { exec } = await import('child_process');
-    const { promisify } = await import('util');
+    const { exec } = await import("child_process");
+    const { promisify } = await import("util");
     const execAsync = promisify(exec);
 
     try {
-      const { stdout, stderr } = await execAsync(`git ${args.join(' ')}`, {
+      const { stdout, stderr } = await execAsync(`git ${args.join(" ")}`, {
         cwd: this.workingDir,
-        encoding: 'utf8'
+        encoding: "utf8",
       });
 
       // Git worktree prune outputs to stderr, return that
       return stderr || stdout;
     } catch (error: any) {
       // If there's an error, it might still have output in stderr
-      return error.stderr || error.stdout || '';
+      return error.stderr || error.stdout || "";
     }
   }
 
@@ -321,6 +337,6 @@ export class GitService {
    */
   private async getCurrentCommit(): Promise<string> {
     const log = await this.git.log({ maxCount: 1 });
-    return log.latest?.hash || '';
+    return log.latest?.hash || "";
   }
 }

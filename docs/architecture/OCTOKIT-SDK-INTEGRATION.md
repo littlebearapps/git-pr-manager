@@ -12,16 +12,16 @@ This document describes how to integrate the **Claude GitHub SDK** (Octokit wrap
 
 ### Benefits of Integration
 
-| Feature | Current (gh CLI) | With Octokit SDK |
-|---------|------------------|------------------|
-| PR Creation | ✅ `gh pr create --fill` | ✅ Programmatic with templates |
-| CI Status Polling | ⚠️ Manual `gh pr checks` | ✅ Automated `waitForChecks()` |
-| Error Handling | ⚠️ Exit codes | ✅ Try/catch with detailed errors |
-| PR Merge | ✅ `gh pr merge --squash` | ✅ `mergePR()` with validation |
-| Branch Cleanup | ✅ `gh api` or git | ✅ `deleteBranch()` |
-| Complete Workflow | ❌ Manual orchestration | ✅ `shipFeature()` one-liner |
-| Testing | ⚠️ Live API only | ✅ Mock with Nock |
-| Type Safety | ❌ No types | ✅ Full TypeScript |
+| Feature           | Current (gh CLI)          | With Octokit SDK                  |
+| ----------------- | ------------------------- | --------------------------------- |
+| PR Creation       | ✅ `gh pr create --fill`  | ✅ Programmatic with templates    |
+| CI Status Polling | ⚠️ Manual `gh pr checks`  | ✅ Automated `waitForChecks()`    |
+| Error Handling    | ⚠️ Exit codes             | ✅ Try/catch with detailed errors |
+| PR Merge          | ✅ `gh pr merge --squash` | ✅ `mergePR()` with validation    |
+| Branch Cleanup    | ✅ `gh api` or git        | ✅ `deleteBranch()`               |
+| Complete Workflow | ❌ Manual orchestration   | ✅ `shipFeature()` one-liner      |
+| Testing           | ⚠️ Live API only          | ✅ Mock with Nock                 |
+| Type Safety       | ❌ No types               | ✅ Full TypeScript                |
 
 ---
 
@@ -89,6 +89,7 @@ Use **both** gh CLI and Octokit SDK for their respective strengths:
 **Add Octokit SDK as optional enhancement** while keeping gh CLI as primary.
 
 **When to use Octokit**:
+
 - `--wait-for-ci`: Use `PRAutomation.waitForChecks()` for async polling
 - `--rich-pr`: Use SDK to create PRs with enhanced templates
 - `--ship-feature`: Use `PRAutomation.shipFeature()` for complete automation
@@ -117,11 +118,13 @@ fi
 ```
 
 **Pros**:
+
 - ✅ Minimal changes to existing workflow
 - ✅ Gradual migration path
 - ✅ Falls back to gh CLI if SDK unavailable
 
 **Cons**:
+
 - ⚠️ Maintains two code paths
 - ⚠️ Requires Node.js runtime
 
@@ -135,12 +138,12 @@ fi
 
 ```javascript
 // git-pr-manager-sdk.js
-import { PRAutomation } from 'claude-github-sdk';
+import { PRAutomation } from "claude-github-sdk";
 
 const pr = new PRAutomation({
   token: process.env.GITHUB_TOKEN,
-  owner: 'littlebearapps',
-  repo: process.env.REPO_NAME
+  owner: "littlebearapps",
+  repo: process.env.REPO_NAME,
 });
 
 // Complete workflow in one call
@@ -150,7 +153,7 @@ const prUrl = await pr.shipFeature({
   body: process.env.PR_BODY,
   waitForChecks: true,
   autoMerge: true,
-  cleanup: true
+  cleanup: true,
 });
 
 console.log(prUrl);
@@ -168,12 +171,14 @@ node git-pr-manager-sdk.js
 ```
 
 **Pros**:
+
 - ✅ Clean, type-safe code
 - ✅ Better error handling
 - ✅ Easier testing (mock API)
 - ✅ Single code path
 
 **Cons**:
+
 - ⚠️ Requires rewriting bash logic
 - ⚠️ Harder to debug for bash users
 - ⚠️ Node.js dependency
@@ -213,6 +218,7 @@ node sdks/github/examples/verify-installation.js
 ```
 
 Expected output:
+
 ```
 ✅ GitHub SDK Installation Verification
 
@@ -237,27 +243,29 @@ Test 3: Client initialization
 ### Example 1: CI Status Polling
 
 **Before** (gh CLI):
+
 ```bash
 # Manual polling with gh CLI
 gh pr checks $PR_NUMBER --watch
 ```
 
 **After** (Octokit SDK):
+
 ```javascript
-import { PRAutomation } from 'claude-github-sdk';
+import { PRAutomation } from "claude-github-sdk";
 
 const pr = new PRAutomation({
   token: process.env.GITHUB_TOKEN,
-  owner: 'littlebearapps',
-  repo: 'auditor-toolkit'
+  owner: "littlebearapps",
+  repo: "auditor-toolkit",
 });
 
 // Async polling with timeout and progress
 const checksPass = await pr.waitForChecks(prNumber, 600000, 10000);
 if (checksPass) {
-  console.log('✅ All checks passed');
+  console.log("✅ All checks passed");
 } else {
-  console.log('❌ Checks failed');
+  console.log("❌ Checks failed");
 }
 ```
 
@@ -266,6 +274,7 @@ if (checksPass) {
 ### Example 2: Complete PR Workflow
 
 **Before** (bash orchestration):
+
 ```bash
 # Step 1: Create PR
 gh pr create --base main --head feature/new-feature --fill
@@ -281,23 +290,24 @@ git push origin --delete feature/new-feature
 ```
 
 **After** (Octokit SDK):
+
 ```javascript
-import { PRAutomation } from 'claude-github-sdk';
+import { PRAutomation } from "claude-github-sdk";
 
 const pr = new PRAutomation({
   token: process.env.GITHUB_TOKEN,
-  owner: 'littlebearapps',
-  repo: 'auditor-toolkit'
+  owner: "littlebearapps",
+  repo: "auditor-toolkit",
 });
 
 // Complete workflow in one call
 const prUrl = await pr.shipFeature({
-  branch: 'feature/new-feature',
-  title: 'feat: add new feature',
-  body: 'Complete implementation with tests',
+  branch: "feature/new-feature",
+  title: "feat: add new feature",
+  body: "Complete implementation with tests",
   waitForChecks: true,
   autoMerge: true,
-  cleanup: true
+  cleanup: true,
 });
 
 console.log(`Feature shipped: ${prUrl}`);
@@ -308,6 +318,7 @@ console.log(`Feature shipped: ${prUrl}`);
 ### Example 3: Enhanced Error Handling
 
 **Before** (bash):
+
 ```bash
 gh pr create --base main --head feature/new-feature --fill
 if [ $? -ne 0 ]; then
@@ -317,20 +328,21 @@ fi
 ```
 
 **After** (JavaScript):
+
 ```javascript
 try {
   const pr = await prAutomation.createPR({
-    title: 'feat: add new feature',
-    body: 'Complete implementation with tests',
-    head: 'feature/new-feature',
-    base: 'main'
+    title: "feat: add new feature",
+    body: "Complete implementation with tests",
+    head: "feature/new-feature",
+    base: "main",
   });
   console.log(`✅ Created PR #${pr.number}: ${pr.html_url}`);
 } catch (error) {
   if (error.status === 422) {
-    console.error('❌ PR creation failed: Branch already has open PR');
+    console.error("❌ PR creation failed: Branch already has open PR");
   } else if (error.status === 404) {
-    console.error('❌ PR creation failed: Repository not found');
+    console.error("❌ PR creation failed: Repository not found");
   } else {
     console.error(`❌ PR creation failed: ${error.message}`);
   }
@@ -345,23 +357,23 @@ try {
 ### Unit Tests with Nock
 
 ```javascript
-import { PRAutomation } from 'claude-github-sdk';
-import { mockPullRequest, mockCombinedStatus } from 'claude-github-sdk/testing';
+import { PRAutomation } from "claude-github-sdk";
+import { mockPullRequest, mockCombinedStatus } from "claude-github-sdk/testing";
 
 // Mock GitHub API
-mockPullRequest('littlebearapps', 'auditor-toolkit', 123, {
-  title: 'feat: add new feature',
-  state: 'open',
-  merged: false
+mockPullRequest("littlebearapps", "auditor-toolkit", 123, {
+  title: "feat: add new feature",
+  state: "open",
+  merged: false,
 });
 
-mockCombinedStatus('littlebearapps', 'auditor-toolkit', 'abc123', 'success');
+mockCombinedStatus("littlebearapps", "auditor-toolkit", "abc123", "success");
 
 // Test PR automation
 const pr = new PRAutomation({
-  token: 'test-token',
-  owner: 'littlebearapps',
-  repo: 'auditor-toolkit'
+  token: "test-token",
+  owner: "littlebearapps",
+  repo: "auditor-toolkit",
 });
 
 const checksPass = await pr.waitForChecks(123);

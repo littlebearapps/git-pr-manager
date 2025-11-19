@@ -1,11 +1,11 @@
-import type { StatusResult } from 'simple-git';
+import type { StatusResult } from "simple-git";
 
 // Mock simple-git module
-jest.mock('simple-git');
+jest.mock("simple-git");
 
 // Import after mock is defined
-import simpleGit from 'simple-git';
-import { GitService } from '../../src/services/GitService';
+import simpleGit from "simple-git";
+import { GitService } from "../../src/services/GitService";
 
 // Create mock git instance
 const mockGitInstance = {
@@ -23,85 +23,88 @@ const mockGitInstance = {
   diff: jest.fn(),
   log: jest.fn(),
   stash: jest.fn(),
-  raw: jest.fn()
+  raw: jest.fn(),
 };
 
-describe('GitService', () => {
+describe("GitService", () => {
   let service: GitService;
 
   beforeEach(() => {
     // Set the return value for the mocked simpleGit function
     (simpleGit as jest.Mock).mockReturnValue(mockGitInstance);
     jest.clearAllMocks();
-    service = new GitService({ workingDir: '/test/dir' });
+    service = new GitService({ workingDir: "/test/dir" });
   });
 
-  describe('Constructor', () => {
-    it('should initialize with provided working directory', () => {
+  describe("Constructor", () => {
+    it("should initialize with provided working directory", () => {
       expect(service).toBeDefined();
     });
   });
 
-  describe('Branch Info and Status', () => {
-    describe('getCurrentBranch', () => {
-      it('should return current branch name', async () => {
+  describe("Branch Info and Status", () => {
+    describe("getCurrentBranch", () => {
+      it("should return current branch name", async () => {
         mockGitInstance.status.mockResolvedValue({
-          current: 'feature-branch',
-          isClean: () => true
+          current: "feature-branch",
+          isClean: () => true,
         } as StatusResult);
 
         const result = await service.getCurrentBranch();
 
-        expect(result).toBe('feature-branch');
+        expect(result).toBe("feature-branch");
         expect(mockGitInstance.status).toHaveBeenCalled();
       });
 
       it('should return "unknown" if current branch is null', async () => {
         mockGitInstance.status.mockResolvedValue({
           current: null,
-          isClean: () => true
+          isClean: () => true,
         } as StatusResult);
 
         const result = await service.getCurrentBranch();
 
-        expect(result).toBe('unknown');
+        expect(result).toBe("unknown");
       });
     });
 
-    describe('getBranchInfo', () => {
-      it('should return comprehensive branch information', async () => {
+    describe("getBranchInfo", () => {
+      it("should return comprehensive branch information", async () => {
         mockGitInstance.status.mockResolvedValue({
-          current: 'main',
-          isClean: () => true
+          current: "main",
+          isClean: () => true,
         } as StatusResult);
 
         mockGitInstance.branch.mockResolvedValue({
           branches: {
-            'main': {},
-            'feature-branch': {},
-            'remotes/origin/main': {},
-            'remotes/origin/feature-branch': {}
-          }
+            main: {},
+            "feature-branch": {},
+            "remotes/origin/main": {},
+            "remotes/origin/feature-branch": {},
+          },
         });
 
         const result = await service.getBranchInfo();
 
         expect(result).toEqual({
-          current: 'main',
+          current: "main",
           isClean: true,
           hasUncommittedChanges: false,
-          remoteBranches: ['remotes/origin/main', 'remotes/origin/feature-branch']
+          remoteBranches: [
+            "remotes/origin/main",
+            "remotes/origin/feature-branch",
+          ],
         });
       });
 
-      it('should indicate uncommitted changes when not clean', async () => {
+      it("should indicate uncommitted changes when not clean", async () => {
         mockGitInstance.status.mockResolvedValue({
-          current: 'main',
-          isClean: () => false
+          current: "main",
+          isClean: () => false,
         } as StatusResult);
 
         mockGitInstance.branch.mockResolvedValue({
-          branches: {}
+          branches: {},
         });
 
         const result = await service.getBranchInfo();
@@ -111,10 +114,10 @@ describe('GitService', () => {
       });
     });
 
-    describe('isClean', () => {
-      it('should return true when working directory is clean', async () => {
+    describe("isClean", () => {
+      it("should return true when working directory is clean", async () => {
         mockGitInstance.status.mockResolvedValue({
-          isClean: () => true
+          isClean: () => true,
         } as StatusResult);
 
         const result = await service.isClean();
@@ -122,9 +125,9 @@ describe('GitService', () => {
         expect(result).toBe(true);
       });
 
-      it('should return false when working directory has changes', async () => {
+      it("should return false when working directory has changes", async () => {
         mockGitInstance.status.mockResolvedValue({
-          isClean: () => false
+          isClean: () => false,
         } as StatusResult);
 
         const result = await service.isClean();
@@ -133,12 +136,12 @@ describe('GitService', () => {
       });
     });
 
-    describe('getStatus', () => {
-      it('should return git status result', async () => {
+    describe("getStatus", () => {
+      it("should return git status result", async () => {
         const mockStatus: Partial<StatusResult> = {
-          current: 'main',
+          current: "main",
           isClean: () => true,
-          files: []
+          files: [],
         };
 
         mockGitInstance.status.mockResolvedValue(mockStatus);
@@ -150,293 +153,335 @@ describe('GitService', () => {
     });
   });
 
-  describe('Branch Operations', () => {
-    describe('createBranch', () => {
-      it('should create and checkout new branch without base branch', async () => {
-        await service.createBranch('new-feature');
+  describe("Branch Operations", () => {
+    describe("createBranch", () => {
+      it("should create and checkout new branch without base branch", async () => {
+        await service.createBranch("new-feature");
 
-        expect(mockGitInstance.checkoutLocalBranch).toHaveBeenCalledWith('new-feature');
+        expect(mockGitInstance.checkoutLocalBranch).toHaveBeenCalledWith(
+          "new-feature",
+        );
         expect(mockGitInstance.checkout).not.toHaveBeenCalled();
       });
 
-      it('should checkout base branch before creating new branch', async () => {
-        await service.createBranch('new-feature', 'main');
+      it("should checkout base branch before creating new branch", async () => {
+        await service.createBranch("new-feature", "main");
 
-        expect(mockGitInstance.checkout).toHaveBeenCalledWith('main');
-        expect(mockGitInstance.checkoutLocalBranch).toHaveBeenCalledWith('new-feature');
+        expect(mockGitInstance.checkout).toHaveBeenCalledWith("main");
+        expect(mockGitInstance.checkoutLocalBranch).toHaveBeenCalledWith(
+          "new-feature",
+        );
       });
     });
 
-    describe('checkout', () => {
-      it('should checkout existing branch', async () => {
-        await service.checkout('existing-branch');
+    describe("checkout", () => {
+      it("should checkout existing branch", async () => {
+        await service.checkout("existing-branch");
 
-        expect(mockGitInstance.checkout).toHaveBeenCalledWith('existing-branch');
+        expect(mockGitInstance.checkout).toHaveBeenCalledWith(
+          "existing-branch",
+        );
       });
     });
 
-    describe('deleteBranch', () => {
-      it('should delete branch without force', async () => {
-        await service.deleteBranch('old-branch');
+    describe("deleteBranch", () => {
+      it("should delete branch without force", async () => {
+        await service.deleteBranch("old-branch");
 
-        expect(mockGitInstance.deleteLocalBranch).toHaveBeenCalledWith('old-branch');
+        expect(mockGitInstance.deleteLocalBranch).toHaveBeenCalledWith(
+          "old-branch",
+        );
       });
 
-      it('should force delete branch when specified', async () => {
-        await service.deleteBranch('old-branch', true);
+      it("should force delete branch when specified", async () => {
+        await service.deleteBranch("old-branch", true);
 
-        expect(mockGitInstance.deleteLocalBranch).toHaveBeenCalledWith('old-branch', true);
+        expect(mockGitInstance.deleteLocalBranch).toHaveBeenCalledWith(
+          "old-branch",
+          true,
+        );
       });
     });
 
-    describe('listBranches', () => {
-      it('should return all branch names', async () => {
+    describe("listBranches", () => {
+      it("should return all branch names", async () => {
         mockGitInstance.branch.mockResolvedValue({
-          all: ['main', 'feature-1', 'feature-2', 'remotes/origin/main']
+          all: ["main", "feature-1", "feature-2", "remotes/origin/main"],
         });
 
         const result = await service.listBranches();
 
-        expect(result).toEqual(['main', 'feature-1', 'feature-2', 'remotes/origin/main']);
+        expect(result).toEqual([
+          "main",
+          "feature-1",
+          "feature-2",
+          "remotes/origin/main",
+        ]);
       });
     });
 
-    describe('branchExists', () => {
-      it('should return true when branch exists', async () => {
+    describe("branchExists", () => {
+      it("should return true when branch exists", async () => {
         mockGitInstance.branch.mockResolvedValue({
-          all: ['main', 'feature-branch']
+          all: ["main", "feature-branch"],
         });
 
-        const result = await service.branchExists('feature-branch');
+        const result = await service.branchExists("feature-branch");
 
         expect(result).toBe(true);
       });
 
-      it('should return false when branch does not exist', async () => {
+      it("should return false when branch does not exist", async () => {
         mockGitInstance.branch.mockResolvedValue({
-          all: ['main', 'feature-branch']
+          all: ["main", "feature-branch"],
         });
 
-        const result = await service.branchExists('nonexistent');
+        const result = await service.branchExists("nonexistent");
 
         expect(result).toBe(false);
       });
     });
 
-    describe('getDefaultBranch', () => {
-      it('should return default branch from remote', async () => {
-        mockGitInstance.raw.mockResolvedValue('refs/remotes/origin/main\n');
+    describe("getDefaultBranch", () => {
+      it("should return default branch from remote", async () => {
+        mockGitInstance.raw.mockResolvedValue("refs/remotes/origin/main\n");
 
         const result = await service.getDefaultBranch();
 
-        expect(result).toBe('main');
-        expect(mockGitInstance.raw).toHaveBeenCalledWith(['symbolic-ref', 'refs/remotes/origin/HEAD']);
+        expect(result).toBe("main");
+        expect(mockGitInstance.raw).toHaveBeenCalledWith([
+          "symbolic-ref",
+          "refs/remotes/origin/HEAD",
+        ]);
       });
 
       it('should fallback to "main" if it exists locally', async () => {
-        mockGitInstance.raw.mockRejectedValue(new Error('No remote HEAD'));
+        mockGitInstance.raw.mockRejectedValue(new Error("No remote HEAD"));
         mockGitInstance.branch.mockResolvedValue({
-          all: ['main', 'feature-branch']
+          all: ["main", "feature-branch"],
         });
 
         const result = await service.getDefaultBranch();
 
-        expect(result).toBe('main');
+        expect(result).toBe("main");
       });
 
       it('should fallback to "master" if "main" does not exist', async () => {
-        mockGitInstance.raw.mockRejectedValue(new Error('No remote HEAD'));
+        mockGitInstance.raw.mockRejectedValue(new Error("No remote HEAD"));
         mockGitInstance.branch.mockResolvedValue({
-          all: ['master', 'feature-branch']
+          all: ["master", "feature-branch"],
         });
 
         const result = await service.getDefaultBranch();
 
-        expect(result).toBe('master');
+        expect(result).toBe("master");
       });
 
       it('should return "main" as final fallback', async () => {
-        mockGitInstance.raw.mockRejectedValue(new Error('No remote HEAD'));
+        mockGitInstance.raw.mockRejectedValue(new Error("No remote HEAD"));
         mockGitInstance.branch.mockResolvedValue({
-          all: ['feature-branch', 'develop']
+          all: ["feature-branch", "develop"],
         });
 
         const result = await service.getDefaultBranch();
 
-        expect(result).toBe('main');
+        expect(result).toBe("main");
       });
     });
   });
 
-  describe('Remote Operations', () => {
-    describe('push', () => {
-      it('should push to origin without upstream', async () => {
+  describe("Remote Operations", () => {
+    describe("push", () => {
+      it("should push to origin without upstream", async () => {
         mockGitInstance.status.mockResolvedValue({
-          current: 'feature-branch'
+          current: "feature-branch",
         } as StatusResult);
 
         await service.push();
 
-        expect(mockGitInstance.push).toHaveBeenCalledWith('origin', 'feature-branch');
+        expect(mockGitInstance.push).toHaveBeenCalledWith(
+          "origin",
+          "feature-branch",
+        );
       });
 
-      it('should push with upstream flag', async () => {
+      it("should push with upstream flag", async () => {
         mockGitInstance.status.mockResolvedValue({
-          current: 'feature-branch'
+          current: "feature-branch",
         } as StatusResult);
 
-        await service.push('origin', undefined, true);
+        await service.push("origin", undefined, true);
 
-        expect(mockGitInstance.push).toHaveBeenCalledWith(['-u', 'origin', 'feature-branch']);
+        expect(mockGitInstance.push).toHaveBeenCalledWith([
+          "-u",
+          "origin",
+          "feature-branch",
+        ]);
       });
 
-      it('should push specified branch', async () => {
-        await service.push('origin', 'custom-branch');
+      it("should push specified branch", async () => {
+        await service.push("origin", "custom-branch");
 
-        expect(mockGitInstance.push).toHaveBeenCalledWith('origin', 'custom-branch');
+        expect(mockGitInstance.push).toHaveBeenCalledWith(
+          "origin",
+          "custom-branch",
+        );
       });
 
-      it('should push to custom remote', async () => {
+      it("should push to custom remote", async () => {
         mockGitInstance.status.mockResolvedValue({
-          current: 'feature-branch'
+          current: "feature-branch",
         } as StatusResult);
 
-        await service.push('upstream');
+        await service.push("upstream");
 
-        expect(mockGitInstance.push).toHaveBeenCalledWith('upstream', 'feature-branch');
+        expect(mockGitInstance.push).toHaveBeenCalledWith(
+          "upstream",
+          "feature-branch",
+        );
       });
     });
 
-    describe('pull', () => {
-      it('should pull from origin without branch', async () => {
+    describe("pull", () => {
+      it("should pull from origin without branch", async () => {
         await service.pull();
 
         expect(mockGitInstance.pull).toHaveBeenCalledWith();
       });
 
-      it('should pull specified branch from remote', async () => {
-        await service.pull('origin', 'main');
+      it("should pull specified branch from remote", async () => {
+        await service.pull("origin", "main");
 
-        expect(mockGitInstance.pull).toHaveBeenCalledWith('origin', 'main');
+        expect(mockGitInstance.pull).toHaveBeenCalledWith("origin", "main");
       });
     });
 
-    describe('fetch', () => {
-      it('should fetch from origin by default', async () => {
+    describe("fetch", () => {
+      it("should fetch from origin by default", async () => {
         await service.fetch();
 
-        expect(mockGitInstance.fetch).toHaveBeenCalledWith('origin');
+        expect(mockGitInstance.fetch).toHaveBeenCalledWith("origin");
       });
 
-      it('should fetch from specified remote', async () => {
-        await service.fetch('upstream');
+      it("should fetch from specified remote", async () => {
+        await service.fetch("upstream");
 
-        expect(mockGitInstance.fetch).toHaveBeenCalledWith('upstream');
+        expect(mockGitInstance.fetch).toHaveBeenCalledWith("upstream");
       });
     });
 
-    describe('getRemoteUrl', () => {
-      it('should return remote URL for origin', async () => {
+    describe("getRemoteUrl", () => {
+      it("should return remote URL for origin", async () => {
         mockGitInstance.getRemotes.mockResolvedValue([
           {
-            name: 'origin',
+            name: "origin",
             refs: {
-              fetch: 'https://github.com/user/repo.git',
-              push: 'https://github.com/user/repo.git'
-            }
-          }
+              fetch: "https://github.com/user/repo.git",
+              push: "https://github.com/user/repo.git",
+            },
+          },
         ]);
 
         const result = await service.getRemoteUrl();
 
-        expect(result).toBe('https://github.com/user/repo.git');
+        expect(result).toBe("https://github.com/user/repo.git");
         expect(mockGitInstance.getRemotes).toHaveBeenCalledWith(true);
       });
 
-      it('should return remote URL for specified remote', async () => {
+      it("should return remote URL for specified remote", async () => {
         mockGitInstance.getRemotes.mockResolvedValue([
           {
-            name: 'upstream',
+            name: "upstream",
             refs: {
-              fetch: 'https://github.com/upstream/repo.git',
-              push: 'https://github.com/upstream/repo.git'
-            }
-          }
+              fetch: "https://github.com/upstream/repo.git",
+              push: "https://github.com/upstream/repo.git",
+            },
+          },
         ]);
 
-        const result = await service.getRemoteUrl('upstream');
+        const result = await service.getRemoteUrl("upstream");
 
-        expect(result).toBe('https://github.com/upstream/repo.git');
+        expect(result).toBe("https://github.com/upstream/repo.git");
       });
 
-      it('should throw error when remote not found', async () => {
+      it("should throw error when remote not found", async () => {
         mockGitInstance.getRemotes.mockResolvedValue([
           {
-            name: 'origin',
+            name: "origin",
             refs: {
-              fetch: 'https://github.com/user/repo.git',
-              push: 'https://github.com/user/repo.git'
-            }
-          }
+              fetch: "https://github.com/user/repo.git",
+              push: "https://github.com/user/repo.git",
+            },
+          },
         ]);
 
-        await expect(service.getRemoteUrl('nonexistent'))
-          .rejects.toThrow("Remote 'nonexistent' not found");
+        await expect(service.getRemoteUrl("nonexistent")).rejects.toThrow(
+          "Remote 'nonexistent' not found",
+        );
       });
     });
   });
 
-  describe('Staging and Commit', () => {
-    describe('add', () => {
-      it('should add single file', async () => {
-        await service.add('file.txt');
+  describe("Staging and Commit", () => {
+    describe("add", () => {
+      it("should add single file", async () => {
+        await service.add("file.txt");
 
-        expect(mockGitInstance.add).toHaveBeenCalledWith('file.txt');
+        expect(mockGitInstance.add).toHaveBeenCalledWith("file.txt");
       });
 
-      it('should add multiple files', async () => {
-        await service.add(['file1.txt', 'file2.txt']);
+      it("should add multiple files", async () => {
+        await service.add(["file1.txt", "file2.txt"]);
 
-        expect(mockGitInstance.add).toHaveBeenCalledWith(['file1.txt', 'file2.txt']);
-      });
-    });
-
-    describe('commit', () => {
-      it('should commit with message', async () => {
-        await service.commit('feat: add new feature');
-
-        expect(mockGitInstance.commit).toHaveBeenCalledWith('feat: add new feature');
+        expect(mockGitInstance.add).toHaveBeenCalledWith([
+          "file1.txt",
+          "file2.txt",
+        ]);
       });
     });
 
-    describe('getDiff', () => {
-      it('should return diff for unstaged changes', async () => {
-        mockGitInstance.diff.mockResolvedValue('diff --git a/file.txt b/file.txt');
+    describe("commit", () => {
+      it("should commit with message", async () => {
+        await service.commit("feat: add new feature");
+
+        expect(mockGitInstance.commit).toHaveBeenCalledWith(
+          "feat: add new feature",
+        );
+      });
+    });
+
+    describe("getDiff", () => {
+      it("should return diff for unstaged changes", async () => {
+        mockGitInstance.diff.mockResolvedValue(
+          "diff --git a/file.txt b/file.txt",
+        );
 
         const result = await service.getDiff();
 
-        expect(result).toBe('diff --git a/file.txt b/file.txt');
+        expect(result).toBe("diff --git a/file.txt b/file.txt");
         expect(mockGitInstance.diff).toHaveBeenCalledWith();
       });
     });
 
-    describe('getStagedDiff', () => {
-      it('should return diff for staged changes', async () => {
-        mockGitInstance.diff.mockResolvedValue('diff --git a/file.txt b/file.txt');
+    describe("getStagedDiff", () => {
+      it("should return diff for staged changes", async () => {
+        mockGitInstance.diff.mockResolvedValue(
+          "diff --git a/file.txt b/file.txt",
+        );
 
         const result = await service.getStagedDiff();
 
-        expect(result).toBe('diff --git a/file.txt b/file.txt');
-        expect(mockGitInstance.diff).toHaveBeenCalledWith(['--cached']);
+        expect(result).toBe("diff --git a/file.txt b/file.txt");
+        expect(mockGitInstance.diff).toHaveBeenCalledWith(["--cached"]);
       });
     });
   });
 
-  describe('History and State', () => {
-    describe('getLog', () => {
-      it('should get commit log without options', async () => {
+  describe("History and State", () => {
+    describe("getLog", () => {
+      it("should get commit log without options", async () => {
         const mockLog = {
-          latest: { hash: 'abc123', message: 'test commit' }
+          latest: { hash: "abc123", message: "test commit" },
         };
 
         mockGitInstance.log.mockResolvedValue(mockLog);
@@ -447,9 +492,9 @@ describe('GitService', () => {
         expect(mockGitInstance.log).toHaveBeenCalledWith({});
       });
 
-      it('should get commit log with maxCount', async () => {
+      it("should get commit log with maxCount", async () => {
         const mockLog = {
-          latest: { hash: 'abc123', message: 'test commit' }
+          latest: { hash: "abc123", message: "test commit" },
         };
 
         mockGitInstance.log.mockResolvedValue(mockLog);
@@ -459,48 +504,52 @@ describe('GitService', () => {
         expect(mockGitInstance.log).toHaveBeenCalledWith({ maxCount: 10 });
       });
 
-      it('should get commit log with from and to', async () => {
+      it("should get commit log with from and to", async () => {
         const mockLog = {
-          latest: { hash: 'abc123', message: 'test commit' }
+          latest: { hash: "abc123", message: "test commit" },
         };
 
         mockGitInstance.log.mockResolvedValue(mockLog);
 
-        await service.getLog({ from: 'main', to: 'feature-branch' });
+        await service.getLog({ from: "main", to: "feature-branch" });
 
         expect(mockGitInstance.log).toHaveBeenCalledWith({
-          from: 'main',
-          to: 'feature-branch'
+          from: "main",
+          to: "feature-branch",
         });
       });
     });
 
-    describe('stash', () => {
-      it('should stash without message', async () => {
+    describe("stash", () => {
+      it("should stash without message", async () => {
         await service.stash();
 
         expect(mockGitInstance.stash).toHaveBeenCalledWith();
       });
 
-      it('should stash with message', async () => {
-        await service.stash('WIP: feature implementation');
+      it("should stash with message", async () => {
+        await service.stash("WIP: feature implementation");
 
-        expect(mockGitInstance.stash).toHaveBeenCalledWith(['push', '-m', 'WIP: feature implementation']);
+        expect(mockGitInstance.stash).toHaveBeenCalledWith([
+          "push",
+          "-m",
+          "WIP: feature implementation",
+        ]);
       });
     });
 
-    describe('stashPop', () => {
-      it('should pop stashed changes', async () => {
+    describe("stashPop", () => {
+      it("should pop stashed changes", async () => {
         await service.stashPop();
 
-        expect(mockGitInstance.stash).toHaveBeenCalledWith(['pop']);
+        expect(mockGitInstance.stash).toHaveBeenCalledWith(["pop"]);
       });
     });
   });
 
-  describe('Worktree Methods', () => {
-    describe('getWorktrees', () => {
-      it('should parse worktree list output', async () => {
+  describe("Worktree Methods", () => {
+    describe("getWorktrees", () => {
+      it("should parse worktree list output", async () => {
         const mockOutput = `worktree /path/to/main
 HEAD abc123
 branch refs/heads/main
@@ -515,18 +564,18 @@ branch refs/heads/feature/test`;
 
         expect(worktrees).toHaveLength(2);
         expect(worktrees[0]).toMatchObject({
-          path: '/path/to/main',
-          commit: 'abc123',
-          branch: 'main'
+          path: "/path/to/main",
+          commit: "abc123",
+          branch: "main",
         });
         expect(worktrees[1]).toMatchObject({
-          path: '/path/to/feature',
-          commit: 'def456',
-          branch: 'feature/test'
+          path: "/path/to/feature",
+          commit: "def456",
+          branch: "feature/test",
         });
       });
 
-      it('should handle detached HEAD', async () => {
+      it("should handle detached HEAD", async () => {
         const mockOutput = `worktree /path/to/detached
 HEAD abc123
 detached`;
@@ -539,34 +588,34 @@ detached`;
         expect(worktrees[0].branch).toBeNull();
       });
 
-      it('should handle non-worktree repository', async () => {
-        mockGitInstance.raw.mockRejectedValue(new Error('not a worktree'));
+      it("should handle non-worktree repository", async () => {
+        mockGitInstance.raw.mockRejectedValue(new Error("not a worktree"));
         mockGitInstance.status.mockResolvedValue({
-          current: 'main',
-          files: []
+          current: "main",
+          files: [],
         } as any);
         mockGitInstance.log.mockResolvedValue({
-          latest: { hash: 'abc123' }
+          latest: { hash: "abc123" },
         } as any);
 
         const worktrees = await service.getWorktrees();
 
         expect(worktrees).toHaveLength(1);
-        expect(worktrees[0].path).toBe('/test/dir'); // workingDir from mock setup
-        expect(worktrees[0].branch).toBe('main');
-        expect(worktrees[0].commit).toBe('abc123');
+        expect(worktrees[0].path).toBe("/test/dir"); // workingDir from mock setup
+        expect(worktrees[0].branch).toBe("main");
+        expect(worktrees[0].commit).toBe("abc123");
       });
 
-      it('should return empty array when branch/commit info unavailable', async () => {
-        mockGitInstance.raw.mockRejectedValue(new Error('not a worktree'));
-        mockGitInstance.status.mockRejectedValue(new Error('no git repo'));
+      it("should return empty array when branch/commit info unavailable", async () => {
+        mockGitInstance.raw.mockRejectedValue(new Error("not a worktree"));
+        mockGitInstance.status.mockRejectedValue(new Error("no git repo"));
 
         const worktrees = await service.getWorktrees();
 
         expect(worktrees).toHaveLength(0);
       });
 
-      it('should handle bare repository', async () => {
+      it("should handle bare repository", async () => {
         const mockOutput = `worktree /path/to/.bare
 HEAD 0000000
 bare`;
@@ -580,20 +629,20 @@ bare`;
       });
     });
 
-    describe('getBranchWorktrees', () => {
-      it('should return empty array when branch not checked out', async () => {
+    describe("getBranchWorktrees", () => {
+      it("should return empty array when branch not checked out", async () => {
         const mockOutput = `worktree /path/main
 HEAD abc
 branch refs/heads/main`;
 
         mockGitInstance.raw.mockResolvedValue(mockOutput);
 
-        const paths = await service.getBranchWorktrees('feature/test');
+        const paths = await service.getBranchWorktrees("feature/test");
 
         expect(paths).toEqual([]);
       });
 
-      it('should return worktree paths where branch is active', async () => {
+      it("should return worktree paths where branch is active", async () => {
         const mockOutput = `worktree /path/worktree1
 HEAD abc123
 branch refs/heads/feature/test
@@ -608,24 +657,24 @@ branch refs/heads/feature/test`;
 
         mockGitInstance.raw.mockResolvedValue(mockOutput);
 
-        const paths = await service.getBranchWorktrees('feature/test');
+        const paths = await service.getBranchWorktrees("feature/test");
 
-        expect(paths).toEqual(['/path/worktree1', '/path/worktree3']);
+        expect(paths).toEqual(["/path/worktree1", "/path/worktree3"]);
       });
 
-      it('should handle single worktree with matching branch', async () => {
+      it("should handle single worktree with matching branch", async () => {
         const mockOutput = `worktree /path/to/feature
 HEAD abc123
 branch refs/heads/feature/test`;
 
         mockGitInstance.raw.mockResolvedValue(mockOutput);
 
-        const paths = await service.getBranchWorktrees('feature/test');
+        const paths = await service.getBranchWorktrees("feature/test");
 
-        expect(paths).toEqual(['/path/to/feature']);
+        expect(paths).toEqual(["/path/to/feature"]);
       });
 
-      it('should ignore detached HEAD worktrees', async () => {
+      it("should ignore detached HEAD worktrees", async () => {
         const mockOutput = `worktree /path/worktree1
 HEAD abc123
 detached
@@ -636,35 +685,37 @@ branch refs/heads/feature/test`;
 
         mockGitInstance.raw.mockResolvedValue(mockOutput);
 
-        const paths = await service.getBranchWorktrees('feature/test');
+        const paths = await service.getBranchWorktrees("feature/test");
 
-        expect(paths).toEqual(['/path/worktree2']);
+        expect(paths).toEqual(["/path/worktree2"]);
       });
     });
 
-    describe('isWorktreeRepository', () => {
-      it('should return true for worktree repo', async () => {
-        mockGitInstance.raw.mockResolvedValue('worktree /path\nHEAD abc\nbranch refs/heads/main');
+    describe("isWorktreeRepository", () => {
+      it("should return true for worktree repo", async () => {
+        mockGitInstance.raw.mockResolvedValue(
+          "worktree /path\nHEAD abc\nbranch refs/heads/main",
+        );
 
         const isWorktree = await service.isWorktreeRepository();
 
         expect(isWorktree).toBe(true);
       });
 
-      it('should return false for standard repo', async () => {
-        mockGitInstance.raw.mockRejectedValue(new Error('not a worktree'));
+      it("should return false for standard repo", async () => {
+        mockGitInstance.raw.mockRejectedValue(new Error("not a worktree"));
 
         const isWorktree = await service.isWorktreeRepository();
 
         expect(isWorktree).toBe(false);
       });
 
-      it('should call git worktree list', async () => {
-        mockGitInstance.raw.mockResolvedValue('worktree /path\nHEAD abc');
+      it("should call git worktree list", async () => {
+        mockGitInstance.raw.mockResolvedValue("worktree /path\nHEAD abc");
 
         await service.isWorktreeRepository();
 
-        expect(mockGitInstance.raw).toHaveBeenCalledWith(['worktree', 'list']);
+        expect(mockGitInstance.raw).toHaveBeenCalledWith(["worktree", "list"]);
       });
     });
   });

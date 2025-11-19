@@ -1,4 +1,4 @@
-import { LRUCache } from 'lru-cache';
+import { LRUCache } from "lru-cache";
 
 /**
  * Cache entry with ETag support
@@ -21,10 +21,7 @@ interface CacheEntry {
 export class APICache {
   private cache: LRUCache<string, CacheEntry>;
 
-  constructor(options?: {
-    max?: number;
-    ttl?: number;
-  }) {
+  constructor(options?: { max?: number; ttl?: number }) {
     this.cache = new LRUCache<string, CacheEntry>({
       max: options?.max ?? 100,
       ttl: options?.ttl ?? 5 * 60 * 1000, // 5 minutes default
@@ -42,7 +39,7 @@ export class APICache {
   async get<T>(
     key: string,
     fetcher: () => Promise<T>,
-    ttl?: number
+    ttl?: number,
   ): Promise<T> {
     const cached = this.cache.get(key);
 
@@ -51,11 +48,7 @@ export class APICache {
     }
 
     const data = await fetcher();
-    this.cache.set(
-      key,
-      { data, etag: null, timestamp: Date.now() },
-      { ttl }
-    );
+    this.cache.set(key, { data, etag: null, timestamp: Date.now() }, { ttl });
 
     return data;
   }
@@ -72,8 +65,8 @@ export class APICache {
     fetcher: (etag?: string) => Promise<{
       data: T;
       etag: string;
-      status: number
-    }>
+      status: number;
+    }>,
   ): Promise<T> {
     const cached = this.cache.get(key);
     const etag = cached?.etag ?? undefined;
@@ -89,7 +82,7 @@ export class APICache {
     this.cache.set(key, {
       data: response.data,
       etag: response.etag,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
 
     return response.data;
@@ -102,7 +95,7 @@ export class APICache {
     this.cache.set(
       key,
       { data, etag: etag ?? null, timestamp: Date.now() },
-      { ttl }
+      { ttl },
     );
   }
 
@@ -138,7 +131,7 @@ export class APICache {
     return {
       size: this.cache.size,
       max: this.cache.max,
-      ttl: this.cache.ttl ?? 0
+      ttl: this.cache.ttl ?? 0,
     };
   }
 
@@ -158,5 +151,5 @@ export class APICache {
  */
 export const globalCache = new APICache({
   max: 100,
-  ttl: 5 * 60 * 1000 // 5 minutes
+  ttl: 5 * 60 * 1000, // 5 minutes
 });

@@ -33,13 +33,13 @@ This guide walks through setting up **npm Trusted Publishers with OIDC** to enab
 
 Enter the following values in the form:
 
-| Field | Value |
-|-------|-------|
-| **Provider** | GitHub Actions |
-| **Organization/User** | `littlebearapps` |
-| **Repository** | `git-pr-manager` |
-| **Workflow filename** | `publish.yml` |
-| **Environment name** | `Production` *(optional but recommended)* |
+| Field                 | Value                                     |
+| --------------------- | ----------------------------------------- |
+| **Provider**          | GitHub Actions                            |
+| **Organization/User** | `littlebearapps`                          |
+| **Repository**        | `git-pr-manager`                          |
+| **Workflow filename** | `publish.yml`                             |
+| **Environment name**  | `Production` _(optional but recommended)_ |
 
 ### Step 3: Save Configuration
 
@@ -64,13 +64,14 @@ jobs:
   publish:
     name: Publish to npm
     runs-on: ubuntu-latest
-    environment: Production  # ← NEW: Match npm trusted publisher configuration
+    environment: Production # ← NEW: Match npm trusted publisher configuration
     permissions:
-      id-token: write  # ← NEW: Required for OIDC authentication
-      contents: read   # ← NEW: Required to checkout code
+      id-token: write # ← NEW: Required for OIDC authentication
+      contents: read # ← NEW: Required to checkout code
 ```
 
 **Why**:
+
 - `id-token: write` - Allows GitHub Actions to request OIDC tokens
 - `environment: Production` - Matches the environment name configured on npmjs.com
 - `contents: read` - Explicit permission to read repository code
@@ -89,6 +90,7 @@ npm publish --tag $TAG --provenance
 ```
 
 **Why**:
+
 - npm CLI automatically detects OIDC availability when no token is provided
 - `--provenance` flag adds cryptographic attestation proving the package came from this workflow
 
@@ -107,11 +109,13 @@ If you used `environment: Production` in the workflow, you should configure envi
 ### Step 2: Configure Protection Rules (Recommended)
 
 **Recommended settings**:
+
 - ✅ **Required reviewers**: Add yourself or trusted maintainers
 - ✅ **Deployment branches**: Only allow `main` branch
 - ⬜ **Wait timer**: Not needed for npm publishing
 
 **Why use environment protection**:
+
 - Adds extra approval gate before publishing to npm
 - Prevents accidental publishes from feature branches
 - Provides audit log of who approved each publish
@@ -142,6 +146,7 @@ Click "Configure environment" to save the settings.
 4. Click "Run workflow"
 
 **Expected behavior**:
+
 - Workflow runs successfully
 - npm CLI authenticates via OIDC automatically
 - Package publishes with `next` tag
@@ -150,12 +155,14 @@ Click "Configure environment" to save the settings.
 #### Option B: Test with GitHub Release (Recommended)
 
 1. Create a prerelease version:
+
    ```bash
    npm version prerelease --preid=beta
    # Example: 1.4.0 → 1.4.1-beta.0
    ```
 
 2. Create GitHub release:
+
    ```bash
    git push --tags
    # Then create release from tag in GitHub UI
@@ -169,11 +176,13 @@ Click "Configure environment" to save the settings.
 After successful publish:
 
 1. **Check npm registry**:
+
    ```bash
    npm view @littlebearapps/git-pr-manager
    ```
 
 2. **Verify provenance** (OIDC bonus feature):
+
    ```bash
    npm view @littlebearapps/git-pr-manager --json | jq '.publishConfig'
    ```
@@ -204,6 +213,7 @@ Once you've confirmed OIDC publishing works:
 **Cause**: Trusted publisher not configured correctly on npmjs.com
 
 **Fix**:
+
 1. Verify configuration on npmjs.com matches workflow exactly:
    - Organization: `littlebearapps`
    - Repository: `git-pr-manager`
@@ -216,6 +226,7 @@ Once you've confirmed OIDC publishing works:
 **Cause**: Workflow doesn't have OIDC permissions
 
 **Fix**: Verify `.github/workflows/publish.yml` includes:
+
 ```yaml
 permissions:
   id-token: write
@@ -227,6 +238,7 @@ permissions:
 **Cause**: Environment configured with protection rules but approval not given
 
 **Fix**:
+
 1. Go to Actions → Workflow run
 2. Click "Review deployments"
 3. Select "Production" and click "Approve and deploy"
@@ -262,7 +274,7 @@ env:
 ### Step 2: Remove Provenance Flag
 
 ```yaml
-npm publish --tag $TAG --provenance  # Remove --provenance
+npm publish --tag $TAG --provenance # Remove --provenance
 ```
 
 ### Step 3: Commit and Push
@@ -278,6 +290,7 @@ git push
 ## Security Benefits Explained
 
 ### Before (Token-Based):
+
 - ❌ Long-lived npm token stored in GitHub secrets
 - ❌ Token has unlimited validity until manually rotated
 - ❌ If token leaked, attacker can publish to package indefinitely
@@ -285,6 +298,7 @@ git push
 - ❌ Manual token rotation required periodically
 
 ### After (OIDC):
+
 - ✅ Short-lived tokens generated per workflow run (~15 min validity)
 - ✅ Tokens automatically expire after use
 - ✅ If token leaked, very limited time window for abuse
@@ -311,6 +325,7 @@ You've successfully migrated from token-based authentication to OIDC trusted pub
 - ✅ **Same functionality** - Publishing works exactly the same
 
 **Next steps**:
+
 1. Complete trusted publisher configuration on npmjs.com
 2. Test with a prerelease or manual workflow dispatch
 3. Monitor first few publishes for issues

@@ -13,20 +13,21 @@ This document outlines a complete migration strategy for git-pr-manager from bas
 
 ### Key Benefits
 
-| Aspect | Current (Bash + gh CLI) | After Migration (Node.js + SDK) |
-|--------|-------------------------|----------------------------------|
-| **Type Safety** | ❌ No types, string-based | ✅ Full TypeScript definitions |
-| **Error Handling** | ⚠️ Exit codes, string parsing | ✅ Try/catch with structured errors |
-| **Testing** | ⚠️ Live API only | ✅ Mock with Nock, unit + integration tests |
-| **CI Polling** | ⚠️ Manual `gh pr checks --watch` | ✅ Async `waitForChecks()` with progress |
-| **Maintainability** | ⚠️ Complex bash scripts | ✅ Modular TypeScript/JavaScript |
-| **Debugging** | ⚠️ Echo debugging | ✅ Structured logging, stack traces |
-| **IDE Support** | ❌ No autocomplete | ✅ IntelliSense, inline documentation |
-| **Code Reuse** | ⚠️ Functions repeated | ✅ Shared SDK code across projects |
+| Aspect              | Current (Bash + gh CLI)          | After Migration (Node.js + SDK)             |
+| ------------------- | -------------------------------- | ------------------------------------------- |
+| **Type Safety**     | ❌ No types, string-based        | ✅ Full TypeScript definitions              |
+| **Error Handling**  | ⚠️ Exit codes, string parsing    | ✅ Try/catch with structured errors         |
+| **Testing**         | ⚠️ Live API only                 | ✅ Mock with Nock, unit + integration tests |
+| **CI Polling**      | ⚠️ Manual `gh pr checks --watch` | ✅ Async `waitForChecks()` with progress    |
+| **Maintainability** | ⚠️ Complex bash scripts          | ✅ Modular TypeScript/JavaScript            |
+| **Debugging**       | ⚠️ Echo debugging                | ✅ Structured logging, stack traces         |
+| **IDE Support**     | ❌ No autocomplete               | ✅ IntelliSense, inline documentation       |
+| **Code Reuse**      | ⚠️ Functions repeated            | ✅ Shared SDK code across projects          |
 
 ### Migration Effort
 
 **Estimated Time**: 2-3 weeks (60-80 hours)
+
 - **Week 1**: Core PR automation (20-30 hours)
 - **Week 2**: Git integration + testing (20-30 hours)
 - **Week 3**: Polish + documentation (15-20 hours)
@@ -208,6 +209,7 @@ gpm ship
 #### Command: `gpm init`
 
 **Current Implementation** (Bash):
+
 ```bash
 gh auth status
 git remote get-url origin
@@ -215,9 +217,10 @@ git remote get-url origin
 ```
 
 **New Implementation** (TypeScript):
+
 ```typescript
-import { Octokit } from 'octokit';
-import simpleGit from 'simple-git';
+import { Octokit } from "octokit";
+import simpleGit from "simple-git";
 
 async function init() {
   const git = simpleGit();
@@ -229,29 +232,30 @@ async function init() {
 
   // Get remote URL
   const remotes = await git.getRemotes(true);
-  const origin = remotes.find(r => r.name === 'origin');
+  const origin = remotes.find((r) => r.name === "origin");
   console.log(`✅ Remote configured: ${origin.refs.fetch}`);
 
   // Create .gpm.yml
   const config = {
-    version: '1.0.0',
+    version: "1.0.0",
     verify: {
       enabled: true,
-      script: 'scripts/phase-2/verify.sh'
+      script: "scripts/phase-2/verify.sh",
     },
     pr: {
       useTemplate: true,
       autoMerge: true,
-      deleteBranchAfterMerge: true
-    }
+      deleteBranchAfterMerge: true,
+    },
   };
 
-  await fs.writeFile('.gpm.yml', yaml.dump(config));
-  console.log('✅ Configuration created: .gpm.yml');
+  await fs.writeFile(".gpm.yml", yaml.dump(config));
+  console.log("✅ Configuration created: .gpm.yml");
 }
 ```
 
 **Octokit Methods Used**:
+
 - `octokit.rest.users.getAuthenticated()` - Verify GitHub auth
 
 ---
@@ -259,6 +263,7 @@ async function init() {
 #### Command: `gpm feature start <name>`
 
 **Current Implementation** (Bash):
+
 ```bash
 git checkout main
 git pull origin main
@@ -266,35 +271,36 @@ git checkout -b feature/$name
 ```
 
 **New Implementation** (TypeScript):
+
 ```typescript
 async function featureStart(name: string) {
   const git = simpleGit();
 
   // Verify on main
-  const currentBranch = await git.revparse(['--abbrev-ref', 'HEAD']);
-  if (currentBranch !== 'main') {
-    throw new Error('Must be on main branch');
+  const currentBranch = await git.revparse(["--abbrev-ref", "HEAD"]);
+  if (currentBranch !== "main") {
+    throw new Error("Must be on main branch");
   }
 
   // Check for uncommitted changes
   const status = await git.status();
   if (status.files.length > 0) {
-    throw new Error('Uncommitted changes detected');
+    throw new Error("Uncommitted changes detected");
   }
 
   // Pull latest
-  console.log('🔄 Pulling latest from origin/main...');
-  await git.pull('origin', 'main');
+  console.log("🔄 Pulling latest from origin/main...");
+  await git.pull("origin", "main");
 
   // Create feature branch
   const branchName = `feature/${name}`;
   await git.checkoutLocalBranch(branchName);
 
   console.log(`✅ Created ${branchName}`);
-  console.log('\nNext steps:');
-  console.log('  1. Make your changes');
+  console.log("\nNext steps:");
+  console.log("  1. Make your changes");
   console.log('  2. Commit: git commit -m "feat: description"');
-  console.log('  3. Ship: gpm ship');
+  console.log("  3. Ship: gpm ship");
 }
 ```
 
@@ -305,6 +311,7 @@ async function featureStart(name: string) {
 #### Command: `gpm ship` (⭐ PRIMARY COMMAND)
 
 **Current Implementation** (Bash):
+
 ```bash
 # Preflight
 git rev-parse --abbrev-ref HEAD
@@ -328,34 +335,35 @@ gh pr merge $PR_NUMBER --squash --delete-branch
 ```
 
 **New Implementation** (TypeScript):
+
 ```typescript
 async function ship(options: ShipOptions) {
   const git = simpleGit();
   const github = new GitHubService(process.env.GITHUB_TOKEN);
-  const config = await Config.load('.gpm.yml');
+  const config = await Config.load(".gpm.yml");
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // Step 1: Preflight Checks
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  console.log('🚀 Shipping feature...\n');
+  console.log("🚀 Shipping feature...\n");
 
-  const currentBranch = await git.revparse(['--abbrev-ref', 'HEAD']);
+  const currentBranch = await git.revparse(["--abbrev-ref", "HEAD"]);
   if (!currentBranch.match(/^(feature|fix|chore)\//)) {
-    throw new InvalidBranchError('Must be on a feature/fix/chore branch');
+    throw new InvalidBranchError("Must be on a feature/fix/chore branch");
   }
 
   const status = await git.status();
   if (status.files.length > 0) {
-    throw new UncommittedChangesError('Uncommitted changes detected');
+    throw new UncommittedChangesError("Uncommitted changes detected");
   }
 
   const remotes = await git.getRemotes(true);
-  if (!remotes.find(r => r.name === 'origin')) {
-    throw new ConfigError('No remote origin configured');
+  if (!remotes.find((r) => r.name === "origin")) {
+    throw new ConfigError("No remote origin configured");
   }
 
   await github.verifyAuth();
-  console.log('✅ Preflight checks passed\n');
+  console.log("✅ Preflight checks passed\n");
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // Step 2: Run verify.sh
@@ -369,20 +377,20 @@ async function ship(options: ShipOptions) {
   // Step 3: Push Branch
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   console.log(`⬆️  Pushing ${currentBranch} to origin...`);
-  await git.push('origin', currentBranch);
-  console.log('✅ Branch pushed\n');
+  await git.push("origin", currentBranch);
+  console.log("✅ Branch pushed\n");
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // Step 4: Create PR
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  console.log('📝 Creating pull request...');
+  console.log("📝 Creating pull request...");
 
   // Get PR title and body
   const prTemplate = new PRTemplateService(git);
   const { title, body } = await prTemplate.generatePRContent({
     branch: currentBranch,
     useTemplate: config.pr.useTemplate,
-    templateName: options.template
+    templateName: options.template,
   });
 
   // Create PR via Octokit
@@ -390,7 +398,7 @@ async function ship(options: ShipOptions) {
     title,
     body,
     head: currentBranch,
-    base: 'main'
+    base: "main",
   });
 
   console.log(`✅ Pull request created: ${pr.html_url}\n`);
@@ -399,36 +407,36 @@ async function ship(options: ShipOptions) {
   // Step 5: Wait for CI Checks
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   if (!options.forceMerge) {
-    console.log('⏳ Waiting for CI checks...');
+    console.log("⏳ Waiting for CI checks...");
 
     const poller = new CIPoller(github, pr.number);
     const checksPass = await poller.waitForChecks({
-      timeout: 600000,      // 10 minutes
-      interval: 10000,      // Poll every 10s
+      timeout: 600000, // 10 minutes
+      interval: 10000, // Poll every 10s
       onProgress: (status) => {
         console.log(`   ${status.completed}/${status.total} checks complete`);
-      }
+      },
     });
 
     if (!checksPass) {
-      throw new CIFailedError('CI checks failed');
+      throw new CIFailedError("CI checks failed");
     }
 
-    console.log('✅ All checks passed\n');
+    console.log("✅ All checks passed\n");
   }
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // Step 6: Merge PR
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  console.log('🔀 Merging pull request...');
+  console.log("🔀 Merging pull request...");
 
   await github.mergePR(pr.number, {
-    mergeMethod: 'squash',
+    mergeMethod: "squash",
     commitTitle: title,
-    deleteBranch: false  // We'll delete manually
+    deleteBranch: false, // We'll delete manually
   });
 
-  console.log('✅ Pull request merged\n');
+  console.log("✅ Pull request merged\n");
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // Step 7: Delete Branch
@@ -439,18 +447,19 @@ async function ship(options: ShipOptions) {
     await github.deleteBranch(currentBranch);
 
     // Checkout main locally
-    await git.checkout('main');
-    await git.pull('origin', 'main');
+    await git.checkout("main");
+    await git.pull("origin", "main");
 
-    console.log('✅ Branch deleted\n');
+    console.log("✅ Branch deleted\n");
   }
 
-  console.log('✨ Feature shipped successfully!');
+  console.log("✨ Feature shipped successfully!");
   console.log(`PR: ${pr.html_url}`);
 }
 ```
 
 **Octokit Methods Used**:
+
 - `octokit.rest.users.getAuthenticated()` - Verify auth
 - `octokit.rest.pulls.create()` - Create PR
 - `octokit.rest.pulls.get()` - Get PR details
@@ -470,8 +479,8 @@ async function ship(options: ShipOptions) {
 Wraps Octokit SDK for all GitHub operations.
 
 ```typescript
-import { Octokit } from 'octokit';
-import { RequestError } from '@octokit/request-error';
+import { Octokit } from "octokit";
+import { RequestError } from "@octokit/request-error";
 
 export interface CreatePROptions {
   title: string;
@@ -482,7 +491,7 @@ export interface CreatePROptions {
 }
 
 export interface MergePROptions {
-  mergeMethod: 'merge' | 'squash' | 'rebase';
+  mergeMethod: "merge" | "squash" | "rebase";
   commitTitle?: string;
   commitMessage?: string;
   deleteBranch?: boolean;
@@ -522,7 +531,7 @@ export class GitHubService {
    * Create pull request
    */
   async createPR(options: CreatePROptions) {
-    const { title, body, head, base = 'main', draft = false } = options;
+    const { title, body, head, base = "main", draft = false } = options;
 
     try {
       const { data } = await this.octokit.rest.pulls.create({
@@ -532,20 +541,22 @@ export class GitHubService {
         body,
         head,
         base,
-        draft
+        draft,
       });
 
       return {
         number: data.number,
         html_url: data.html_url,
-        head: data.head.sha
+        head: data.head.sha,
       };
     } catch (error) {
       if (error instanceof RequestError) {
         if (error.status === 422) {
-          throw new PRExistsError('Pull request already exists for this branch');
+          throw new PRExistsError(
+            "Pull request already exists for this branch",
+          );
         } else if (error.status === 404) {
-          throw new NotFoundError('Repository not found or no access');
+          throw new NotFoundError("Repository not found or no access");
         }
       }
       throw error;
@@ -559,7 +570,7 @@ export class GitHubService {
     const { data } = await this.octokit.rest.pulls.get({
       owner: this.owner,
       repo: this.repo,
-      pull_number: prNumber
+      pull_number: prNumber,
     });
 
     return data;
@@ -569,7 +580,12 @@ export class GitHubService {
    * Merge pull request
    */
   async mergePR(prNumber: number, options: MergePROptions) {
-    const { mergeMethod, commitTitle, commitMessage, deleteBranch = false } = options;
+    const {
+      mergeMethod,
+      commitTitle,
+      commitMessage,
+      deleteBranch = false,
+    } = options;
 
     try {
       const { data } = await this.octokit.rest.pulls.merge({
@@ -578,19 +594,21 @@ export class GitHubService {
         pull_number: prNumber,
         merge_method: mergeMethod,
         commit_title: commitTitle,
-        commit_message: commitMessage
+        commit_message: commitMessage,
       });
 
       return {
         merged: data.merged,
-        sha: data.sha
+        sha: data.sha,
       };
     } catch (error) {
       if (error instanceof RequestError) {
         if (error.status === 405) {
-          throw new MergeBlockedError('PR cannot be merged (conflicts or failed checks)');
+          throw new MergeBlockedError(
+            "PR cannot be merged (conflicts or failed checks)",
+          );
         } else if (error.status === 409) {
-          throw new MergeConflictError('PR has merge conflicts');
+          throw new MergeConflictError("PR has merge conflicts");
         }
       }
       throw error;
@@ -604,7 +622,7 @@ export class GitHubService {
     await this.octokit.rest.git.deleteRef({
       owner: this.owner,
       repo: this.repo,
-      ref: `heads/${branch}`
+      ref: `heads/${branch}`,
     });
   }
 
@@ -621,7 +639,7 @@ Async CI status polling with progress updates.
 
 ```typescript
 export interface CIStatus {
-  state: 'pending' | 'success' | 'failure' | 'error';
+  state: "pending" | "success" | "failure" | "error";
   completed: number;
   total: number;
   checks: CheckRun[];
@@ -629,8 +647,8 @@ export interface CIStatus {
 
 export interface CheckRun {
   name: string;
-  status: 'queued' | 'in_progress' | 'completed';
-  conclusion: 'success' | 'failure' | 'cancelled' | 'skipped' | null;
+  status: "queued" | "in_progress" | "completed";
+  conclusion: "success" | "failure" | "cancelled" | "skipped" | null;
 }
 
 export interface WaitOptions {
@@ -664,40 +682,45 @@ export class CIPoller {
       const headSha = pr.head.sha;
 
       // Get combined status (legacy commit statuses)
-      const { data: combinedStatus } = await this.github.octokit.rest.repos
-        .getCombinedStatusForRef({
+      const { data: combinedStatus } =
+        await this.github.octokit.rest.repos.getCombinedStatusForRef({
           owner: this.github.owner,
           repo: this.github.repo,
-          ref: headSha
+          ref: headSha,
         });
 
       // Get check runs (GitHub Actions, Apps)
-      const { data: checkRuns } = await this.github.octokit.rest.checks
-        .listForRef({
+      const { data: checkRuns } =
+        await this.github.octokit.rest.checks.listForRef({
           owner: this.github.owner,
           repo: this.github.repo,
-          ref: headSha
+          ref: headSha,
         });
 
       // Combine both status types
       const allChecks = [
-        ...combinedStatus.statuses.map(s => ({
+        ...combinedStatus.statuses.map((s) => ({
           name: s.context,
-          status: s.state === 'pending' ? 'in_progress' : 'completed',
-          conclusion: s.state === 'success' ? 'success' : s.state === 'failure' ? 'failure' : null
+          status: s.state === "pending" ? "in_progress" : "completed",
+          conclusion:
+            s.state === "success"
+              ? "success"
+              : s.state === "failure"
+                ? "failure"
+                : null,
         })),
-        ...checkRuns.check_runs.map(c => ({
+        ...checkRuns.check_runs.map((c) => ({
           name: c.name,
           status: c.status,
-          conclusion: c.conclusion
-        }))
+          conclusion: c.conclusion,
+        })),
       ];
 
       const status: CIStatus = {
         state: this.determineOverallState(allChecks),
-        completed: allChecks.filter(c => c.status === 'completed').length,
+        completed: allChecks.filter((c) => c.status === "completed").length,
         total: allChecks.length,
-        checks: allChecks
+        checks: allChecks,
       };
 
       // Call progress callback
@@ -706,9 +729,9 @@ export class CIPoller {
       }
 
       // Check if all done
-      if (status.state === 'success') {
+      if (status.state === "success") {
         return true;
-      } else if (status.state === 'failure' || status.state === 'error') {
+      } else if (status.state === "failure" || status.state === "error") {
         return false;
       }
 
@@ -716,25 +739,25 @@ export class CIPoller {
       await this.sleep(interval);
     }
 
-    throw new TimeoutError('Timeout waiting for CI checks');
+    throw new TimeoutError("Timeout waiting for CI checks");
   }
 
-  private determineOverallState(checks: CheckRun[]): CIStatus['state'] {
-    if (checks.length === 0) return 'success'; // No checks = pass
+  private determineOverallState(checks: CheckRun[]): CIStatus["state"] {
+    if (checks.length === 0) return "success"; // No checks = pass
 
-    const allCompleted = checks.every(c => c.status === 'completed');
+    const allCompleted = checks.every((c) => c.status === "completed");
 
-    if (!allCompleted) return 'pending';
+    if (!allCompleted) return "pending";
 
-    const anyFailed = checks.some(c =>
-      c.conclusion === 'failure' || c.conclusion === 'cancelled'
+    const anyFailed = checks.some(
+      (c) => c.conclusion === "failure" || c.conclusion === "cancelled",
     );
 
-    return anyFailed ? 'failure' : 'success';
+    return anyFailed ? "failure" : "success";
   }
 
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }
 ```
@@ -762,7 +785,7 @@ export class PRTemplateService {
     const { branch, useTemplate, templateName } = options;
 
     // Get commits for this branch
-    const log = await this.git.log({ from: 'main', to: branch });
+    const log = await this.git.log({ from: "main", to: branch });
     const commits = log.all;
 
     // Generate title from first commit or branch name
@@ -779,7 +802,7 @@ export class PRTemplateService {
         body = await this.mergeTemplateWithData(template, {
           branch,
           title,
-          commits
+          commits,
         });
       } else {
         // Fallback to commit messages
@@ -798,15 +821,15 @@ export class PRTemplateService {
    */
   private async discoverTemplate(name?: string): Promise<string | null> {
     const templatePaths = [
-      `.github/PULL_REQUEST_TEMPLATE/${name || 'default'}.md`,
-      '.github/PULL_REQUEST_TEMPLATE.md',
-      '.github/pull_request_template.md',
-      'docs/PULL_REQUEST_TEMPLATE.md'
+      `.github/PULL_REQUEST_TEMPLATE/${name || "default"}.md`,
+      ".github/PULL_REQUEST_TEMPLATE.md",
+      ".github/pull_request_template.md",
+      "docs/PULL_REQUEST_TEMPLATE.md",
     ];
 
     for (const path of templatePaths) {
       if (await this.fileExists(path)) {
-        return fs.readFile(path, 'utf-8');
+        return fs.readFile(path, "utf-8");
       }
     }
 
@@ -818,7 +841,7 @@ export class PRTemplateService {
    */
   private async mergeTemplateWithData(
     template: string,
-    data: { branch: string; title: string; commits: any[] }
+    data: { branch: string; title: string; commits: any[] },
   ): Promise<string> {
     let merged = template;
 
@@ -829,9 +852,7 @@ export class PRTemplateService {
     merged = merged.replace(/\{\{SUMMARY\}\}/g, data.title);
 
     // Replace {{COMMITS}}
-    const commitList = data.commits
-      .map(c => `- ${c.message}`)
-      .join('\n');
+    const commitList = data.commits.map((c) => `- ${c.message}`).join("\n");
     merged = merged.replace(/\{\{COMMITS\}\}/g, commitList);
 
     // Replace {{CHANGES}}
@@ -842,20 +863,20 @@ export class PRTemplateService {
   }
 
   private generateBodyFromCommits(commits: any[]): string {
-    return commits.map(c => `- ${c.message}`).join('\n');
+    return commits.map((c) => `- ${c.message}`).join("\n");
   }
 
   private branchToTitle(branch: string): string {
     // feature/add-export-button → "Add export button"
     return branch
-      .replace(/^(feature|fix|chore)\//, '')
-      .split('-')
-      .map(w => w.charAt(0).toUpperCase() + w.slice(1))
-      .join(' ');
+      .replace(/^(feature|fix|chore)\//, "")
+      .split("-")
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ");
   }
 
   private async getChangesSummary(): Promise<string> {
-    const diff = await this.git.diff(['main', '--stat']);
+    const diff = await this.git.diff(["main", "--stat"]);
     return diff;
   }
 
@@ -910,7 +931,7 @@ export class MergeConflictError extends GPMError {}
 export class CIFailedError extends GPMError {
   constructor(
     message: string,
-    public failedChecks: string[]
+    public failedChecks: string[],
   ) {
     super(message);
   }
@@ -936,41 +957,43 @@ try {
   // Handle Octokit request errors
   if (error instanceof RequestError) {
     if (error.status === 401) {
-      console.error('❌ GitHub authentication failed');
-      console.error('   Set GITHUB_TOKEN environment variable');
+      console.error("❌ GitHub authentication failed");
+      console.error("   Set GITHUB_TOKEN environment variable");
       process.exit(1);
     } else if (error.status === 422) {
-      console.error('❌ Pull request already exists for this branch');
-      console.error('   View PR: gh pr view');
+      console.error("❌ Pull request already exists for this branch");
+      console.error("   View PR: gh pr view");
       process.exit(1);
     } else if (error.status === 404) {
-      console.error('❌ Repository not found or no access');
+      console.error("❌ Repository not found or no access");
       process.exit(1);
     }
   }
 
   // Handle custom errors
   if (error instanceof CIFailedError) {
-    console.error('❌ CI checks failed:');
-    error.failedChecks.forEach(check => {
+    console.error("❌ CI checks failed:");
+    error.failedChecks.forEach((check) => {
       console.error(`   - ${check}`);
     });
-    console.error('\nFix the issues and push again, or use --force-merge to skip checks');
+    console.error(
+      "\nFix the issues and push again, or use --force-merge to skip checks",
+    );
     process.exit(1);
   }
 
   if (error instanceof MergeConflictError) {
-    console.error('❌ PR has merge conflicts');
-    console.error('   Resolve conflicts manually:');
-    console.error('   1. git fetch origin main');
-    console.error('   2. git merge origin/main');
-    console.error('   3. Resolve conflicts');
-    console.error('   4. git push');
+    console.error("❌ PR has merge conflicts");
+    console.error("   Resolve conflicts manually:");
+    console.error("   1. git fetch origin main");
+    console.error("   2. git merge origin/main");
+    console.error("   3. Resolve conflicts");
+    console.error("   4. git push");
     process.exit(1);
   }
 
   // Unknown error
-  console.error('❌ Unexpected error:', error.message);
+  console.error("❌ Unexpected error:", error.message);
   if (error.stack) {
     console.error(error.stack);
   }
@@ -985,12 +1008,14 @@ try {
 ### Phase 1: Core Infrastructure (Week 1 - 20-30 hours)
 
 **Goals**:
+
 - ✅ Project setup (TypeScript, dependencies)
 - ✅ Core services (GitHubService, GitService)
 - ✅ CLI framework (commander.js)
 - ✅ Basic error handling
 
 **Deliverables**:
+
 ```
 ✅ src/lib/github.ts - Octokit wrapper
 ✅ src/lib/git.ts - simple-git wrapper
@@ -1002,6 +1027,7 @@ try {
 ```
 
 **Testing**:
+
 - Unit tests for GitHubService (mock with Nock)
 - Unit tests for error classes
 - Integration test: Verify auth
@@ -1011,11 +1037,13 @@ try {
 ### Phase 2: PR Automation (Week 1-2 - 20-30 hours)
 
 **Goals**:
+
 - ✅ CI polling implementation
 - ✅ PR template support
 - ✅ Complete ship workflow
 
 **Deliverables**:
+
 ```
 ✅ src/lib/ci-poller.ts - Async CI polling
 ✅ src/lib/pr-template.ts - Template discovery + merging
@@ -1025,6 +1053,7 @@ try {
 ```
 
 **Testing**:
+
 - Unit tests for CIPoller with mocked responses
 - Unit tests for PRTemplateService
 - Integration test: Create PR → Wait for checks → Merge
@@ -1034,11 +1063,13 @@ try {
 ### Phase 3: Additional Commands (Week 2 - 10-15 hours)
 
 **Goals**:
+
 - ✅ Implement `gpm init`
 - ✅ Implement `gpm feature start`
 - ✅ Implement `gpm status`
 
 **Deliverables**:
+
 ```
 ✅ src/commands/init.ts
 ✅ src/commands/feature-start.ts
@@ -1051,12 +1082,14 @@ try {
 ### Phase 4: Polish + Documentation (Week 3 - 15-20 hours)
 
 **Goals**:
+
 - ✅ Comprehensive documentation
 - ✅ Examples and usage guides
 - ✅ Migration guide from v0.3.0
 - ✅ Performance optimization
 
 **Deliverables**:
+
 ```
 ✅ README.md - Complete usage guide
 ✅ MIGRATION-GUIDE.md - v0.3.0 → v1.0.0
@@ -1073,88 +1106,88 @@ try {
 
 ```typescript
 // tests/unit/github.test.ts
-import { GitHubService } from '../../src/lib/github';
-import nock from 'nock';
+import { GitHubService } from "../../src/lib/github";
+import nock from "nock";
 
-describe('GitHubService', () => {
+describe("GitHubService", () => {
   let github: GitHubService;
 
   beforeEach(() => {
-    github = new GitHubService('test-token');
+    github = new GitHubService("test-token");
   });
 
   afterEach(() => {
     nock.cleanAll();
   });
 
-  describe('createPR', () => {
-    it('creates a pull request successfully', async () => {
-      nock('https://api.github.com')
-        .post('/repos/littlebearapps/notebridge/pulls')
+  describe("createPR", () => {
+    it("creates a pull request successfully", async () => {
+      nock("https://api.github.com")
+        .post("/repos/littlebearapps/notebridge/pulls")
         .reply(201, {
           number: 123,
-          html_url: 'https://github.com/littlebearapps/notebridge/pull/123',
-          head: { sha: 'abc123' }
+          html_url: "https://github.com/littlebearapps/notebridge/pull/123",
+          head: { sha: "abc123" },
         });
 
       const pr = await github.createPR({
-        title: 'feat: add new feature',
-        body: 'Description',
-        head: 'feature/new-feature',
-        base: 'main'
+        title: "feat: add new feature",
+        body: "Description",
+        head: "feature/new-feature",
+        base: "main",
       });
 
       expect(pr.number).toBe(123);
-      expect(pr.html_url).toContain('/pull/123');
+      expect(pr.html_url).toContain("/pull/123");
     });
 
-    it('throws PRExistsError when PR already exists', async () => {
-      nock('https://api.github.com')
-        .post('/repos/littlebearapps/notebridge/pulls')
+    it("throws PRExistsError when PR already exists", async () => {
+      nock("https://api.github.com")
+        .post("/repos/littlebearapps/notebridge/pulls")
         .reply(422, {
-          message: 'Validation Failed',
-          errors: [{ message: 'A pull request already exists' }]
+          message: "Validation Failed",
+          errors: [{ message: "A pull request already exists" }],
         });
 
       await expect(
         github.createPR({
-          title: 'feat: add new feature',
-          body: 'Description',
-          head: 'feature/new-feature',
-          base: 'main'
-        })
+          title: "feat: add new feature",
+          body: "Description",
+          head: "feature/new-feature",
+          base: "main",
+        }),
       ).rejects.toThrow(PRExistsError);
     });
   });
 
-  describe('mergePR', () => {
-    it('merges PR successfully', async () => {
-      nock('https://api.github.com')
-        .put('/repos/littlebearapps/notebridge/pulls/123/merge')
+  describe("mergePR", () => {
+    it("merges PR successfully", async () => {
+      nock("https://api.github.com")
+        .put("/repos/littlebearapps/notebridge/pulls/123/merge")
         .reply(200, {
-          sha: 'merged-sha',
+          sha: "merged-sha",
           merged: true,
-          message: 'Pull Request successfully merged'
+          message: "Pull Request successfully merged",
         });
 
       const result = await github.mergePR(123, {
-        mergeMethod: 'squash',
-        commitTitle: 'feat: add new feature'
+        mergeMethod: "squash",
+        commitTitle: "feat: add new feature",
       });
 
       expect(result.merged).toBe(true);
-      expect(result.sha).toBe('merged-sha');
+      expect(result.sha).toBe("merged-sha");
     });
 
-    it('throws MergeConflictError on conflicts', async () => {
-      nock('https://api.github.com')
-        .put('/repos/littlebearapps/notebridge/pulls/123/merge')
+    it("throws MergeConflictError on conflicts", async () => {
+      nock("https://api.github.com")
+        .put("/repos/littlebearapps/notebridge/pulls/123/merge")
         .reply(409, {
-          message: 'Merge conflict'
+          message: "Merge conflict",
         });
 
       await expect(
-        github.mergePR(123, { mergeMethod: 'squash' })
+        github.mergePR(123, { mergeMethod: "squash" }),
       ).rejects.toThrow(MergeConflictError);
     });
   });
@@ -1165,49 +1198,51 @@ describe('GitHubService', () => {
 
 ```typescript
 // tests/integration/ship-workflow.test.ts
-import { ship } from '../../src/commands/ship';
-import nock from 'nock';
+import { ship } from "../../src/commands/ship";
+import nock from "nock";
 
-describe('ship workflow (integration)', () => {
-  it('completes full workflow: PR → CI → Merge → Cleanup', async () => {
+describe("ship workflow (integration)", () => {
+  it("completes full workflow: PR → CI → Merge → Cleanup", async () => {
     // Mock GitHub API calls
-    nock('https://api.github.com')
-      .get('/user')
-      .reply(200, { login: 'nathanschram' })
-      .post('/repos/littlebearapps/test-repo/pulls')
+    nock("https://api.github.com")
+      .get("/user")
+      .reply(200, { login: "nathanschram" })
+      .post("/repos/littlebearapps/test-repo/pulls")
       .reply(201, {
         number: 1,
-        html_url: 'https://github.com/littlebearapps/test-repo/pull/1',
-        head: { sha: 'abc123' }
+        html_url: "https://github.com/littlebearapps/test-repo/pull/1",
+        head: { sha: "abc123" },
       })
-      .get('/repos/littlebearapps/test-repo/pulls/1')
+      .get("/repos/littlebearapps/test-repo/pulls/1")
       .times(3)
       .reply(200, {
         number: 1,
-        head: { sha: 'abc123' }
+        head: { sha: "abc123" },
       })
-      .get('/repos/littlebearapps/test-repo/commits/abc123/status')
-      .reply(200, { state: 'pending', statuses: [] })
-      .get('/repos/littlebearapps/test-repo/commits/abc123/check-runs')
-      .reply(200, { check_runs: [
-        { name: 'Test', status: 'in_progress', conclusion: null }
-      ]})
-      .get('/repos/littlebearapps/test-repo/commits/abc123/status')
-      .reply(200, { state: 'success', statuses: [] })
-      .get('/repos/littlebearapps/test-repo/commits/abc123/check-runs')
-      .reply(200, { check_runs: [
-        { name: 'Test', status: 'completed', conclusion: 'success' }
-      ]})
-      .put('/repos/littlebearapps/test-repo/pulls/1/merge')
-      .reply(200, { sha: 'merged-sha', merged: true })
-      .delete('/repos/littlebearapps/test-repo/git/refs/heads/feature/test')
+      .get("/repos/littlebearapps/test-repo/commits/abc123/status")
+      .reply(200, { state: "pending", statuses: [] })
+      .get("/repos/littlebearapps/test-repo/commits/abc123/check-runs")
+      .reply(200, {
+        check_runs: [{ name: "Test", status: "in_progress", conclusion: null }],
+      })
+      .get("/repos/littlebearapps/test-repo/commits/abc123/status")
+      .reply(200, { state: "success", statuses: [] })
+      .get("/repos/littlebearapps/test-repo/commits/abc123/check-runs")
+      .reply(200, {
+        check_runs: [
+          { name: "Test", status: "completed", conclusion: "success" },
+        ],
+      })
+      .put("/repos/littlebearapps/test-repo/pulls/1/merge")
+      .reply(200, { sha: "merged-sha", merged: true })
+      .delete("/repos/littlebearapps/test-repo/git/refs/heads/feature/test")
       .reply(204);
 
     // Run ship command
     await ship({
       noVerify: true,
       forceMerge: false,
-      noDelete: false
+      noDelete: false,
     });
 
     // Verify all API calls were made
@@ -1223,6 +1258,7 @@ describe('ship workflow (integration)', () => {
 ### If Migration Fails
 
 **Option A**: Keep both implementations side-by-side
+
 ```bash
 # Old implementation (bash)
 gpm-legacy ship
@@ -1232,6 +1268,7 @@ gpm ship
 ```
 
 **Option B**: Revert to v0.3.0
+
 ```bash
 # Restore bash scripts
 git checkout v0.3.0 -- scripts/
@@ -1332,15 +1369,15 @@ export PATH="$PATH:~/claude-code-tools/lba/apps/subagents/git-pr-manager/v0.3.0"
 
 ### Octokit API Methods Reference
 
-| Operation | Octokit Method | Purpose |
-|-----------|----------------|---------|
-| Verify Auth | `octokit.rest.users.getAuthenticated()` | Check token validity |
-| Create PR | `octokit.rest.pulls.create()` | Create new pull request |
-| Get PR | `octokit.rest.pulls.get()` | Get PR details |
-| Get Combined Status | `octokit.rest.repos.getCombinedStatusForRef()` | Get commit statuses |
-| Get Check Runs | `octokit.rest.checks.listForRef()` | Get GitHub Actions checks |
-| Merge PR | `octokit.rest.pulls.merge()` | Merge pull request |
-| Delete Branch | `octokit.rest.git.deleteRef()` | Delete remote branch |
+| Operation           | Octokit Method                                 | Purpose                   |
+| ------------------- | ---------------------------------------------- | ------------------------- |
+| Verify Auth         | `octokit.rest.users.getAuthenticated()`        | Check token validity      |
+| Create PR           | `octokit.rest.pulls.create()`                  | Create new pull request   |
+| Get PR              | `octokit.rest.pulls.get()`                     | Get PR details            |
+| Get Combined Status | `octokit.rest.repos.getCombinedStatusForRef()` | Get commit statuses       |
+| Get Check Runs      | `octokit.rest.checks.listForRef()`             | Get GitHub Actions checks |
+| Merge PR            | `octokit.rest.pulls.merge()`                   | Merge pull request        |
+| Delete Branch       | `octokit.rest.git.deleteRef()`                 | Delete remote branch      |
 
 ---
 

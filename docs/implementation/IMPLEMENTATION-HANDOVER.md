@@ -33,6 +33,7 @@ You are about to implement a **complete transformation** of the `git-pr-manager`
 **Location**: `~/claude-code-tools/lba/apps/subagents/git-pr-manager/`
 
 ### Primary Document (Follow This)
+
 - **COMPREHENSIVE-ENHANCEMENT-PLAN.md** ⭐
   - Complete implementation plan
   - 4-5 weeks, 5 phases
@@ -40,11 +41,13 @@ You are about to implement a **complete transformation** of the `git-pr-manager`
   - **START HERE**
 
 ### Reference Documents (Background Only)
+
 - **GITHUB-CI-SECURITY-AUDIT-2025.md** - Audit findings (background context)
 - **OPTION-2-FULL-SDK-MIGRATION-PLAN.md** - Original SDK plan (superseded by comprehensive plan)
 - **OCTOKIT-SDK-INTEGRATION.md** - Integration guide (reference)
 
 ### Existing Subagent
+
 - **SUBAGENT_PROMPT.md** - Current bash implementation (v0.3.0)
 - **Current scripts**: Various bash scripts in the directory
 
@@ -53,6 +56,7 @@ You are about to implement a **complete transformation** of the `git-pr-manager`
 ## What You're Building
 
 **Transform git-pr-manager from**:
+
 ```
 Current (v0.3.0):
 - Language: Bash
@@ -64,6 +68,7 @@ Current (v0.3.0):
 ```
 
 **To**:
+
 ```
 Target (v1.0.0):
 - Language: TypeScript
@@ -81,9 +86,11 @@ Target (v1.0.0):
 ## Implementation Phases Overview
 
 ### Phase 1: Core SDK + Enhanced Error Reporting (Week 1, ~25-30 hours)
+
 **Goal**: Replace bash with TypeScript, implement rich CI error reporting
 
 **Key Deliverables**:
+
 - TypeScript project setup
 - GitHubService (Octokit wrapper)
 - GitService (simple-git wrapper)
@@ -92,40 +99,49 @@ Target (v1.0.0):
 - **SuggestionEngine** ⭐ - Suggest fixes
 
 **Tasks** (see COMPREHENSIVE-ENHANCEMENT-PLAN.md lines 1663-1740):
+
 - [ ] Project setup (4 hours)
 - [ ] Core services (8 hours)
 - [ ] Enhanced CI Poller (12 hours) - PRIORITY
 - [ ] CLI framework (4 hours)
 
 ### Phase 2: PR Automation + Intelligent Polling (Week 2, ~25-30 hours)
+
 **Goal**: Implement PR creation/merge with intelligent CI polling
 
 **Key Deliverables**:
+
 - PRService, PRTemplateService
 - Intelligent polling (progress, fail-fast, retry)
 - VerifyService
 - **`gpm ship` command** ⭐
 
 ### Phase 3: Branch Protection + Security (Week 3, ~25-30 hours)
+
 **Goal**: Add branch protection validation and pre-commit security
 
 **Key Deliverables**:
+
 - **BranchProtectionChecker** ⭐ - Validate merge requirements
 - **SecurityScanner** ⭐ - Pre-commit checks
 - New commands: `gpm checks`, `gpm protect`, `gpm security`
 
 ### Phase 4: Testing + Documentation (Week 4, ~20-25 hours)
+
 **Goal**: Comprehensive tests, docs, workflow templates
 
 **Key Deliverables**:
+
 - 80%+ test coverage
 - Complete documentation
 - Workflow templates (ci-python.yml, ci-nodejs.yml, security.yml)
 
 ### Phase 5: Rollout (Week 5, ~5-10 hours)
+
 **Goal**: Deploy to production, gather feedback
 
 **Staged Rollout**:
+
 1. auditor-toolkit (best CI)
 2. wp-navigator-pro, brand-copilot, platform
 3. All remaining repos
@@ -143,6 +159,7 @@ cd ~/claude-code-tools/lba/apps/subagents/git-pr-manager
 ### Step 1: Initialize TypeScript Project
 
 1. Create `package.json`:
+
 ```json
 {
   "name": "git-pr-manager",
@@ -177,6 +194,7 @@ cd ~/claude-code-tools/lba/apps/subagents/git-pr-manager
 ```
 
 2. Create `tsconfig.json`:
+
 ```json
 {
   "compilerOptions": {
@@ -197,16 +215,14 @@ cd ~/claude-code-tools/lba/apps/subagents/git-pr-manager
 ```
 
 3. Create `jest.config.js`:
+
 ```javascript
 module.exports = {
-  preset: 'ts-jest',
-  testEnvironment: 'node',
-  roots: ['<rootDir>/tests'],
-  testMatch: ['**/*.test.ts'],
-  collectCoverageFrom: [
-    'src/**/*.ts',
-    '!src/**/*.d.ts'
-  ]
+  preset: "ts-jest",
+  testEnvironment: "node",
+  roots: ["<rootDir>/tests"],
+  testMatch: ["**/*.test.ts"],
+  collectCoverageFrom: ["src/**/*.ts", "!src/**/*.d.ts"],
 };
 ```
 
@@ -225,6 +241,7 @@ mkdir -p templates
 **Open**: `COMPREHENSIVE-ENHANCEMENT-PLAN.md`
 
 **Navigate to**:
+
 - Line 1663: Phase 1 detailed tasks
 - Line 440: EnhancedCIPoller implementation (full code example)
 - Line 1025: BranchProtectionChecker implementation (for Phase 3)
@@ -239,6 +256,7 @@ mkdir -p templates
 ### 1. Environment Configuration
 
 **GitHub Token**: Available via keychain
+
 ```bash
 # Token is loaded via .envrc.github
 source ~/claude-code-tools/.envrc.github
@@ -250,15 +268,17 @@ echo $GITHUB_TOKEN  # Should show token
 ### 2. Testing Strategy
 
 **Use Nock** to mock GitHub API:
-```typescript
-import nock from 'nock';
 
-nock('https://api.github.com')
-  .get('/repos/littlebearapps/test-repo/pulls/123')
-  .reply(200, { head: { sha: 'abc123' } });
+```typescript
+import nock from "nock";
+
+nock("https://api.github.com")
+  .get("/repos/littlebearapps/test-repo/pulls/123")
+  .reply(200, { head: { sha: "abc123" } });
 ```
 
 **Test repos**:
+
 - auditor-toolkit (Python, pytest, best CI)
 - wp-navigator-pro (Node.js, Jest, good CI)
 
@@ -308,6 +328,7 @@ By end of Week 1, you should have:
 7. ✅ Unit tests passing (mock with Nock)
 
 **Test it**:
+
 ```bash
 # Should compile
 npm run build
@@ -324,27 +345,32 @@ npm run dev checks 123  # Replace 123 with real PR number
 ## Quick Reference Commands
 
 **Current location**:
+
 ```bash
 cd ~/claude-code-tools/lba/apps/subagents/git-pr-manager
 ```
 
 **View plan**:
+
 ```bash
 cat COMPREHENSIVE-ENHANCEMENT-PLAN.md | less
 ```
 
 **View audit findings**:
+
 ```bash
 cat ~/claude-code-tools/GITHUB-CI-SECURITY-AUDIT-2025.md | less
 ```
 
 **Test GitHub token**:
+
 ```bash
 source ~/.envrc.github
 echo $GITHUB_TOKEN
 ```
 
 **Check existing implementation**:
+
 ```bash
 cat SUBAGENT_PROMPT.md  # Current bash version
 ```
@@ -365,6 +391,7 @@ cat SUBAGENT_PROMPT.md  # Current bash version
 **Total Effort**: 4-5 weeks (100-120 hours)
 
 **Breakdown**:
+
 - Week 1: Foundation + Error Reporting (THIS IS WHERE YOU START)
 - Week 2: PR Automation + Polling
 - Week 3: Security + Branch Protection
@@ -389,6 +416,7 @@ cat SUBAGENT_PROMPT.md  # Current bash version
 ## Let's Go! 🚀
 
 **Your first command**:
+
 ```bash
 cd ~/claude-code-tools/lba/apps/subagents/git-pr-manager
 npm init -y  # Then edit package.json as shown above

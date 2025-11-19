@@ -1,6 +1,6 @@
-import * as fs from 'fs/promises';
-import * as path from 'path';
-import { ConfigService } from './ConfigService';
+import * as fs from "fs/promises";
+import * as path from "path";
+import { ConfigService } from "./ConfigService";
 
 export interface TemplateContext {
   title: string;
@@ -28,14 +28,14 @@ export class PRTemplateService {
       ...(await this.getConfigTemplateLocations()),
 
       // Standard GitHub locations
-      path.join(workingDir, '.github/PULL_REQUEST_TEMPLATE.md'),
-      path.join(workingDir, '.github/pull_request_template.md'),
-      path.join(workingDir, 'docs/PULL_REQUEST_TEMPLATE.md'),
-      path.join(workingDir, 'PULL_REQUEST_TEMPLATE.md'),
+      path.join(workingDir, ".github/PULL_REQUEST_TEMPLATE.md"),
+      path.join(workingDir, ".github/pull_request_template.md"),
+      path.join(workingDir, "docs/PULL_REQUEST_TEMPLATE.md"),
+      path.join(workingDir, "PULL_REQUEST_TEMPLATE.md"),
 
       // Template directories
-      path.join(workingDir, '.github/PULL_REQUEST_TEMPLATE/default.md'),
-      path.join(workingDir, '.github/PULL_REQUEST_TEMPLATE/main.md')
+      path.join(workingDir, ".github/PULL_REQUEST_TEMPLATE/default.md"),
+      path.join(workingDir, ".github/PULL_REQUEST_TEMPLATE/main.md"),
     ];
 
     // Check each location
@@ -65,7 +65,7 @@ export class PRTemplateService {
         return [
           path.isAbsolute(templatePath)
             ? templatePath
-            : path.join(workingDir, templatePath)
+            : path.join(workingDir, templatePath),
         ];
       }
     } catch {
@@ -80,13 +80,13 @@ export class PRTemplateService {
    */
   async listTemplates(): Promise<string[]> {
     const workingDir = process.cwd();
-    const templateDir = path.join(workingDir, '.github/PULL_REQUEST_TEMPLATE');
+    const templateDir = path.join(workingDir, ".github/PULL_REQUEST_TEMPLATE");
 
     try {
       const files = await fs.readdir(templateDir);
       return files
-        .filter(f => f.endsWith('.md'))
-        .map(f => path.join(templateDir, f));
+        .filter((f) => f.endsWith(".md"))
+        .map((f) => path.join(templateDir, f));
     } catch {
       return [];
     }
@@ -97,10 +97,10 @@ export class PRTemplateService {
    */
   async renderTemplate(
     templatePath: string,
-    context: TemplateContext
+    context: TemplateContext,
   ): Promise<string> {
     // Read template file
-    const template = await fs.readFile(templatePath, 'utf-8');
+    const template = await fs.readFile(templatePath, "utf-8");
 
     // Simple variable replacement
     // Supports: {{variable}} or {variable} syntax
@@ -124,7 +124,10 @@ export class PRTemplateService {
    */
   async createDefaultTemplate(): Promise<void> {
     const workingDir = process.cwd();
-    const templatePath = path.join(workingDir, '.github/PULL_REQUEST_TEMPLATE.md');
+    const templatePath = path.join(
+      workingDir,
+      ".github/PULL_REQUEST_TEMPLATE.md",
+    );
 
     const defaultTemplate = `# {{title}}
 
@@ -167,7 +170,7 @@ export class PRTemplateService {
     await fs.mkdir(githubDir, { recursive: true });
 
     // Write template
-    await fs.writeFile(templatePath, defaultTemplate, 'utf-8');
+    await fs.writeFile(templatePath, defaultTemplate, "utf-8");
   }
 
   /**
@@ -177,13 +180,15 @@ export class PRTemplateService {
     content: string;
     metadata: Record<string, any>;
   }> {
-    const template = await fs.readFile(templatePath, 'utf-8');
+    const template = await fs.readFile(templatePath, "utf-8");
 
     // Check for YAML frontmatter
-    const frontmatterMatch = template.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
+    const frontmatterMatch = template.match(
+      /^---\n([\s\S]*?)\n---\n([\s\S]*)$/,
+    );
 
     if (frontmatterMatch) {
-      const yaml = require('yaml');
+      const yaml = require("yaml");
       const metadata = yaml.parse(frontmatterMatch[1]);
       const content = frontmatterMatch[2];
 
@@ -192,7 +197,7 @@ export class PRTemplateService {
 
     return {
       content: template,
-      metadata: {}
+      metadata: {},
     };
   }
 }

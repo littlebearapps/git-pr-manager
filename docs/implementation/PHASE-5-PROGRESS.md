@@ -26,16 +26,19 @@ Phase 5 transforms git-pr-manager into a Claude Code-optimized tool with perform
 ### 1.1 API Response Caching ✅
 
 **Files Modified**:
+
 - `src/utils/cache.ts` (NEW)
 - `package.json`
 
 **Implementation**:
+
 - Created `APICache` class with LRU eviction policy
 - Added ETag support for conditional requests (304 Not Modified)
 - Configurable TTL and max size (default: 100 entries, 5-minute TTL)
 - Exported global cache instance for shared use
 
 **Key Features**:
+
 ```typescript
 // Simple TTL caching
 await cache.get(key, fetcher, ttl);
@@ -48,21 +51,25 @@ cache.getStats(); // { size, max, ttl }
 ```
 
 **Dependencies Added**:
+
 - `lru-cache: ^10.0.0`
 
 ### 1.2 Machine-Readable Output ✅
 
 **Files Modified**:
+
 - `src/utils/logger.ts` (COMPLETE REWRITE)
 - `src/index.ts`
 
 **Implementation**:
+
 - Added `--json` flag for machine-readable output
 - Implemented `JsonResponse` interface with metadata
 - Logger now outputs structured JSON when `--json` enabled
 - Includes: success status, data, errors, metadata (timestamp, duration, version)
 
 **Example JSON Output**:
+
 ```json
 {
   "success": false,
@@ -83,16 +90,19 @@ cache.getStats(); // { size, max, ttl }
 ### 1.3 Quiet & Silent Modes ✅
 
 **Files Modified**:
+
 - `src/utils/logger.ts`
 - `src/index.ts`
 
 **Implementation**:
+
 - Added `VerbosityLevel` enum (SILENT, QUIET, NORMAL, VERBOSE, DEBUG)
 - Implemented `--quiet`, `--silent`, `--verbose` flags
 - Auto-detection of CI environments (defaults to QUIET in CI)
 - Logger respects verbosity levels for all output methods
 
 **Verbosity Levels**:
+
 - `SILENT` (0): No output
 - `QUIET` (1): Errors only
 - `NORMAL` (2): Errors + warnings + success
@@ -102,23 +112,27 @@ cache.getStats(); // { size, max, ttl }
 ### 1.4 Rate Limit Handling ✅
 
 **Files Modified**:
+
 - `src/services/GitHubService.ts`
 
 **Implementation**:
+
 - Integrated `@octokit/plugin-throttling` with Octokit
 - Automatic retry on rate limit (max 3 attempts)
 - Secondary rate limit handling (always retry)
 - Added `getRateLimitStatus()` method with low-quota warnings
 
 **Dependencies Added**:
+
 - `@octokit/plugin-throttling: ^8.0.0`
 
 **Retry Logic**:
+
 ```typescript
 onRateLimit: (retryAfter, options, octokit, retryCount) => {
   if (retryCount < 3) return true; // Retry
   return false; // Give up after 3 attempts
-}
+};
 ```
 
 ---
@@ -132,16 +146,19 @@ onRateLimit: (retryAfter, options, octokit, retryCount) => {
 ### 2.1 Exponential Backoff Polling ✅
 
 **Files Modified**:
+
 - `src/types/index.ts`
 - `src/services/EnhancedCIPoller.ts`
 
 **Implementation**:
+
 - Added `PollStrategy` interface (type, initialInterval, maxInterval, multiplier)
 - Implemented `calculateNextInterval()` method with exponential backoff
 - Updated `waitForChecks()` to use dynamic polling intervals
 - Adaptive behavior: polls faster when checks complete quickly
 
 **Default Strategy**:
+
 ```typescript
 {
   type: 'exponential',
@@ -152,6 +169,7 @@ onRateLimit: (retryAfter, options, octokit, retryCount) => {
 ```
 
 **Polling Pattern**:
+
 - Iteration 1: 5s
 - Iteration 2: 7.5s
 - Iteration 3: 11.25s
@@ -164,9 +182,11 @@ onRateLimit: (retryAfter, options, octokit, retryCount) => {
 ### 2.2 Request Batching & Parallelization ✅
 
 **Files Modified**:
+
 - `src/services/BranchProtectionChecker.ts`
 
 **Implementation**:
+
 - Optimized `validatePRReadiness()` to fetch 3 resources in parallel:
   - Branch protection
   - Check status
@@ -175,15 +195,17 @@ onRateLimit: (retryAfter, options, octokit, retryCount) => {
 - Optimized `getCheckStatus()` to fetch check runs and commit statuses in parallel
 
 **Before** (Sequential):
+
 ```typescript
-const pr = await getPR(prNumber);           // 200ms
-const protection = await getProtection();    // 150ms
-const checkStatus = await getCheckStatus();  // 180ms
-const reviews = await getReviews();          // 160ms
+const pr = await getPR(prNumber); // 200ms
+const protection = await getProtection(); // 150ms
+const checkStatus = await getCheckStatus(); // 180ms
+const reviews = await getReviews(); // 160ms
 // Total: 690ms
 ```
 
 **After** (Parallel):
+
 ```typescript
 const pr = await getPR(prNumber);           // 200ms
 const [protection, checkStatus, reviews] = await Promise.all([...]);
@@ -195,9 +217,11 @@ const [protection, checkStatus, reviews] = await Promise.all([...]);
 ### 2.3 Config & File I/O Caching ✅
 
 **Files Modified**:
+
 - `src/services/ConfigService.ts`
 
 **Implementation**:
+
 - Added TTL-based caching (default 60 seconds)
 - Added `cacheTime` and `cacheTTL` properties
 - Modified constructor to accept optional `cacheTTL` parameter
@@ -205,6 +229,7 @@ const [protection, checkStatus, reviews] = await Promise.all([...]);
 - Added `invalidateCache()` method for manual cache invalidation
 
 **Cache Behavior**:
+
 ```typescript
 // First call: reads from disk
 const config1 = await configService.load(); // Disk I/O + YAML parse
@@ -234,10 +259,12 @@ const config4 = await configService.load(); // Forces reload
 ### 3.1 Create 'gpm auto' Command ✅
 
 **Files Modified**:
+
 - `src/commands/auto.ts` (NEW)
 - `src/index.ts`
 
 **Implementation**:
+
 - Created automated workflow command that orchestrates entire ship process
 - Auto-detect current state (branch, working directory status)
 - Run verification checks and security scans
@@ -246,6 +273,7 @@ const config4 = await configService.load(); // Forces reload
 - Validate PR readiness and merge automatically
 
 **Key Features**:
+
 ```typescript
 // Automated workflow with smart defaults
 gpm auto                    // Full automation
@@ -256,6 +284,7 @@ gpm auto --skip-verify      // Skip verification
 ```
 
 **Workflow Steps**:
+
 1. Detect current state (prevent running from default branch)
 2. Run verification checks if working directory has changes
 3. Run security scan (secrets + vulnerabilities)
@@ -270,15 +299,18 @@ gpm auto --skip-verify      // Skip verification
 ### 3.2 Improve Error Messages ✅
 
 **Files Modified**:
+
 - `src/utils/errors.ts` (NEW)
 
 **Implementation**:
+
 - Created structured error class hierarchy
 - All errors include: code, message, details, suggestions
 - JSON serialization support for machine-readable output
 - Helper functions: `toWorkflowError()`, `isRetryableError()`
 
 **Error Classes**:
+
 ```typescript
 // Base class
 class WorkflowError extends Error {
@@ -301,19 +333,21 @@ class WorkflowError extends Error {
 ```
 
 **Example Error Output**:
+
 ```typescript
 throw new RateLimitError(
-  'GitHub API rate limit exceeded',
+  "GitHub API rate limit exceeded",
   { remaining: 0, limit: 5000, resetAt: new Date() },
   [
-    'Wait for rate limit reset',
-    'Use a GitHub token with higher rate limit',
-    'Enable caching to reduce API calls'
-  ]
+    "Wait for rate limit reset",
+    "Use a GitHub token with higher rate limit",
+    "Enable caching to reduce API calls",
+  ],
 );
 ```
 
 **JSON Mode Integration**:
+
 ```json
 {
   "success": false,
@@ -329,16 +363,19 @@ throw new RateLimitError(
 ### 3.3 Add Interactive Mode ✅
 
 **Files Modified**:
+
 - `src/commands/init.ts`
 - `src/services/ConfigService.ts`
 - `src/index.ts`
 - `package.json`
 
 **Dependencies Added**:
+
 - `prompts: ^2.4.2`
 - `@types/prompts: ^2.4.9`
 
 **Implementation**:
+
 - Added `--interactive` flag to `gpm init` command
 - Interactive preset selection with descriptions
 - Configuration preview before saving
@@ -346,6 +383,7 @@ throw new RateLimitError(
 - Added `getTemplateConfig()` method to ConfigService for preview
 
 **Interactive Flow**:
+
 ```typescript
 // Preset selection with descriptions
 ? Choose configuration preset:
@@ -368,6 +406,7 @@ throw new RateLimitError(
 ```
 
 **Usage**:
+
 ```bash
 gpm init --interactive           # Interactive wizard
 gpm init --template standard     # Non-interactive with template
@@ -387,11 +426,13 @@ gpm init                         # Defaults to basic template
 ### 4.1 Configure npm Package ✅
 
 **Files Modified**:
+
 - `package.json`
 - `LICENSE` (NEW)
 - `.npmignore` (NEW)
 
 **Implementation**:
+
 - **Package name**: Changed to `@littlebearapps/git-pr-manager` (scoped)
 - **Description**: Updated to emphasize Claude Code integration
 - **Files whitelist**: Only ship `dist/`, `README.md`, `LICENSE`
@@ -402,6 +443,7 @@ gpm init                         # Defaults to basic template
 - **prepublishOnly**: Runs `npm run build && npm test` before publish
 
 **package.json Changes**:
+
 ```json
 {
   "name": "@littlebearapps/git-pr-manager",
@@ -424,6 +466,7 @@ gpm init                         # Defaults to basic template
 ```
 
 **.npmignore**:
+
 ```
 src/
 tests/
@@ -439,15 +482,18 @@ docs/
 ```
 
 **LICENSE**:
+
 - MIT License
 - Copyright (c) 2025 Nathan Schram / Little Bear Apps
 
 ### 4.2 Create Post-Install Script ✅
 
 **Files Created**:
+
 - `src/scripts/postinstall.ts` (NEW)
 
 **Implementation**:
+
 - Checks for GitHub token (GITHUB_TOKEN or GH_TOKEN)
 - Checks for required tools (git)
 - Checks for optional tools (gh CLI)
@@ -456,6 +502,7 @@ docs/
 - Links to documentation
 
 **Post-Install Output**:
+
 ```
 ✨ git-pr-manager installed!
 
@@ -476,6 +523,7 @@ docs/
 ```
 
 **Features**:
+
 - Cross-platform compatible (uses `command -v` check)
 - Non-blocking (won't fail npm install)
 - Helpful for new users
@@ -483,9 +531,11 @@ docs/
 ### 4.3 Setup Cross-Platform Testing ✅
 
 **Files Created**:
+
 - `.github/workflows/test.yml` (NEW)
 
 **Implementation**:
+
 - **Matrix testing**: 3 OS × 3 Node.js versions = 9 combinations
   - OS: ubuntu-latest, macos-latest, windows-latest
   - Node.js: 18, 20, 22
@@ -502,6 +552,7 @@ docs/
   - Does not fail CI if upload fails
 
 **Workflow triggers**:
+
 - Push to main, develop branches
 - Pull requests to main, develop branches
 
@@ -510,9 +561,11 @@ docs/
 ### 4.4 Create Documentation ✅
 
 **Files Created**:
+
 - `CHANGELOG.md` (NEW)
 
 **Implementation**:
+
 - Complete changelog for v1.4.0-beta.1
 - Follows [Keep a Changelog](https://keepachangelog.com) format
 - Sections: Added, Changed, Fixed, Dependencies Added
@@ -520,6 +573,7 @@ docs/
 - Technical details for all 4 sessions
 
 **Changelog Highlights**:
+
 - **Added**: 30+ new features and improvements
 - **Changed**: Package name, description, keywords
 - **Fixed**: Rate limits, repeated API calls, slow validation, missing error context
@@ -527,10 +581,12 @@ docs/
 - **Performance**: Detailed metrics table showing 30-100% improvements
 
 **Documentation Structure**:
+
 ```markdown
 ## [1.4.0-beta.1] - 2025-01-13
 
 ### Added
+
 - Performance & Caching
 - Output & UX
 - CLI Commands
@@ -540,15 +596,18 @@ docs/
 - Distribution
 
 ### Changed
+
 - Package metadata updates
 
 ### Fixed
+
 - Rate limit errors
 - Repeated API calls
 - Slow PR validation
 - Missing error context
 
 ### Performance Metrics
+
 | Metric | Before | After | Improvement |
 ```
 
@@ -578,13 +637,19 @@ After completing all 4 sessions, running `npm test` revealed issues introduced b
 ### Fixes Applied
 
 1. **Mock Default Values** (tests/services/BranchProtectionChecker.test.ts:23-26)
+
    ```typescript
    // Added default return values for parallel API calls
-   mockListForRef = jest.fn(() => Promise.resolve({ data: { check_runs: [] } }));
-   mockGetCombinedStatusForRef = jest.fn(() => Promise.resolve({ data: { statuses: [] } }));
+   mockListForRef = jest.fn(() =>
+     Promise.resolve({ data: { check_runs: [] } }),
+   );
+   mockGetCombinedStatusForRef = jest.fn(() =>
+     Promise.resolve({ data: { statuses: [] } }),
+   );
    ```
 
 2. **Integration Test Mocks** (tests/integration/pr-workflow.integration.test.ts:24, 36)
+
    ```typescript
    // Applied same fix to integration tests
    getCombinedStatusForRef: jest.fn(() => Promise.resolve({ data: { statuses: [] } })),
@@ -620,6 +685,7 @@ Time:        13.193 s
 - [ ] GitHub release created
 
 **Next Steps for v1.4.0 Release**:
+
 1. ✅ ~~Run full test suite: `npm test`~~
 2. ✅ ~~Fix any failing tests~~
 3. Update version to 1.4.0 in package.json
@@ -633,23 +699,25 @@ Time:        13.193 s
 
 ## Performance Metrics (Expected)
 
-| Metric | Before | After | Improvement |
-|--------|--------|-------|-------------|
-| CI Wait Time | 10 min | 6-7 min | 30-40% ↓ |
-| PR Validation | 800ms | 380ms | 40-50% ↓ |
-| Config Load (cached) | 5ms | 0.1ms | 98% ↓ |
-| API Rate Limit Errors | 5-10/day | 0/day | 100% ↓ |
+| Metric                | Before   | After   | Improvement |
+| --------------------- | -------- | ------- | ----------- |
+| CI Wait Time          | 10 min   | 6-7 min | 30-40% ↓    |
+| PR Validation         | 800ms    | 380ms   | 40-50% ↓    |
+| Config Load (cached)  | 5ms      | 0.1ms   | 98% ↓       |
+| API Rate Limit Errors | 5-10/day | 0/day   | 100% ↓      |
 
 ---
 
 ## Technical Debt & Future Work
 
 ### Identified During Implementation
+
 - Consider moving cache to separate npm package for reuse
 - Explore GraphQL API for batch operations (future optimization)
 - Add metrics collection for polling efficiency analysis
 
 ### Session 3 Considerations
+
 - Error messages need localization framework (future)
 - Interactive mode could use enquirer.js library
 - Consider adding telemetry opt-in for usage analytics
@@ -677,6 +745,7 @@ All 4 sessions have been successfully implemented:
 4. **Session 4**: Distribution & Polish (npm config, post-install, CI/CD, documentation)
 
 **Key Achievements**:
+
 - 30+ new features and improvements
 - 30-100% performance improvements across all metrics
 - Production-ready npm package configuration

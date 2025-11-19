@@ -19,7 +19,9 @@ During the successful dogfooding test of gpm shipping itself (PR #28), several m
 ## Issue #1: npm Dependency Vulnerabilities
 
 ### Severity: **Medium** (Security)
+
 ### Impact: Development environment only
+
 ### Blocking: No
 
 ### Observed Behavior
@@ -31,6 +33,7 @@ During the successful dogfooding test of gpm shipping itself (PR #28), several m
 ### Investigation
 
 **npm audit results**:
+
 ```json
 {
   "vulnerabilities": {
@@ -68,11 +71,13 @@ During the successful dogfooding test of gpm shipping itself (PR #28), several m
 ### Root Cause
 
 All vulnerabilities are in **dev dependencies only** (semantic-release toolchain and test infrastructure). They do not affect:
+
 - Production runtime code
 - Published npm package
 - End user installations
 
 **Dependency chain**:
+
 ```
 @semantic-release/npm@11.0.0+ (dev)
   → npm@9.6.6+ (transitive)
@@ -107,6 +112,7 @@ npm audit fix --force
 #### Option 3: Override vulnerable dependencies
 
 Add to `package.json`:
+
 ```json
 {
   "overrides": {
@@ -122,6 +128,7 @@ Add to `package.json`:
 #### Option 4: Accept risk with documentation
 
 **Rationale**:
+
 - Vulnerabilities are dev-only
 - No runtime security impact
 - semantic-release only runs in CI
@@ -136,6 +143,7 @@ Add to `package.json`:
 **Concrete protection measures**:
 
 1. **Lockfile discipline**:
+
    ```bash
    # Apply fixes on feature branch first
    git checkout -b fix/npm-vulnerabilities
@@ -144,6 +152,7 @@ Add to `package.json`:
    ```
 
 2. **semantic-release dry-run validation**:
+
    ```bash
    # Validate semantic-release still works
    npx semantic-release --dry-run
@@ -154,13 +163,14 @@ Add to `package.json`:
 
 3. **Dependency boundaries**:
    Add to `package.json`:
+
    ```json
    {
      "overrides": {
        "glob": ">=11.0.4",
        "tar": ">=7.6.0",
        "js-yaml": ">=4.1.1",
-       "semantic-release": "^22.0.12"  // Pin to working version
+       "semantic-release": "^22.0.12" // Pin to working version
      }
    }
    ```
@@ -180,6 +190,7 @@ Add to `package.json`:
 ### Implementation Plan
 
 **Phase 1: Immediate** (Option 5 - Recommended)
+
 ```bash
 # 1. Create feature branch
 git checkout -b fix/npm-vulnerabilities
@@ -203,6 +214,7 @@ npx semantic-release --dry-run
 ```
 
 **Phase 2: CI Integration**
+
 ```yaml
 # Add to .github/workflows/test.yml
 - name: Validate semantic-release
@@ -210,6 +222,7 @@ npx semantic-release --dry-run
 ```
 
 **Phase 3: Monitoring**
+
 - Weekly npm audit checks in CI
 - Auto-create issues for new vulnerabilities
 - Monitor semantic-release behavior for 2 releases post-merge
@@ -226,7 +239,9 @@ npx semantic-release --dry-run
 ## Issue #2: Secret Scanning Skipped
 
 ### Severity: **Low** (Informational)
+
 ### Impact: Optional security feature not available
+
 ### Blocking: No
 
 ### Observed Behavior
@@ -241,18 +256,19 @@ npx semantic-release --dry-run
 
 ```typescript
 try {
-  await execAsync('which detect-secrets', { cwd: this.workingDir });
+  await execAsync("which detect-secrets", { cwd: this.workingDir });
 } catch {
   return {
     found: false,
     secrets: [],
     skipped: true,
-    reason: 'detect-secrets not installed (pip install detect-secrets)'
+    reason: "detect-secrets not installed (pip install detect-secrets)",
   };
 }
 ```
 
 **Why it's skipped**:
+
 - `detect-secrets` is a Python tool (requires `pip install`)
 - This is a Node.js project
 - Optional security enhancement, not required for basic security
@@ -260,6 +276,7 @@ try {
 ### Root Cause
 
 This is **expected behavior by design**:
+
 - Secret scanning is an **optional** security feature
 - Not all developers have Python toolchain installed
 - gpm provides graceful degradation
@@ -267,12 +284,14 @@ This is **expected behavior by design**:
 ### Current Security Coverage
 
 **Without detect-secrets**:
+
 - ✅ npm audit for dependency vulnerabilities
 - ✅ Manual code review in PR process
 - ✅ .gitignore prevents accidental secret commits
 - ✅ PR template includes security checklist
 
 **With detect-secrets** (enhanced):
+
 - ✅ All of the above
 - ✅ Regex-based secret pattern detection
 - ✅ Baseline file for known false positives
@@ -284,7 +303,7 @@ This is **expected behavior by design**:
 
 **Location**: README.md, QUICK-REFERENCE.md
 
-```markdown
+````markdown
 ## Optional Security Enhancements
 
 ### Secret Scanning (detect-secrets)
@@ -294,16 +313,20 @@ For enhanced secret detection, install `detect-secrets`:
 ```bash
 pip install detect-secrets
 ```
+````
 
 **Benefits**:
+
 - Regex-based secret pattern matching
 - Baseline file for managing false positives
 - Pre-commit hook integration
 
 **Without detect-secrets**:
+
 - gpm still performs npm audit checks
 - Security scan continues (skips secret detection only)
-```
+
+````
 
 #### Option 2: Add to development setup
 
@@ -318,8 +341,9 @@ pip install detect-secrets
 ```bash
 pip install detect-secrets
 detect-secrets scan --baseline .secrets.baseline
-```
-```
+````
+
+````
 
 #### Option 3: JavaScript-based alternative
 
@@ -348,9 +372,10 @@ detect-secrets scan --baseline .secrets.baseline
 # Document detect-secrets as optional enhancement
 # Include installation instructions
 # Clarify gpm works fine without it
-```
+````
 
 **Phase 2: Consider JS alternative** (Future - evaluate)
+
 ```bash
 # Research @secretlint/secretlint
 # Compare detection accuracy
@@ -378,7 +403,9 @@ detect-secrets scan --baseline .secrets.baseline
 **ENHANCEMENT**: Cross-command `--json` output standardization
 
 ### Severity: **Low** (Cosmetic)
+
 ### Impact: Console output aesthetics
+
 ### Blocking: No
 
 ### Observed Behavior
@@ -406,8 +433,8 @@ detect-secrets scan --baseline .secrets.baseline
 
 // Lines 135-137: Print warnings
 if (securityResult.warnings.length > 0) {
-  securityResult.warnings.forEach(warning => logger.warn(`  ${warning}`));
-}  // ← 2 warnings printed here
+  securityResult.warnings.forEach((warning) => logger.warn(`  ${warning}`));
+} // ← 2 warnings printed here
 
 // Line 143: logger.blank(); ← 1st blank line
 
@@ -441,6 +468,7 @@ section(title: string): void {
 ```
 
 **Blank line sources**:
+
 1. Line 143: `logger.blank()` after security warnings
 2. Line 188: `logger.blank()` before CI section
 3. Line 189: `logger.section()` internal blank() call
@@ -450,11 +478,13 @@ section(title: string): void {
 ### Root Cause
 
 **Redundant blank() calls**:
+
 - Ship command explicitly calls `logger.blank()` before section
 - Section method internally calls `logger.blank()`
 - Result: Double spacing
 
 **Possible causes**:
+
 1. Defensive spacing (ensure section has breathing room)
 2. Inconsistent abstraction (section should handle own spacing)
 3. Historical accumulation (added over time without review)
@@ -464,15 +494,17 @@ section(title: string): void {
 #### Option 1: Remove redundant blank() calls in ship.ts (Recommended)
 
 **Change**:
+
 ```typescript
 // Before (ship.ts:188-189)
-logger.blank();  // ← Remove this
+logger.blank(); // ← Remove this
 logger.section(`Waiting for CI Checks - PR #${prNumber}`);
 
 // Also check lines 54, 106, 143, 166 for similar patterns
 ```
 
 **Rationale**:
+
 - `logger.section()` already handles spacing
 - Single source of truth for section spacing
 - Cleaner, more maintainable
@@ -482,6 +514,7 @@ logger.section(`Waiting for CI Checks - PR #${prNumber}`);
 #### Option 2: Add configuration option
 
 **Add to logger.ts**:
+
 ```typescript
 private compactMode: boolean = false;
 
@@ -497,6 +530,7 @@ section(title: string): void {
 ```
 
 **Usage**:
+
 ```bash
 gpm ship --compact  # Reduces spacing
 ```
@@ -509,6 +543,7 @@ gpm ship --compact  # Reduces spacing
 **Why this is better**: Addresses root cause across entire codebase, not just ship.ts
 
 **Audit all commands**:
+
 ```bash
 # Find all blank() + section() patterns
 grep -n "logger.blank()" src/commands/*.ts
@@ -516,13 +551,14 @@ grep -n "logger.section()" src/commands/*.ts
 ```
 
 **Create pattern**:
+
 ```typescript
 // Standard: section() handles own spacing
-logger.section('Title');  // ✅ Good
+logger.section("Title"); // ✅ Good
 
 // Anti-pattern: redundant blank()
 logger.blank();
-logger.section('Title');  // ❌ Redundant
+logger.section("Title"); // ❌ Redundant
 ```
 
 #### Option 4: Normalize `--json` output contract (CRITICAL for AI agents)
@@ -530,6 +566,7 @@ logger.section('Title');  // ❌ Redundant
 **Why this matters**: AI agents rely on strict JSON output format
 
 **Define strict `--json` contract**:
+
 1. **stdout**: Exactly one JSON object/array + trailing newline, no extra content
 2. **stderr**: All logs, progress, debug info
 3. **Error handling**: Either:
@@ -538,6 +575,7 @@ logger.section('Title');  // ❌ Redundant
    - **Recommended**: JSON error payload on stdout (easier for AI parsing)
 
 **Implementation pattern**:
+
 ```typescript
 // Use JsonOutput helper
 if (options.json) {
@@ -545,21 +583,24 @@ if (options.json) {
   logger = createLogger({ json: true, outputStream: process.stderr });
 
   // Final result → stdout
-  process.stdout.write(JSON.stringify(result) + '\n');
+  process.stdout.write(JSON.stringify(result) + "\n");
 }
 ```
 
 **Testing**:
+
 ```typescript
-it('should output valid JSON with no extra lines', async () => {
-  const result = await execCommand('gpm ship --json');
+it("should output valid JSON with no extra lines", async () => {
+  const result = await execCommand("gpm ship --json");
 
   // Assert stdout is valid JSON
   const parsed = JSON.parse(result.stdout);
-  expect(parsed).toHaveProperty('success');
+  expect(parsed).toHaveProperty("success");
 
   // Assert no blank lines
-  expect(result.stdout.split('\n').filter(l => l.trim() === '')).toHaveLength(1); // Only trailing newline
+  expect(result.stdout.split("\n").filter((l) => l.trim() === "")).toHaveLength(
+    1,
+  ); // Only trailing newline
 });
 ```
 
@@ -574,6 +615,7 @@ it('should output valid JSON with no extra lines', async () => {
 ### Implementation Plan
 
 **Phase 1: Quick fix** (Recommended)
+
 ```typescript
 // src/commands/ship.ts
 // Remove line 188: logger.blank();
@@ -582,6 +624,7 @@ it('should output valid JSON with no extra lines', async () => {
 ```
 
 **Phase 2: Comprehensive audit** (ENHANCED - includes --json standardization)
+
 ```bash
 # 1. Check all commands for blank line patterns
 for cmd in src/commands/*.ts; do
@@ -601,30 +644,33 @@ done
 ```
 
 **Phase 3: Define and test --json contract**
+
 ```typescript
 // Create JsonOutput utility (src/utils/JsonOutput.ts)
 export class JsonOutput {
   static write(data: unknown): void {
-    process.stdout.write(JSON.stringify(data) + '\n');
+    process.stdout.write(JSON.stringify(data) + "\n");
   }
 
   static writeError(error: WorkflowError): void {
-    process.stdout.write(JSON.stringify({
-      success: false,
-      error: {
-        code: error.code,
-        message: error.message,
-        suggestion: error.suggestion
-      }
-    }) + '\n');
+    process.stdout.write(
+      JSON.stringify({
+        success: false,
+        error: {
+          code: error.code,
+          message: error.message,
+          suggestion: error.suggestion,
+        },
+      }) + "\n",
+    );
   }
 }
 
 // Add integration tests
-describe('JSON output contract', () => {
-  it('should output exactly one JSON object on stdout', async () => {
-    const result = await execCommand('gpm ship --json');
-    const lines = result.stdout.split('\n');
+describe("JSON output contract", () => {
+  it("should output exactly one JSON object on stdout", async () => {
+    const result = await execCommand("gpm ship --json");
+    const lines = result.stdout.split("\n");
 
     expect(lines.length).toBe(2); // JSON + trailing newline
     expect(() => JSON.parse(lines[0])).not.toThrow();
@@ -633,6 +679,7 @@ describe('JSON output contract', () => {
 ```
 
 **Phase 4: Add linting rule** (Future)
+
 ```typescript
 // eslint-custom-rule: no-blank-before-section
 // Warn if logger.blank() immediately precedes logger.section()
@@ -641,12 +688,14 @@ describe('JSON output contract', () => {
 ### Success Criteria
 
 **Human users**:
+
 - [ ] Maximum 2 blank lines between sections (console output)
 - [ ] Consistent spacing across all commands
 - [ ] Visual output is clean and readable
 - [ ] No regressions in other commands
 
 **AI agents (--json mode)**:
+
 - [ ] stdout contains exactly one JSON object + trailing newline
 - [ ] All logs/progress output to stderr
 - [ ] JSON is valid and parseable
@@ -658,7 +707,9 @@ describe('JSON output contract', () => {
 ## Issue #4: CI Checks Display - "0/0 checks completed"
 
 ### Severity: **Medium** (Confusing UX)
+
 ### Impact: Users unsure if checks ran or not
+
 ### Blocking: No
 
 ### Observed Behavior
@@ -672,6 +723,7 @@ describe('JSON output contract', () => {
 ```
 
 **Confusing aspects**:
+
 1. "0/0 checks completed" - implies no checks exist
 2. "All CI checks passed!" - implies checks ran successfully
 3. Unclear: Did checks run or were there no checks?
@@ -686,15 +738,16 @@ const { data: checkRuns } = await this.github.rest.checks.listForRef({
   owner: this.owner,
   repo: this.repo,
   ref: headSha,
-  per_page: 100
+  per_page: 100,
 });
 
 // Get commit statuses (legacy, external services)
-const { data: commitStatus } = await this.github.rest.repos.getCombinedStatusForRef({
-  owner: this.owner,
-  repo: this.repo,
-  ref: headSha
-});
+const { data: commitStatus } =
+  await this.github.rest.repos.getCombinedStatusForRef({
+    owner: this.owner,
+    repo: this.repo,
+    ref: headSha,
+  });
 
 return this.parseCheckDetails(checkRuns, commitStatus);
 ```
@@ -706,11 +759,13 @@ total: allChecks.length + commitStatus.statuses.length,
 ```
 
 **For this repository**:
+
 - `allChecks.length` = 0 (no GitHub Actions workflows)
 - `commitStatus.statuses.length` = 0 (no external CI services)
 - `total` = 0
 
 **Why no checks**:
+
 ```bash
 ls .github/workflows/
 # test.yml     - Only runs on pull_request
@@ -718,6 +773,7 @@ ls .github/workflows/
 ```
 
 **For PR #28**:
+
 - test.yml didn't run (possibly disabled or failed to trigger)
 - publish.yml doesn't run on PRs
 - Result: 0 checks to wait for
@@ -727,6 +783,7 @@ ls .github/workflows/
 **Design limitation**: gpm assumes checks will exist
 
 **Current logic**:
+
 ```typescript
 // EnhancedCIPoller.waitForChecks()
 while (Date.now() - startTime < timeout) {
@@ -742,12 +799,14 @@ while (Date.now() - startTime < timeout) {
 ```
 
 **Race condition issue** (CRITICAL FINDING):
+
 - GitHub Actions can take 5-10 seconds to register checks after PR creation
 - Current code immediately queries and shows "0/0 checks"
 - This is likely "checks not registered yet" NOT "no checks configured"
 - Premature detection causes confusion
 
 **Message ambiguity**:
+
 - "0/0 checks completed" is technically accurate but misleading
 - Need to distinguish:
   - "No CI checks configured for this repository"
@@ -792,18 +851,18 @@ while (Date.now() - startTime < timeout) {
         pending: 0,
         newFailures: [],
         newPasses: [],
-        status: 'no_checks_configured'
+        status: "no_checks_configured",
       });
     }
 
-    logger.warn('No CI checks configured for this repository');
-    logger.info('Skipping CI check wait - no checks to monitor');
+    logger.warn("No CI checks configured for this repository");
+    logger.info("Skipping CI check wait - no checks to monitor");
 
     return {
       success: true,
       summary: status,
       duration: Date.now() - startTime,
-      retriesUsed
+      retriesUsed,
     };
   }
 
@@ -812,11 +871,13 @@ while (Date.now() - startTime < timeout) {
 ```
 
 **Polling behavior**:
+
 - **0-20s**: Poll with exponential backoff (1s, 2s, 4s, 5s, 5s, ...)
 - **20s+**: Declare "no checks configured" if still 0 total
 - **Checks appear**: Proceed to normal CI wait logic
 
 **Benefits**:
+
 - Avoids false "no checks" from race conditions
 - Fast for truly empty repos (exits after 3-5 polls)
 - Robust for normal GitHub Actions startup delay
@@ -870,8 +931,8 @@ if (waitForChecks && !options.skipCi) {
   const initialStatus = await poller.getDetailedCheckStatus(prNumber);
 
   if (initialStatus.total === 0) {
-    logger.warn('No CI checks configured - skipping CI wait');
-    logger.info('Configure GitHub Actions to enable automated checks');
+    logger.warn("No CI checks configured - skipping CI wait");
+    logger.info("Configure GitHub Actions to enable automated checks");
     // Skip CI section entirely
   } else {
     logger.blank();
@@ -882,11 +943,13 @@ if (waitForChecks && !options.skipCi) {
 ```
 
 **Pros**:
+
 - Cleaner output
 - Faster execution
 - Clear messaging
 
 **Cons**:
+
 - Extra API call (check status twice)
 - Could race with CI startup
 
@@ -913,6 +976,7 @@ formatProgress(progress: ProgressUpdate): string {
 ### Implementation Plan
 
 **Phase 1: Detection and messaging** (Recommended - Option 1)
+
 ```typescript
 // 1. EnhancedCIPoller.waitForChecks(): Add no-checks detection
 // 2. ship.ts: Update onProgress to handle no-checks scenario
@@ -920,19 +984,25 @@ formatProgress(progress: ProgressUpdate): string {
 ```
 
 **Phase 2: Documentation**
-```markdown
+
+````markdown
 # WORKFLOW-DOCUMENTATION.md
+
 ## CI Check Scenarios
 
 ### No CI Checks Configured
+
 If your repository has no GitHub Actions workflows or external CI services:
+
 - gpm will detect this automatically
 - "No CI checks configured" warning will be shown
 - PR will proceed to merge immediately
 - **Recommendation**: Add GitHub Actions for automated testing
 
 ### Configuring CI Checks
+
 Create `.github/workflows/test.yml`:
+
 ```yaml
 name: Test
 on: pull_request
@@ -943,7 +1013,9 @@ jobs:
       - uses: actions/checkout@v4
       - run: npm test
 ```
-```
+````
+
+````
 
 **Phase 3: Testing**
 ```bash
@@ -951,7 +1023,7 @@ jobs:
 # 1. No workflows (0 checks)
 # 2. 1 workflow (1 check)
 # 3. Multiple workflows (multiple checks)
-```
+````
 
 ### Success Criteria
 
@@ -968,12 +1040,15 @@ jobs:
 **PRIORITY ELEVATED**: P2 → **P1** (Critical for AI agents)
 
 ### Severity: **Medium** (HIGH for AI agents)
+
 ### Impact: AI agents cannot debug, optimize, or audit workflows
+
 ### Blocking: No (but severely limits AI agent capabilities)
 
 ### Observed Behavior
 
 **Investigation Confusion**: During dogfooding analysis, a detailed step-by-step summary was documented:
+
 ```
 - Running verification checks...
 ✔ Verification checks passed (23493ms)
@@ -990,11 +1065,13 @@ jobs:
 **Reality**: This summary does NOT exist in gpm's output.
 
 **What Actually Happens**:
+
 - Real-time spinner messages during execution (user sees progress)
 - Final success message with PR URL and branch
 - **NO** step-by-step summary is generated
 
 **Current JSON Output** (ship.ts:307-315):
+
 ```typescript
 logger.outputJsonResult(true, {
   success: true,
@@ -1003,7 +1080,7 @@ logger.outputJsonResult(true, {
   prUrl,
   branch: currentBranch,
   defaultBranch,
-  branchDeleted: deleteBranch
+  branchDeleted: deleteBranch,
   // ← Missing: execution steps, durations, skipped steps
 });
 ```
@@ -1025,11 +1102,13 @@ logger.outputJsonResult(true, {
 **Missing feature**, not a bug:
 
 **For Human Users**:
+
 - Real-time spinner messages provide progress feedback ✅
 - Final success message shows result ✅
 - No need for redundant summary
 
 **For AI Agents & Automation**:
+
 - JSON output lacks execution metadata ❌
 - Cannot determine which steps executed/skipped ❌
 - Cannot analyze performance bottlenecks ❌
@@ -1042,6 +1121,7 @@ logger.outputJsonResult(true, {
 #### Recommended: Enhanced JSON Output (For AI Agents & Automation)
 
 **Why This Approach**:
+
 - ✅ **AI agents use `--json` mode** - Structured data is their primary interface
 - ✅ **No console clutter** - Humans already see real-time spinners
 - ✅ **Enables automation** - CI/CD systems can parse execution history
@@ -1050,12 +1130,12 @@ logger.outputJsonResult(true, {
 
 **Value Breakdown**:
 
-| Audience | Visual Summary | JSON Metadata |
-|----------|---------------|---------------|
-| **Human Users** | ❌ Redundant (see spinners) | ⚠️ Not visible |
-| **AI Agents** | ❌ Don't parse console | ✅ **Primary data source** |
-| **CI/CD Systems** | ❌ Hard to parse | ✅ **Structured & reliable** |
-| **Monitoring Tools** | ❌ Not accessible | ✅ **Metrics-ready** |
+| Audience             | Visual Summary              | JSON Metadata                |
+| -------------------- | --------------------------- | ---------------------------- |
+| **Human Users**      | ❌ Redundant (see spinners) | ⚠️ Not visible               |
+| **AI Agents**        | ❌ Don't parse console      | ✅ **Primary data source**   |
+| **CI/CD Systems**    | ❌ Hard to parse            | ✅ **Structured & reliable** |
+| **Monitoring Tools** | ❌ Not accessible           | ✅ **Metrics-ready**         |
 
 **Implementation**:
 
@@ -1064,7 +1144,7 @@ logger.outputJsonResult(true, {
 ```typescript
 export interface ExecutionStep {
   name: string;
-  status: 'completed' | 'skipped' | 'failed';
+  status: "completed" | "skipped" | "failed";
   duration?: number;
   reason?: string; // For skipped/failed steps
 }
@@ -1077,21 +1157,21 @@ export class ExecutionTracker {
    * Log a completed step
    */
   logCompleted(name: string, duration?: number): void {
-    this.steps.push({ name, status: 'completed', duration });
+    this.steps.push({ name, status: "completed", duration });
   }
 
   /**
    * Log a skipped step
    */
   logSkipped(name: string, reason: string): void {
-    this.steps.push({ name, status: 'skipped', reason });
+    this.steps.push({ name, status: "skipped", reason });
   }
 
   /**
    * Log a failed step
    */
   logFailed(name: string, reason: string): void {
-    this.steps.push({ name, status: 'failed', reason });
+    this.steps.push({ name, status: "failed", reason });
   }
 
   /**
@@ -1102,7 +1182,7 @@ export class ExecutionTracker {
       steps: this.steps,
       totalDuration: Date.now() - this.startTime,
       startedAt: new Date(this.startTime).toISOString(),
-      completedAt: new Date().toISOString()
+      completedAt: new Date().toISOString(),
     };
   }
 }
@@ -1111,7 +1191,7 @@ export class ExecutionTracker {
 **2. Use in ship.ts**:
 
 ```typescript
-import { ExecutionTracker } from '../utils/ExecutionTracker';
+import { ExecutionTracker } from "../utils/ExecutionTracker";
 
 export async function shipCommand(options: ShipOptions = {}): Promise<void> {
   const tracker = new ExecutionTracker();
@@ -1119,63 +1199,74 @@ export async function shipCommand(options: ShipOptions = {}): Promise<void> {
   try {
     // Step 1: Verification (if not skipped)
     if (!options.skipVerify) {
-      spinner.start('Running verification checks...');
-      const verifyResult = await verifyService.runChecks({ /* ... */ });
-      spinner.succeed(`Verification checks passed (${verifyResult.duration}ms)`);
-      tracker.logCompleted('verification', verifyResult.duration);
+      spinner.start("Running verification checks...");
+      const verifyResult = await verifyService.runChecks({
+        /* ... */
+      });
+      spinner.succeed(
+        `Verification checks passed (${verifyResult.duration}ms)`,
+      );
+      tracker.logCompleted("verification", verifyResult.duration);
     } else {
-      tracker.logSkipped('verification', '--skip-verify flag');
+      tracker.logSkipped("verification", "--skip-verify flag");
     }
 
     // Step 2: Security (if not skipped)
     if (!options.skipSecurity) {
-      spinner.start('Running security scan...');
+      spinner.start("Running security scan...");
       const securityResult = await securityScanner.scan();
-      spinner.succeed('Security scan passed');
-      tracker.logCompleted('security', securityResult.duration);
+      spinner.succeed("Security scan passed");
+      tracker.logCompleted("security", securityResult.duration);
     } else {
-      tracker.logSkipped('security', '--skip-security flag');
+      tracker.logSkipped("security", "--skip-security flag");
     }
 
     // Step 3: Push branch (if no existing PR)
     if (!existingPR) {
-      await withSpinner('Pushing branch to remote...', async () => {
+      await withSpinner("Pushing branch to remote...", async () => {
         const pushStart = Date.now();
-        await gitService.push('origin', currentBranch, true);
-        tracker.logCompleted('push', Date.now() - pushStart);
+        await gitService.push("origin", currentBranch, true);
+        tracker.logCompleted("push", Date.now() - pushStart);
       });
     } else {
-      tracker.logSkipped('push', 'PR already exists');
+      tracker.logSkipped("push", "PR already exists");
     }
 
     // Step 4: Create PR (if no existing PR)
     if (!existingPR) {
-      const pr = await prService.createPR({ /* ... */ });
-      tracker.logCompleted('create-pr');
+      const pr = await prService.createPR({
+        /* ... */
+      });
+      tracker.logCompleted("create-pr");
     } else {
-      tracker.logSkipped('create-pr', 'PR already exists');
+      tracker.logSkipped("create-pr", "PR already exists");
     }
 
     // Step 5: Wait for CI (if not skipped)
     if (waitForChecks && !options.skipCi) {
       const ciStart = Date.now();
-      const result = await poller.waitForChecks(prNumber, { /* ... */ });
-      tracker.logCompleted('wait-ci', Date.now() - ciStart);
+      const result = await poller.waitForChecks(prNumber, {
+        /* ... */
+      });
+      tracker.logCompleted("wait-ci", Date.now() - ciStart);
     } else {
-      tracker.logSkipped('wait-ci', options.skipCi ? '--skip-ci flag' : 'disabled in config');
+      tracker.logSkipped(
+        "wait-ci",
+        options.skipCi ? "--skip-ci flag" : "disabled in config",
+      );
     }
 
     // Step 6: Merge PR
     const mergeStart = Date.now();
     await github.mergePR(prNumber);
-    tracker.logCompleted('merge', Date.now() - mergeStart);
+    tracker.logCompleted("merge", Date.now() - mergeStart);
 
     // Step 7: Delete branch (if enabled)
     if (deleteBranch) {
       await github.deleteBranch(currentBranch);
-      tracker.logCompleted('cleanup');
+      tracker.logCompleted("cleanup");
     } else {
-      tracker.logSkipped('cleanup', '--no-delete-branch flag');
+      tracker.logSkipped("cleanup", "--no-delete-branch flag");
     }
 
     // Enhanced JSON output
@@ -1188,26 +1279,27 @@ export async function shipCommand(options: ShipOptions = {}): Promise<void> {
       defaultBranch,
       branchDeleted: deleteBranch,
       // NEW: Execution metadata
-      execution: tracker.getSummary()
+      execution: tracker.getSummary(),
     });
 
     // Console output (unchanged)
     logger.blank();
-    logger.section('✨ Feature Shipped Successfully!');
+    logger.section("✨ Feature Shipped Successfully!");
     logger.log(`PR #${prNumber}: ${chalk.blue(prUrl)}`);
-    logger.log(`Branch: ${chalk.cyan(currentBranch)} → ${chalk.cyan(defaultBranch)}`);
-
+    logger.log(
+      `Branch: ${chalk.cyan(currentBranch)} → ${chalk.cyan(defaultBranch)}`,
+    );
   } catch (error: any) {
     // Track failed step if applicable
-    tracker.logFailed('unknown', error.message);
+    tracker.logFailed("unknown", error.message);
 
     logger.outputJsonResult(false, {
       success: false,
       error: {
         message: error.message,
-        code: error.code
+        code: error.code,
       },
-      execution: tracker.getSummary()
+      execution: tracker.getSummary(),
     });
 
     throw error;
@@ -1231,7 +1323,11 @@ export async function shipCommand(options: ShipOptions = {}): Promise<void> {
       { "name": "verification", "status": "completed", "duration": 23493 },
       { "name": "security", "status": "completed", "duration": 1243 },
       { "name": "push", "status": "skipped", "reason": "PR already exists" },
-      { "name": "create-pr", "status": "skipped", "reason": "PR already exists" },
+      {
+        "name": "create-pr",
+        "status": "skipped",
+        "reason": "PR already exists"
+      },
       { "name": "wait-ci", "status": "completed", "duration": 1052 },
       { "name": "merge", "status": "completed", "duration": 487 },
       { "name": "cleanup", "status": "completed" }
@@ -1246,13 +1342,14 @@ export async function shipCommand(options: ShipOptions = {}): Promise<void> {
 **4. CloakPipe Telemetry Integration** (ENHANCEMENT - leverages existing infrastructure):
 
 **Pluggable sinks pattern**:
+
 ```typescript
 // src/utils/ExecutionTracker.ts (enhanced)
 export interface ExecutionEvent {
   runId: string;
   timestamp: string;
   stepName: string;
-  status: 'completed' | 'skipped' | 'failed';
+  status: "completed" | "skipped" | "failed";
   duration?: number;
   metadata?: Record<string, unknown>;
 }
@@ -1272,24 +1369,24 @@ export class ExecutionTracker {
 
   private emitEvent(event: ExecutionEvent): void {
     // Emit to all sinks (non-blocking, failure-safe)
-    this.sinks.forEach(sink => {
+    this.sinks.forEach((sink) => {
       try {
         sink.onEvent(event);
       } catch (error) {
         // Telemetry failures must never break core functionality
-        console.warn('ExecutionSink error:', error);
+        console.warn("ExecutionSink error:", error);
       }
     });
   }
 
   logCompleted(name: string, duration?: number): void {
-    this.steps.push({ name, status: 'completed', duration });
+    this.steps.push({ name, status: "completed", duration });
     this.emitEvent({
       runId: this.runId,
       timestamp: new Date().toISOString(),
       stepName: name,
-      status: 'completed',
-      duration
+      status: "completed",
+      duration,
     });
   }
 
@@ -1305,13 +1402,14 @@ export class TelemetrySink implements ExecutionSink {
     this.telemetry?.breadcrumb(`step:${event.stepName}`, {
       status: event.status,
       duration: event.duration,
-      runId: event.runId
+      runId: event.runId,
     });
   }
 }
 ```
 
 **Usage in ship.ts**:
+
 ```typescript
 // Initialize with telemetry sink
 const sinks = telemetry ? [new TelemetrySink(telemetry)] : [];
@@ -1321,6 +1419,7 @@ const tracker = new ExecutionTracker(sinks);
 ```
 
 **Benefits**:
+
 - Reuses existing CloakPipe infrastructure
 - No additional API calls or services needed
 - Failure-safe (telemetry errors don't break workflow)
@@ -1329,22 +1428,26 @@ const tracker = new ExecutionTracker(sinks);
 **5. Phased Rollout Strategy** (CRITICAL for manageable implementation):
 
 **Phase 1 (P1 scope)**: ship + critical commands
+
 - Implement for: `ship --json`, `auto --json`
 - Define stable ExecutionEvent schema
 - Add basic telemetry integration
 - **Effort**: ~3 hours
 
 **Phase 2 (P2 scope)**: Expand to other --json commands
+
 - Gradually add to: `verify --json`, `security --json`, `protect --json`
 - Validate schema stability
 - **Effort**: ~2 hours
 
 **Phase 3 (Future)**: All commands
+
 - Complete --json coverage
 - Consider adding execution metadata to human-facing output (optional)
 - **Effort**: ~3 hours
 
 **Why phased?**:
+
 - Limits P1 scope to highest-value commands
 - Allows schema iteration before full rollout
 - Reduces risk of breaking changes
@@ -1353,15 +1456,16 @@ const tracker = new ExecutionTracker(sinks);
 
 **CRITICAL**: Without ExecutionTracker, AI agents have BLIND SPOTS:
 
-| Capability | Without ExecutionTracker | With ExecutionTracker |
-|------------|-------------------------|----------------------|
-| **Debug failures** | ❌ No step-level context | ✅ Exact failure point |
-| **Optimize performance** | ❌ No duration data | ✅ Identify bottlenecks |
-| **Audit trails** | ❌ Only final state | ✅ Full execution history |
-| **Retry logic** | ❌ Don't know what succeeded | ✅ Resume from failure |
-| **Metrics** | ❌ No execution data | ✅ Success rates, durations |
+| Capability               | Without ExecutionTracker     | With ExecutionTracker       |
+| ------------------------ | ---------------------------- | --------------------------- |
+| **Debug failures**       | ❌ No step-level context     | ✅ Exact failure point      |
+| **Optimize performance** | ❌ No duration data          | ✅ Identify bottlenecks     |
+| **Audit trails**         | ❌ Only final state          | ✅ Full execution history   |
+| **Retry logic**          | ❌ Don't know what succeeded | ✅ Resume from failure      |
+| **Metrics**              | ❌ No execution data         | ✅ Success rates, durations |
 
 **Priority justification for P1**:
+
 - gpm is explicitly designed for AI agents (see anti-patterns in GITHUB-ACTIONS-INTEGRATION.md)
 - --json mode is PRIMARY interface for AI/automation
 - ExecutionTracker is table stakes for professional CLI tools used by automation
@@ -1370,6 +1474,7 @@ const tracker = new ExecutionTracker(sinks);
 ### Implementation Plan
 
 **Phase 1: Create ExecutionTracker utility** (1 hour)
+
 ```bash
 # 1. Create new file
 touch src/utils/ExecutionTracker.ts
@@ -1382,6 +1487,7 @@ touch tests/utils/ExecutionTracker.test.ts
 ```
 
 **Phase 2: Integrate into ship.ts** (30-45 min)
+
 ```typescript
 // 1. Import ExecutionTracker
 // 2. Initialize at start of shipCommand
@@ -1392,6 +1498,7 @@ touch tests/utils/ExecutionTracker.test.ts
 ```
 
 **Phase 3: Testing** (15-30 min)
+
 ```bash
 # Test scenarios:
 # 1. Full workflow (all steps complete)
@@ -1413,6 +1520,7 @@ cat output.json | jq '.execution.steps[] | {name, status, duration?}'
 ### Success Criteria
 
 **JSON Output**:
+
 - [ ] `execution` field present in success response
 - [ ] `execution.steps[]` includes all executed steps
 - [ ] Each step has `name`, `status`, `duration?` (if completed), `reason?` (if skipped)
@@ -1420,6 +1528,7 @@ cat output.json | jq '.execution.steps[] | {name, status, duration?}'
 - [ ] `execution.startedAt` and `completedAt` are valid ISO timestamps
 
 **Step Tracking**:
+
 - [ ] Completed steps show actual duration in milliseconds
 - [ ] Skipped steps include reason (e.g., "PR already exists", "--skip-verify flag")
 - [ ] Failed steps (in error case) include error message
@@ -1427,6 +1536,7 @@ cat output.json | jq '.execution.steps[] | {name, status, duration?}'
 - [ ] "push" and "create-pr" skipped when existing PR found
 
 **AI Agent Value**:
+
 - [ ] AI agents can parse execution history from JSON
 - [ ] Can identify bottlenecks (steps with high duration)
 - [ ] Can detect patterns (frequently skipped steps)
@@ -1434,10 +1544,11 @@ cat output.json | jq '.execution.steps[] | {name, status, duration?}'
 - [ ] Can calculate success metrics (% of steps completed)
 
 **Backward Compatibility**:
+
 - [ ] Console output unchanged (no visual changes)
 - [ ] Existing JSON fields preserved
 - [ ] No breaking changes to API
-- [ ] Works with all ship command flags (--skip-*, --no-wait, etc.)
+- [ ] Works with all ship command flags (--skip-\*, --no-wait, etc.)
 
 ---
 
@@ -1445,15 +1556,16 @@ cat output.json | jq '.execution.steps[] | {name, status, duration?}'
 
 ### Priority Matrix (UPDATED after dual-audience analysis)
 
-| Issue | Severity | Impact (Human/AI) | User-Facing | Priority | Effort |
-|-------|----------|-------------------|-------------|----------|--------|
-| #1 Vulnerabilities | Medium | Low / Minimal | No | **P2** | 2-3h (with safety) |
-| #2 Secret scanning | Low | Low / None | Yes | **P3** | 1h |
-| #3 Blank lines | Low/Medium | Low / **HIGH** (--json) | Yes | **P2** | 4-6h (cross-command) |
-| #4 CI checks (0/0) | Medium | Medium / Medium | Yes | **P1** | 4-5h (with race fix) |
-| #5 JSON metadata | Medium | **Minimal / CRITICAL** | No | **P1** 🔥 | 3h (Phase 1) |
+| Issue              | Severity   | Impact (Human/AI)       | User-Facing | Priority  | Effort               |
+| ------------------ | ---------- | ----------------------- | ----------- | --------- | -------------------- |
+| #1 Vulnerabilities | Medium     | Low / Minimal           | No          | **P2**    | 2-3h (with safety)   |
+| #2 Secret scanning | Low        | Low / None              | Yes         | **P3**    | 1h                   |
+| #3 Blank lines     | Low/Medium | Low / **HIGH** (--json) | Yes         | **P2**    | 4-6h (cross-command) |
+| #4 CI checks (0/0) | Medium     | Medium / Medium         | Yes         | **P1**    | 4-5h (with race fix) |
+| #5 JSON metadata   | Medium     | **Minimal / CRITICAL**  | No          | **P1** 🔥 | 3h (Phase 1)         |
 
 **Key Changes**:
+
 - **Issue #5**: P2 → **P1** - Critical for AI agents (gpm's dual audience design goal)
 - **Issue #3**: Elevated severity for AI impact (--json output standardization)
 - **Issue #1**: Increased effort (added semantic-release safety measures)
@@ -1464,6 +1576,7 @@ cat output.json | jq '.execution.steps[] | {name, status, duration?}'
 ### Recommended Implementation Order (UPDATED)
 
 **Sprint 1: AI agent enablement** 🤖
+
 1. **Issue #5: ExecutionTracker** (3 hours) 🔥 **P1**
    - **CRITICAL for AI agents** - execution observability
    - Enables debugging, optimization, audit trails
@@ -1475,11 +1588,11 @@ cat output.json | jq '.execution.steps[] | {name, status, duration?}'
    - Clear messaging for all scenarios
    - Affects both human and AI users
 
-**Sprint 2: Stability and standardization**
-3. **Issue #1: npm vulnerabilities** (2-3 hours) 🔐 **P2**
-   - semantic-release safety measures
-   - Dry-run validation before merge
-   - Lockfile discipline + CI guardrails
+**Sprint 2: Stability and standardization** 3. **Issue #1: npm vulnerabilities** (2-3 hours) 🔐 **P2**
+
+- semantic-release safety measures
+- Dry-run validation before merge
+- Lockfile discipline + CI guardrails
 
 4. **Issue #3: --json standardization** (4-6 hours) 🎨 **P2**
    - Cross-command audit (all --json commands)
@@ -1487,10 +1600,10 @@ cat output.json | jq '.execution.steps[] | {name, status, duration?}'
    - Strict output contract (JSON on stdout, logs on stderr)
    - Integration tests for JSON validity
 
-**Sprint 3: Documentation and polish**
-5. **Issue #2: Secret scanning** (1 hour) 📚 **P3**
-   - Documentation update only
-   - Clarifies optional features
+**Sprint 3: Documentation and polish** 5. **Issue #2: Secret scanning** (1 hour) 📚 **P3**
+
+- Documentation update only
+- Clarifies optional features
 
 **Total estimated effort**: 14-18 hours (increased from 9-13h due to comprehensive enhancements)
 
@@ -1508,29 +1621,29 @@ cat output.json | jq '.execution.steps[] | {name, status, duration?}'
 
 ```typescript
 // tests/services/EnhancedCIPoller.test.ts
-describe('waitForChecks - no checks scenario', () => {
-  it('should detect no CI checks configured', async () => {
+describe("waitForChecks - no checks scenario", () => {
+  it("should detect no CI checks configured", async () => {
     mockGetStatus.mockResolvedValue({
       total: 0,
       passed: 0,
       failed: 0,
-      pending: 0
+      pending: 0,
     });
 
     const result = await poller.waitForChecks(123);
 
     expect(result.success).toBe(true);
     expect(logger.warn).toHaveBeenCalledWith(
-      expect.stringContaining('No CI checks configured')
+      expect.stringContaining("No CI checks configured"),
     );
   });
 });
 
 // tests/utils/logger.test.ts
-describe('blank line handling', () => {
-  it('should not double-space before sections', () => {
+describe("blank line handling", () => {
+  it("should not double-space before sections", () => {
     logger.blank();
-    logger.section('Test');
+    logger.section("Test");
 
     // Should only have 2 blank lines total (1 from section)
     expect(consoleLogSpy).toHaveBeenCalledTimes(3); // blank, title, divider
@@ -1543,6 +1656,7 @@ describe('blank line handling', () => {
 **Test scenarios**:
 
 1. **No CI checks**:
+
    ```bash
    # Remove .github/workflows temporarily
    mv .github/workflows .github/workflows.bak
@@ -1552,6 +1666,7 @@ describe('blank line handling', () => {
    ```
 
 2. **Existing PR**:
+
    ```bash
    # Create PR manually first
    gh pr create --title "Test" --body "Test"

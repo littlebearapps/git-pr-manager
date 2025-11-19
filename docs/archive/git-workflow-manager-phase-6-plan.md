@@ -1,4 +1,5 @@
 # Git Workflow Manager - Phase 6 Implementation Plan
+
 # Auto-Fix Enhancement (Codex-Free)
 
 **Document Version**: 1.0
@@ -14,6 +15,7 @@
 Phase 6 will transform git-pr-manager from a passive error reporter into an **active error remediation system** by adding execution capabilities to the existing SuggestionEngine. This phase focuses on **deterministic auto-fixes** using proven tools (eslint --fix, prettier, black, etc.) without AI/LLM integration.
 
 **Key Objectives**:
+
 1. **70% Auto-Fix Coverage** for simple errors (lint, format)
 2. **Zero Performance Impact** - maintains Phase 5's 3-5 min target
 3. **Zero Cost** - uses existing open-source tools
@@ -31,16 +33,19 @@ Phase 6 will transform git-pr-manager from a passive error reporter into an **ac
 ### Why Auto-Fix Enhancement Before Codex?
 
 **Phase 5 Performance Goals**:
+
 - Target: 3-5 minute workflows
 - API call reduction: 40-60%
 - CI polling optimization: 30-40% faster
 
 **Codex Integration Analysis** (from deep investigation):
+
 - Would add 4-7 minutes per failure
 - Conflicts with Phase 5 performance targets
 - 70% of errors are simple (lint, format) → existing tools sufficient
 
 **Phased Approach Benefits**:
+
 1. **Low-hanging fruit first**: 70% of errors, zero cost
 2. **Pattern validation**: Prove auto-fix PR workflow works
 3. **Risk mitigation**: Deterministic fixes before AI fixes
@@ -51,14 +56,14 @@ Phase 6 will transform git-pr-manager from a passive error reporter into an **ac
 
 Based on empirical data from git-pr-manager usage:
 
-| Error Type | % of Failures | Auto-Fixable? | Tool |
-|------------|---------------|---------------|------|
-| Linting | 30% | ✅ Yes | eslint --fix, ruff --fix |
-| Formatting | 10% | ✅ Yes | prettier, black, go fmt |
-| Type Errors | 10% | ⚠️ Partial | tsc, mypy (limited) |
-| Test Failures | 25% | ❌ No | *Phase 7: Codex* |
-| Security | 15% | ⚠️ Partial | npm audit fix |
-| Build Errors | 10% | ❌ No | Manual/Codex |
+| Error Type    | % of Failures | Auto-Fixable? | Tool                     |
+| ------------- | ------------- | ------------- | ------------------------ |
+| Linting       | 30%           | ✅ Yes        | eslint --fix, ruff --fix |
+| Formatting    | 10%           | ✅ Yes        | prettier, black, go fmt  |
+| Type Errors   | 10%           | ⚠️ Partial    | tsc, mypy (limited)      |
+| Test Failures | 25%           | ❌ No         | _Phase 7: Codex_         |
+| Security      | 15%           | ⚠️ Partial    | npm audit fix            |
+| Build Errors  | 10%           | ❌ No         | Manual/Codex             |
 
 **Phase 6 Coverage**: 40-50% (lint + format + partial type/security)
 **Stretch Goal**: 60% with aggressive type error handling
@@ -70,11 +75,13 @@ Based on empirical data from git-pr-manager usage:
 ### v1.3.0 Error Handling Capabilities
 
 **ErrorClassifier** (`src/utils/ErrorClassifier.ts`):
+
 - Pattern-based classification (~90% accuracy)
 - 6 error types: TEST_FAILURE, LINTING_ERROR, TYPE_ERROR, SECURITY_ISSUE, BUILD_ERROR, FORMAT_ERROR
 - Uses check name, summary, title for classification
 
 **SuggestionEngine** (`src/utils/SuggestionEngine.ts`):
+
 - Generates command suggestions per error type
 - Language-aware (Python vs Node.js detection via file extensions)
 - Examples:
@@ -87,6 +94,7 @@ Based on empirical data from git-pr-manager usage:
 ### Gap Analysis
 
 **What's Missing**:
+
 1. Execution capability - no actual command running
 2. PR creation - no automated fix commits
 3. Verification - no post-fix validation
@@ -108,19 +116,19 @@ Based on empirical data from git-pr-manager usage:
 **New File**: `src/services/AutoFixService.ts`
 
 ```typescript
-import { exec } from 'child_process';
-import { promisify } from 'util';
-import { GitService } from './GitService';
-import { GitHubService } from './GitHubService';
-import { ErrorType, FailureDetail, AutoFixResult } from '../types';
+import { exec } from "child_process";
+import { promisify } from "util";
+import { GitService } from "./GitService";
+import { GitHubService } from "./GitHubService";
+import { ErrorType, FailureDetail, AutoFixResult } from "../types";
 
 const execAsync = promisify(exec);
 
 export interface AutoFixConfig {
-  maxAttempts: number;        // Default: 2
-  maxChangedLines: number;    // Default: 1000
-  requireTests: boolean;      // Default: true
-  enableDryRun: boolean;      // Default: true
+  maxAttempts: number; // Default: 2
+  maxChangedLines: number; // Default: 1000
+  requireTests: boolean; // Default: true
+  enableDryRun: boolean; // Default: true
 }
 
 export class AutoFixService {
@@ -129,7 +137,11 @@ export class AutoFixService {
   private config: AutoFixConfig;
   private attemptTracker: Map<string, number>;
 
-  constructor(git: GitService, github: GitHubService, config?: Partial<AutoFixConfig>) {
+  constructor(
+    git: GitService,
+    github: GitHubService,
+    config?: Partial<AutoFixConfig>,
+  ) {
     this.git = git;
     this.github = github;
     this.config = {
@@ -137,7 +149,7 @@ export class AutoFixService {
       maxChangedLines: 1000,
       requireTests: true,
       enableDryRun: true,
-      ...config
+      ...config,
     };
     this.attemptTracker = new Map();
   }
@@ -145,10 +157,17 @@ export class AutoFixService {
   /**
    * Attempt to auto-fix a failure
    */
-  async attemptFix(failure: FailureDetail, prNumber: number): Promise<AutoFixResult> {
+  async attemptFix(
+    failure: FailureDetail,
+    prNumber: number,
+  ): Promise<AutoFixResult> {
     // Check if auto-fixable
     if (!this.isAutoFixable(failure.errorType)) {
-      return { success: false, reason: 'not_auto_fixable', errorType: failure.errorType };
+      return {
+        success: false,
+        reason: "not_auto_fixable",
+        errorType: failure.errorType,
+      };
     }
 
     // Check attempt limit
@@ -156,7 +175,7 @@ export class AutoFixService {
     const attempts = this.attemptTracker.get(attemptKey) || 0;
 
     if (attempts >= this.config.maxAttempts) {
-      return { success: false, reason: 'max_attempts_reached', attempts };
+      return { success: false, reason: "max_attempts_reached", attempts };
     }
 
     // Route to specific fixer
@@ -175,7 +194,7 @@ export class AutoFixService {
         result = await this.fixSecurityIssues(failure);
         break;
       default:
-        return { success: false, reason: 'unsupported_type' };
+        return { success: false, reason: "unsupported_type" };
     }
 
     // Track attempt
@@ -191,49 +210,52 @@ export class AutoFixService {
     const language = this.detectLanguage(files);
 
     try {
-      if (language === 'javascript' || language === 'typescript') {
+      if (language === "javascript" || language === "typescript") {
         // Try eslint first
-        if (await this.hasCommand('eslint')) {
-          await execAsync(`npx eslint --fix ${files.join(' ')}`);
-        } else if (await this.hasPackageScript('lint:fix')) {
-          await execAsync('npm run lint:fix');
+        if (await this.hasCommand("eslint")) {
+          await execAsync(`npx eslint --fix ${files.join(" ")}`);
+        } else if (await this.hasPackageScript("lint:fix")) {
+          await execAsync("npm run lint:fix");
         } else {
-          return { success: false, reason: 'no_lint_tool' };
+          return { success: false, reason: "no_lint_tool" };
         }
-      } else if (language === 'python') {
+      } else if (language === "python") {
         // Try ruff, then fallback to pylint
-        if (await this.hasCommand('ruff')) {
-          await execAsync(`ruff check --fix ${files.join(' ')}`);
+        if (await this.hasCommand("ruff")) {
+          await execAsync(`ruff check --fix ${files.join(" ")}`);
         } else {
-          return { success: false, reason: 'no_lint_tool' };
+          return { success: false, reason: "no_lint_tool" };
         }
       } else {
-        return { success: false, reason: 'unsupported_language', language };
+        return { success: false, reason: "unsupported_language", language };
       }
 
       // Verify changes
       const diff = await this.git.getDiff();
       if (!diff || diff.length === 0) {
-        return { success: false, reason: 'no_changes' };
+        return { success: false, reason: "no_changes" };
       }
 
       // Check change size
       const changedLines = this.countChangedLines(diff);
       if (changedLines > this.config.maxChangedLines) {
-        return { success: false, reason: 'too_many_changes', changedLines };
+        return { success: false, reason: "too_many_changes", changedLines };
       }
 
       // Create fix PR
       const prResult = await this.createFixPR(
-        'fix: auto-fix linting errors',
-        `Automatically fixed linting errors in:\n${files.map(f => `- ${f}`).join('\n')}`,
-        files
+        "fix: auto-fix linting errors",
+        `Automatically fixed linting errors in:\n${files.map((f) => `- ${f}`).join("\n")}`,
+        files,
       );
 
       return { success: true, prNumber: prResult.number, changedLines };
-
     } catch (error) {
-      return { success: false, reason: 'execution_failed', error: error.message };
+      return {
+        success: false,
+        reason: "execution_failed",
+        error: error.message,
+      };
     }
   }
 
@@ -244,41 +266,44 @@ export class AutoFixService {
     const language = this.detectLanguage(files);
 
     try {
-      if (language === 'javascript' || language === 'typescript') {
-        if (await this.hasCommand('prettier')) {
-          await execAsync(`npx prettier --write ${files.join(' ')}`);
-        } else if (await this.hasPackageScript('format')) {
-          await execAsync('npm run format');
+      if (language === "javascript" || language === "typescript") {
+        if (await this.hasCommand("prettier")) {
+          await execAsync(`npx prettier --write ${files.join(" ")}`);
+        } else if (await this.hasPackageScript("format")) {
+          await execAsync("npm run format");
         } else {
-          return { success: false, reason: 'no_format_tool' };
+          return { success: false, reason: "no_format_tool" };
         }
-      } else if (language === 'python') {
-        if (await this.hasCommand('black')) {
-          await execAsync(`black ${files.join(' ')}`);
+      } else if (language === "python") {
+        if (await this.hasCommand("black")) {
+          await execAsync(`black ${files.join(" ")}`);
         } else {
-          return { success: false, reason: 'no_format_tool' };
+          return { success: false, reason: "no_format_tool" };
         }
-      } else if (language === 'go') {
-        await execAsync('go fmt ./...');
+      } else if (language === "go") {
+        await execAsync("go fmt ./...");
       } else {
-        return { success: false, reason: 'unsupported_language', language };
+        return { success: false, reason: "unsupported_language", language };
       }
 
       const diff = await this.git.getDiff();
       if (!diff || diff.length === 0) {
-        return { success: false, reason: 'no_changes' };
+        return { success: false, reason: "no_changes" };
       }
 
       const prResult = await this.createFixPR(
-        'style: auto-format code',
+        "style: auto-format code",
         `Automatically formatted code using ${language} formatter.`,
-        files
+        files,
       );
 
       return { success: true, prNumber: prResult.number };
-
     } catch (error) {
-      return { success: false, reason: 'execution_failed', error: error.message };
+      return {
+        success: false,
+        reason: "execution_failed",
+        error: error.message,
+      };
     }
   }
 
@@ -291,30 +316,35 @@ export class AutoFixService {
 
     // For now, return not_auto_fixable
     // Phase 7 (Codex) will handle this better
-    return { success: false, reason: 'limited_auto_fix_capability' };
+    return { success: false, reason: "limited_auto_fix_capability" };
   }
 
   /**
    * Fix security issues (npm audit fix, limited scope)
    */
-  private async fixSecurityIssues(failure: FailureDetail): Promise<AutoFixResult> {
+  private async fixSecurityIssues(
+    failure: FailureDetail,
+  ): Promise<AutoFixResult> {
     const language = this.detectLanguage(failure.affectedFiles);
 
     try {
-      if (language === 'javascript' || language === 'typescript') {
+      if (language === "javascript" || language === "typescript") {
         // Only for dependency vulnerabilities
-        if (failure.summary.includes('dependency') || failure.summary.includes('vulnerability')) {
-          await execAsync('npm audit fix');
+        if (
+          failure.summary.includes("dependency") ||
+          failure.summary.includes("vulnerability")
+        ) {
+          await execAsync("npm audit fix");
 
-          const diff = await this.git.getDiff('package-lock.json');
+          const diff = await this.git.getDiff("package-lock.json");
           if (!diff) {
-            return { success: false, reason: 'no_changes' };
+            return { success: false, reason: "no_changes" };
           }
 
           const prResult = await this.createFixPR(
-            'fix: auto-fix dependency vulnerabilities',
-            'Automatically fixed npm audit vulnerabilities.',
-            ['package-lock.json']
+            "fix: auto-fix dependency vulnerabilities",
+            "Automatically fixed npm audit vulnerabilities.",
+            ["package-lock.json"],
           );
 
           return { success: true, prNumber: prResult.number };
@@ -322,10 +352,13 @@ export class AutoFixService {
       }
 
       // Secret detection and other security issues -> Phase 7 (Codex)
-      return { success: false, reason: 'limited_auto_fix_capability' };
-
+      return { success: false, reason: "limited_auto_fix_capability" };
     } catch (error) {
-      return { success: false, reason: 'execution_failed', error: error.message };
+      return {
+        success: false,
+        reason: "execution_failed",
+        error: error.message,
+      };
     }
   }
 
@@ -335,7 +368,7 @@ export class AutoFixService {
   private async createFixPR(
     title: string,
     body: string,
-    files: string[]
+    files: string[],
   ): Promise<{ number: number; url: string }> {
     // Get current branch
     const branch = await this.git.getCurrentBranch();
@@ -346,7 +379,9 @@ export class AutoFixService {
 
     // Stage and commit
     await this.git.add(files);
-    await this.git.commit(`${title}\n\n${body}\n\n🤖 Auto-generated by git-pr-manager`);
+    await this.git.commit(
+      `${title}\n\n${body}\n\n🤖 Auto-generated by git-pr-manager`,
+    );
 
     // Push
     await this.git.push(fixBranch);
@@ -357,7 +392,7 @@ export class AutoFixService {
       body: `${body}\n\n**Auto-Fix Details**:\n- Affected files: ${files.length}\n- Original branch: ${branch}\n\n🤖 This PR was automatically generated by git-pr-manager`,
       head: fixBranch,
       base: branch,
-      draft: false
+      draft: false,
     });
 
     return { number: pr.number, url: pr.html_url };
@@ -379,13 +414,23 @@ export class AutoFixService {
    * Helper: Detect language from file extensions
    */
   private detectLanguage(files: string[]): string {
-    if (files.some(f => f.endsWith('.ts') || f.endsWith('.tsx') || f.endsWith('.js') || f.endsWith('.jsx'))) {
-      return files.some(f => f.endsWith('.ts') || f.endsWith('.tsx')) ? 'typescript' : 'javascript';
+    if (
+      files.some(
+        (f) =>
+          f.endsWith(".ts") ||
+          f.endsWith(".tsx") ||
+          f.endsWith(".js") ||
+          f.endsWith(".jsx"),
+      )
+    ) {
+      return files.some((f) => f.endsWith(".ts") || f.endsWith(".tsx"))
+        ? "typescript"
+        : "javascript";
     }
-    if (files.some(f => f.endsWith('.py'))) return 'python';
-    if (files.some(f => f.endsWith('.go'))) return 'go';
-    if (files.some(f => f.endsWith('.rs'))) return 'rust';
-    return 'unknown';
+    if (files.some((f) => f.endsWith(".py"))) return "python";
+    if (files.some((f) => f.endsWith(".go"))) return "go";
+    if (files.some((f) => f.endsWith(".rs"))) return "rust";
+    return "unknown";
   }
 
   /**
@@ -405,7 +450,7 @@ export class AutoFixService {
    */
   private async hasPackageScript(script: string): Promise<boolean> {
     try {
-      const { stdout } = await execAsync('npm run');
+      const { stdout } = await execAsync("npm run");
       return stdout.includes(script);
     } catch {
       return false;
@@ -445,12 +490,13 @@ export interface AutoFixResult {
 export interface AutoFixSuggestion {
   command: string;
   autoFixable: boolean;
-  executionStrategy: 'deterministic' | 'ai' | 'manual';
+  executionStrategy: "deterministic" | "ai" | "manual";
   confidence?: number;
 }
 ```
 
 **Tests**: `tests/services/AutoFixService.test.ts` (20+ tests)
+
 - Auto-fix routing tests
 - Language detection tests
 - Command execution mocks
@@ -472,7 +518,7 @@ export class SuggestionEngine {
   getSuggestion(
     summary: string,
     errorType: ErrorType,
-    affectedFiles: string[]
+    affectedFiles: string[],
   ): AutoFixSuggestion {
     const command = this.getCommand(errorType, affectedFiles);
     const autoFixable = this.isAutoFixable(errorType, affectedFiles);
@@ -482,7 +528,7 @@ export class SuggestionEngine {
       command,
       autoFixable,
       executionStrategy: strategy,
-      confidence: this.calculateConfidence(errorType, affectedFiles)
+      confidence: this.calculateConfidence(errorType, affectedFiles),
     };
   }
 
@@ -493,13 +539,13 @@ export class SuggestionEngine {
     switch (errorType) {
       case ErrorType.LINTING_ERROR:
       case ErrorType.FORMAT_ERROR:
-        return true;  // Always auto-fixable
+        return true; // Always auto-fixable
 
       case ErrorType.TYPE_ERROR:
-        return false;  // Limited capability (Phase 7)
+        return false; // Limited capability (Phase 7)
 
       case ErrorType.SECURITY_ISSUE:
-        return files.some(f => f === 'package-lock.json');  // Only npm audit
+        return files.some((f) => f === "package-lock.json"); // Only npm audit
 
       default:
         return false;
@@ -509,19 +555,21 @@ export class SuggestionEngine {
   /**
    * Determine execution strategy
    */
-  private getExecutionStrategy(errorType: ErrorType): 'deterministic' | 'ai' | 'manual' {
+  private getExecutionStrategy(
+    errorType: ErrorType,
+  ): "deterministic" | "ai" | "manual" {
     switch (errorType) {
       case ErrorType.LINTING_ERROR:
       case ErrorType.FORMAT_ERROR:
-        return 'deterministic';  // Use existing tools
+        return "deterministic"; // Use existing tools
 
       case ErrorType.TEST_FAILURE:
       case ErrorType.TYPE_ERROR:
       case ErrorType.BUILD_ERROR:
-        return 'ai';  // Phase 7: Codex
+        return "ai"; // Phase 7: Codex
 
       default:
-        return 'manual';  // Requires human intervention
+        return "manual"; // Requires human intervention
     }
   }
 
@@ -530,13 +578,19 @@ export class SuggestionEngine {
    */
   private calculateConfidence(errorType: ErrorType, files: string[]): number {
     // Simple heuristic for now
-    if (errorType === ErrorType.LINTING_ERROR || errorType === ErrorType.FORMAT_ERROR) {
-      return 0.95;  // Very confident in deterministic tools
+    if (
+      errorType === ErrorType.LINTING_ERROR ||
+      errorType === ErrorType.FORMAT_ERROR
+    ) {
+      return 0.95; // Very confident in deterministic tools
     }
-    if (errorType === ErrorType.SECURITY_ISSUE && files.includes('package-lock.json')) {
-      return 0.85;  // npm audit is reliable
+    if (
+      errorType === ErrorType.SECURITY_ISSUE &&
+      files.includes("package-lock.json")
+    ) {
+      return 0.85; // npm audit is reliable
     }
-    return 0.5;  // Low confidence for others
+    return 0.5; // Low confidence for others
   }
 
   // Existing getCommand method remains...
@@ -544,6 +598,7 @@ export class SuggestionEngine {
 ```
 
 **Tests**: Update `tests/utils/SuggestionEngine.test.ts` (10+ new tests)
+
 - Auto-fixable detection tests
 - Execution strategy routing
 - Confidence calculation
@@ -556,7 +611,7 @@ export class SuggestionEngine {
 **Update**: `src/commands/ship.ts`
 
 ```typescript
-import { AutoFixService } from '../services/AutoFixService';
+import { AutoFixService } from "../services/AutoFixService";
 
 export async function shipCommand(options: ShipOptions) {
   // Existing preflight checks...
@@ -565,16 +620,16 @@ export async function shipCommand(options: ShipOptions) {
   const pr = await prService.createOrFindPR(options);
 
   // Wait for CI
-  logger.info('Waiting for CI checks...');
+  logger.info("Waiting for CI checks...");
   const ciResult = await ciPoller.waitForChecks(pr.number, {
     onProgress: (progress) => {
       spinner.text = `CI running: ${progress.passed}/${progress.total} passed`;
-    }
+    },
   });
 
   // NEW: Auto-fix on CI failure
   if (ciResult.summary.failed > 0 && !options.skipAutoFix) {
-    logger.info('🔧 CI failures detected. Attempting auto-fix...');
+    logger.info("🔧 CI failures detected. Attempting auto-fix...");
 
     const autoFixService = new AutoFixService(gitService, githubService);
     const fixResults = [];
@@ -587,19 +642,21 @@ export async function shipCommand(options: ShipOptions) {
         logger.info(`   Fix PR: #${fixResult.prNumber}`);
         fixResults.push(fixResult);
       } else {
-        logger.warn(`⚠️  Cannot auto-fix: ${failure.checkName} (${fixResult.reason})`);
+        logger.warn(
+          `⚠️  Cannot auto-fix: ${failure.checkName} (${fixResult.reason})`,
+        );
       }
     }
 
     if (fixResults.length > 0) {
       logger.success(`\n🎉 Created ${fixResults.length} auto-fix PR(s)`);
-      logger.info('CI will re-run on fix PRs. Merge them to continue.');
+      logger.info("CI will re-run on fix PRs. Merge them to continue.");
 
       // Exit here - user should merge fix PRs
       return {
         success: false,
-        reason: 'awaiting_auto_fixes',
-        fixPRs: fixResults.map(r => r.prNumber)
+        reason: "awaiting_auto_fixes",
+        fixPRs: fixResults.map((r) => r.prNumber),
       };
     }
   }
@@ -630,45 +687,45 @@ export class VerificationService {
   async verifyAutoFix(
     prNumber: number,
     originalFailures: FailureDetail[],
-    fixedErrorType: ErrorType
+    fixedErrorType: ErrorType,
   ): Promise<VerificationResult> {
     // Wait for CI to re-run on fix PR
     await this.waitForCIStart(prNumber);
 
     const newResult = await this.ciPoller.waitForChecks(prNumber, {
-      timeout: 300000  // 5 min max
+      timeout: 300000, // 5 min max
     });
 
     // Check if the specific error type is now passing
     const stillFailing = newResult.summary.failureDetails.filter(
-      f => f.errorType === fixedErrorType
+      (f) => f.errorType === fixedErrorType,
     );
 
     if (stillFailing.length === 0) {
       return {
         success: true,
-        improvement: 'all_fixed',
+        improvement: "all_fixed",
         originalCount: originalFailures.length,
-        remainingCount: 0
+        remainingCount: 0,
       };
     }
 
     if (stillFailing.length < originalFailures.length) {
       return {
         success: true,
-        improvement: 'partial',
+        improvement: "partial",
         originalCount: originalFailures.length,
-        remainingCount: stillFailing.length
+        remainingCount: stillFailing.length,
       };
     }
 
     // No improvement or worse
     return {
       success: false,
-      improvement: 'none',
+      improvement: "none",
       originalCount: originalFailures.length,
       remainingCount: stillFailing.length,
-      recommendation: 'revert_fix'
+      recommendation: "revert_fix",
     };
   }
 
@@ -676,18 +733,18 @@ export class VerificationService {
    * Wait for CI to start on a PR
    */
   private async waitForCIStart(prNumber: number): Promise<void> {
-    const maxWait = 60000;  // 1 minute
+    const maxWait = 60000; // 1 minute
     const start = Date.now();
 
     while (Date.now() - start < maxWait) {
       const status = await this.ciPoller.getDetailedCheckStatus(prNumber);
       if (status.total > 0) {
-        return;  // CI has started
+        return; // CI has started
       }
       await this.sleep(5000);
     }
 
-    throw new Error('CI did not start within timeout');
+    throw new Error("CI did not start within timeout");
   }
 }
 ```
@@ -705,7 +762,10 @@ export class AutoFixService {
     const pr = await this.github.getPullRequest(prNumber);
 
     // Close the fix PR
-    await this.github.closePullRequest(prNumber, 'Auto-fix did not improve CI results');
+    await this.github.closePullRequest(
+      prNumber,
+      "Auto-fix did not improve CI results",
+    );
 
     // Delete the fix branch
     await this.git.deleteBranch(pr.head.ref, { remote: true });
@@ -718,7 +778,8 @@ export class AutoFixService {
    */
   async shouldAttemptFix(failure: FailureDetail): Promise<boolean> {
     // Don't fix if already attempted twice
-    const attempts = this.attemptTracker.get(this.getAttemptKey(0, failure.errorType)) || 0;
+    const attempts =
+      this.attemptTracker.get(this.getAttemptKey(0, failure.errorType)) || 0;
     if (attempts >= 2) return false;
 
     // Don't fix if error is flaky (detected via quick rerun)
@@ -738,8 +799,15 @@ export class AutoFixService {
 
     // This would require triggering a workflow dispatch
     // For now, check if failure summary mentions "flaky" or "intermittent"
-    const flakyKeywords = ['flaky', 'intermittent', 'random', 'non-deterministic'];
-    return flakyKeywords.some(kw => failure.summary.toLowerCase().includes(kw));
+    const flakyKeywords = [
+      "flaky",
+      "intermittent",
+      "random",
+      "non-deterministic",
+    ];
+    return flakyKeywords.some((kw) =>
+      failure.summary.toLowerCase().includes(kw),
+    );
   }
 }
 ```
@@ -794,6 +862,7 @@ async dryRun(failure: FailureDetail): Promise<DryRunResult> {
 ```
 
 **Tests**: `tests/services/VerificationService.test.ts` (15+ tests)
+
 - Post-fix verification tests
 - Rollback tests
 - Flaky detection tests
@@ -860,7 +929,7 @@ interface AutoFixLog {
   timestamp: string;
   prNumber: number;
   errorType: ErrorType;
-  action: 'attempt' | 'success' | 'failure' | 'rollback';
+  action: "attempt" | "success" | "failure" | "rollback";
   reason?: string;
   changedLines?: number;
   fixPRNumber?: number;
@@ -870,7 +939,7 @@ interface AutoFixLog {
 export class AutoFixService {
   private logs: AutoFixLog[] = [];
 
-  private logAction(log: Omit<AutoFixLog, 'timestamp'>) {
+  private logAction(log: Omit<AutoFixLog, "timestamp">) {
     const entry = { ...log, timestamp: new Date().toISOString() };
     this.logs.push(entry);
 
@@ -906,18 +975,20 @@ export interface AutoFixMetrics {
 export class AutoFixService {
   getMetrics(): AutoFixMetrics {
     // Calculate from logs
-    const successful = this.logs.filter(l => l.action === 'success');
-    const failed = this.logs.filter(l => l.action === 'failure');
-    const rollbacks = this.logs.filter(l => l.action === 'rollback');
+    const successful = this.logs.filter((l) => l.action === "success");
+    const failed = this.logs.filter((l) => l.action === "failure");
+    const rollbacks = this.logs.filter((l) => l.action === "rollback");
 
     return {
-      totalAttempts: this.logs.filter(l => l.action === 'attempt').length,
+      totalAttempts: this.logs.filter((l) => l.action === "attempt").length,
       successfulFixes: successful.length,
       failedFixes: failed.length,
       rollbacks: rollbacks.length,
-      averageChangedLines: this.average(successful.map(l => l.changedLines || 0)),
+      averageChangedLines: this.average(
+        successful.map((l) => l.changedLines || 0),
+      ),
       fixesByType: this.groupByType(successful),
-      averageDuration: this.average(this.logs.map(l => l.duration))
+      averageDuration: this.average(this.logs.map((l) => l.duration)),
     };
   }
 }
@@ -926,12 +997,14 @@ export class AutoFixService {
 #### 3.4 Documentation Updates
 
 **Update `README.md`**:
+
 - Add "Auto-Fix" section
 - Document new flags: `--skip-auto-fix`
 - Show example workflow with auto-fix
 - Add metrics section
 
 **Create `docs/AUTO-FIX.md`**:
+
 - How auto-fix works
 - Supported error types
 - Configuration options
@@ -939,10 +1012,12 @@ export class AutoFixService {
 - Troubleshooting
 
 **Update `CHANGELOG.md`**:
+
 ```markdown
 ## v1.5.0 (Phase 6 Complete)
 
 ### Features
+
 - Auto-fix for linting errors (eslint, ruff)
 - Auto-fix for formatting errors (prettier, black, gofmt)
 - Automated fix PR creation
@@ -953,15 +1028,18 @@ export class AutoFixService {
 - Comprehensive metrics tracking
 
 ### Configuration
+
 - New `.gpm.yml` section: `autoFix`
 - Language-specific tool configuration
 - Safety settings (max attempts, max files, etc.)
 
 ### Performance
+
 - Zero additional latency (fixes run after CI failure)
 - 70% of simple errors auto-fixed without human intervention
 
 ### Testing
+
 - 50+ new tests for AutoFixService
 - Integration tests for auto-fix workflow
 ```
@@ -974,31 +1052,31 @@ export class AutoFixService {
 
 ### Coverage Targets
 
-| Metric | Target | Measurement |
-|--------|--------|-------------|
-| Auto-fix coverage (lint) | 90%+ | Lint errors fixed / total lint errors |
-| Auto-fix coverage (format) | 95%+ | Format errors fixed / total format errors |
-| Auto-fix coverage (overall) | 70%+ | All auto-fixed / total simple errors |
-| False positive rate | <1% | Bad fixes requiring revert |
-| PR creation success | 95%+ | Fix PRs created / fix attempts |
+| Metric                      | Target | Measurement                               |
+| --------------------------- | ------ | ----------------------------------------- |
+| Auto-fix coverage (lint)    | 90%+   | Lint errors fixed / total lint errors     |
+| Auto-fix coverage (format)  | 95%+   | Format errors fixed / total format errors |
+| Auto-fix coverage (overall) | 70%+   | All auto-fixed / total simple errors      |
+| False positive rate         | <1%    | Bad fixes requiring revert                |
+| PR creation success         | 95%+   | Fix PRs created / fix attempts            |
 
 ### Performance Targets
 
-| Metric | Current (v1.4.0) | Target (v1.5.0) | Status |
-|--------|------------------|-----------------|--------|
-| Developer intervention (simple errors) | 100% | 30% | 70% reduction |
-| Time to fix (lint errors) | 10-15 min | 0 min | Automated |
-| Time to fix (format errors) | 5-10 min | 0 min | Automated |
-| CI workflow time | 3-5 min | 3-5 min | No impact |
+| Metric                                 | Current (v1.4.0) | Target (v1.5.0) | Status        |
+| -------------------------------------- | ---------------- | --------------- | ------------- |
+| Developer intervention (simple errors) | 100%             | 30%             | 70% reduction |
+| Time to fix (lint errors)              | 10-15 min        | 0 min           | Automated     |
+| Time to fix (format errors)            | 5-10 min         | 0 min           | Automated     |
+| CI workflow time                       | 3-5 min          | 3-5 min         | No impact     |
 
 ### Quality Targets
 
-| Metric | Target |
-|--------|--------|
-| Fix success rate | 95%+ (fixes improve CI) |
-| Rollback rate | <5% (bad fixes) |
-| No-op rate | <10% (fixes that change nothing) |
-| Confidence in deterministic tools | 95%+ |
+| Metric                            | Target                           |
+| --------------------------------- | -------------------------------- |
+| Fix success rate                  | 95%+ (fixes improve CI)          |
+| Rollback rate                     | <5% (bad fixes)                  |
+| No-op rate                        | <10% (fixes that change nothing) |
+| Confidence in deterministic tools | 95%+                             |
 
 ---
 
@@ -1007,6 +1085,7 @@ export class AutoFixService {
 ### Unit Tests (Target: 50+ tests)
 
 **AutoFixService** (20 tests):
+
 - Routing to correct fixer
 - Language detection
 - Command execution (mocked)
@@ -1017,18 +1096,21 @@ export class AutoFixService {
 - Rollback logic
 
 **Enhanced SuggestionEngine** (10 tests):
+
 - Auto-fixable detection
 - Execution strategy routing
 - Confidence calculation
 - Multi-language support
 
 **VerificationService** (15 tests):
+
 - Post-fix verification
 - Improvement detection
 - Rollback triggers
 - Flaky detection
 
 **Configuration** (5 tests):
+
 - Config loading
 - Language-specific settings
 - Safety settings
@@ -1036,6 +1118,7 @@ export class AutoFixService {
 ### Integration Tests (Target: 15+ tests)
 
 **End-to-End Auto-Fix** (8 tests):
+
 1. Lint error → auto-fix → PR → CI pass
 2. Format error → auto-fix → PR → CI pass
 3. Multiple errors → multiple fix PRs
@@ -1046,12 +1129,14 @@ export class AutoFixService {
 8. Flaky test → skip auto-fix
 
 **Configuration-Driven** (4 tests):
+
 1. Disabled error types → skip
 2. Custom tool configuration → use correct tool
 3. Safety settings → enforce limits
 4. Language-specific → route correctly
 
 **Error Handling** (3 tests):
+
 1. Tool not installed → graceful degradation
 2. Command execution fails → report error
 3. GitHub API failure → retry or fail gracefully
@@ -1081,6 +1166,7 @@ Before v1.5.0 release:
 **Impact**: Medium
 
 **Mitigation**:
+
 - Use only deterministic, well-tested tools (eslint --fix, prettier, black)
 - Post-fix verification (CI must improve)
 - Automatic rollback if verification fails
@@ -1089,6 +1175,7 @@ Before v1.5.0 release:
 - Change size limits (max 1000 lines)
 
 **Detection**:
+
 - Monitor rollback rate (target <5%)
 - Track fix success rate via metrics
 - User feedback
@@ -1099,12 +1186,14 @@ Before v1.5.0 release:
 **Impact**: High
 
 **Mitigation**:
+
 - Max attempts per error type (2)
 - Attempt tracking via in-memory map
 - No-op detection (diff must have changes)
 - Flaky test detection (skip auto-fix)
 
 **Detection**:
+
 - Alert if same error-type attempted >2 times
 - Monitor attempt tracker size
 - CI time spikes
@@ -1115,12 +1204,14 @@ Before v1.5.0 release:
 **Impact**: Low
 
 **Mitigation**:
+
 - Check for tool availability before execution (`which <cmd>`)
 - Fallback to package.json scripts if available
 - Graceful degradation (skip auto-fix, report reason)
 - Clear error messages
 
 **Detection**:
+
 - Monitor "no_tool" failure reason
 - Suggest tool installation in error message
 
@@ -1130,12 +1221,14 @@ Before v1.5.0 release:
 **Impact**: Medium
 
 **Mitigation**:
+
 - Single fix PR per error type per branch
 - Consolidate multiple file fixes into one PR
 - Max files per fix (20)
 - Clear PR titles and descriptions
 
 **Detection**:
+
 - Monitor PR creation rate
 - User feedback
 
@@ -1145,12 +1238,14 @@ Before v1.5.0 release:
 **Impact**: High
 
 **Mitigation**:
+
 - Only use pre-approved tools (eslint, prettier, etc.)
 - No user input in command execution
 - Sanitize file paths
 - Run in same environment as CI (trusted)
 
 **Detection**:
+
 - Code review of AutoFixService
 - Security audit before v1.5.0
 
@@ -1178,11 +1273,13 @@ If v1.5.0 causes issues:
 **Breaking Changes**: None (all features opt-in via flags)
 
 **New Features**:
+
 1. Auto-fix enabled by default for lint/format errors
 2. Fix PRs created automatically on CI failures
 3. New flag: `--skip-auto-fix` to disable
 
 **Configuration**:
+
 - Optional: Add `autoFix` section to `.gpm.yml`
 - Default behavior works for most projects
 
@@ -1236,6 +1333,7 @@ Before proceeding to Phase 7, Phase 6 must achieve:
    - **Latency**: +4-7 minutes per test failure
 
 2. **Implementation Architecture**:
+
    ```typescript
    // New service: CodexFixService.ts
    export class CodexFixService {
@@ -1246,17 +1344,17 @@ Before proceeding to Phase 7, Phase 6 must achieve:
 
        // Context compaction (keep token costs low)
        const context = this.buildContext(failure, {
-         maxLines: 600,        // Failure logs
-         codeContext: 80,      // ±40 lines around failure
-         includeTests: true
+         maxLines: 600, // Failure logs
+         codeContext: 80, // ±40 lines around failure
+         includeTests: true,
        });
 
        // Submit to Codex
        const task = await this.codexClient.submit({
          task: `Fix failing test: ${failure.summary}`,
          context: context,
-         mode: 'read-only',  // Analysis only
-         maxAttempts: 2
+         mode: "read-only", // Analysis only
+         maxAttempts: 2,
        });
 
        // Poll for result
@@ -1290,31 +1388,35 @@ Before proceeding to Phase 7, Phase 6 must achieve:
 #### Key Questions to Answer Before Phase 7
 
 **Question 1: Is Phase 6 delivering value?**
+
 - Metrics to review:
-  - Auto-fix success rate: ___% (target: >90%)
-  - Developer time saved: ___ hours/week
-  - Rollback incidents: ___ (target: <5%)
-  - User satisfaction: ___/10
+  - Auto-fix success rate: \_\_\_% (target: >90%)
+  - Developer time saved: \_\_\_ hours/week
+  - Rollback incidents: \_\_\_ (target: <5%)
+  - User satisfaction: \_\_\_/10
 
 **Question 2: Are test failures worth automating?**
+
 - Analysis needed:
-  - % of CI failures that are test failures: ___% (if <15%, may not be worth it)
-  - Average time to fix test failure manually: ___ minutes
-  - Estimated Codex success rate for test fixes: ___% (aim for >60%)
+  - % of CI failures that are test failures: \_\_\_% (if <15%, may not be worth it)
+  - Average time to fix test failure manually: \_\_\_ minutes
+  - Estimated Codex success rate for test fixes: \_\_\_% (aim for >60%)
 
 **Question 3: Can we afford the cost and latency?**
+
 - Cost analysis:
-  - Current monthly CI failures: ___
-  - Expected test failures: ___% = ___ failures
-  - Estimated Codex cost: ___ × $0.10 = $___/month
-  - ROI calculation: Developer time saved ($___) - Codex cost ($___) = $___
+  - Current monthly CI failures: \_\_\_
+  - Expected test failures: **_% = _** failures
+  - Estimated Codex cost: **_ × $0.10 = $_**/month
+  - ROI calculation: Developer time saved ($___) - Codex cost ($**_) = $_**
 
 - Performance impact:
-  - Current CI workflow time: ___ minutes
-  - With Codex (selective): ___ minutes average
+  - Current CI workflow time: \_\_\_ minutes
+  - With Codex (selective): \_\_\_ minutes average
   - Acceptable? Yes / No
 
 **Question 4: Do we have the technical capability?**
+
 - Prerequisites:
   - Codex SDK integration expertise
   - OpenAI API access and billing setup
@@ -1322,6 +1424,7 @@ Before proceeding to Phase 7, Phase 6 must achieve:
   - Team bandwidth for Phase 7 implementation (10-12 hours)
 
 **Question 5: What are the organizational concerns?**
+
 - Policy questions:
   - Is sending code to OpenAI approved? (Need: opt-in policy, legal review)
   - Are there compliance/security concerns? (Need: data classification, redaction strategy)
@@ -1330,6 +1433,7 @@ Before proceeding to Phase 7, Phase 6 must achieve:
 #### Decision Framework
 
 **PROCEED to Phase 7 IF**:
+
 1. ✅ Phase 6 achieves all success criteria
 2. ✅ Test failures represent ≥15% of CI errors
 3. ✅ ROI is positive (time saved > cost)
@@ -1338,6 +1442,7 @@ Before proceeding to Phase 7, Phase 6 must achieve:
 6. ✅ Team has bandwidth and expertise
 
 **DEFER Phase 7 IF**:
+
 1. ❌ Phase 6 rollback rate >10%
 2. ❌ Test failures <10% of errors (low value)
 3. ❌ Team size too small (cost/failure too high)
@@ -1345,6 +1450,7 @@ Before proceeding to Phase 7, Phase 6 must achieve:
 5. ❌ Organizational blockers (legal, compliance)
 
 **CANCEL Phase 7 IF**:
+
 1. ❌ Phase 6 fails to deliver value
 2. ❌ User feedback is negative (auto-fix is disruptive)
 3. ❌ Alternative solutions emerge (better tools, etc.)
@@ -1352,16 +1458,19 @@ Before proceeding to Phase 7, Phase 6 must achieve:
 #### Recommended Review Process
 
 **Timeline**:
+
 - Week 2 after v1.5.0: Initial metrics review
 - Week 4 after v1.5.0: Full Phase 7 decision review
 
 **Participants**:
+
 - Engineering lead
 - Product owner
 - Security/compliance representative
 - Cost/budget owner
 
 **Review Artifacts**:
+
 1. Phase 6 metrics dashboard
 2. Cost-benefit analysis spreadsheet
 3. User feedback summary
@@ -1369,6 +1478,7 @@ Before proceeding to Phase 7, Phase 6 must achieve:
 5. Risk assessment (updated for AI integration)
 
 **Deliverable**:
+
 - **GO/NO-GO decision** on Phase 7
 - If GO: Detailed Phase 7 implementation plan
 - If NO-GO: Alternative strategies (improve Phase 6, explore other tools, etc.)

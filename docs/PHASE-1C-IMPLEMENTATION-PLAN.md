@@ -15,6 +15,7 @@ Phase 1c completes the verify command feature set by adding **format** and **bui
 ### Why Phase 1c?
 
 **Current State (Phase 1a + 1b):**
+
 - ✅ Lint: Code quality checks
 - ✅ Test: Functionality verification
 - ✅ Typecheck: Type safety
@@ -22,6 +23,7 @@ Phase 1c completes the verify command feature set by adding **format** and **bui
 - ❌ Build: Compilation verification (MISSING)
 
 **After Phase 1c:**
+
 - ✅ Complete verification pipeline
 - ✅ Universal format support (all languages)
 - ✅ Build support for compiled languages
@@ -30,12 +32,12 @@ Phase 1c completes the verify command feature set by adding **format** and **bui
 
 ### Key Benefits
 
-| Feature | Benefit | Impact |
-|---------|---------|--------|
-| **Format Support** | Enforce consistent code style across languages | Reduce review friction by 40-60% |
-| **Build Verification** | Catch compilation errors before PR | Prevent 80% of "build failed" PR failures |
-| **Configurable Order** | Customize workflow per project | Faster local dev (skip heavy tasks) |
-| **Fail-Fast Mode** | Stop on first failure | 50% faster feedback in CI |
+| Feature                | Benefit                                        | Impact                                    |
+| ---------------------- | ---------------------------------------------- | ----------------------------------------- |
+| **Format Support**     | Enforce consistent code style across languages | Reduce review friction by 40-60%          |
+| **Build Verification** | Catch compilation errors before PR             | Prevent 80% of "build failed" PR failures |
+| **Configurable Order** | Customize workflow per project                 | Faster local dev (skip heavy tasks)       |
+| **Fail-Fast Mode**     | Stop on first failure                          | 50% faster feedback in CI                 |
 
 ---
 
@@ -57,6 +59,7 @@ Phase 1c completes the verify command feature set by adding **format** and **bui
 ### In Scope
 
 **1. Format Task Support**
+
 - Node.js: prettier, biome
 - Python: black, ruff format, autopep8
 - Go: gofmt, goimports
@@ -64,6 +67,7 @@ Phase 1c completes the verify command feature set by adding **format** and **bui
 - Modes: check (default for verify), fix (future: `gpm format --fix`)
 
 **2. Build Task Support**
+
 - Node.js: npm run build (if build script exists), tsc
 - Python: python -m build, poetry build (optional)
 - Go: go build ./...
@@ -71,6 +75,7 @@ Phase 1c completes the verify command feature set by adding **format** and **bui
 - Optional behavior: skip if no build command exists (no error)
 
 **3. Verification Order Configuration**
+
 - Default order: format → lint → typecheck → test → build
 - Configurable via .gpm.yml
 - Per-task skip support
@@ -94,10 +99,16 @@ Phase 1c follows the established CommandResolver pattern from Phase 1a:
 
 ```typescript
 // Existing types (Phase 1a/1b)
-type VerificationTask = 'lint' | 'test' | 'typecheck' | 'install';
+type VerificationTask = "lint" | "test" | "typecheck" | "install";
 
 // NEW in Phase 1c
-type VerificationTask = 'format' | 'lint' | 'typecheck' | 'test' | 'build' | 'install';
+type VerificationTask =
+  | "format"
+  | "lint"
+  | "typecheck"
+  | "test"
+  | "build"
+  | "install";
 ```
 
 ### Component Changes
@@ -198,8 +209,13 @@ export async function verifyCommand(options: VerifyOptions): Promise<void> {
   const config = await loadConfig();
 
   // NEW: Get task order from config (default: format → lint → typecheck → test → build)
-  const taskOrder = config.verification?.tasks ||
-    ['format', 'lint', 'typecheck', 'test', 'build'];
+  const taskOrder = config.verification?.tasks || [
+    "format",
+    "lint",
+    "typecheck",
+    "test",
+    "build",
+  ];
 
   // NEW: Get skip list
   const skipTasks = config.verification?.skipTasks || [];
@@ -218,7 +234,7 @@ export async function verifyCommand(options: VerifyOptions): Promise<void> {
     const result = await resolver.resolve({ task, language, packageManager });
 
     // NEW: Handle optional tasks (build)
-    if (result.source === 'not-found') {
+    if (result.source === "not-found") {
       if (result.optional) {
         logger.info(`⏭️  ${task}: Skipping (no command found)`);
         continue;
@@ -249,22 +265,26 @@ export async function verifyCommand(options: VerifyOptions): Promise<void> {
 ### Task 1c.1: Format Command Support (4-5 hours)
 
 **Deliverables:**
+
 - Add 'format' to VerificationTask type
 - Update LanguageDetectionService.getToolCommands() with format commands
 - Update CommandResolver to resolve format commands
 - Handle format + Makefile integration (e.g., `make format-check`)
 
 **Implementation Steps:**
+
 1. Update types in `src/types/index.ts`
 2. Add format command detection in `src/services/LanguageDetectionService.ts`
 3. Test format resolution in CommandResolver
 4. Update Makefile integration (Phase 1b compatibility)
 
 **Testing:**
+
 - 8 unit tests: format resolution per language (Node.js, Python, Go, Rust)
 - 2 integration tests: Makefile integration, workspace detection
 
 **Files Modified:**
+
 - `src/types/index.ts`
 - `src/services/LanguageDetectionService.ts`
 - `src/services/CommandResolver.ts`
@@ -276,41 +296,46 @@ export async function verifyCommand(options: VerifyOptions): Promise<void> {
 ### Task 1c.2: Build Command Support (4-5 hours)
 
 **Deliverables:**
+
 - Add 'build' to VerificationTask type
 - Update LanguageDetectionService.getToolCommands() with build commands
 - Implement optional build behavior (skip if no build command)
 - Handle TypeScript project references (tsc -b)
 
 **Implementation Steps:**
+
 1. Add build command detection
 2. Implement optional task handling in CommandResolver
 3. Detect TypeScript project references (tsconfig.json "references" field)
 4. Test build resolution and optional behavior
 
 **Build Detection Logic:**
+
 ```typescript
 // Node.js: Check package.json for build script
-const packageJson = await readFile('package.json');
+const packageJson = await readFile("package.json");
 const hasBuildScript = packageJson.scripts?.build !== undefined;
 
 // TypeScript: Check for project references
-const tsconfigJson = await readFile('tsconfig.json');
+const tsconfigJson = await readFile("tsconfig.json");
 const hasProjectRefs = tsconfigJson.references !== undefined;
 
 if (hasProjectRefs) {
-  return 'tsc -b --pretty false';  // Project references build
+  return "tsc -b --pretty false"; // Project references build
 } else if (hasBuildScript) {
-  return 'npm run build';  // Standard build script
+  return "npm run build"; // Standard build script
 } else {
-  return null;  // No build command (optional)
+  return null; // No build command (optional)
 }
 ```
 
 **Testing:**
+
 - 8 unit tests: build resolution per language, optional behavior
 - 2 integration tests: TypeScript project references, package.json build script detection
 
 **Files Modified:**
+
 - `src/services/LanguageDetectionService.ts`
 - `src/services/CommandResolver.ts`
 - `tests/services/CommandResolver.test.ts`
@@ -320,21 +345,24 @@ if (hasProjectRefs) {
 ### Task 1c.3: Verification Order Configuration (2-3 hours)
 
 **Deliverables:**
+
 - Add verification config schema
 - Implement configurable task order
 - Implement skip tasks support
 - Implement fail-fast mode
 
 **Configuration Schema:**
+
 ```yaml
 # .gpm.yml
 verification:
-  tasks: [format, lint, typecheck, test, build]  # Custom order
-  skipTasks: [build]                             # Skip specific tasks
-  stopOnFirstFailure: true                       # Fail-fast mode
+  tasks: [format, lint, typecheck, test, build] # Custom order
+  skipTasks: [build] # Skip specific tasks
+  stopOnFirstFailure: true # Fail-fast mode
 ```
 
 **Implementation Steps:**
+
 1. Update config types in `src/types/config.ts`
 2. Update verify command to read config
 3. Implement task ordering logic
@@ -342,9 +370,11 @@ verification:
 5. Implement fail-fast mode
 
 **Testing:**
+
 - 6 unit tests: custom order, skip tasks, fail-fast behavior
 
 **Files Modified:**
+
 - `src/types/config.ts`
 - `src/commands/verify.ts`
 - `src/services/ConfigService.ts`
@@ -355,12 +385,14 @@ verification:
 ### Task 1c.4: Integration Tests (2-3 hours)
 
 **Deliverables:**
+
 - Integration tests for format task
 - Integration tests for build task
 - Cross-feature integration (format + Makefile + workspace)
 - Complete verification workflow test
 
 **Test Scenarios:**
+
 1. Format command resolution for all languages
 2. Build command resolution with optional behavior
 3. Verification order customization
@@ -369,10 +401,12 @@ verification:
 6. Cross-feature: format + Makefile aliases + workspace detection
 
 **Testing:**
+
 - 10-12 integration tests
 - Coverage target: >80% (maintain current 89.67%)
 
 **Files Created:**
+
 - `tests/integration/phase1c.integration.test.ts`
 
 ---
@@ -380,6 +414,7 @@ verification:
 ### Task 1c.5: Documentation (2-3 hours)
 
 **Deliverables:**
+
 - README.md: Format and build examples
 - Configuration documentation for verification settings
 - Troubleshooting guide for format/build issues
@@ -388,16 +423,18 @@ verification:
 **Documentation Updates:**
 
 **README.md additions:**
+
 ```markdown
 ### Format Verification (Phase 1c)
 
 Enforce consistent code style:
 
 \`\`\`bash
-gpm verify  # Runs format check automatically
+gpm verify # Runs format check automatically
 \`\`\`
 
 Supported formatters:
+
 - **Node.js**: prettier (recommended), biome
 - **Python**: black (recommended), ruff format, autopep8
 - **Go**: gofmt (standard), goimports
@@ -408,10 +445,11 @@ Supported formatters:
 Verify code compiles before PR:
 
 \`\`\`bash
-gpm verify  # Runs build if build command exists
+gpm verify # Runs build if build command exists
 \`\`\`
 
 Build detection:
+
 - **Node.js**: Uses `npm run build` if script exists
 - **TypeScript**: Uses `tsc -b` for project references, `tsc` otherwise
 - **Go**: Always runs `go build ./...`
@@ -421,15 +459,18 @@ Build detection:
 ### Verification Configuration
 
 \`\`\`yaml
+
 # .gpm.yml
+
 verification:
-  tasks: [format, lint, typecheck, test, build]  # Custom order
-  skipTasks: [build]                             # Skip tasks
-  stopOnFirstFailure: true                       # Fail-fast
+tasks: [format, lint, typecheck, test, build] # Custom order
+skipTasks: [build] # Skip tasks
+stopOnFirstFailure: true # Fail-fast
 \`\`\`
 ```
 
 **Files Modified:**
+
 - `README.md`
 - `docs/TESTS.md`
 - `.gpm.yml` (example config)
@@ -455,17 +496,19 @@ verification:
 ### Profile-Based Configuration
 
 **Local Development Profile:**
+
 ```yaml
 verification:
-  tasks: [format, lint, typecheck, test]  # Skip build for speed
-  stopOnFirstFailure: true                 # Fast feedback
+  tasks: [format, lint, typecheck, test] # Skip build for speed
+  stopOnFirstFailure: true # Fast feedback
 ```
 
 **CI Profile:**
+
 ```yaml
 verification:
-  tasks: [format, lint, typecheck, test, build]  # Full verification
-  stopOnFirstFailure: false                       # Run all tasks
+  tasks: [format, lint, typecheck, test, build] # Full verification
+  stopOnFirstFailure: false # Run all tasks
 ```
 
 ### Per-Language Overrides
@@ -478,10 +521,10 @@ verification:
   # Language-specific overrides
   overrides:
     python:
-      skipTasks: [build]  # Python rarely needs build
+      skipTasks: [build] # Python rarely needs build
 
     go:
-      tasks: [format, lint, test, build]  # Go doesn't have separate typecheck
+      tasks: [format, lint, test, build] # Go doesn't have separate typecheck
 ```
 
 ---
@@ -493,11 +536,12 @@ verification:
 **Issue**: Some tools do both format and lint (biome, ruff)
 
 **Mitigation:**
+
 - Prefer dedicated formatters (prettier over biome)
 - Allow config to skip format if using combo tool:
   ```yaml
   verification:
-    skipTasks: [format]  # Using biome for both format and lint
+    skipTasks: [format] # Using biome for both format and lint
   ```
 - Document recommended approach in README
 
@@ -510,6 +554,7 @@ verification:
 **Issue**: Determining if a project needs a build step
 
 **Mitigation:**
+
 - Conservative approach: only run build if explicitly configured or clear build script exists
 - Make build optional (skip with info message, not error)
 - Detection rules:
@@ -529,6 +574,7 @@ verification:
 **Issue**: TypeScript has multiple build approaches (tsc, bundlers, Next.js, Vite)
 
 **Mitigation:**
+
 - v1: Keep tight scope
   - Support `npm run build` if script exists
   - Support `tsc` or `tsc -b` (project references)
@@ -537,7 +583,7 @@ verification:
   ```yaml
   verification:
     commands:
-      build: "vite build"  # Override
+      build: "vite build" # Override
   ```
 
 **Risk Level**: Medium (complexity risk)
@@ -551,6 +597,7 @@ verification:
 **Issue**: Command syntax differs on Windows vs Unix
 
 **Mitigation:**
+
 - Use tool's native globbing (not shell globs)
 - Example: `prettier --check .` (tool handles glob)
 - Avoid shell-specific syntax (&&, ||, single quotes)
@@ -565,12 +612,13 @@ verification:
 **Issue**: Format tool might not be installed
 
 **Mitigation:**
+
 - Local profile: Warn and skip optional tools (prettier, eslint)
 - CI profile: Hard-fail on missing configured tools
 - Config:
   ```yaml
   verification:
-    toolMissingPolicy: warn  # Local: warn, CI: fail
+    toolMissingPolicy: warn # Local: warn, CI: fail
   ```
 
 **Risk Level**: Low
@@ -600,12 +648,12 @@ verification:
 
 ### Test Coverage Targets
 
-| Component | Target | Current |
-|-----------|--------|---------|
-| LanguageDetectionService | >85% | 89.67% |
-| CommandResolver | >85% | 89.67% |
-| Verify Command | >80% | TBD |
-| Integration Tests | 100% pass | TBD |
+| Component                | Target    | Current |
+| ------------------------ | --------- | ------- |
+| LanguageDetectionService | >85%      | 89.67%  |
+| CommandResolver          | >85%      | 89.67%  |
+| Verify Command           | >80%      | TBD     |
+| Integration Tests        | 100% pass | TBD     |
 
 ---
 
@@ -614,11 +662,13 @@ verification:
 ### Unit Tests (16-20 tests)
 
 **LanguageDetectionService:**
+
 - Format command detection (4 tests, one per language)
 - Build command detection (4 tests, one per language)
 - TypeScript project references detection (2 tests)
 
 **CommandResolver:**
+
 - Format command resolution (4 tests)
 - Build command resolution (4 tests)
 - Optional build behavior (2 tests)
@@ -626,19 +676,23 @@ verification:
 ### Integration Tests (10-12 tests)
 
 **Format Integration:**
+
 - Format command resolution for all languages (4 tests)
 - Format + Makefile integration (2 tests)
 
 **Build Integration:**
+
 - Build command resolution for compiled languages (3 tests)
 - Optional build behavior (no build script) (2 tests)
 
 **Cross-Feature:**
+
 - Complete verification workflow (format → lint → typecheck → test → build) (1 test)
 
 ### Test Fixtures
 
 Create minimal test projects:
+
 - `fixtures/node-prettier/` - Node.js with prettier
 - `fixtures/python-black/` - Python with black
 - `fixtures/go-basic/` - Go project
@@ -660,16 +714,19 @@ npm run test:coverage
 ### Phase 1: Development (Week 1)
 
 **Days 1-2: Format Support (8-10 hours)**
+
 - Implement Task 1c.1 (format command support)
 - Write unit tests
 - Update documentation
 
 **Days 3-4: Build Support (8-10 hours)**
+
 - Implement Task 1c.2 (build command support)
 - Implement Task 1c.3 (verification config)
 - Write unit tests
 
 **Day 5: Testing & Documentation (4-5 hours)**
+
 - Implement Task 1c.4 (integration tests)
 - Complete Task 1c.5 (documentation)
 - Final verification
@@ -695,13 +752,13 @@ npm run test:coverage
 
 ### Overall Risk: LOW
 
-| Risk | Probability | Impact | Mitigation | Status |
-|------|-------------|---------|------------|--------|
-| Format/lint overlap | Medium | Low | Document approach, allow config override | ✅ Mitigated |
-| Build detection complexity | Medium | Medium | Conservative detection, make optional | ✅ Mitigated |
-| TypeScript variants | Low | Medium | Keep scope tight (npm run build + tsc) | ✅ Mitigated |
-| Cross-platform issues | Low | Low | Use tool-native globbing | ✅ Mitigated |
-| Tool availability | Low | Low | Profile-based policies (warn vs fail) | ✅ Mitigated |
+| Risk                       | Probability | Impact | Mitigation                               | Status       |
+| -------------------------- | ----------- | ------ | ---------------------------------------- | ------------ |
+| Format/lint overlap        | Medium      | Low    | Document approach, allow config override | ✅ Mitigated |
+| Build detection complexity | Medium      | Medium | Conservative detection, make optional    | ✅ Mitigated |
+| TypeScript variants        | Low         | Medium | Keep scope tight (npm run build + tsc)   | ✅ Mitigated |
+| Cross-platform issues      | Low         | Low    | Use tool-native globbing                 | ✅ Mitigated |
+| Tool availability          | Low         | Low    | Profile-based policies (warn vs fail)    | ✅ Mitigated |
 
 ---
 
@@ -728,6 +785,7 @@ npm run test:coverage
 
 **Decision**: Defer to Phase 2
 **Rationale**:
+
 - Phase 1c focused on verification (check mode)
 - Auto-fix is a separate feature (changes code)
 - Can be added in Phase 2 without breaking changes
@@ -738,6 +796,7 @@ npm run test:coverage
 
 **Decision**: Defer to Phase 2
 **Rationale**:
+
 - Sequential execution is simpler, follows established order
 - Parallel execution adds complexity (output interleaving, error handling)
 - Not needed for v1 (verification is already fast)
@@ -748,6 +807,7 @@ npm run test:coverage
 
 **Decision**: Out of scope for v1
 **Rationale**:
+
 - Adds significant complexity (multiple bundler APIs)
 - `npm run build` handles 90% of cases
 - Users can override via config if needed
@@ -758,29 +818,31 @@ npm run test:coverage
 
 ### A. Command Matrix
 
-| Language | Format Check | Format Fix | Build | Notes |
-|----------|--------------|------------|-------|-------|
-| **Node.js** | `prettier --check .` | `prettier --write .` | `npm run build` | Check package.json for build script |
-| **TypeScript** | `prettier --check .` | `prettier --write .` | `tsc` or `tsc -b` | Use `tsc -b` if project references |
-| **Python** | `black --check .` | `black .` | `python -m build` | Build is optional |
-| **Go** | `gofmt -l .` | `gofmt -w .` | `go build ./...` | Standard toolchain |
-| **Rust** | `cargo fmt --check` | `cargo fmt` | `cargo build` | Or `cargo check` (faster) |
+| Language       | Format Check         | Format Fix           | Build             | Notes                               |
+| -------------- | -------------------- | -------------------- | ----------------- | ----------------------------------- |
+| **Node.js**    | `prettier --check .` | `prettier --write .` | `npm run build`   | Check package.json for build script |
+| **TypeScript** | `prettier --check .` | `prettier --write .` | `tsc` or `tsc -b` | Use `tsc -b` if project references  |
+| **Python**     | `black --check .`    | `black .`            | `python -m build` | Build is optional                   |
+| **Go**         | `gofmt -l .`         | `gofmt -w .`         | `go build ./...`  | Standard toolchain                  |
+| **Rust**       | `cargo fmt --check`  | `cargo fmt`          | `cargo build`     | Or `cargo check` (faster)           |
 
 ### B. Configuration Examples
 
 **Example 1: Skip build locally, run in CI**
 
 `.gpm.yml`:
+
 ```yaml
 verification:
-  tasks: [format, lint, typecheck, test]  # No build
+  tasks: [format, lint, typecheck, test] # No build
   stopOnFirstFailure: true
 ```
 
 `.gpm.ci.yml`:
+
 ```yaml
 verification:
-  tasks: [format, lint, typecheck, test, build]  # Include build
+  tasks: [format, lint, typecheck, test, build] # Include build
   stopOnFirstFailure: false
 ```
 
@@ -822,6 +884,7 @@ makefile:
 **Ready for**: Implementation
 
 **Sign-off**:
+
 - [ ] Technical Lead Review
 - [ ] Implementation Start
 - [ ] Code Review Complete

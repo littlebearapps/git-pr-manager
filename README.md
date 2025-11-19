@@ -1,23 +1,294 @@
-# Git Workflow Manager v1.7.0
+# Git PR Manager (GPM)
 
-Production-ready git workflow automation for GitHub with Claude Code integration. Streamlines feature development with intelligent CI polling, comprehensive error reporting, automated PR workflows, and **multi-language verification** (Python, Node.js, Go, Rust).
+Production-ready git workflow automation for GitHub with Claude Code integration. Streamlines feature development with intelligent CI polling, comprehensive error reporting, automated PR workflows, **multi-language verification** (Python, Node.js, Go, Rust), and **automated release validation**.
 
 [![npm version](https://badge.fury.io/js/%40littlebearapps%2Fgit-pr-manager.svg)](https://www.npmjs.com/package/@littlebearapps/git-pr-manager)
-[![Node.js CI](https://github.com/littlebearapps/git-pr-manager/workflows/Test/badge.svg)](https://github.com/littlebearapps/git-pr-manager/actions)
+[![Node.js CI](https://github.com/littlebearapps/git-pr-manager/workflows/CI/badge.svg)](https://github.com/littlebearapps/git-pr-manager/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## ✨ What's New in v1.7.0
+## ⚡ TL;DR
+
+**Get started in 30 seconds:**
+
+```bash
+# Install
+npm install -g @littlebearapps/git-pr-manager
+
+# Set GitHub token (get from: https://github.com/settings/tokens)
+export GITHUB_TOKEN="ghp_your_token_here"
+
+# Initialize
+gpm init --interactive
+
+# Use it!
+gpm auto  # Full automated PR workflow: verify → security scan → PR → CI → merge
+```
+
+**What it does**: Automates your entire GitHub PR workflow—create feature branches, run security scans, create PRs, wait for CI checks, and auto-merge—all in one command. Supports Python, Node.js, Go, and Rust projects with automatic language detection.
+
+**For AI agents**: Machine-readable JSON output (`--json` flag) on all commands. See [AI Agent Integration Guide](docs/guides/AI-AGENT-INTEGRATION.md).
+
+---
+
+## 📖 Table of Contents
+
+- [⚡ TL;DR](#-tldr) - Get started in 30 seconds
+- [🔍 API Reference](#-api-reference) - All commands with JSON schemas
+- [🎨 Common Workflows](#-common-workflows) - Real-world usage patterns
+  - [For Human Developers](#for-human-developers) - Daily workflows, code review, hotfixes
+  - [For AI Agents / CLI Tools](#for-ai-agents--cli-tools) - Python, JavaScript, Go examples
+- [🚀 Quick Start](#-quick-start) - Installation, setup, basic usage
+- [📖 Commands](#-commands) - Full command reference
+  - [Workflow Automation](#workflow-automation) - `gpm auto`, `gpm ship`, `gpm feature`
+  - [CI & Status](#ci--status) - `gpm checks`, `gpm status`
+  - [Configuration & Security](#configuration--security) - `gpm init`, `gpm security`, `gpm doctor`
+  - [Git Hooks](#git-hooks) - `gpm install-hooks`, `gpm uninstall-hooks`
+  - [Git Worktree Management](#git-worktree-management) - `gpm worktree list`, `gpm worktree prune`
+- [🌍 Multi-Language Support](#-multi-language-support) - Python, Node.js, Go, Rust auto-detection
+- [🔧 CI/CD & Automation](#-cicd--automation) - GitHub Actions, AI agents
+- [🎯 Key Features](#-key-features) - Security, CI polling, branch protection, performance
+- [📋 Configuration](#-configuration) - `.gpm.yml` examples and presets
+- [🏗️ Architecture](#-architecture) - Project structure and design
+- [📊 Performance Metrics](#-performance-metrics) - Speed improvements
+- [🧪 Testing](#-testing) - 593 tests, 89.67% coverage
+- [📚 Documentation](#-documentation) - Guides, architecture, planning docs
+- [✨ What's New](#-whats-new) - Latest features and updates
+- [📝 Changelog](#-changelog) - Version history
+- [📄 License](#-license) - MIT License
+
+---
+
+## 🔍 API Reference
+
+Quick reference for all commands with JSON output schemas:
+
+| Command               | Purpose                 | Key Flags                                                   | JSON Output Schema                                 |
+| --------------------- | ----------------------- | ----------------------------------------------------------- | -------------------------------------------------- |
+| `gpm auto`            | Full automated workflow | `--draft`, `--no-merge`, `--skip-security`, `--skip-verify` | `{prNumber, url, ciStatus, merged}`                |
+| `gpm ship`            | Manual PR workflow      | `--no-wait`, `--draft`, `--title`, `--template`             | `{prNumber, url, ciStatus}`                        |
+| `gpm feature <name>`  | Create feature branch   | `--from <branch>`                                           | `{branch, created}`                                |
+| `gpm checks <pr>`     | CI status for PR        | `--details`, `--files`                                      | `{total, passed, failed, pending, overallStatus}`  |
+| `gpm status`          | Git/workflow status     | -                                                           | `{branch, clean, ahead, behind, hooks}`            |
+| `gpm security`        | Security scanning       | -                                                           | `{passed, secretsFound, vulnerabilities}`          |
+| `gpm init`            | Initialize config       | `--template <preset>`, `--interactive`                      | `{created, template, config}`                      |
+| `gpm protect`         | Branch protection       | `--show`, `--preset <type>`, `--branch`                     | `{enabled, requirements}`                          |
+| `gpm doctor`          | System health check     | `--pre-release`                                             | `{token, tools, checks}`                           |
+| `gpm install-hooks`   | Install git hooks       | `--post-commit`, `--force`                                  | `{installed, hooks}`                               |
+| `gpm uninstall-hooks` | Remove git hooks        | -                                                           | `{removed}`                                        |
+| `gpm worktree list`   | List worktrees          | -                                                           | `{worktrees: [{path, branch, commit}]}`            |
+| `gpm worktree prune`  | Clean stale data        | `--dry-run`                                                 | `{pruned, count}`                                  |
+| `gpm verify`          | Pre-commit checks       | `--skip-format`, `--skip-lint`, `--skip-test`               | `{passed, tasks: [{name, status}]}`                |
+| `gpm check-update`    | Check for updates       | `--channel <next\|latest>`, `--clear-cache`                 | `{updateAvailable, currentVersion, latestVersion}` |
+| `gpm docs`            | View documentation      | `--guide=<name>`                                            | `{guide, found, content}`                          |
+
+**Note**: Add `--json` flag to any command for machine-readable output. All commands support `--quiet`, `--silent`, and `--verbose` flags for output control.
+
+**Complete schemas**: See [JSON Output Schemas Guide](docs/guides/JSON-OUTPUT-SCHEMAS.md) for detailed field descriptions and examples.
+
+---
+
+## 🎨 Common Workflows
+
+### For Human Developers
+
+**Daily Feature Development:**
+
+```bash
+# Morning: Start new feature
+gpm feature add-user-profile
+
+# ... code changes ...
+
+# Afternoon: Ship it
+gpm auto  # Handles everything: verify → security → PR → CI → merge
+```
+
+**Code Review Workflow:**
+
+```bash
+# Check PR status
+gpm checks 47
+
+# Review changes locally
+git fetch origin pull/47/head:pr-47
+git checkout pr-47
+
+# Run security scan
+gpm security
+
+# Approve and auto-merge
+gh pr review 47 --approve
+# (PR merges automatically after CI passes)
+```
+
+**Emergency Hotfix:**
+
+```bash
+# Create hotfix branch from main
+gpm feature hotfix-critical-bug --from main
+
+# ... fix the bug ...
+
+# Fast-track PR (skip some checks if needed)
+gpm ship --skip-verify --no-wait
+```
+
+**Multi-Repo Maintenance:**
+
+```bash
+# Check system health
+gpm doctor
+
+# Verify all tools installed
+gpm doctor --json | jq '.tools[] | select(.found==false)'
+
+# Update gpm itself
+gpm check-update
+npm install -g @littlebearapps/git-pr-manager@latest
+```
+
+### For AI Agents / CLI Tools
+
+**Automated PR Creation (Python):**
+
+```python
+import subprocess
+import json
+
+# Execute gpm with JSON output
+result = subprocess.run(
+    ['gpm', 'auto', '--json'],
+    capture_output=True,
+    text=True,
+    env={'GITHUB_TOKEN': 'ghp_...'}
+)
+
+# Parse structured output
+data = json.loads(result.stdout)
+pr_number = data['prNumber']
+pr_url = data['url']
+
+print(f"✅ Created PR #{pr_number}: {pr_url}")
+```
+
+**CI Status Monitoring (JavaScript):**
+
+```javascript
+const { execSync } = require("child_process");
+
+// Check PR status with JSON output
+const output = execSync("gpm checks 47 --json", { encoding: "utf-8" });
+const status = JSON.parse(output);
+
+if (status.overallStatus === "success") {
+  console.log("✅ All checks passed!");
+} else if (status.failed > 0) {
+  console.log(`❌ ${status.failed} checks failed`);
+  status.failureDetails.forEach((failure) => {
+    console.log(`- ${failure.checkName}: ${failure.errorType}`);
+  });
+}
+```
+
+**Repository Health Check (Go):**
+
+```go
+package main
+
+import (
+    "encoding/json"
+    "os/exec"
+)
+
+type DoctorResult struct {
+    Token struct {
+        Found  bool   `json:"found"`
+        Source string `json:"source"`
+    } `json:"token"`
+    Tools []struct {
+        Name    string `json:"name"`
+        Found   bool   `json:"found"`
+        Version string `json:"version"`
+    } `json:"tools"`
+}
+
+func main() {
+    cmd := exec.Command("gpm", "doctor", "--json")
+    output, _ := cmd.Output()
+
+    var result DoctorResult
+    json.Unmarshal(output, &result)
+
+    if !result.Token.Found {
+        panic("GitHub token not configured")
+    }
+}
+```
+
+**Multi-Language Project Setup:**
+
+```bash
+# AI agent detects project type and initializes
+gpm doctor --json | jq -r '.tools[] | select(.name=="detect-secrets") | .found'
+
+# If not found, install optional tools
+pip install detect-secrets
+
+# Initialize with appropriate template
+gpm init --template standard
+
+# Run verification (auto-detects language: Python/Node.js/Go/Rust)
+gpm verify --json
+```
+
+**Batch PR Status Check (Shell Script):**
+
+```bash
+#!/bin/bash
+# Check status of multiple PRs
+
+for pr in 45 46 47 48; do
+  status=$(gpm checks $pr --json | jq -r '.overallStatus')
+  echo "PR #$pr: $status"
+
+  if [ "$status" = "success" ]; then
+    echo "  ✅ Ready to merge"
+  elif [ "$status" = "failure" ]; then
+    # Get failure details
+    gpm checks $pr --json | jq -r '.failureDetails[] | "  ❌ \(.checkName): \(.errorType)"'
+  fi
+done
+```
+
+---
+
+## ✨ What's New
+
+### Release Validation Strategy (Alternative D) - Nov 2025
+
+- ✅ **Zero-drift version management**: package.json uses `0.0.0-development` placeholder; semantic-release determines actual versions
+- ✅ **Pre-release validation**: `gpm doctor --pre-release` runs 7 automated checks before publishing
+  - Verifies workflow files exist and badge URLs are correct
+  - Ensures working directory is clean and on main branch
+  - Validates all CI checks have passed
+- ✅ **Automated publish workflow integration**: Pre-release validation integrated into `.github/workflows/publish.yml`
+- ✅ **Smart CLI version detection**: Runtime version lookup via git tags (development) or npm (production)
+- ✅ **Single source of truth**: npm registry is authoritative; eliminates version drift between git and npm
+- 📚 See [docs/RELEASE-VALIDATION-STRATEGY.md](docs/RELEASE-VALIDATION-STRATEGY.md) for complete details
 
 ### Sprint 3 – Output Polish & Documentation (Nov 2025)
+
 - ✅ Cross-command spacing review: redundant `logger.blank()` → `logger.section()` pairs removed so sections render with a single intentional spacer everywhere.
 - ✅ CLI docs polish: README, CLAUDE.md, quickrefs, and the new `docs/SPRINT-3-COMPLETION-SUMMARY.md` all explain Sprint 1‑3 deliverables and optional tooling.
 - ✅ Optional secret scanning guidance now documents `detect-secrets` as an add-on while clarifying that `gpm security` still runs `npm audit` even when Python tooling is absent.
 
 ### Sprint 2 – Reliability & Observability
+
 - ✅ npm vulnerability remediation ensures dependencies install cleanly on fresh machines (Issue #1).
 - ✅ JSON output standardization keeps machine-readable logs consistent across commands via the shared logger refactor (Issue #3).
 
 ### Sprint 1 – AI Agent Enablement
+
 - ✅ ExecutionTracker utility instruments `gpm ship` with per-phase timing + structured metadata for JSON output (Issue #5).
 - ✅ CI polling hardened: the "0/0 checks" race condition is handled gracefully with smarter EnhancedCIPoller messaging (Issue #4).
 
@@ -111,6 +382,7 @@ gpm auto
 ```
 
 That's it! `gpm auto` will:
+
 1. Run verification checks
 2. Run security scans
 3. Push changes
@@ -209,6 +481,7 @@ gpm status --json              # Shows hooks.prePush and hooks.postCommit
 ```
 
 **Hook Behavior**:
+
 - **Non-blocking**: Never prevent commits or pushes
 - **Reminder-only**: Display helpful workflow suggestions
 - **Optional**: Can be disabled/uninstalled anytime
@@ -216,11 +489,13 @@ gpm status --json              # Shows hooks.prePush and hooks.postCommit
 - **Worktree-compatible**: Works with both standard repos and git worktrees
 
 **Pre-push hook** reminds you to:
+
 - Run `gpm ship` for automated PR creation
 - Run `gpm security` to scan for secrets
 - Consider `gpm auto` for full workflow
 
 **Post-commit hook** (optional) reminds you to:
+
 - Create PR if on feature branch
 - Run security scans before pushing
 
@@ -238,11 +513,13 @@ gpm worktree prune --json      # Machine-readable output
 ```
 
 **Use cases**:
+
 - **Multi-project workflows**: Work on multiple features simultaneously
 - **Code review**: Keep separate worktrees for reviewing PRs
 - **Maintenance**: Clean up stale worktree administrative data
 
 **Worktree list output** shows:
+
 - Path to each worktree
 - Current branch name (or `(detached)` for detached HEAD)
 - Latest commit hash
@@ -266,12 +543,12 @@ All commands support output control flags:
 
 ### Supported Languages & Package Managers
 
-| Language | Package Managers | Auto-Detection |
-|----------|-----------------|----------------|
-| **Python** | poetry, pipenv, uv, pip | `pyproject.toml`, `Pipfile`, `requirements.txt` |
-| **Node.js** | pnpm, yarn, bun, npm | `package.json`, lock files |
-| **Go** | go modules | `go.mod` |
-| **Rust** | cargo | `Cargo.toml` |
+| Language    | Package Managers        | Auto-Detection                                  |
+| ----------- | ----------------------- | ----------------------------------------------- |
+| **Python**  | poetry, pipenv, uv, pip | `pyproject.toml`, `Pipfile`, `requirements.txt` |
+| **Node.js** | pnpm, yarn, bun, npm    | `package.json`, lock files                      |
+| **Go**      | go modules              | `go.mod`                                        |
+| **Rust**    | cargo                   | `Cargo.toml`                                    |
 
 ### How It Works
 
@@ -388,21 +665,22 @@ Customize Makefile integration with aliases and custom mappings:
 ```yaml
 # .gpm.yml
 makefile:
-  preferMakefile: true           # Default: true
+  preferMakefile: true # Default: true
 
   # Custom task → target mapping
   makefileTargets:
-    lint: check                  # Use 'make check' for lint task
-    test: verify                 # Use 'make verify' for test task
+    lint: check # Use 'make check' for lint task
+    test: verify # Use 'make verify' for test task
 
   # Target → task mapping (aliases)
   makefileAliases:
-    check: lint                  # 'check' target maps to 'lint' task
-    verify: test                 # 'verify' target maps to 'test' task
-    compile: build               # 'compile' target maps to 'build' task
+    check: lint # 'check' target maps to 'lint' task
+    verify: test # 'verify' target maps to 'test' task
+    compile: build # 'compile' target maps to 'build' task
 ```
 
 **Use cases**:
+
 - **Custom target names**: Your Makefile uses `check` instead of `lint`
 - **Standardization**: Map project-specific targets to standard tasks
 - **Legacy support**: Adapt existing Makefiles without renaming targets
@@ -420,6 +698,7 @@ gpm verify --skip-install
 ```
 
 Supported package managers:
+
 - **Node.js**: `npm ci`, `pnpm install --frozen-lockfile`, `yarn install --frozen-lockfile`, `bun install`
 - **Python**: `poetry install`, `pipenv install`, `uv sync`, `pip install -r requirements.txt`
 - **Go**: `go mod download`
@@ -441,6 +720,7 @@ my-workspace/
 ```
 
 **Supported workspace types**:
+
 - **npm/yarn**: `package.json` with `workspaces` field
 - **Yarn 2+**: `.yarnrc.yml` in workspace root
 - **pnpm**: `pnpm-workspace.yaml` in workspace root
@@ -476,9 +756,9 @@ verification:
     build: "python -m build"
 
   # Phase 1c: Task ordering and control
-  tasks: ['format', 'lint', 'typecheck', 'test', 'build']  # Custom execution order
-  skipTasks: ['build']                                     # Skip specific tasks
-  stopOnFirstFailure: true                                 # Stop on first error (default: true)
+  tasks: ["format", "lint", "typecheck", "test", "build"] # Custom execution order
+  skipTasks: ["build"] # Skip specific tasks
+  stopOnFirstFailure: true # Stop on first error (default: true)
 ```
 
 ### Command Resolution Priority
@@ -521,7 +801,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
 
       - name: Install gpm
         run: npm install -g @littlebearapps/git-pr-manager
@@ -551,6 +831,7 @@ gpm auto --json          # Full PR workflow
 ```
 
 **Example AI Agent Workflow**:
+
 ```
 User: "Create a PR for this feature"
 AI Agent: [Executes] gpm auto --json
@@ -563,18 +844,21 @@ AI Agent: [Reports] "✅ PR #47 created. CI checks pending."
 ## 🎯 Key Features
 
 ### Complete Workflow Automation
+
 - Feature branch creation → PR → CI → Merge in one command
 - Smart defaults from `.gpm.yml` configuration
 - Automatic branch cleanup after merge
 - Draft PR support for work-in-progress
 
 ### Enterprise Security
+
 - **Secret Detection**: Automatic scanning for API keys, tokens, passwords
 - **Vulnerability Scanning**: npm audit, pip-audit integration
 - **Critical Issue Blocking**: Prevent merges with security vulnerabilities
 - **Language Detection**: Auto-detects Python, Node.js, and configures scanners
 
 ### Intelligent CI Polling
+
 - **Exponential Backoff**: Adaptive polling (5s → 30s) reduces API calls
 - **Progress Tracking**: Real-time updates on check status
 - **Rich Error Reports**: Detailed classification with suggested fixes
@@ -582,12 +866,14 @@ AI Agent: [Reports] "✅ PR #47 created. CI checks pending."
 - **Retry Logic**: Handle flaky tests automatically
 
 ### Branch Protection
+
 - **Validation**: Check protection requirements before merge
 - **Configuration**: Apply presets (basic, standard, strict)
 - **PR Readiness**: Validate checks, reviews, conflicts, conversations
 - **Staleness Detection**: Warn on outdated branches (strict mode)
 
 ### Git Worktree Support
+
 - **Conflict Detection**: Automatically detects when a branch is checked out in another worktree
 - **Smart Worktree Parsing**: Handles bare repositories, detached HEAD states, and multiple worktrees
 - **Actionable Error Messages**: Provides clear guidance when conflicts occur
@@ -596,12 +882,14 @@ AI Agent: [Reports] "✅ PR #47 created. CI checks pending."
 - **Current Worktree Filtering**: Ignores current worktree when checking for conflicts
 
 ### Performance Optimizations
+
 - **API Response Caching**: LRU cache with ETag support (5-minute TTL)
 - **Request Batching**: Parallel API calls with Promise.all()
 - **Config Caching**: TTL-based file caching (60-second default)
 - **Rate Limit Handling**: Automatic retry with exponential backoff
 
 ### Enhanced Error Reporting
+
 - **Error Classification**: Pattern-based categorization (tests, linting, types, security, build)
 - **File Extraction**: Parse affected files from error messages
 - **Suggested Fixes**: Context-aware command recommendations
@@ -609,6 +897,7 @@ AI Agent: [Reports] "✅ PR #47 created. CI checks pending."
 - **JSON Mode**: Machine-readable errors for automation
 
 ### Automated Error Fixing (Phase 6)
+
 - **Intelligent Auto-Fix**: Automatically resolves linting, formatting, and security issues
 - **Post-Fix Verification**: Runs tests after fixes to ensure nothing broke
 - **Automatic Rollback**: Reverts changes if verification fails
@@ -627,70 +916,73 @@ For detailed documentation, see [AUTO-FIX.md](AUTO-FIX.md)
 ```yaml
 branchProtection:
   enabled: true
-  requireReviews: 1              # Number of required reviews
-  requireStatusChecks:           # Required CI checks
+  requireReviews: 1 # Number of required reviews
+  requireStatusChecks: # Required CI checks
     - test
     - lint
     - typecheck
-  enforceAdmins: false           # Apply to admins too
+  enforceAdmins: false # Apply to admins too
 
 ci:
-  waitForChecks: true            # Wait for CI to complete
-  failFast: true                 # Exit on first critical failure
-  retryFlaky: false              # Retry flaky tests
-  timeout: 30                    # Timeout in minutes
+  waitForChecks: true # Wait for CI to complete
+  failFast: true # Exit on first critical failure
+  retryFlaky: false # Retry flaky tests
+  timeout: 30 # Timeout in minutes
 
 security:
-  scanSecrets: true              # Run secret detection
-  scanDependencies: true         # Run vulnerability scan
-  allowedVulnerabilities: []     # Allow specific CVEs
+  scanSecrets: true # Run secret detection
+  scanDependencies: true # Run vulnerability scan
+  allowedVulnerabilities: [] # Allow specific CVEs
 
 pr:
   templatePath: .github/PULL_REQUEST_TEMPLATE.md
-  autoAssign: []                 # Auto-assign reviewers
-  autoLabel: []                  # Auto-apply labels
+  autoAssign: [] # Auto-assign reviewers
+  autoLabel: [] # Auto-apply labels
 
 autoFix:
-  enabled: true                  # Enable auto-fix globally
-  maxAttempts: 2                 # Max fix attempts per error type (1-5)
-  maxChangedLines: 1000          # Max lines that can be changed (1-10000)
-  requireTests: true             # Run tests after fix to verify
-  enableDryRun: false            # Enable dry-run mode by default
-  autoMerge: false               # Auto-merge fix PRs if checks pass
-  createPR: true                 # Create PR for fixes (vs direct commit)
+  enabled: true # Enable auto-fix globally
+  maxAttempts: 2 # Max fix attempts per error type (1-5)
+  maxChangedLines: 1000 # Max lines that can be changed (1-10000)
+  requireTests: true # Run tests after fix to verify
+  enableDryRun: false # Enable dry-run mode by default
+  autoMerge: false # Auto-merge fix PRs if checks pass
+  createPR: true # Create PR for fixes (vs direct commit)
 
 # Phase 1b: Advanced Features
 install:
-  enabled: true                  # Enable install step
-  skipByDefault: false           # Skip install unless --allow-install is set
+  enabled: true # Enable install step
+  skipByDefault: false # Skip install unless --allow-install is set
 
 makefile:
-  preferMakefile: true           # Prefer Makefile targets over native tools
-  makefileTargets:               # Custom task → target mapping
-    lint: check                  # Use 'make check' for lint task
-    test: verify                 # Use 'make verify' for test task
-  makefileAliases:               # Target → task mapping (reverse)
-    check: lint                  # 'check' target maps to 'lint' task
-    verify: test                 # 'verify' target maps to 'test' task
+  preferMakefile: true # Prefer Makefile targets over native tools
+  makefileTargets: # Custom task → target mapping
+    lint: check # Use 'make check' for lint task
+    test: verify # Use 'make verify' for test task
+  makefileAliases: # Target → task mapping (reverse)
+    check: lint # 'check' target maps to 'lint' task
+    verify: test # 'verify' target maps to 'test' task
 
 workspace:
-  autoDetect: true               # Auto-detect Node.js workspaces
-  preferRoot: true               # Run commands from workspace root
+  autoDetect: true # Auto-detect Node.js workspaces
+  preferRoot: true # Run commands from workspace root
 ```
 
 ### Configuration Presets
 
 **Basic** - Personal/experimental projects:
+
 - No required reviews
 - Minimal checks
 - Fast iteration
 
 **Standard** - Team projects (recommended):
+
 - 0 required reviews (optional)
 - Core checks (test)
 - Balanced protection
 
 **Strict** - Production systems:
+
 - 1+ required reviews
 - All checks (test, lint, typecheck)
 - Enforce on admins
@@ -705,11 +997,13 @@ gpm doctor
 ```
 
 **What it checks**:
+
 - ✅ **GitHub Token**: Verifies `GITHUB_TOKEN` or `GH_TOKEN` is set
 - ✅ **Required Tools**: `git`, `node` (needed for gpm to run)
 - ✅ **Optional Tools**: `gh` (GitHub CLI), `detect-secrets`, `pip-audit`, `npm`
 
 **Example output**:
+
 ```
 ▸ System Health Check
 ────────────────────────────────────────────────────────────────────────────────
@@ -745,16 +1039,42 @@ Next Steps:
 ```
 
 **When to use**:
+
 - After first installation to verify setup
 - When encountering "tool not found" warnings
 - Before installing optional security tools
 - To verify environment configuration in CI/CD
 
 **Optional dependencies explained**:
+
 - **detect-secrets** (Python): Scans code for hardcoded secrets (API keys, tokens, passwords). Required for `gpm security` secret scanning.
 - **pip-audit** (Python): Scans Python dependencies for known vulnerabilities. Used by `gpm security` for Python projects.
 - **gh** (GitHub CLI): Enhances PR operations with additional GitHub features. Not required but recommended.
 - **npm**: Used for JavaScript dependency scanning in `gpm security`. Already installed if you're using gpm.
+
+### Pre-Release Validation
+
+Use `gpm doctor --pre-release` to validate your repository is ready for publishing (part of Alternative D release strategy):
+
+```bash
+gpm doctor --pre-release
+```
+
+**7 Automated Checks**:
+
+- ✅ Required workflow files exist (`.github/workflows/ci.yml`, `publish.yml`)
+- ✅ README badge URLs match actual workflow names
+- ⚠️ `package.json` version is `0.0.0-development` (warning only)
+- ⚠️ `@semantic-release/git` plugin NOT present in `.releaserc.json` (warning only)
+- ✅ Working directory is clean (no uncommitted changes)
+- ✅ Currently on main branch
+- ⚠️ All CI checks passed for HEAD commit (warning if gh CLI unavailable)
+
+**When to use**:
+
+- Before publishing to npm (integrated into publish workflow)
+- Validates release readiness automatically
+- Catches configuration issues before semantic-release runs
 
 ### Environment Variables
 
@@ -768,18 +1088,21 @@ export GH_TOKEN="ghp_your_token_here"  # Alternative variable name
 ```
 
 **Token Permissions Needed**:
+
 - `repo` - Full control of private repositories
   - Includes: `repo:status`, `repo_deployment`, `public_repo`, `repo:invite`
 
 **Where to get token**: https://github.com/settings/tokens/new
 
 **Commands that require token**:
+
 - `gpm ship` - Create PR and merge
 - `gpm auto` - Automated PR workflow
 - `gpm checks <pr>` - Check CI status
 - `gpm feature <name>` - Create feature branch (if pushing to remote)
 
 **Commands that work without token**:
+
 - `gpm status` - Local git status
 - `gpm security` - Local security scan
 - `gpm init` - Initialize configuration
@@ -845,13 +1168,13 @@ src/
 
 ## 📊 Performance Metrics
 
-| Metric | v1.3.0 | v1.4.0 | Improvement |
-|--------|--------|--------|-------------|
-| CI Wait Time (5 min checks) | 10 min | 6-7 min | **30-40% ↓** |
-| PR Validation | 800ms | 380ms | **40-50% ↓** |
-| Config Load (cached) | 5ms | 0.1ms | **98% ↓** |
-| API Rate Limit Errors | 5-10/day | 0/day | **100% ↓** |
-| API Calls per Ship | 25-30 | 10-15 | **40-60% ↓** |
+| Metric                      | v1.3.0   | v1.4.0  | Improvement  |
+| --------------------------- | -------- | ------- | ------------ |
+| CI Wait Time (5 min checks) | 10 min   | 6-7 min | **30-40% ↓** |
+| PR Validation               | 800ms    | 380ms   | **40-50% ↓** |
+| Config Load (cached)        | 5ms      | 0.1ms   | **98% ↓**    |
+| API Rate Limit Errors       | 5-10/day | 0/day   | **100% ↓**   |
+| API Calls per Ship          | 25-30    | 10-15   | **40-60% ↓** |
 
 ## 🧪 Testing
 
@@ -870,6 +1193,7 @@ npm run lint
 ```
 
 **Test Coverage**:
+
 - **593 tests** (565 unit + 28 integration) - ✅ All passing
 - **89.67% coverage** (target: 80%) - ✅ Exceeded
 - Core infrastructure: GitHubService (87%), GitService (100%), EnhancedCIPoller (93%)
@@ -902,6 +1226,7 @@ npm run dev -- auto
 ## 📚 Documentation
 
 ### Implementation History
+
 - [Phase 1 - Core SDK Infrastructure](docs/implementation/PHASE-1-COMPLETE.md)
 - [Phase 2 - PR Automation](docs/implementation/PHASE-2-COMPLETE.md)
 - [Phase 3 - Security Integration](docs/implementation/PHASE-3-COMPLETE.md)
@@ -910,6 +1235,7 @@ npm run dev -- auto
 - [Phase 6 - Automated Error Fixing](AUTO-FIX.md)
 
 ### Guides
+
 - [Quick Reference](docs/guides/QUICK-REFERENCE.md)
 - [Workflow Documentation](docs/guides/WORKFLOW-DOCUMENTATION.md)
 - [Subagent Prompt](docs/guides/SUBAGENT_PROMPT.md)
@@ -919,10 +1245,12 @@ npm run dev -- auto
 - [AI Agent Integration](docs/guides/AI-AGENT-INTEGRATION.md) ⭐ NEW
 
 ### Architecture
+
 - [Octokit SDK Integration](docs/architecture/OCTOKIT-SDK-INTEGRATION.md)
 - [Full SDK Migration Plan](docs/architecture/OPTION-2-FULL-SDK-MIGRATION-PLAN.md)
 
 ### Planning
+
 - [Comprehensive Enhancement Plan](docs/planning/COMPREHENSIVE-ENHANCEMENT-PLAN.md)
 - [Enhancement Ideas](docs/planning/ENHANCEMENT-IDEAS.md)
 
@@ -933,16 +1261,19 @@ See [CHANGELOG.md](CHANGELOG.md) for detailed version history.
 ### v1.4.0 Highlights
 
 **Phase 2: Git Hooks Integration**
+
 - `gpm install-hooks` - Install non-blocking git hooks (pre-push, post-commit)
 - `gpm uninstall-hooks` - Remove gpm git hooks
 - CI-aware hooks (auto-skip in GitHub Actions)
 - Config synchronization (.gpm.yml hooks section)
 
 **Bug Fixes**:
+
 - Fixed `gpm status --json` producing no output
 - Enhanced GitHub token setup documentation
 
 **Previous Features**:
+
 - `gpm auto` - Automated workflow command
 - Interactive mode for `gpm init`
 - Machine-readable JSON output (`--json` flag)
@@ -957,6 +1288,7 @@ See [CHANGELOG.md](CHANGELOG.md) for detailed version history.
 - Cross-platform GitHub Actions testing
 
 **Performance**:
+
 - 30-40% reduction in CI wait time
 - 40-50% faster PR validation
 - 98% reduction in cached config loads
@@ -964,6 +1296,7 @@ See [CHANGELOG.md](CHANGELOG.md) for detailed version history.
 - Zero rate limit errors
 
 **Changed**:
+
 - Package name: `@littlebearapps/git-pr-manager`
 - Enhanced error messages with actionable suggestions
 
@@ -976,6 +1309,7 @@ See [LICENSE](LICENSE) for details.
 ## 🙏 Acknowledgments
 
 Built with:
+
 - [Octokit](https://github.com/octokit/octokit.js) - GitHub API client
 - [simple-git](https://github.com/steveukx/git-js) - Git operations
 - [Commander.js](https://github.com/tj/commander.js) - CLI framework

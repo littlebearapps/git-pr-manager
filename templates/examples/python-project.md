@@ -35,9 +35,9 @@ security:
   allowedVulnerabilities: []
 
 pr:
-  templatePath: '.github/PULL_REQUEST_TEMPLATE.md'
-  autoAssign: ['tech-lead']
-  autoLabel: ['needs-review']
+  templatePath: ".github/PULL_REQUEST_TEMPLATE.md"
+  autoAssign: ["tech-lead"]
+  autoLabel: ["needs-review"]
 ```
 
 ## Verification Script
@@ -115,7 +115,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
       - name: Install dependencies
         run: |
@@ -229,7 +229,7 @@ security:
   scanSecrets: true
   scanDependencies: true
   allowedVulnerabilities:
-    - 'CVE-2023-1234'  # Justified: Not exploitable in our use case
+    - "CVE-2023-1234" # Justified: Not exploitable in our use case
 ```
 
 ### Type checking errors

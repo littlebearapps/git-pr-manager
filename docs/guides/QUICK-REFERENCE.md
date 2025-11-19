@@ -8,6 +8,7 @@
 ## Daily Workflow
 
 ### 1. Start New Feature
+
 ```bash
 cd ~/claude-code-tools/[project]/main/
 git checkout -b feature/my-feature-name
@@ -18,6 +19,7 @@ git commit -m "feat: my feature description"
 ```
 
 ### 2. Ship Feature (Primary Command)
+
 ```bash
 # Simple - Let gpm handle everything
 User: "Use git-pr-manager to ship this feature"
@@ -33,6 +35,7 @@ User: "Use git-pr-manager to ship this feature"
 ```
 
 ### 3. Check Status
+
 ```bash
 User: "Use git-pr-manager to check status"
 
@@ -48,13 +51,13 @@ User: "Use git-pr-manager to check status"
 
 ## Command Reference
 
-| Command | When to Use | What It Does |
-|---------|-------------|--------------|
-| **gpm ship** | Ready to merge feature | Complete PR workflow |
-| **gpm verify** | Before committing | Run verification checks (format, lint, typecheck, test, build) |
-| **gpm feature** | Starting new work | Creates feature branch from main (with worktree conflict detection) |
-| **gpm status** | Check current state | Shows branch, PR, CI status |
-| **gpm abort** | Need to cancel feature | Deletes feature branch safely |
+| Command         | When to Use            | What It Does                                                        |
+| --------------- | ---------------------- | ------------------------------------------------------------------- |
+| **gpm ship**    | Ready to merge feature | Complete PR workflow                                                |
+| **gpm verify**  | Before committing      | Run verification checks (format, lint, typecheck, test, build)      |
+| **gpm feature** | Starting new work      | Creates feature branch from main (with worktree conflict detection) |
+| **gpm status**  | Check current state    | Shows branch, PR, CI status                                         |
+| **gpm abort**   | Need to cancel feature | Deletes feature branch safely                                       |
 
 ---
 
@@ -116,6 +119,7 @@ gpm verify --json
 ```
 
 **Supported Languages**:
+
 - Python (poetry, pipenv, uv, pip)
 - Node.js (pnpm, yarn, bun, npm)
 - Go (go modules)
@@ -139,11 +143,13 @@ gpm worktree prune --json          # Machine-readable output
 ```
 
 **When to use**:
+
 - Working on multiple features simultaneously
 - Reviewing PRs in separate directories
 - Maintaining clean worktree administrative data
 
 **Example output** (`gpm worktree list`):
+
 ```
 ▸ Git Worktrees
 ────────────────────────────────────────────────────────────────────────────────
@@ -168,11 +174,11 @@ gpm worktree prune --json          # Machine-readable output
 
 **REQUIRED**: All feature branches must use one of these prefixes:
 
-| Prefix | Use For | Example |
-|--------|---------|---------|
-| `feature/` | New features | `feature/add-dark-mode` |
-| `fix/` | Bug fixes | `fix/button-alignment` |
-| `chore/` | Maintenance tasks | `chore/update-deps` |
+| Prefix     | Use For           | Example                 |
+| ---------- | ----------------- | ----------------------- |
+| `feature/` | New features      | `feature/add-dark-mode` |
+| `fix/`     | Bug fixes         | `fix/button-alignment`  |
+| `chore/`   | Maintenance tasks | `chore/update-deps`     |
 
 **Invalid branch names will be rejected by pre-push hooks**
 
@@ -181,6 +187,7 @@ gpm worktree prune --json          # Machine-readable output
 ## Error Handling
 
 ### "Must be on feature branch"
+
 ```
 ❌ Must be on feature/fix/chore branch
 
@@ -190,6 +197,7 @@ Solution:
 ```
 
 ### "CI checks failed"
+
 ```
 ❌ CI checks failed: [failing-check-name]
 
@@ -201,6 +209,7 @@ Solution:
 ```
 
 ### "Merge conflict"
+
 ```
 ❌ Merge conflict detected
 
@@ -214,6 +223,7 @@ Solution:
 ```
 
 ### "Verification failed"
+
 ```
 ❌ Verification failed: [format/lint/typecheck/test/build]
 
@@ -229,6 +239,7 @@ gpm verify --skip-build       # Skip build if not applicable
 ```
 
 ### "Branch checked out in another worktree"
+
 ```
 ❌ Branch feature/my-feature is already checked out in another worktree
    WORKTREE_CONFLICT
@@ -260,11 +271,13 @@ Error details:
 ```
 
 **Benefits**:
+
 - Easier debugging in multi-worktree setups
 - Clear indication of which worktree encountered the error
 - Automatic context in both CLI and JSON output
 
 **JSON Output**:
+
 ```json
 {
   "error": {
@@ -282,17 +295,18 @@ Error details:
 
 ## Time Savings
 
-| Task | Manual Time | gpm Time | Savings |
-|------|-------------|----------|---------|
-| Complete PR workflow | 10-15 min | <5 min | >60% |
-| Feature branch creation | 2-3 min | <1 min | 66% |
-| Status check | 5 min | <30 sec | 90% |
+| Task                    | Manual Time | gpm Time | Savings |
+| ----------------------- | ----------- | -------- | ------- |
+| Complete PR workflow    | 10-15 min   | <5 min   | >60%    |
+| Feature branch creation | 2-3 min     | <1 min   | 66%     |
+| Status check            | 5 min       | <30 sec  | 90%     |
 
 ---
 
 ## Comparison: Old vs New
 
 ### Old Workflow (dev/main worktrees)
+
 ```bash
 cd ~/claude-code-tools/[project]/dev/
 # Make changes in dev
@@ -310,6 +324,7 @@ git push origin dev
 ```
 
 ### New Workflow (feature branches)
+
 ```bash
 cd ~/claude-code-tools/[project]/main/
 git checkout -b feature/my-feature
@@ -324,6 +339,7 @@ User: "Use git-pr-manager to ship this feature"
 ## Tips & Best Practices
 
 ### 1. Commit Often
+
 ```bash
 # Make small, focused commits
 git commit -m "feat: add button component"
@@ -334,6 +350,7 @@ git commit -m "docs: update button usage"
 ```
 
 ### 2. Use Conventional Commits
+
 ```bash
 # Good commit messages
 git commit -m "feat: add dark mode toggle"
@@ -345,6 +362,7 @@ git commit -m "docs: add API reference"
 ```
 
 ### 3. Check Status Frequently
+
 ```bash
 # Before starting work
 User: "Use git-pr-manager to check status"
@@ -357,6 +375,7 @@ User: "Use git-pr-manager to check status"
 ```
 
 ### 4. Use Dry-Run for Complex Scenarios
+
 ```bash
 # Preview what will happen
 User: "Use git-pr-manager to ship this feature with --dry-run"
@@ -370,6 +389,7 @@ User: "Use git-pr-manager to ship this feature"
 ## Troubleshooting
 
 ### Feature branch won't delete
+
 ```
 ⚠️  Could not delete feature branch
 
@@ -381,6 +401,7 @@ Solution:
 ```
 
 ### CI never completes
+
 ```
 ⚠️  CI checks timed out (10+ minutes)
 
@@ -392,6 +413,7 @@ Solution:
 ```
 
 ### Main worktree out of sync
+
 ```
 ⚠️  Main worktree behind origin/main
 
@@ -406,6 +428,7 @@ Solution:
 ## Multi-Language Verification (Phase 1a-1c)
 
 ### Auto-Detection
+
 ```bash
 # gpm ship automatically runs multi-language verification
 # Detects: Python, Node.js, Go, Rust
@@ -421,6 +444,7 @@ Solution:
 ```
 
 ### Configuration (.gpm.yml)
+
 ```yaml
 verification:
   # Override detected language
@@ -428,27 +452,28 @@ verification:
   packageManager: poetry
 
   # Custom task order
-  tasks: ['lint', 'typecheck', 'test', 'build', 'format']
+  tasks: ["lint", "typecheck", "test", "build", "format"]
 
   # Skip specific tasks
-  skipTasks: ['build']  # Build not needed for this project
+  skipTasks: ["build"] # Build not needed for this project
 
   # Stop on first failure (default: true)
-  stopOnFirstFailure: false  # Run all checks even if one fails
+  stopOnFirstFailure: false # Run all checks even if one fails
 
   # Allow automatic dependency installation
-  allowInstall: true  # Prompt to run install command if dependencies missing
+  allowInstall: true # Prompt to run install command if dependencies missing
 
   # Custom command overrides
   commands:
-    lint: 'make lint'
-    test: 'make test'
+    lint: "make lint"
+    test: "make test"
 
   # Prefer Makefile targets (default: true)
   preferMakefile: true
 ```
 
 ### If GitHub Actions configured
+
 ```bash
 # gpm ship automatically:
 - Waits for all required checks
@@ -492,6 +517,7 @@ User: "Use git-pr-manager to ship with --force-merge"
 ---
 
 **Need Help?**
+
 - Read full spec: `SUBAGENT_PROMPT.md`
 - Check workflow docs: `WORKFLOW-DOCUMENTATION.md`
 - Review examples: `../README.md#quick-start-example`

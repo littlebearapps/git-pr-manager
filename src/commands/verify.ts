@@ -1,23 +1,23 @@
-import { exec } from 'child_process';
-import { promisify } from 'util';
-import { logger } from '../utils/logger';
-import { spinner } from '../utils/spinner';
-import { LanguageDetectionService } from '../services/LanguageDetectionService';
-import { CommandResolver } from '../services/CommandResolver';
-import { ConfigService } from '../services/ConfigService';
-import chalk from 'chalk';
-import prompts from 'prompts';
+import { exec } from "child_process";
+import { promisify } from "util";
+import { logger } from "../utils/logger";
+import { spinner } from "../utils/spinner";
+import { LanguageDetectionService } from "../services/LanguageDetectionService";
+import { CommandResolver } from "../services/CommandResolver";
+import { ConfigService } from "../services/ConfigService";
+import chalk from "chalk";
+import prompts from "prompts";
 
 const execAsync = promisify(exec);
 
 interface VerifyOptions {
-  skipFormat?: boolean;  // Phase 1c
+  skipFormat?: boolean; // Phase 1c
   skipLint?: boolean;
   skipTypecheck?: boolean;
   skipTest?: boolean;
   skipBuild?: boolean;
   skipInstall?: boolean;
-  allowInstall?: boolean;  // Phase 1b: Opt-in install support
+  allowInstall?: boolean; // Phase 1b: Opt-in install support
   json?: boolean;
 }
 
@@ -49,7 +49,9 @@ interface VerifyResult {
  * - Resolves appropriate commands for each language
  * - Respects verification config from .gpm.yml
  */
-export async function verifyCommand(options: VerifyOptions = {}): Promise<void> {
+export async function verifyCommand(
+  options: VerifyOptions = {},
+): Promise<void> {
   const startTime = Date.now();
   const results: VerifyStepResult[] = [];
   const failedSteps: string[] = [];
@@ -58,7 +60,7 @@ export async function verifyCommand(options: VerifyOptions = {}): Promise<void> 
   const jsonMode = logger.isJsonMode();
 
   if (!jsonMode) {
-    logger.section('Running Verification Checks');
+    logger.section("Running Verification Checks");
   }
 
   // Initialize services
@@ -69,7 +71,9 @@ export async function verifyCommand(options: VerifyOptions = {}): Promise<void> 
   try {
     // Detect language and package manager
     const detectedLanguage = await languageDetector.detectLanguage();
-    const detectedPkgManager = await languageDetector.detectPackageManager(detectedLanguage.primary);
+    const detectedPkgManager = await languageDetector.detectPackageManager(
+      detectedLanguage.primary,
+    );
     const config = await configService.load();
     const verificationConfig = config.verification;
 
@@ -85,26 +89,34 @@ export async function verifyCommand(options: VerifyOptions = {}): Promise<void> 
     const makefileTargets = await languageDetector.getMakefileTargets();
 
     // Phase 1c: Get task order from config (default: format → lint → typecheck → test → build)
-    const defaultTaskOrder: ('format' | 'lint' | 'typecheck' | 'test' | 'build' | 'install')[] =
-      ['format', 'lint', 'typecheck', 'test', 'build'];
+    const defaultTaskOrder: (
+      | "format"
+      | "lint"
+      | "typecheck"
+      | "test"
+      | "build"
+      | "install"
+    )[] = ["format", "lint", "typecheck", "test", "build"];
     const taskOrder = verificationConfig?.tasks || defaultTaskOrder;
 
     // Phase 1c: Get skip list from config and merge with CLI flags
     const configSkipTasks = verificationConfig?.skipTasks || [];
     const cliSkipTasks: string[] = [];
-    if (options.skipFormat) cliSkipTasks.push('format');
-    if (options.skipLint) cliSkipTasks.push('lint');
-    if (options.skipTypecheck) cliSkipTasks.push('typecheck');
-    if (options.skipTest) cliSkipTasks.push('test');
-    if (options.skipBuild) cliSkipTasks.push('build');
-    if (options.skipInstall) cliSkipTasks.push('install');
+    if (options.skipFormat) cliSkipTasks.push("format");
+    if (options.skipLint) cliSkipTasks.push("lint");
+    if (options.skipTypecheck) cliSkipTasks.push("typecheck");
+    if (options.skipTest) cliSkipTasks.push("test");
+    if (options.skipBuild) cliSkipTasks.push("build");
+    if (options.skipInstall) cliSkipTasks.push("install");
     const skipTasks = [...new Set([...configSkipTasks, ...cliSkipTasks])];
 
     // Phase 1c: Fail-fast mode (default: true)
     const stopOnFirstFailure = verificationConfig?.stopOnFirstFailure !== false;
 
     // Handle install step separately (Phase 1b: opt-in with prompt)
-    const shouldInstall = (options.allowInstall || verificationConfig?.allowInstall) && !skipTasks.includes('install');
+    const shouldInstall =
+      (options.allowInstall || verificationConfig?.allowInstall) &&
+      !skipTasks.includes("install");
 
     if (shouldInstall) {
       const installResult = await resolveAndRunInstall(
@@ -114,17 +126,24 @@ export async function verifyCommand(options: VerifyOptions = {}): Promise<void> 
         detectedPkgManager.lockFile,
         makefileTargets,
         verificationConfig,
-        jsonMode
+        jsonMode,
       );
 
       if (installResult) {
         results.push(installResult);
         if (!installResult.passed && !installResult.skipped) {
-          failedSteps.push('install');
+          failedSteps.push("install");
           if (stopOnFirstFailure) {
             // Exit early on failure with fail-fast
             const totalDuration = Date.now() - startTime;
-            outputResults(results, failedSteps, totalDuration, detectedLanguage.primary, detectedPkgManager.packageManager, jsonMode);
+            outputResults(
+              results,
+              failedSteps,
+              totalDuration,
+              detectedLanguage.primary,
+              detectedPkgManager.packageManager,
+              jsonMode,
+            );
             process.exit(1);
           }
         }
@@ -150,7 +169,7 @@ export async function verifyCommand(options: VerifyOptions = {}): Promise<void> 
         detectedPkgManager.packageManager,
         makefileTargets,
         verificationConfig,
-        jsonMode
+        jsonMode,
       );
 
       if (taskResult) {
@@ -161,7 +180,14 @@ export async function verifyCommand(options: VerifyOptions = {}): Promise<void> 
           // Phase 1c: Fail-fast mode - exit on first failure
           if (stopOnFirstFailure) {
             const totalDuration = Date.now() - startTime;
-            outputResults(results, failedSteps, totalDuration, detectedLanguage.primary, detectedPkgManager.packageManager, jsonMode);
+            outputResults(
+              results,
+              failedSteps,
+              totalDuration,
+              detectedLanguage.primary,
+              detectedPkgManager.packageManager,
+              jsonMode,
+            );
             process.exit(1);
           }
         }
@@ -172,7 +198,14 @@ export async function verifyCommand(options: VerifyOptions = {}): Promise<void> 
     const success = failedSteps.length === 0;
 
     // Output results
-    outputResults(results, failedSteps, totalDuration, detectedLanguage.primary, detectedPkgManager.packageManager, jsonMode);
+    outputResults(
+      results,
+      failedSteps,
+      totalDuration,
+      detectedLanguage.primary,
+      detectedPkgManager.packageManager,
+      jsonMode,
+    );
 
     if (!success) {
       process.exit(1);
@@ -184,10 +217,13 @@ export async function verifyCommand(options: VerifyOptions = {}): Promise<void> 
         steps: results,
         totalDuration: Date.now() - startTime,
         failedSteps,
-        language: 'unknown',
-        packageManager: undefined
+        language: "unknown",
+        packageManager: undefined,
       };
-      logger.outputJsonResult(false, payload, { code: 'ERROR', message: error.message });
+      logger.outputJsonResult(false, payload, {
+        code: "ERROR",
+        message: error.message,
+      });
     } else {
       logger.error(`Verification failed: ${error.message}`);
     }
@@ -199,14 +235,14 @@ export async function verifyCommand(options: VerifyOptions = {}): Promise<void> 
  * Resolve command for a task and run it
  */
 async function resolveAndRun(
-  task: 'format' | 'lint' | 'typecheck' | 'test' | 'build' | 'install',
+  task: "format" | "lint" | "typecheck" | "test" | "build" | "install",
   name: string,
   resolver: CommandResolver,
   language: any,
   packageManager: any,
   makefileTargets: string[],
   verificationConfig: any,
-  jsonMode: boolean
+  jsonMode: boolean,
 ): Promise<VerifyStepResult | null> {
   // Resolve command
   const resolved = await resolver.resolve({
@@ -214,11 +250,11 @@ async function resolveAndRun(
     language,
     packageManager,
     makefileTargets,
-    config: verificationConfig
+    config: verificationConfig,
   });
 
   // If command not found, check if task is optional (Phase 1c: build is optional)
-  if (resolved.source === 'not-found') {
+  if (resolved.source === "not-found") {
     // For optional tasks (build), skip gracefully without suggestions
     if (resolved.optional) {
       const result: VerifyStepResult = {
@@ -226,7 +262,7 @@ async function resolveAndRun(
         passed: true,
         duration: 0,
         skipped: true,
-        reason: `${task} command not available (optional)`
+        reason: `${task} command not available (optional)`,
       };
 
       if (!jsonMode) {
@@ -242,7 +278,7 @@ async function resolveAndRun(
       language,
       packageManager,
       makefileTargets,
-      verificationConfig
+      verificationConfig,
     );
 
     const result: VerifyStepResult = {
@@ -250,7 +286,7 @@ async function resolveAndRun(
       passed: true,
       duration: 0,
       skipped: true,
-      reason: `${task} command not available for ${language}${suggestions.length > 0 ? '. ' + suggestions.join('. ') : ''}`
+      reason: `${task} command not available for ${language}${suggestions.length > 0 ? ". " + suggestions.join(". ") : ""}`,
     };
 
     if (!jsonMode) {
@@ -259,8 +295,8 @@ async function resolveAndRun(
       // Show suggestions in non-JSON mode
       if (suggestions.length > 0) {
         logger.blank();
-        logger.log(chalk.dim('Suggestions:'));
-        suggestions.forEach(suggestion => {
+        logger.log(chalk.dim("Suggestions:"));
+        suggestions.forEach((suggestion) => {
           logger.log(chalk.dim(`  • ${suggestion}`));
         });
         logger.blank();
@@ -272,7 +308,9 @@ async function resolveAndRun(
 
   // Display command source in verbose mode
   if (!jsonMode && logger.getLevel() >= 3) {
-    logger.debug(`${name} command: ${resolved.command} (source: ${resolved.source})`);
+    logger.debug(
+      `${name} command: ${resolved.command} (source: ${resolved.source})`,
+    );
   }
 
   // Run the command
@@ -288,7 +326,7 @@ function generateCommandNotFoundSuggestions(
   language: string,
   packageManager: string | undefined,
   makefileTargets: string[],
-  verificationConfig: any
+  verificationConfig: any,
 ): string[] {
   const suggestions: string[] = [];
   const preferMakefile = verificationConfig?.preferMakefile !== false; // Default: true
@@ -297,34 +335,38 @@ function generateCommandNotFoundSuggestions(
   if (preferMakefile && makefileTargets.length > 0) {
     // Show available targets
     if (makefileTargets.length <= 5) {
-      suggestions.push(`Available Makefile targets: ${makefileTargets.join(', ')}`);
+      suggestions.push(
+        `Available Makefile targets: ${makefileTargets.join(", ")}`,
+      );
     } else {
       const first5 = makefileTargets.slice(0, 5);
-      suggestions.push(`Available Makefile targets: ${first5.join(', ')} (and ${makefileTargets.length - 5} more)`);
+      suggestions.push(
+        `Available Makefile targets: ${first5.join(", ")} (and ${makefileTargets.length - 5} more)`,
+      );
     }
 
     // Suggest adding the missing target
     suggestions.push(`Add '${task}' target to Makefile`);
 
     // Suggest using makefileAliases if a similar target exists
-    const similarTargets = makefileTargets.filter(target =>
-      target.includes(task) || task.includes(target)
+    const similarTargets = makefileTargets.filter(
+      (target) => target.includes(task) || task.includes(target),
     );
 
     if (similarTargets.length > 0) {
       const example = similarTargets[0];
       suggestions.push(
-        `Use makefileAliases in .gpm.yml: makefileAliases: { ${example}: "${task}" }`
+        `Use makefileAliases in .gpm.yml: makefileAliases: { ${example}: "${task}" }`,
       );
     } else {
       suggestions.push(
-        `Use makefileAliases in .gpm.yml if Makefile uses different target name`
+        `Use makefileAliases in .gpm.yml if Makefile uses different target name`,
       );
     }
 
     // Suggest disabling preferMakefile
     suggestions.push(
-      `Set preferMakefile: false in .gpm.yml to use package manager commands`
+      `Set preferMakefile: false in .gpm.yml to use package manager commands`,
     );
   }
 
@@ -332,11 +374,15 @@ function generateCommandNotFoundSuggestions(
   else {
     // Suggest custom command override
     suggestions.push(
-      `Override with custom command in .gpm.yml: commands: { ${task}: "your-command" }`
+      `Override with custom command in .gpm.yml: commands: { ${task}: "your-command" }`,
     );
 
     // Suggest common tool installation for this language/task
-    const installSuggestion = getToolInstallSuggestion(task, language, packageManager);
+    const installSuggestion = getToolInstallSuggestion(
+      task,
+      language,
+      packageManager,
+    );
     if (installSuggestion) {
       suggestions.push(installSuggestion);
     }
@@ -351,32 +397,39 @@ function generateCommandNotFoundSuggestions(
 function getToolInstallSuggestion(
   task: string,
   language: string,
-  _packageManager?: string  // Reserved for future package-manager-specific suggestions
+  _packageManager?: string, // Reserved for future package-manager-specific suggestions
 ): string | null {
   // Map of task + language to common tools and install commands
-  const toolSuggestions: Record<string, Record<string, { tool: string; install: string }>> = {
+  const toolSuggestions: Record<
+    string,
+    Record<string, { tool: string; install: string }>
+  > = {
     lint: {
-      python: { tool: 'ruff', install: 'pip install ruff' },
-      nodejs: { tool: 'eslint', install: 'npm install -D eslint' },
-      go: { tool: 'golangci-lint', install: 'go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest' },
-      rust: { tool: 'clippy', install: 'rustup component add clippy' }
+      python: { tool: "ruff", install: "pip install ruff" },
+      nodejs: { tool: "eslint", install: "npm install -D eslint" },
+      go: {
+        tool: "golangci-lint",
+        install:
+          "go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest",
+      },
+      rust: { tool: "clippy", install: "rustup component add clippy" },
     },
     test: {
-      python: { tool: 'pytest', install: 'pip install pytest' },
-      nodejs: { tool: 'jest', install: 'npm install -D jest' },
-      go: { tool: 'go test', install: 'built-in (no install needed)' },
-      rust: { tool: 'cargo test', install: 'built-in (no install needed)' }
+      python: { tool: "pytest", install: "pip install pytest" },
+      nodejs: { tool: "jest", install: "npm install -D jest" },
+      go: { tool: "go test", install: "built-in (no install needed)" },
+      rust: { tool: "cargo test", install: "built-in (no install needed)" },
     },
     typecheck: {
-      python: { tool: 'mypy', install: 'pip install mypy' },
-      nodejs: { tool: 'tsc', install: 'npm install -D typescript' }
+      python: { tool: "mypy", install: "pip install mypy" },
+      nodejs: { tool: "tsc", install: "npm install -D typescript" },
     },
     format: {
-      python: { tool: 'black', install: 'pip install black' },
-      nodejs: { tool: 'prettier', install: 'npm install -D prettier' },
-      go: { tool: 'gofmt', install: 'built-in (no install needed)' },
-      rust: { tool: 'rustfmt', install: 'rustup component add rustfmt' }
-    }
+      python: { tool: "black", install: "pip install black" },
+      nodejs: { tool: "prettier", install: "npm install -D prettier" },
+      go: { tool: "gofmt", install: "built-in (no install needed)" },
+      rust: { tool: "rustfmt", install: "rustup component add rustfmt" },
+    },
   };
 
   const taskTools = toolSuggestions[task];
@@ -389,7 +442,7 @@ function getToolInstallSuggestion(
     return null;
   }
 
-  if (suggestion.install === 'built-in (no install needed)') {
+  if (suggestion.install === "built-in (no install needed)") {
     return `${suggestion.tool} is built-in for ${language}`;
   }
 
@@ -402,7 +455,7 @@ function getToolInstallSuggestion(
 async function runStep(
   name: string,
   command: string,
-  jsonMode: boolean = false
+  jsonMode: boolean = false,
 ): Promise<VerifyStepResult> {
   const stepStartTime = Date.now();
 
@@ -413,7 +466,7 @@ async function runStep(
   try {
     const { stdout, stderr } = await execAsync(command, {
       cwd: process.cwd(),
-      maxBuffer: 10 * 1024 * 1024 // 10MB
+      maxBuffer: 10 * 1024 * 1024, // 10MB
     });
 
     const duration = Date.now() - stepStartTime;
@@ -426,7 +479,7 @@ async function runStep(
       step: name,
       passed: true,
       duration,
-      output: stdout + stderr
+      output: stdout + stderr,
     };
   } catch (error: any) {
     const duration = Date.now() - stepStartTime;
@@ -437,11 +490,11 @@ async function runStep(
       // Show error output
       if (error.stdout || error.stderr) {
         logger.blank();
-        logger.log(chalk.dim('Output:'));
-        const output = (error.stdout || '') + (error.stderr || '');
+        logger.log(chalk.dim("Output:"));
+        const output = (error.stdout || "") + (error.stderr || "");
         // Show last 20 lines of output
-        const lines = output.split('\n');
-        const relevantLines = lines.slice(-20).join('\n');
+        const lines = output.split("\n");
+        const relevantLines = lines.slice(-20).join("\n");
         logger.log(chalk.dim(relevantLines));
         logger.blank();
       }
@@ -452,7 +505,7 @@ async function runStep(
       passed: false,
       duration,
       error: error.message,
-      output: (error.stdout || '') + (error.stderr || '')
+      output: (error.stdout || "") + (error.stderr || ""),
     };
   }
 }
@@ -467,29 +520,29 @@ async function resolveAndRunInstall(
   lockFile: string | null,
   makefileTargets: string[],
   verificationConfig: any,
-  jsonMode: boolean
+  jsonMode: boolean,
 ): Promise<VerifyStepResult | null> {
   // Resolve install command
   const resolved = await resolver.resolve({
-    task: 'install',
+    task: "install",
     language,
     packageManager,
     makefileTargets,
-    config: verificationConfig
+    config: verificationConfig,
   });
 
   // If command not found, skip
-  if (resolved.source === 'not-found') {
+  if (resolved.source === "not-found") {
     const result: VerifyStepResult = {
-      step: 'Install Dependencies',
+      step: "Install Dependencies",
       passed: true,
       duration: 0,
       skipped: true,
-      reason: `install command not available for ${language}`
+      reason: `install command not available for ${language}`,
     };
 
     if (!jsonMode) {
-      logger.info('ℹ️  Install Dependencies: skipped (not available)');
+      logger.info("ℹ️  Install Dependencies: skipped (not available)");
     }
 
     return result;
@@ -498,23 +551,23 @@ async function resolveAndRunInstall(
   // Check for missing lock file
   if (!lockFile && !jsonMode) {
     logger.warn(`⚠️  Warning: No lock file found for ${packageManager}`);
-    logger.warn('   Consider creating a lock file for reproducible installs:');
+    logger.warn("   Consider creating a lock file for reproducible installs:");
 
     // Show lock file creation command based on package manager
     const lockFileCommands: Record<string, string> = {
-      poetry: 'poetry lock',
-      pipenv: 'pipenv lock',
-      uv: 'uv lock',
-      pip: 'pip freeze > requirements.txt',
-      pnpm: 'pnpm install',
-      yarn: 'yarn install',
-      bun: 'bun install',
-      npm: 'npm install',
-      'go-mod': 'go mod tidy',
-      cargo: 'cargo update'
+      poetry: "poetry lock",
+      pipenv: "pipenv lock",
+      uv: "uv lock",
+      pip: "pip freeze > requirements.txt",
+      pnpm: "pnpm install",
+      yarn: "yarn install",
+      bun: "bun install",
+      npm: "npm install",
+      "go-mod": "go mod tidy",
+      cargo: "cargo update",
     };
 
-    const lockCommand = lockFileCommands[packageManager || ''];
+    const lockCommand = lockFileCommands[packageManager || ""];
     if (lockCommand) {
       logger.warn(`   ${chalk.cyan(lockCommand)}`);
     }
@@ -528,22 +581,22 @@ async function resolveAndRunInstall(
     logger.blank();
 
     const response = await prompts({
-      type: 'confirm',
-      name: 'proceed',
-      message: 'Proceed with installation?',
-      initial: true
+      type: "confirm",
+      name: "proceed",
+      message: "Proceed with installation?",
+      initial: true,
     });
 
     if (!response.proceed) {
       const result: VerifyStepResult = {
-        step: 'Install Dependencies',
+        step: "Install Dependencies",
         passed: true,
         duration: 0,
         skipped: true,
-        reason: 'user cancelled'
+        reason: "user cancelled",
       };
 
-      logger.info('ℹ️  Install cancelled by user');
+      logger.info("ℹ️  Install cancelled by user");
       return result;
     }
 
@@ -555,7 +608,7 @@ async function resolveAndRunInstall(
   }
 
   // Run the install step
-  return runStep('Install Dependencies', resolved.command, jsonMode);
+  return runStep("Install Dependencies", resolved.command, jsonMode);
 }
 
 /**
@@ -579,12 +632,12 @@ function formatDuration(ms: number): string {
  */
 function getTaskDisplayName(task: string): string {
   const displayNames: Record<string, string> = {
-    format: 'Format',
-    lint: 'Lint',
-    typecheck: 'Type Check',
-    test: 'Tests',
-    build: 'Build',
-    install: 'Install Dependencies'
+    format: "Format",
+    lint: "Lint",
+    typecheck: "Type Check",
+    test: "Tests",
+    build: "Build",
+    install: "Install Dependencies",
   };
   return displayNames[task] || task;
 }
@@ -599,7 +652,7 @@ function outputResults(
   totalDuration: number,
   language: string,
   packageManager: string | undefined,
-  jsonMode: boolean
+  jsonMode: boolean,
 ): void {
   const success = failedSteps.length === 0;
 
@@ -610,19 +663,23 @@ function outputResults(
       totalDuration,
       failedSteps,
       language,
-      packageManager
+      packageManager,
     };
     // Emit single-line JSON via logger
     logger.outputJsonResult(success, result);
   } else {
     logger.blank();
     if (success) {
-      logger.success(`✅ All verification checks passed! (${formatDuration(totalDuration)})`);
+      logger.success(
+        `✅ All verification checks passed! (${formatDuration(totalDuration)})`,
+      );
     } else {
-      logger.error(`❌ Verification failed (${failedSteps.length}/${results.length} steps failed)`);
+      logger.error(
+        `❌ Verification failed (${failedSteps.length}/${results.length} steps failed)`,
+      );
       logger.blank();
-      logger.log('Failed steps:');
-      failedSteps.forEach(step => logger.log(`  • ${step}`));
+      logger.log("Failed steps:");
+      failedSteps.forEach((step) => logger.log(`  • ${step}`));
     }
   }
 }
