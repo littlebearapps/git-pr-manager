@@ -147,6 +147,7 @@ describe("GitHubService", () => {
           url: "https://api.github.com/user",
           headers: {},
           data: {},
+          retryCount: 0,
         },
       });
 
