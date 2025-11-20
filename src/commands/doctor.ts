@@ -168,15 +168,11 @@ const PRE_RELEASE_CHECKS: PreReleaseCheck[] = [
 export async function doctorCommand(
   options: DoctorOptions = {},
 ): Promise<void> {
-  console.error("DEBUG: doctorCommand called with options:", options);
   // JSON mode with new ToolDetector
   if (options.json && !options.preRelease) {
     try {
-      console.error("DEBUG: Creating detector...");
       const detector = new ToolDetector();
-      console.error("DEBUG: Generating response...");
       const response = await detector.generateDoctorResponse(pkg.version);
-      console.error("DEBUG: Outputting JSON...");
       console.log(JSON.stringify(response, null, 2));
 
       // Exit with error code if there are errors

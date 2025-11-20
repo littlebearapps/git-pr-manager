@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-console.error("DEBUG: Script started, args:", process.argv);
-
 import { Command } from "commander";
 import { checksCommand } from "./commands/checks";
 import { initCommand } from "./commands/init";
@@ -25,23 +23,17 @@ import { maybeNotifyUpdate } from "./utils/update-check";
 import { getVersion } from "./utils/version";
 import pkg from "../package.json";
 
-console.error("DEBUG: Imports completed");
-
 // Fire-and-forget update check (non-blocking)
-console.error("DEBUG: About to run update check");
 maybeNotifyUpdate({ pkg, argv: process.argv }).catch(() => {
   // Silently fail - update check is non-critical
 });
-console.error("DEBUG: Update check initiated");
 
 // Internal telemetry (optional - Nathan only, private)
 let telemetry: any = null;
-console.error("DEBUG: Starting telemetry setup");
 (async () => {
   try {
     const os = await import("os");
     const username = os.userInfo().username;
-    console.error("DEBUG: Username check:", username);
 
     if (username === "nathanschram_DISABLED_FOR_DEBUG") {
       const { initTelemetry, captureBreadcrumb, captureError } =
@@ -59,12 +51,9 @@ console.error("DEBUG: Starting telemetry setup");
   }
 })().catch(() => {
   // Telemetry initialization failed - gracefully degrade
-  console.error("DEBUG: Telemetry catch block");
 });
 
-console.error("DEBUG: Creating command program");
 const program = new Command();
-console.error("DEBUG: Command program created");
 
 program
   .name("gpm")
