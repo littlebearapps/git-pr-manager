@@ -104,7 +104,7 @@ function main() {
             { cwd: installRoot, stdio: "inherit" },
           );
           console.log("✅ Telemetry downloaded");
-        } catch (_cloneError) {
+        } catch {
           console.warn("⚠️  Could not download telemetry (private repo)");
           console.warn(
             "   Continuing without telemetry - tool will work normally\n",
@@ -123,7 +123,7 @@ function main() {
         console.log("✅ Internal telemetry ready\n");
       }
     }
-  } catch (_error) {
+  } catch {
     // Silently fail - telemetry is optional internal tooling
     console.warn("⚠️  Telemetry setup encountered an issue");
     console.warn("   Continuing without telemetry - tool will work normally\n");

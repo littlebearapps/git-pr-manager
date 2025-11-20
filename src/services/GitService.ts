@@ -236,7 +236,7 @@ export class GitService {
       if (match) {
         return match[1];
       }
-    } catch (_error) {
+    } catch {
       // If that fails, check common default branch names
       const branches = await this.listBranches();
       if (branches.includes("main")) {
@@ -259,7 +259,7 @@ export class GitService {
     try {
       const output = await this.git.raw(["worktree", "list", "--porcelain"]);
       return parseWorktreeList(output);
-    } catch (_error) {
+    } catch {
       // Not a worktree repository, return current directory as single worktree
       try {
         const currentBranch = await this.getCurrentBranch();

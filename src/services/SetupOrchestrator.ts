@@ -475,7 +475,7 @@ export class SetupOrchestrator {
           logger.info(`Installing ${cmd.name}...`);
           execSync(cmd.command, { stdio: "inherit" });
           logger.success(`✅ ${cmd.name} installed`);
-        } catch (_error) {
+        } catch {
           logger.error(`❌ Failed to install ${cmd.name}`);
         }
       }
