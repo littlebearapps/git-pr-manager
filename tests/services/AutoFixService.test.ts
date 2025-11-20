@@ -1,6 +1,7 @@
 import { AutoFixService } from "../../src/services/AutoFixService";
 import { GitService } from "../../src/services/GitService";
 import { GitHubService } from "../../src/services/GitHubService";
+import { VerifyService } from "../../src/services/VerifyService";
 import { ErrorType, FailureDetail } from "../../src/types";
 import { exec } from "child_process";
 
@@ -589,7 +590,6 @@ describe("AutoFixService", () => {
   describe("Session 2: Verification and Rollback", () => {
     describe("Post-Fix Verification", () => {
       it("should run verification after successful fix", async () => {
-        const { VerifyService } = require("../../src/services/VerifyService");
         const mockVerifyService = new VerifyService(".") as jest.Mocked<any>;
 
         mockVerifyService.runChecks = jest.fn().mockResolvedValue({
@@ -665,7 +665,6 @@ describe("AutoFixService", () => {
       });
 
       it("should skip verification when requireTests is false", async () => {
-        const { VerifyService } = require("../../src/services/VerifyService");
         const mockVerifyService = new VerifyService(".") as jest.Mocked<any>;
 
         mockVerifyService.runChecks = jest.fn();
@@ -708,7 +707,6 @@ describe("AutoFixService", () => {
 
     describe("Rollback Capability", () => {
       it("should rollback when verification fails", async () => {
-        const { VerifyService } = require("../../src/services/VerifyService");
         const mockVerifyService = new VerifyService(".") as jest.Mocked<any>;
 
         mockVerifyService.runChecks = jest.fn().mockResolvedValue({

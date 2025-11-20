@@ -1,4 +1,5 @@
 import { RequestError } from "@octokit/request-error";
+import * as childProcess from "child_process";
 
 // Mock child_process for parseRemoteUrlSync
 jest.mock("child_process", () => ({
@@ -65,11 +66,11 @@ import {
   MergeBlockedError,
   MergeConflictError,
 } from "../../src/services/GitHubService";
+import { logger } from "../../src/utils/logger";
 
 describe("GitHubService", () => {
   let mockOctokit: any;
   let service: GitHubService;
-  const childProcess = require("child_process");
 
   beforeEach(() => {
     // Reset all mocks
@@ -595,7 +596,6 @@ describe("GitHubService", () => {
     });
 
     it("should warn when rate limit is low", async () => {
-      const { logger } = require("../../src/utils/logger");
       const mockRateLimit = {
         data: {
           rate: {
@@ -620,7 +620,6 @@ describe("GitHubService", () => {
     });
 
     it("should not warn when rate limit is sufficient", async () => {
-      const { logger } = require("../../src/utils/logger");
       const mockRateLimit = {
         data: {
           rate: {

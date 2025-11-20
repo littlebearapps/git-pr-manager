@@ -1,6 +1,7 @@
 import { jest, describe, it, expect, beforeEach } from "@jest/globals";
 import { ToolDetector } from "../../src/services/ToolDetector";
 import { execSync } from "child_process";
+import * as fs from "fs";
 
 // Mock child_process
 jest.mock("child_process");
@@ -11,7 +12,6 @@ jest.mock("fs", () => ({
   existsSync: jest.fn(),
   readFileSync: jest.fn(),
 }));
-const fs = require("fs");
 
 describe("ToolDetector", () => {
   let detector: ToolDetector;

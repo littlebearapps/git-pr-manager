@@ -1,4 +1,5 @@
 import { Logger, VerbosityLevel, createLogger } from "../../src/utils/logger";
+import simpleGit from "simple-git";
 
 // Mock simple-git for errorWithContext tests
 jest.mock("simple-git");
@@ -307,8 +308,9 @@ describe("Logger", () => {
                 "/Users/test/project/main def456 [main]",
             ),
         };
-        const simpleGit = require("simple-git");
-        simpleGit.mockReturnValue(mockGit);
+        (simpleGit as jest.MockedFunction<typeof simpleGit>).mockReturnValue(
+          mockGit as any,
+        );
 
         const logger = new Logger({ level: VerbosityLevel.NORMAL });
 
@@ -351,8 +353,9 @@ describe("Logger", () => {
             .fn()
             .mockRejectedValue(new Error("fatal: not a git repository")),
         };
-        const simpleGit = require("simple-git");
-        simpleGit.mockReturnValue(mockGit);
+        (simpleGit as jest.MockedFunction<typeof simpleGit>).mockReturnValue(
+          mockGit as any,
+        );
 
         const logger = new Logger({ level: VerbosityLevel.NORMAL });
 

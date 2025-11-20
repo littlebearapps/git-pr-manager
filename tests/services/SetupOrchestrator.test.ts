@@ -5,6 +5,8 @@ import {
   KeychainIntegration,
   StorageMethod,
 } from "../../src/services/KeychainIntegration";
+import prompts from "prompts";
+import * as fs from "fs";
 
 // Mock dependencies
 jest.mock("../../src/services/ToolDetector");
@@ -16,10 +18,8 @@ jest.mock("fs", () => ({
   writeFileSync: jest.fn(),
 }));
 
-const mockPrompts = require("prompts") as jest.MockedFunction<
-  typeof import("prompts")
->;
-const mockFs = require("fs");
+const mockPrompts = prompts as jest.MockedFunction<typeof prompts>;
+const mockFs = fs as jest.Mocked<typeof fs>;
 
 const mockedToolDetector = ToolDetector as jest.MockedClass<
   typeof ToolDetector
