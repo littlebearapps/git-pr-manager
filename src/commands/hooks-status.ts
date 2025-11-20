@@ -42,7 +42,9 @@ interface HooksStatus {
   autoDisableContexts: string[];
 }
 
-export async function hooksStatusCommand(options: HooksStatusOptions): Promise<void> {
+export async function hooksStatusCommand(
+  options: HooksStatusOptions,
+): Promise<void> {
   try {
     const hooksDir = await getGitHooksDir();
     const configService = new ConfigService();
@@ -57,7 +59,9 @@ export async function hooksStatusCommand(options: HooksStatusOptions): Promise<v
     const postCommitExists = await fileExists(postCommitPath);
 
     const prePushIsGpm = prePushExists ? await isGpmHook(prePushPath) : false;
-    const postCommitIsGpm = postCommitExists ? await isGpmHook(postCommitPath) : false;
+    const postCommitIsGpm = postCommitExists
+      ? await isGpmHook(postCommitPath)
+      : false;
 
     // Get file stats for last modified
     let prePushModified: string | undefined;
@@ -98,7 +102,12 @@ export async function hooksStatusCommand(options: HooksStatusOptions): Promise<v
         prePush: config.hooks?.prePush,
         postCommit: config.hooks?.postCommit,
       },
-      autoDisableContexts: ["CI", "GITHUB_ACTIONS", "GITLAB_CI", "JENKINS_HOME"],
+      autoDisableContexts: [
+        "CI",
+        "GITHUB_ACTIONS",
+        "GITLAB_CI",
+        "JENKINS_HOME",
+      ],
     };
 
     // Output
@@ -121,7 +130,9 @@ export async function hooksStatusCommand(options: HooksStatusOptions): Promise<v
       if (status.hooks.prePush.isGpmHook) {
         logger.success(`  ✅ Installed at ${status.hooks.prePush.path}`);
         if (status.hooks.prePush.lastModified) {
-          logger.info(`  Last modified: ${new Date(status.hooks.prePush.lastModified).toLocaleString()}`);
+          logger.info(
+            `  Last modified: ${new Date(status.hooks.prePush.lastModified).toLocaleString()}`,
+          );
         }
       } else if (status.hooks.prePush.exists) {
         logger.warn(`  ⚠️  Exists but not a gpm hook`);
@@ -137,11 +148,15 @@ export async function hooksStatusCommand(options: HooksStatusOptions): Promise<v
       if (status.hooks.postCommit.isGpmHook) {
         logger.success(`  ✅ Installed at ${status.hooks.postCommit.path}`);
         if (status.hooks.postCommit.lastModified) {
-          logger.info(`  Last modified: ${new Date(status.hooks.postCommit.lastModified).toLocaleString()}`);
+          logger.info(
+            `  Last modified: ${new Date(status.hooks.postCommit.lastModified).toLocaleString()}`,
+          );
         }
       } else if (status.hooks.postCommit.exists) {
         logger.warn(`  ⚠️  Exists but not a gpm hook`);
-        logger.info(`  Run 'gpm install-hooks --post-commit --force' to overwrite`);
+        logger.info(
+          `  Run 'gpm install-hooks --post-commit --force' to overwrite`,
+        );
       } else {
         logger.warn(`  ❌ Not installed`);
         logger.info(`  Install with: gpm install-hooks --post-commit`);
@@ -151,14 +166,20 @@ export async function hooksStatusCommand(options: HooksStatusOptions): Promise<v
 
       // Configuration section
       logger.info("Configuration (.gpm.yml):");
-      logger.info(`  Disable in CI: ${status.config.disableInCI ?? true ? "✅ Yes" : "❌ No"}`);
+      logger.info(
+        `  Disable in CI: ${(status.config.disableInCI ?? true) ? "✅ Yes" : "❌ No"}`,
+      );
 
       if (status.config.preCommit) {
-        logger.info(`  Pre-commit auto-fix: ${status.config.preCommit.autoFix ?? true ? "✅ Enabled" : "❌ Disabled"}`);
+        logger.info(
+          `  Pre-commit auto-fix: ${(status.config.preCommit.autoFix ?? true) ? "✅ Enabled" : "❌ Disabled"}`,
+        );
       }
 
       if (status.config.prePush) {
-        logger.info(`  Pre-push validation: ${status.config.prePush.runValidation ?? false ? "✅ Enabled" : "❌ Disabled"}`);
+        logger.info(
+          `  Pre-push validation: ${(status.config.prePush.runValidation ?? false) ? "✅ Enabled" : "❌ Disabled"}`,
+        );
       }
 
       logger.blank();

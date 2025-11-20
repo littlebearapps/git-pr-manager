@@ -17,6 +17,7 @@ This document outlines a comprehensive plan to prevent CI test failures in futur
 **Impact**: PR blocked from merging, CI badge shows failing status
 
 **Why it happened**:
+
 1. Code change introduced `let` instead of `const` for a variable that's never reassigned
 2. ESLint ran in CI but not locally before commit
 3. No pre-commit validation caught the issue
@@ -33,6 +34,7 @@ This document outlines a comprehensive plan to prevent CI test failures in futur
 **Implementation**:
 
 Install husky + lint-staged:
+
 ```bash
 npm install --save-dev husky lint-staged
 npx husky install
@@ -40,18 +42,17 @@ npx husky add .git/hooks/pre-commit "npx lint-staged"
 ```
 
 Configure lint-staged in `package.json`:
+
 ```json
 {
   "lint-staged": {
-    "*.ts": [
-      "eslint --fix",
-      "prettier --write"
-    ]
+    "*.ts": ["eslint --fix", "prettier --write"]
   }
 }
 ```
 
 **Benefits**:
+
 - ✅ Catches ESLint errors immediately at commit time
 - ✅ Auto-fixes fixable issues (like prefer-const)
 - ✅ Runs only on changed files (fast)
@@ -69,6 +70,7 @@ Configure lint-staged in `package.json`:
 **Implementation**:
 
 Add script to `package.json`:
+
 ```json
 {
   "scripts": {
@@ -79,6 +81,7 @@ Add script to `package.json`:
 ```
 
 Create `scripts/validate-pr.sh`:
+
 ```bash
 #!/bin/bash
 set -e
@@ -98,6 +101,7 @@ echo "✅ All checks passed! Safe to push."
 ```
 
 **Benefits**:
+
 - ✅ Developers can run full CI locally before pushing
 - ✅ Catches all CI failures (lint, build, test)
 - ✅ Simple to remember: `npm run ci:local`
@@ -114,6 +118,7 @@ echo "✅ All checks passed! Safe to push."
 **Implementation**:
 
 Update `.eslintrc.js`:
+
 ```javascript
 module.exports = {
   // ... existing config
@@ -127,11 +132,12 @@ module.exports = {
     // Add more strict rules:
     "no-var": "error",
     "no-unused-vars": "error",
-  }
+  },
 };
 ```
 
 **Benefits**:
+
 - ✅ Makes prefer-const violations errors (already is, but makes it explicit)
 - ✅ Prevents future regressions
 - ✅ Can gradually increase strictness
@@ -148,6 +154,7 @@ module.exports = {
 **Implementation Option A - Annotate ESLint errors in PR**:
 
 Update `.github/workflows/ci.yml`:
+
 ```yaml
 - name: Lint
   run: npm run lint
@@ -159,12 +166,13 @@ Update `.github/workflows/ci.yml`:
   with:
     github_token: ${{ secrets.GITHUB_TOKEN }}
     reporter: github-pr-review
-    eslint_flags: 'src/**/*.ts'
+    eslint_flags: "src/**/*.ts"
 ```
 
 **Implementation Option B - Add lint auto-fix suggestion**:
 
 Add to `.github/workflows/ci.yml`:
+
 ```yaml
 - name: Check for fixable lint errors
   if: failure()
@@ -176,6 +184,7 @@ Add to `.github/workflows/ci.yml`:
 ```
 
 **Benefits**:
+
 - ✅ Inline PR comments on lint errors (Option A)
 - ✅ Clear instructions for fixing (Option B)
 - ✅ Reduces time to fix
@@ -192,7 +201,8 @@ Add to `.github/workflows/ci.yml`:
 **Implementation**:
 
 Update `CONTRIBUTING.md` (or create if doesn't exist):
-```markdown
+
+````markdown
 ## Before Pushing Code
 
 Always run these checks locally:
@@ -208,14 +218,17 @@ npm run ci:local
 # Or use the pre-push script
 npm run pre-push
 ```
+````
 
 **Pre-commit hook**: We use husky to run ESLint automatically on commit.
 If you see errors, fix them before committing.
 
 **Common ESLint fixes**:
+
 - `prefer-const` error: Change `let` to `const` for variables that aren't reassigned
 - `no-explicit-any` warning: Add proper TypeScript types instead of `any`
-```
+
+````
 
 **Benefits**:
 - ✅ Onboards new contributors
@@ -248,9 +261,10 @@ Update `.github/workflows/ci.yml`:
     if [ "$WARNINGS" -gt 700 ]; then
       echo "⚠️ Warning count increasing! Please address @typescript-eslint/no-explicit-any"
     fi
-```
+````
 
 **Benefits**:
+
 - ✅ Tracks warning count over time
 - ✅ Alerts if warnings increase (regression)
 - ✅ Doesn't block on warnings (current behavior)
@@ -378,16 +392,19 @@ rm -rf .git/hooks/pre-commit
 ## Appendix: Alternative Solutions Considered
 
 ### Option: Git pre-push hook instead of pre-commit
+
 **Pros**: Runs full CI locally before push
 **Cons**: Slower, catches errors later
 **Decision**: Use pre-commit for faster feedback
 
 ### Option: ESLint auto-fix in CI
+
 **Pros**: Automatically fixes errors
 **Cons**: Changes code without developer review
 **Decision**: Too risky, could introduce bugs
 
 ### Option: Disable ESLint errors, warnings only
+
 **Pros**: Never blocks CI
 **Cons**: Allows code quality to degrade
 **Decision**: Keep errors, they caught a real issue

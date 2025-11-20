@@ -137,7 +137,10 @@ export class KeychainIntegration {
   /**
    * Store GitHub token using the specified method
    */
-  async storeToken(token: string, method: StorageMethod): Promise<StorageResult> {
+  async storeToken(
+    token: string,
+    method: StorageMethod,
+  ): Promise<StorageResult> {
     switch (method) {
       case StorageMethod.KEYCHAIN_MACOS:
         return this.storeInMacOSKeychain(token);
@@ -173,7 +176,7 @@ export class KeychainIntegration {
     try {
       const result = execSync(
         `curl -s -H "Authorization: token ${token}" https://api.github.com/user`,
-        { encoding: "utf-8", stdio: "pipe" }
+        { encoding: "utf-8", stdio: "pipe" },
       );
 
       const userData = JSON.parse(result);
@@ -182,13 +185,13 @@ export class KeychainIntegration {
         // Get token scopes from headers
         const scopesResult = execSync(
           `curl -sI -H "Authorization: token ${token}" https://api.github.com/user | grep "x-oauth-scopes:"`,
-          { encoding: "utf-8", stdio: "pipe" }
+          { encoding: "utf-8", stdio: "pipe" },
         ).trim();
 
         const scopes = scopesResult
           .replace("x-oauth-scopes:", "")
           .split(",")
-          .map(s => s.trim())
+          .map((s) => s.trim())
           .filter(Boolean);
 
         return {
@@ -227,7 +230,7 @@ export class KeychainIntegration {
       try {
         const result = execSync(
           `source ${this.keychainHelperPath} && kc_get GITHUB_PAT`,
-          { encoding: "utf-8", stdio: "pipe", shell: "/bin/bash" }
+          { encoding: "utf-8", stdio: "pipe", shell: "/bin/bash" },
         ).trim();
         if (result && !result.includes("not found")) {
           return result;
@@ -242,7 +245,7 @@ export class KeychainIntegration {
       try {
         const result = execSync(
           'security find-generic-password -w -s "GITHUB_PAT" 2>/dev/null',
-          { encoding: "utf-8", stdio: "pipe" }
+          { encoding: "utf-8", stdio: "pipe" },
         ).trim();
         if (result) {
           return result;
@@ -280,15 +283,21 @@ export class KeychainIntegration {
     instructions.push("   • Visit: https://github.com/settings/tokens/new");
     instructions.push("   • Name: 'gpm CLI Access'");
     instructions.push("   • Expiration: 90 days (recommended)");
-    instructions.push("   • Scopes: Select 'repo' (full control of private repositories)");
+    instructions.push(
+      "   • Scopes: Select 'repo' (full control of private repositories)",
+    );
     instructions.push("   • Click 'Generate token' and copy the token");
     instructions.push("");
     instructions.push("2. Available storage methods (ranked by security):");
     instructions.push("");
 
     for (const method of methods) {
-      const icon = method.security === "high" ? "🔒" :
-                   method.security === "medium" ? "🔐" : "⚠️";
+      const icon =
+        method.security === "high"
+          ? "🔒"
+          : method.security === "medium"
+            ? "🔐"
+            : "⚠️";
       instructions.push(`   ${icon} ${method.description}`);
       instructions.push(`      Security: ${method.security}`);
       instructions.push(`      Method: ${method.method}`);
@@ -298,7 +307,9 @@ export class KeychainIntegration {
     instructions.push("3. Run setup to configure your token:");
     instructions.push("   gpm setup github-token");
     instructions.push("");
-    instructions.push("The setup wizard will guide you through storing your token securely.");
+    instructions.push(
+      "The setup wizard will guide you through storing your token securely.",
+    );
 
     return instructions;
   }
@@ -311,7 +322,7 @@ export class KeychainIntegration {
       try {
         execSync(
           'security delete-generic-password -s "GITHUB_PAT" 2>/dev/null',
-          { stdio: "pipe" }
+          { stdio: "pipe" },
         );
       } catch {
         // Ignore if doesn't exist
@@ -320,7 +331,7 @@ export class KeychainIntegration {
       // Add new entry
       execSync(
         `security add-generic-password -s "GITHUB_PAT" -a "$USER" -w "${token}"`,
-        { stdio: "pipe" }
+        { stdio: "pipe" },
       );
 
       return {
@@ -346,7 +357,7 @@ export class KeychainIntegration {
     try {
       execSync(
         `source ${this.keychainHelperPath} && kc_set GITHUB_PAT "${token}"`,
-        { stdio: "pipe", shell: "/bin/bash" }
+        { stdio: "pipe", shell: "/bin/bash" },
       );
 
       return {
@@ -384,7 +395,8 @@ export class KeychainIntegration {
 
       // Add token based on available methods
       if (existsSync(this.keychainHelperPath)) {
-        content += "source ~/bin/kc.sh && export GITHUB_TOKEN=$(kc_get GITHUB_PAT)";
+        content +=
+          "source ~/bin/kc.sh && export GITHUB_TOKEN=$(kc_get GITHUB_PAT)";
 
         // Also store in keychain
         await this.storeWithKeychainHelper(token);

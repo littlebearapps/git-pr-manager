@@ -6,7 +6,10 @@
  */
 
 import prompts from "prompts";
-import { KeychainIntegration, StorageMethod } from "../services/KeychainIntegration";
+import {
+  KeychainIntegration,
+  StorageMethod,
+} from "../services/KeychainIntegration";
 import { SetupOrchestrator } from "../services/SetupOrchestrator";
 import { logger } from "../utils/logger";
 
@@ -21,7 +24,9 @@ interface SetupOptions {
 /**
  * GitHub token setup subcommand
  */
-export async function githubTokenSetup(options: SetupOptions = {}): Promise<void> {
+export async function githubTokenSetup(
+  options: SetupOptions = {},
+): Promise<void> {
   const keychain = new KeychainIntegration();
 
   try {
@@ -43,11 +48,17 @@ export async function githubTokenSetup(options: SetupOptions = {}): Promise<void
           return;
         }
       } else {
-        console.log(JSON.stringify({
-          success: true,
-          configured: true,
-          message: "Token already configured",
-        }, null, 2));
+        console.log(
+          JSON.stringify(
+            {
+              success: true,
+              configured: true,
+              message: "Token already configured",
+            },
+            null,
+            2,
+          ),
+        );
         return;
       }
     }
@@ -114,7 +125,7 @@ export async function githubTokenSetup(options: SetupOptions = {}): Promise<void
       }
 
       // Let user choose storage method
-      const methodChoices = availableMethods.map(m => ({
+      const methodChoices = availableMethods.map((m) => ({
         title: `${m.description} (${m.security} security)`,
         value: m.method,
         description: `Security: ${m.security}`,
@@ -155,10 +166,16 @@ export async function githubTokenSetup(options: SetupOptions = {}): Promise<void
 
       if (!token) {
         if (options.json) {
-          console.log(JSON.stringify({
-            success: false,
-            error: "Token required in non-interactive mode",
-          }, null, 2));
+          console.log(
+            JSON.stringify(
+              {
+                success: false,
+                error: "Token required in non-interactive mode",
+              },
+              null,
+              2,
+            ),
+          );
         } else {
           logger.error("Token required when using --method flag");
         }
@@ -175,10 +192,16 @@ export async function githubTokenSetup(options: SetupOptions = {}): Promise<void
         const validation = await keychain.validateToken(token);
         if (!validation.valid) {
           if (options.json) {
-            console.log(JSON.stringify({
-              success: false,
-              error: `Token validation failed: ${validation.message}`,
-            }, null, 2));
+            console.log(
+              JSON.stringify(
+                {
+                  success: false,
+                  error: `Token validation failed: ${validation.message}`,
+                },
+                null,
+                2,
+              ),
+            );
           } else {
             logger.error(`Token validation failed: ${validation.message}`);
           }
@@ -190,13 +213,19 @@ export async function githubTokenSetup(options: SetupOptions = {}): Promise<void
       const result = await keychain.storeToken(token, method);
 
       if (options.json) {
-        console.log(JSON.stringify({
-          success: result.success,
-          method: result.method,
-          location: result.location,
-          message: result.message,
-          instructions: result.instructions,
-        }, null, 2));
+        console.log(
+          JSON.stringify(
+            {
+              success: result.success,
+              method: result.method,
+              location: result.location,
+              message: result.message,
+              instructions: result.instructions,
+            },
+            null,
+            2,
+          ),
+        );
       } else {
         if (result.success) {
           logger.success(`✅ ${result.message}`);
@@ -212,10 +241,16 @@ export async function githubTokenSetup(options: SetupOptions = {}): Promise<void
     }
   } catch (error: any) {
     if (options.json) {
-      console.log(JSON.stringify({
-        success: false,
-        error: error.message || "Unknown error",
-      }, null, 2));
+      console.log(
+        JSON.stringify(
+          {
+            success: false,
+            error: error.message || "Unknown error",
+          },
+          null,
+          2,
+        ),
+      );
     } else {
       logger.error(`Setup failed: ${error.message || error}`);
     }
@@ -226,7 +261,10 @@ export async function githubTokenSetup(options: SetupOptions = {}): Promise<void
 /**
  * Main setup command
  */
-export async function setupCommand(subcommand?: string, options: SetupOptions = {}): Promise<void> {
+export async function setupCommand(
+  subcommand?: string,
+  options: SetupOptions = {},
+): Promise<void> {
   // If no subcommand, run the full setup wizard
   if (!subcommand) {
     const orchestrator = new SetupOrchestrator();
@@ -238,7 +276,9 @@ export async function setupCommand(subcommand?: string, options: SetupOptions = 
     } else {
       // Phase 4.1: --update flag for re-running setup
       if (options.update) {
-        logger.info("🔄 Re-running setup wizard to update your configuration...");
+        logger.info(
+          "🔄 Re-running setup wizard to update your configuration...",
+        );
         logger.blank();
         await orchestrator.runInteractiveSetup();
         return;
@@ -267,12 +307,20 @@ export async function setupCommand(subcommand?: string, options: SetupOptions = 
         logger.log("Available setup commands:");
         logger.log("");
         logger.log("  gpm setup              Run complete setup wizard");
-        logger.log("  gpm setup --update     Re-run setup to update configuration");
-        logger.log("  gpm setup github-token Configure GitHub personal access token");
+        logger.log(
+          "  gpm setup --update     Re-run setup to update configuration",
+        );
+        logger.log(
+          "  gpm setup github-token Configure GitHub personal access token",
+        );
         logger.log("");
         logger.log("Options:");
-        logger.log("  --json                 Output JSON format (automated mode)");
-        logger.log("  --update               Re-run setup for existing projects");
+        logger.log(
+          "  --json                 Output JSON format (automated mode)",
+        );
+        logger.log(
+          "  --update               Re-run setup for existing projects",
+        );
         logger.log("");
       } else {
         // User cancelled
@@ -290,10 +338,16 @@ export async function setupCommand(subcommand?: string, options: SetupOptions = 
 
     default:
       if (options.json) {
-        console.log(JSON.stringify({
-          success: false,
-          error: `Unknown setup command: ${subcommand}`,
-        }, null, 2));
+        console.log(
+          JSON.stringify(
+            {
+              success: false,
+              error: `Unknown setup command: ${subcommand}`,
+            },
+            null,
+            2,
+          ),
+        );
       } else {
         logger.error(`Unknown setup command: ${subcommand}`);
         logger.info("Run 'gpm setup' to see available commands.");

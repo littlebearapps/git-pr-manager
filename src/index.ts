@@ -263,9 +263,7 @@ worktree
   .action(worktreePruneCommand);
 
 // Hooks command group
-const hooks = program
-  .command("hooks")
-  .description("Manage git hooks");
+const hooks = program.command("hooks").description("Manage git hooks");
 
 hooks
   .command("status")

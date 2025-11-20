@@ -1,7 +1,10 @@
 import { jest, describe, it, expect, beforeEach } from "@jest/globals";
 import { SetupOrchestrator } from "../../src/services/SetupOrchestrator";
 import { ToolDetector } from "../../src/services/ToolDetector";
-import { KeychainIntegration, StorageMethod } from "../../src/services/KeychainIntegration";
+import {
+  KeychainIntegration,
+  StorageMethod,
+} from "../../src/services/KeychainIntegration";
 
 // Mock dependencies
 jest.mock("../../src/services/ToolDetector");
@@ -13,11 +16,17 @@ jest.mock("fs", () => ({
   writeFileSync: jest.fn(),
 }));
 
-const mockPrompts = require("prompts") as jest.MockedFunction<typeof import("prompts")>;
+const mockPrompts = require("prompts") as jest.MockedFunction<
+  typeof import("prompts")
+>;
 const mockFs = require("fs");
 
-const mockedToolDetector = ToolDetector as jest.MockedClass<typeof ToolDetector>;
-const mockedKeychain = KeychainIntegration as jest.MockedClass<typeof KeychainIntegration>;
+const mockedToolDetector = ToolDetector as jest.MockedClass<
+  typeof ToolDetector
+>;
+const mockedKeychain = KeychainIntegration as jest.MockedClass<
+  typeof KeychainIntegration
+>;
 
 describe("SetupOrchestrator", () => {
   let orchestrator: SetupOrchestrator;
@@ -105,9 +114,13 @@ describe("SetupOrchestrator", () => {
       const report = await orchestrator.runInteractiveSetup();
 
       expect(report.steps.length).toBeGreaterThan(0);
-      const tokenStep = report.steps.find(s => s.name === "GitHub Token Setup");
+      const tokenStep = report.steps.find(
+        (s) => s.name === "GitHub Token Setup",
+      );
       expect(tokenStep?.status).toBe("skipped");
-      expect(report.recommendations).toContain("Set up GitHub token later: gpm setup github-token");
+      expect(report.recommendations).toContain(
+        "Set up GitHub token later: gpm setup github-token",
+      );
     });
 
     it("should setup GitHub token when user confirms", async () => {
@@ -160,9 +173,13 @@ describe("SetupOrchestrator", () => {
 
       const report = await orchestrator.runInteractiveSetup();
 
-      const tokenStep = report.steps.find(s => s.name === "GitHub Token Setup");
+      const tokenStep = report.steps.find(
+        (s) => s.name === "GitHub Token Setup",
+      );
       expect(tokenStep?.status).toBe("completed");
-      expect(mockKeychainInstance.validateToken).toHaveBeenCalledWith("ghp_test_token_123");
+      expect(mockKeychainInstance.validateToken).toHaveBeenCalledWith(
+        "ghp_test_token_123",
+      );
       expect(mockKeychainInstance.storeToken).toHaveBeenCalled();
     });
 
@@ -207,10 +224,14 @@ describe("SetupOrchestrator", () => {
 
       const report = await orchestrator.runInteractiveSetup();
 
-      const tokenStep = report.steps.find(s => s.name === "GitHub Token Setup");
+      const tokenStep = report.steps.find(
+        (s) => s.name === "GitHub Token Setup",
+      );
       expect(tokenStep?.status).toBe("failed");
       expect(tokenStep?.message).toContain("Failed to setup token");
-      expect(report.recommendations).toContain("Set up GitHub token manually: gpm setup github-token");
+      expect(report.recommendations).toContain(
+        "Set up GitHub token manually: gpm setup github-token",
+      );
     });
 
     it("should detect missing required tools", async () => {
@@ -239,9 +260,11 @@ describe("SetupOrchestrator", () => {
       const report = await orchestrator.runInteractiveSetup();
 
       expect(report.overallStatus).toBe("failed");
-      const gitStep = report.steps.find(s => s.name === "Install git");
+      const gitStep = report.steps.find((s) => s.name === "Install git");
       expect(gitStep?.status).toBe("failed");
-      expect(report.recommendations).toContain("Install git: install:brew install git");
+      expect(report.recommendations).toContain(
+        "Install git: install:brew install git",
+      );
     });
 
     it("should handle missing optional tools", async () => {
@@ -274,7 +297,7 @@ describe("SetupOrchestrator", () => {
       const report = await orchestrator.runInteractiveSetup();
 
       expect(report.recommendations).toContainEqual(
-        expect.stringContaining("gh: install:brew install gh")
+        expect.stringContaining("gh: install:brew install gh"),
       );
     });
 
@@ -303,10 +326,12 @@ describe("SetupOrchestrator", () => {
 
       const report = await orchestrator.runInteractiveSetup();
 
-      const scriptStep = report.steps.find(s => s.name === "Add npm script: test");
+      const scriptStep = report.steps.find(
+        (s) => s.name === "Add npm script: test",
+      );
       expect(scriptStep?.status).toBe("skipped");
       expect(report.recommendations).toContainEqual(
-        expect.stringContaining('Add to package.json scripts: "test": "jest"')
+        expect.stringContaining('Add to package.json scripts: "test": "jest"'),
       );
     });
 
@@ -330,11 +355,11 @@ describe("SetupOrchestrator", () => {
 
       const report = await orchestrator.runInteractiveSetup();
 
-      const configStep = report.steps.find(s => s.name === "Create .gpm.yml");
+      const configStep = report.steps.find((s) => s.name === "Create .gpm.yml");
       expect(configStep?.status).toBe("completed");
       expect(mockFs.writeFileSync).toHaveBeenCalledWith(
         ".gpm.yml",
-        expect.stringContaining("github:")
+        expect.stringContaining("github:"),
       );
     });
 
@@ -361,9 +386,11 @@ describe("SetupOrchestrator", () => {
 
       const report = await orchestrator.runInteractiveSetup();
 
-      const configStep = report.steps.find(s => s.name === "Create .gpm.yml");
+      const configStep = report.steps.find((s) => s.name === "Create .gpm.yml");
       expect(configStep?.status).toBe("failed");
-      expect(report.recommendations).toContain("Create configuration manually: gpm init");
+      expect(report.recommendations).toContain(
+        "Create configuration manually: gpm init",
+      );
     });
   });
 
@@ -388,7 +415,7 @@ describe("SetupOrchestrator", () => {
 
       expect(report.overallStatus).toBe("success");
       expect(report.steps).toHaveLength(3);
-      expect(report.steps.every(s => s.status === "completed")).toBe(true);
+      expect(report.steps.every((s) => s.status === "completed")).toBe(true);
       expect(report.recommendations).toHaveLength(0);
     });
 
@@ -415,9 +442,11 @@ describe("SetupOrchestrator", () => {
       const report = await orchestrator.runAutomatedSetup();
 
       expect(report.overallStatus).toBe("failed");
-      const gitStep = report.steps.find(s => s.name === "tool.git");
+      const gitStep = report.steps.find((s) => s.name === "tool.git");
       expect(gitStep?.status).toBe("failed");
-      expect(report.recommendations).toContain("tool.git: install:brew install git");
+      expect(report.recommendations).toContain(
+        "tool.git: install:brew install git",
+      );
     });
 
     it("should include recommendations for all non-ok checks", async () => {
@@ -448,8 +477,12 @@ describe("SetupOrchestrator", () => {
       const report = await orchestrator.runAutomatedSetup();
 
       expect(report.recommendations).toHaveLength(2);
-      expect(report.recommendations).toContain("tool.gh: install:brew install gh");
-      expect(report.recommendations).toContain("script.test: add-script:test:jest");
+      expect(report.recommendations).toContain(
+        "tool.gh: install:brew install gh",
+      );
+      expect(report.recommendations).toContain(
+        "script.test: add-script:test:jest",
+      );
     });
 
     it("should return partial status when some checks fail", async () => {
@@ -475,7 +508,7 @@ describe("SetupOrchestrator", () => {
       const report = await orchestrator.runAutomatedSetup();
 
       expect(report.overallStatus).toBe("partial");
-      const nodeStep = report.steps.find(s => s.name === "tool.node");
+      const nodeStep = report.steps.find((s) => s.name === "tool.node");
       expect(nodeStep?.status).toBe("skipped"); // incompatible becomes skipped, not failed
     });
   });
@@ -485,7 +518,9 @@ describe("SetupOrchestrator", () => {
       // Mock doctor response
       mockDetectorInstance.generateDoctorResponse.mockResolvedValue({
         status: "warnings",
-        checks: [{ id: "github.token", status: "missing", details: "Token not found" }],
+        checks: [
+          { id: "github.token", status: "missing", details: "Token not found" },
+        ],
         metadata: {
           timestamp: new Date().toISOString(),
           gpm_version: "0.0.0-development",
@@ -506,7 +541,9 @@ describe("SetupOrchestrator", () => {
 
       const report = await orchestrator.runInteractiveSetup();
 
-      const tokenStep = report.steps.find(s => s.name === "GitHub Token Setup");
+      const tokenStep = report.steps.find(
+        (s) => s.name === "GitHub Token Setup",
+      );
       expect(tokenStep?.status).toBe("failed");
     });
 
@@ -514,7 +551,9 @@ describe("SetupOrchestrator", () => {
       // Mock doctor response
       mockDetectorInstance.generateDoctorResponse.mockResolvedValue({
         status: "warnings",
-        checks: [{ id: "github.token", status: "missing", details: "Token not found" }],
+        checks: [
+          { id: "github.token", status: "missing", details: "Token not found" },
+        ],
         metadata: {
           timestamp: new Date().toISOString(),
           gpm_version: "0.0.0-development",
@@ -549,7 +588,9 @@ describe("SetupOrchestrator", () => {
 
       const report = await orchestrator.runInteractiveSetup();
 
-      const tokenStep = report.steps.find(s => s.name === "GitHub Token Setup");
+      const tokenStep = report.steps.find(
+        (s) => s.name === "GitHub Token Setup",
+      );
       expect(tokenStep?.status).toBe("failed");
     });
 
@@ -557,7 +598,9 @@ describe("SetupOrchestrator", () => {
       // Mock doctor response
       mockDetectorInstance.generateDoctorResponse.mockResolvedValue({
         status: "warnings",
-        checks: [{ id: "github.token", status: "missing", details: "Token not found" }],
+        checks: [
+          { id: "github.token", status: "missing", details: "Token not found" },
+        ],
         metadata: {
           timestamp: new Date().toISOString(),
           gpm_version: "0.0.0-development",
@@ -591,16 +634,16 @@ describe("SetupOrchestrator", () => {
 
       const report = await orchestrator.runInteractiveSetup();
 
-      const tokenStep = report.steps.find(s => s.name === "GitHub Token Setup");
+      const tokenStep = report.steps.find(
+        (s) => s.name === "GitHub Token Setup",
+      );
       expect(tokenStep?.status).toBe("failed");
     });
 
     it("should include timestamp in reports", async () => {
       mockDetectorInstance.generateDoctorResponse.mockResolvedValue({
         status: "ok",
-        checks: [
-          { id: "github.token", status: "ok", details: "Token found" },
-        ],
+        checks: [{ id: "github.token", status: "ok", details: "Token found" }],
         metadata: {
           timestamp: new Date().toISOString(),
           gpm_version: "0.0.0-development",

@@ -97,7 +97,9 @@ export class ToolDetector {
     const bun = await this.checkTool("bun", false, "bun --version");
 
     // Mark at least one package manager as required
-    const hasPackageManager = [npm, yarn, pnpm, bun].some(t => t.status === "ok");
+    const hasPackageManager = [npm, yarn, pnpm, bun].some(
+      (t) => t.status === "ok",
+    );
     if (!hasPackageManager) {
       npm.required = true;
       npm.recommendedAction = "install:npm (comes with Node.js)";
@@ -106,15 +108,71 @@ export class ToolDetector {
     tools.push(npm, yarn, pnpm, bun);
 
     // Optional tools
-    tools.push(await this.checkTool("gh", false, "gh --version", null, "https://cli.github.com/"));
-    tools.push(await this.checkTool("detect-secrets", false, "detect-secrets --version", null, "pip install detect-secrets"));
-    tools.push(await this.checkTool("pip-audit", false, "pip-audit --version", null, "pip install pip-audit"));
+    tools.push(
+      await this.checkTool(
+        "gh",
+        false,
+        "gh --version",
+        null,
+        "https://cli.github.com/",
+      ),
+    );
+    tools.push(
+      await this.checkTool(
+        "detect-secrets",
+        false,
+        "detect-secrets --version",
+        null,
+        "pip install detect-secrets",
+      ),
+    );
+    tools.push(
+      await this.checkTool(
+        "pip-audit",
+        false,
+        "pip-audit --version",
+        null,
+        "pip install pip-audit",
+      ),
+    );
 
     // Verification tools (check locally installed versions)
-    tools.push(await this.checkTool("eslint", false, "npx --no-install eslint --version 2>/dev/null", null, "npm install -D eslint"));
-    tools.push(await this.checkTool("prettier", false, "npx --no-install prettier --version 2>/dev/null", null, "npm install -D prettier"));
-    tools.push(await this.checkTool("typescript", false, "npx --no-install tsc --version 2>/dev/null", null, "npm install -D typescript"));
-    tools.push(await this.checkTool("jest", false, "npx --no-install jest --version 2>/dev/null", null, "npm install -D jest"));
+    tools.push(
+      await this.checkTool(
+        "eslint",
+        false,
+        "npx --no-install eslint --version 2>/dev/null",
+        null,
+        "npm install -D eslint",
+      ),
+    );
+    tools.push(
+      await this.checkTool(
+        "prettier",
+        false,
+        "npx --no-install prettier --version 2>/dev/null",
+        null,
+        "npm install -D prettier",
+      ),
+    );
+    tools.push(
+      await this.checkTool(
+        "typescript",
+        false,
+        "npx --no-install tsc --version 2>/dev/null",
+        null,
+        "npm install -D typescript",
+      ),
+    );
+    tools.push(
+      await this.checkTool(
+        "jest",
+        false,
+        "npx --no-install jest --version 2>/dev/null",
+        null,
+        "npm install -D jest",
+      ),
+    );
 
     return tools;
   }
@@ -146,7 +204,7 @@ export class ToolDetector {
       const output = execSync(command, {
         encoding: "utf-8",
         stdio: "pipe",
-        timeout: 3000  // 3 second timeout
+        timeout: 3000, // 3 second timeout
       }).trim();
       const version = this.extractVersion(output);
 
@@ -164,7 +222,7 @@ export class ToolDetector {
         installed: true,
         version,
         compatible,
-        minVersion: minVersions[tool]
+        minVersion: minVersions[tool],
       };
     } catch {
       return { installed: false, version: null, compatible: false };
@@ -176,8 +234,20 @@ export class ToolDetector {
    */
   async validateConfiguration(tool: string): Promise<ConfigStatus> {
     const configFiles: Record<string, string[]> = {
-      eslint: [".eslintrc.json", ".eslintrc.js", ".eslintrc.yml", ".eslintrc", "eslint.config.js"],
-      prettier: [".prettierrc", ".prettierrc.json", ".prettierrc.yml", ".prettierrc.js", "prettier.config.js"],
+      eslint: [
+        ".eslintrc.json",
+        ".eslintrc.js",
+        ".eslintrc.yml",
+        ".eslintrc",
+        "eslint.config.js",
+      ],
+      prettier: [
+        ".prettierrc",
+        ".prettierrc.json",
+        ".prettierrc.yml",
+        ".prettierrc.js",
+        "prettier.config.js",
+      ],
       typescript: ["tsconfig.json"],
       jest: ["jest.config.js", "jest.config.ts", "jest.config.json"],
       git: [".gitignore"],
@@ -211,22 +281,38 @@ export class ToolDetector {
     // Check lock files first (most reliable)
     if (existsSync("bun.lockb")) {
       const version = await this.getToolVersion("bun");
-      return { type: "bun", version: version || "unknown", lockFile: "bun.lockb" };
+      return {
+        type: "bun",
+        version: version || "unknown",
+        lockFile: "bun.lockb",
+      };
     }
 
     if (existsSync("pnpm-lock.yaml")) {
       const version = await this.getToolVersion("pnpm");
-      return { type: "pnpm", version: version || "unknown", lockFile: "pnpm-lock.yaml" };
+      return {
+        type: "pnpm",
+        version: version || "unknown",
+        lockFile: "pnpm-lock.yaml",
+      };
     }
 
     if (existsSync("yarn.lock")) {
       const version = await this.getToolVersion("yarn");
-      return { type: "yarn", version: version || "unknown", lockFile: "yarn.lock" };
+      return {
+        type: "yarn",
+        version: version || "unknown",
+        lockFile: "yarn.lock",
+      };
     }
 
     if (existsSync("package-lock.json")) {
       const version = await this.getToolVersion("npm");
-      return { type: "npm", version: version || "unknown", lockFile: "package-lock.json" };
+      return {
+        type: "npm",
+        version: version || "unknown",
+        lockFile: "package-lock.json",
+      };
     }
 
     // No lock file, check if package.json exists
@@ -252,7 +338,11 @@ export class ToolDetector {
     }
 
     // Check for Python
-    if (existsSync("pyproject.toml") || existsSync("setup.py") || existsSync("requirements.txt")) {
+    if (
+      existsSync("pyproject.toml") ||
+      existsSync("setup.py") ||
+      existsSync("requirements.txt")
+    ) {
       if (existsSync("pyproject.toml")) markers.push("pyproject.toml");
       if (existsSync("setup.py")) markers.push("setup.py");
       if (existsSync("requirements.txt")) markers.push("requirements.txt");
@@ -297,9 +387,17 @@ export class ToolDetector {
 
       const recommendedScripts = [
         { name: "lint", command: "eslint .", purpose: "Code linting" },
-        { name: "format", command: "prettier --check .", purpose: "Code formatting check" },
+        {
+          name: "format",
+          command: "prettier --check .",
+          purpose: "Code formatting check",
+        },
         { name: "test", command: "jest", purpose: "Run tests" },
-        { name: "typecheck", command: "tsc --noEmit", purpose: "TypeScript type checking" },
+        {
+          name: "typecheck",
+          command: "tsc --noEmit",
+          purpose: "TypeScript type checking",
+        },
         { name: "build", command: "tsc", purpose: "Build project" },
       ];
 
@@ -429,7 +527,7 @@ export class ToolDetector {
       const output = execSync(command, {
         encoding: "utf-8",
         stdio: "pipe",
-        timeout: 3000  // 3 second timeout
+        timeout: 3000, // 3 second timeout
       }).trim();
       const version = this.extractVersion(output);
 
@@ -443,7 +541,9 @@ export class ToolDetector {
             status: "incompatible",
             version,
             details: `Version ${version} installed, but ${minVersion}+ required`,
-            recommendedAction: installCommand ? `update:${installCommand}` : undefined,
+            recommendedAction: installCommand
+              ? `update:${installCommand}`
+              : undefined,
             required,
           };
         }
@@ -463,7 +563,9 @@ export class ToolDetector {
         name,
         status: "missing",
         details: `${name} not found`,
-        recommendedAction: installCommand ? `install:${installCommand}` : undefined,
+        recommendedAction: installCommand
+          ? `install:${installCommand}`
+          : undefined,
         required,
       };
     }
@@ -475,9 +577,9 @@ export class ToolDetector {
   private extractVersion(output: string): string | null {
     // Try various version patterns
     const patterns = [
-      /(\d+\.\d+\.\d+)/,  // Standard semver
-      /v(\d+\.\d+\.\d+)/,  // With 'v' prefix
-      /version\s+(\d+\.\d+\.\d+)/i,  // With 'version' keyword
+      /(\d+\.\d+\.\d+)/, // Standard semver
+      /v(\d+\.\d+\.\d+)/, // With 'v' prefix
+      /version\s+(\d+\.\d+\.\d+)/i, // With 'version' keyword
     ];
 
     for (const pattern of patterns) {
@@ -526,7 +628,7 @@ export class ToolDetector {
       const output = execSync(command, {
         encoding: "utf-8",
         stdio: "pipe",
-        timeout: 3000  // 3 second timeout
+        timeout: 3000, // 3 second timeout
       }).trim();
       return this.extractVersion(output);
     } catch {
@@ -537,7 +639,10 @@ export class ToolDetector {
   /**
    * Validate a configuration file
    */
-  private async validateConfigFile(tool: string, file: string): Promise<string[]> {
+  private async validateConfigFile(
+    tool: string,
+    file: string,
+  ): Promise<string[]> {
     const issues: string[] = [];
 
     try {

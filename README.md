@@ -62,26 +62,26 @@ gpm auto  # Full automated PR workflow: verify → security scan → PR → CI �
 
 Quick reference for all commands with JSON output schemas:
 
-| Command               | Purpose                 | Key Flags                                                   | JSON Output Schema                                 |
-| --------------------- | ----------------------- | ----------------------------------------------------------- | -------------------------------------------------- |
-| `gpm auto`            | Full automated workflow | `--draft`, `--no-merge`, `--skip-security`, `--skip-verify` | `{prNumber, url, ciStatus, merged}`                |
-| `gpm ship`            | Manual PR workflow      | `--no-wait`, `--draft`, `--title`, `--template`             | `{prNumber, url, ciStatus}`                        |
-| `gpm feature <name>`  | Create feature branch   | `--from <branch>`                                           | `{branch, created}`                                |
-| `gpm checks <pr>`     | CI status for PR        | `--details`, `--files`                                      | `{total, passed, failed, pending, overallStatus}`  |
-| `gpm status`          | Git/workflow status     | -                                                           | `{branch, clean, ahead, behind, hooks}`            |
-| `gpm security`        | Security scanning       | -                                                           | `{passed, secretsFound, vulnerabilities}`          |
-| `gpm init`            | Initialize config       | `--template <preset>`, `--interactive`                      | `{created, template, config}`                      |
-| `gpm protect`         | Branch protection       | `--show`, `--preset <type>`, `--branch`                     | `{enabled, requirements}`                          |
-| `gpm setup`           | Setup wizard            | `--update`, `--method`, `--token`, `--skip-validation`      | `{success, method, location, configured}`          |
-| `gpm doctor`          | System health check     | `--pre-release`, `--json`                                   | `{token, tools, checks}`                           |
-| `gpm install-hooks`   | Install git hooks       | `--post-commit`, `--force`                                  | `{installed, hooks}`                               |
-| `gpm uninstall-hooks` | Remove git hooks        | -                                                           | `{removed}`                                        |
-| `gpm worktree list`   | List worktrees          | -                                                           | `{worktrees: [{path, branch, commit}]}`            |
-| `gpm worktree prune`  | Clean stale data        | `--dry-run`                                                 | `{pruned, count}`                                  |
-| `gpm verify` \| `validate` | Pre-commit checks  | `--skip-format`, `--skip-lint`, `--skip-test`               | `{passed, tasks: [{name, status, fixable}]}`       |
-| `gpm hooks status`    | Git hooks status        | -                                                           | `{installed, hooks, config}`                       |
-| `gpm check-update`    | Check for updates       | `--channel <next\|latest>`, `--clear-cache`                 | `{updateAvailable, currentVersion, latestVersion}` |
-| `gpm docs`            | View documentation      | `--guide=<name>`                                            | `{guide, found, content}`                          |
+| Command                    | Purpose                 | Key Flags                                                   | JSON Output Schema                                 |
+| -------------------------- | ----------------------- | ----------------------------------------------------------- | -------------------------------------------------- |
+| `gpm auto`                 | Full automated workflow | `--draft`, `--no-merge`, `--skip-security`, `--skip-verify` | `{prNumber, url, ciStatus, merged}`                |
+| `gpm ship`                 | Manual PR workflow      | `--no-wait`, `--draft`, `--title`, `--template`             | `{prNumber, url, ciStatus}`                        |
+| `gpm feature <name>`       | Create feature branch   | `--from <branch>`                                           | `{branch, created}`                                |
+| `gpm checks <pr>`          | CI status for PR        | `--details`, `--files`                                      | `{total, passed, failed, pending, overallStatus}`  |
+| `gpm status`               | Git/workflow status     | -                                                           | `{branch, clean, ahead, behind, hooks}`            |
+| `gpm security`             | Security scanning       | -                                                           | `{passed, secretsFound, vulnerabilities}`          |
+| `gpm init`                 | Initialize config       | `--template <preset>`, `--interactive`                      | `{created, template, config}`                      |
+| `gpm protect`              | Branch protection       | `--show`, `--preset <type>`, `--branch`                     | `{enabled, requirements}`                          |
+| `gpm setup`                | Setup wizard            | `--update`, `--method`, `--token`, `--skip-validation`      | `{success, method, location, configured}`          |
+| `gpm doctor`               | System health check     | `--pre-release`, `--json`                                   | `{token, tools, checks}`                           |
+| `gpm install-hooks`        | Install git hooks       | `--post-commit`, `--force`                                  | `{installed, hooks}`                               |
+| `gpm uninstall-hooks`      | Remove git hooks        | -                                                           | `{removed}`                                        |
+| `gpm worktree list`        | List worktrees          | -                                                           | `{worktrees: [{path, branch, commit}]}`            |
+| `gpm worktree prune`       | Clean stale data        | `--dry-run`                                                 | `{pruned, count}`                                  |
+| `gpm verify` \| `validate` | Pre-commit checks       | `--skip-format`, `--skip-lint`, `--skip-test`               | `{passed, tasks: [{name, status, fixable}]}`       |
+| `gpm hooks status`         | Git hooks status        | -                                                           | `{installed, hooks, config}`                       |
+| `gpm check-update`         | Check for updates       | `--channel <next\|latest>`, `--clear-cache`                 | `{updateAvailable, currentVersion, latestVersion}` |
+| `gpm docs`                 | View documentation      | `--guide=<name>`                                            | `{guide, found, content}`                          |
 
 **Note**: Add `--json` flag to any command for machine-readable output. All commands support `--quiet`, `--silent`, and `--verbose` flags for output control.
 

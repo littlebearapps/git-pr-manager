@@ -11,7 +11,6 @@ import { logger } from "../utils/logger";
 import { ToolDetector } from "../services/ToolDetector";
 import pkg from "../../package.json";
 
-
 interface PreReleaseCheck {
   name: string;
   check: () => Promise<boolean> | boolean;
@@ -250,13 +249,18 @@ export async function doctorCommand(
       const displayName = check.id.split(".").pop() || check.id;
 
       if (check.status === "ok") {
-        logger.success(`${displayName}${check.details ? `: ${check.details}` : ""}`);
+        logger.success(
+          `${displayName}${check.details ? `: ${check.details}` : ""}`,
+        );
       } else if (check.status === "missing") {
-        const isRequired = check.id.startsWith("tool.git") || check.id.startsWith("tool.node");
+        const isRequired =
+          check.id.startsWith("tool.git") || check.id.startsWith("tool.node");
         if (isRequired) {
           logger.error(`${displayName}: ${check.details || "Not found"}`);
         } else {
-          logger.warn(`${displayName}: ${check.details || "Not found (optional)"}`);
+          logger.warn(
+            `${displayName}: ${check.details || "Not found (optional)"}`,
+          );
         }
 
         // Show recommended action if available
@@ -264,7 +268,9 @@ export async function doctorCommand(
           logger.info(`   → ${check.recommendedAction}`);
         }
       } else if (check.status === "incompatible") {
-        logger.warn(`${displayName}: ${check.details || "Incompatible version"}`);
+        logger.warn(
+          `${displayName}: ${check.details || "Incompatible version"}`,
+        );
         if (check.recommendedAction) {
           logger.info(`   → ${check.recommendedAction}`);
         }

@@ -495,7 +495,10 @@ function getAutoFixInfo(
     if (lowerCommand.includes("prettier")) {
       return {
         fixable: true,
-        autoFixCommand: originalCommand.replace(/--check|--list-different|-l/g, "--write"),
+        autoFixCommand: originalCommand.replace(
+          /--check|--list-different|-l/g,
+          "--write",
+        ),
         suggestions: ["Run prettier with --write flag to auto-format"],
       };
     } else if (lowerCommand.includes("black")) {
@@ -521,7 +524,10 @@ function getAutoFixInfo(
 
   // Lint errors - may be auto-fixable
   if (lowerStepName.includes("lint")) {
-    if (lowerCommand.includes("eslint") || lowerCommand.includes("npm run lint")) {
+    if (
+      lowerCommand.includes("eslint") ||
+      lowerCommand.includes("npm run lint")
+    ) {
       return {
         fixable: true,
         autoFixCommand: `${originalCommand} --fix`,
@@ -876,7 +882,11 @@ async function offerSetupHelp(
 
       // Offer specific suggestions for failed steps
       missingToolSteps.forEach((step) => {
-        const suggestion = getToolInstallSuggestion(step, language, packageManager);
+        const suggestion = getToolInstallSuggestion(
+          step,
+          language,
+          packageManager,
+        );
         if (suggestion) {
           logger.log(`  • For ${step}: ${suggestion}`);
         }

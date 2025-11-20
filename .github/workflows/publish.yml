@@ -40,7 +40,7 @@ jobs:
 
       - name: Run tests
         run: npm test -- --testPathIgnorePatterns="tests/utils/logger.test.ts|tests/utils/update-check.test.ts"
-        continue-on-error: true  # Allow release despite test failures (Jest ESM issue with @octokit in CI)
+        continue-on-error: true # Allow release despite test failures (Jest ESM issue with @octokit in CI)
         # FIXME: Remove continue-on-error after Jest ESM configuration is fixed
 
       - name: Build package

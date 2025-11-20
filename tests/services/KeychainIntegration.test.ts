@@ -404,9 +404,7 @@ describe("KeychainIntegration", () => {
 
       expect(instructions).toBeInstanceOf(Array);
       expect(instructions.length).toBeGreaterThan(0);
-      expect(instructions.some((i) => i.includes("macOS Keychain"))).toBe(
-        true,
-      );
+      expect(instructions.some((i) => i.includes("macOS Keychain"))).toBe(true);
     });
 
     it("should prioritize high-security methods", async () => {
@@ -439,9 +437,7 @@ describe("KeychainIntegration", () => {
 
     it("should handle very long tokens", async () => {
       const longToken = "ghp_" + "a".repeat(1000);
-      mockExecSync.mockReturnValue(
-        Buffer.from(JSON.stringify({ scopes: [] })),
-      );
+      mockExecSync.mockReturnValue(Buffer.from(JSON.stringify({ scopes: [] })));
 
       const result = await integration.validateToken(longToken);
 

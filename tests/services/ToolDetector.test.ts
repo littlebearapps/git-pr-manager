@@ -27,19 +27,39 @@ describe("ToolDetector", () => {
   describe("detectInstalledTools", () => {
     it("should detect installed required tools", async () => {
       mockExecSync
-        .mockReturnValueOnce("git version 2.51.0" as any)   // git
-        .mockReturnValueOnce("v20.10.0" as any)              // node
-        .mockReturnValueOnce("11.6.0" as any)                // npm
-        .mockImplementationOnce(() => { throw new Error("not found"); })  // yarn
-        .mockImplementationOnce(() => { throw new Error("not found"); })  // pnpm
-        .mockImplementationOnce(() => { throw new Error("not found"); })  // bun
-        .mockImplementationOnce(() => { throw new Error("not found"); })  // gh
-        .mockImplementationOnce(() => { throw new Error("not found"); })  // detect-secrets
-        .mockImplementationOnce(() => { throw new Error("not found"); })  // pip-audit
-        .mockImplementationOnce(() => { throw new Error("not found"); })  // eslint
-        .mockImplementationOnce(() => { throw new Error("not found"); })  // prettier
-        .mockImplementationOnce(() => { throw new Error("not found"); })  // typescript
-        .mockImplementationOnce(() => { throw new Error("not found"); }); // jest
+        .mockReturnValueOnce("git version 2.51.0" as any) // git
+        .mockReturnValueOnce("v20.10.0" as any) // node
+        .mockReturnValueOnce("11.6.0" as any) // npm
+        .mockImplementationOnce(() => {
+          throw new Error("not found");
+        }) // yarn
+        .mockImplementationOnce(() => {
+          throw new Error("not found");
+        }) // pnpm
+        .mockImplementationOnce(() => {
+          throw new Error("not found");
+        }) // bun
+        .mockImplementationOnce(() => {
+          throw new Error("not found");
+        }) // gh
+        .mockImplementationOnce(() => {
+          throw new Error("not found");
+        }) // detect-secrets
+        .mockImplementationOnce(() => {
+          throw new Error("not found");
+        }) // pip-audit
+        .mockImplementationOnce(() => {
+          throw new Error("not found");
+        }) // eslint
+        .mockImplementationOnce(() => {
+          throw new Error("not found");
+        }) // prettier
+        .mockImplementationOnce(() => {
+          throw new Error("not found");
+        }) // typescript
+        .mockImplementationOnce(() => {
+          throw new Error("not found");
+        }); // jest
 
       const tools = await detector.detectInstalledTools();
 
@@ -58,19 +78,39 @@ describe("ToolDetector", () => {
     it("should detect missing optional tools", async () => {
       // Required tools present
       mockExecSync
-        .mockReturnValueOnce("git version 2.51.0" as any)   // git
-        .mockReturnValueOnce("v20.10.0" as any)              // node
-        .mockReturnValueOnce("11.6.0" as any)                // npm
-        .mockImplementationOnce(() => { throw new Error("not found"); })  // yarn
-        .mockImplementationOnce(() => { throw new Error("not found"); })  // pnpm
-        .mockImplementationOnce(() => { throw new Error("not found"); })  // bun
-        .mockImplementationOnce(() => { throw new Error("Command not found"); })  // gh - missing
-        .mockImplementationOnce(() => { throw new Error("not found"); })  // detect-secrets
-        .mockImplementationOnce(() => { throw new Error("not found"); })  // pip-audit
-        .mockImplementationOnce(() => { throw new Error("not found"); })  // eslint
-        .mockImplementationOnce(() => { throw new Error("not found"); })  // prettier
-        .mockImplementationOnce(() => { throw new Error("not found"); })  // typescript
-        .mockImplementationOnce(() => { throw new Error("not found"); }); // jest
+        .mockReturnValueOnce("git version 2.51.0" as any) // git
+        .mockReturnValueOnce("v20.10.0" as any) // node
+        .mockReturnValueOnce("11.6.0" as any) // npm
+        .mockImplementationOnce(() => {
+          throw new Error("not found");
+        }) // yarn
+        .mockImplementationOnce(() => {
+          throw new Error("not found");
+        }) // pnpm
+        .mockImplementationOnce(() => {
+          throw new Error("not found");
+        }) // bun
+        .mockImplementationOnce(() => {
+          throw new Error("Command not found");
+        }) // gh - missing
+        .mockImplementationOnce(() => {
+          throw new Error("not found");
+        }) // detect-secrets
+        .mockImplementationOnce(() => {
+          throw new Error("not found");
+        }) // pip-audit
+        .mockImplementationOnce(() => {
+          throw new Error("not found");
+        }) // eslint
+        .mockImplementationOnce(() => {
+          throw new Error("not found");
+        }) // prettier
+        .mockImplementationOnce(() => {
+          throw new Error("not found");
+        }) // typescript
+        .mockImplementationOnce(() => {
+          throw new Error("not found");
+        }); // jest
 
       const tools = await detector.detectInstalledTools();
 
@@ -356,19 +396,39 @@ describe("ToolDetector", () => {
     it("should generate comprehensive doctor response", async () => {
       // Mock all tools being checked
       mockExecSync
-        .mockReturnValueOnce("git version 2.51.0" as any)   // git
-        .mockReturnValueOnce("v20.10.0" as any)              // node
-        .mockReturnValueOnce("11.6.0" as any)                // npm
-        .mockImplementationOnce(() => { throw new Error("not found"); })  // yarn
-        .mockImplementationOnce(() => { throw new Error("not found"); })  // pnpm
-        .mockImplementationOnce(() => { throw new Error("not found"); })  // bun
-        .mockImplementationOnce(() => { throw new Error("not found"); })  // gh
-        .mockImplementationOnce(() => { throw new Error("not found"); })  // detect-secrets
-        .mockImplementationOnce(() => { throw new Error("not found"); })  // pip-audit
-        .mockImplementationOnce(() => { throw new Error("not found"); })  // eslint
-        .mockImplementationOnce(() => { throw new Error("not found"); })  // prettier
-        .mockImplementationOnce(() => { throw new Error("not found"); })  // typescript
-        .mockImplementationOnce(() => { throw new Error("not found"); }); // jest
+        .mockReturnValueOnce("git version 2.51.0" as any) // git
+        .mockReturnValueOnce("v20.10.0" as any) // node
+        .mockReturnValueOnce("11.6.0" as any) // npm
+        .mockImplementationOnce(() => {
+          throw new Error("not found");
+        }) // yarn
+        .mockImplementationOnce(() => {
+          throw new Error("not found");
+        }) // pnpm
+        .mockImplementationOnce(() => {
+          throw new Error("not found");
+        }) // bun
+        .mockImplementationOnce(() => {
+          throw new Error("not found");
+        }) // gh
+        .mockImplementationOnce(() => {
+          throw new Error("not found");
+        }) // detect-secrets
+        .mockImplementationOnce(() => {
+          throw new Error("not found");
+        }) // pip-audit
+        .mockImplementationOnce(() => {
+          throw new Error("not found");
+        }) // eslint
+        .mockImplementationOnce(() => {
+          throw new Error("not found");
+        }) // prettier
+        .mockImplementationOnce(() => {
+          throw new Error("not found");
+        }) // typescript
+        .mockImplementationOnce(() => {
+          throw new Error("not found");
+        }); // jest
 
       // Mock package.json
       fs.existsSync.mockReturnValue(true);
@@ -412,19 +472,39 @@ describe("ToolDetector", () => {
     it("should return warnings status when optional tools missing", async () => {
       // Required tools present, optional tools missing
       mockExecSync
-        .mockReturnValueOnce("git version 2.51.0" as any)   // git
-        .mockReturnValueOnce("v20.10.0" as any)              // node
-        .mockReturnValueOnce("11.6.0" as any)                // npm
-        .mockImplementationOnce(() => { throw new Error("not found"); })  // yarn
-        .mockImplementationOnce(() => { throw new Error("not found"); })  // pnpm
-        .mockImplementationOnce(() => { throw new Error("not found"); })  // bun
-        .mockImplementationOnce(() => { throw new Error("not found"); })  // gh
-        .mockImplementationOnce(() => { throw new Error("not found"); })  // detect-secrets
-        .mockImplementationOnce(() => { throw new Error("not found"); })  // pip-audit
-        .mockImplementationOnce(() => { throw new Error("not found"); })  // eslint
-        .mockImplementationOnce(() => { throw new Error("not found"); })  // prettier
-        .mockImplementationOnce(() => { throw new Error("not found"); })  // typescript
-        .mockImplementationOnce(() => { throw new Error("not found"); }); // jest
+        .mockReturnValueOnce("git version 2.51.0" as any) // git
+        .mockReturnValueOnce("v20.10.0" as any) // node
+        .mockReturnValueOnce("11.6.0" as any) // npm
+        .mockImplementationOnce(() => {
+          throw new Error("not found");
+        }) // yarn
+        .mockImplementationOnce(() => {
+          throw new Error("not found");
+        }) // pnpm
+        .mockImplementationOnce(() => {
+          throw new Error("not found");
+        }) // bun
+        .mockImplementationOnce(() => {
+          throw new Error("not found");
+        }) // gh
+        .mockImplementationOnce(() => {
+          throw new Error("not found");
+        }) // detect-secrets
+        .mockImplementationOnce(() => {
+          throw new Error("not found");
+        }) // pip-audit
+        .mockImplementationOnce(() => {
+          throw new Error("not found");
+        }) // eslint
+        .mockImplementationOnce(() => {
+          throw new Error("not found");
+        }) // prettier
+        .mockImplementationOnce(() => {
+          throw new Error("not found");
+        }) // typescript
+        .mockImplementationOnce(() => {
+          throw new Error("not found");
+        }); // jest
 
       fs.existsSync.mockReturnValue(false);
 

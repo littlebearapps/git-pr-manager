@@ -1171,6 +1171,7 @@ if (response.success && response.data) {
 ```
 
 **Fields**:
+
 - `status` (string): Overall status - "ok", "warnings", "errors"
 - `checks` (array): List of all checks performed
   - `id` (string): Check identifier (e.g., "token.github", "tool.git")
@@ -1184,10 +1185,12 @@ if (response.success && response.data) {
   - `platform` (string): Operating system platform
 
 **Exit Codes**:
+
 - `0`: All required tools present (may have warnings for optional tools)
 - `1`: Missing required tools or errors
 
 **Use Cases**:
+
 - Verify environment before running workflows
 - CI/CD environment validation
 - Troubleshooting setup issues
@@ -1234,6 +1237,7 @@ if (response.success && response.data) {
 ```
 
 **Fields**:
+
 - `success` (boolean): Whether setup completed successfully
 - `method` (string, optional): Storage method used (direnv-keychain, shell-profile, env-file, env-export)
 - `location` (string, optional): File path where token configuration was stored
@@ -1243,6 +1247,7 @@ if (response.success && response.data) {
 - `error` (string, optional): Error message if setup failed
 
 **Storage Methods**:
+
 - `direnv-keychain`: direnv + macOS Keychain (highest security)
 - `keychain-helper`: Keychain helper script
 - `shell-profile`: Shell profile (~/.zshrc, ~/.bashrc)
@@ -1250,10 +1255,12 @@ if (response.success && response.data) {
 - `env-export`: Current session only
 
 **Exit Codes**:
+
 - `0`: Setup completed successfully
 - `1`: Setup failed (validation error, storage error, etc.)
 
 **Use Cases**:
+
 - Automated CI/CD setup scripts
 - First-time user onboarding
 - Token reconfiguration

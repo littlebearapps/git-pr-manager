@@ -10,6 +10,7 @@
 ## ⚠️ IMPORTANT: Analysis Results
 
 **Thinkdeep Analysis Findings** (2025-11-20):
+
 - **Significant overlap discovered**: Many proposed features already exist in gpm v1.9.0
 - **`gpm verify` already exists**: Implements most of proposed `gpm validate` functionality
 - **Hook system already complete**: v1.4.0 has CI auto-skip and hook management
@@ -33,12 +34,14 @@ This document proposes enhancements to the CI Prevention Plan specifically for A
 ### ✅ What Already Exists
 
 **Commands:**
+
 - **`gpm verify`**: Runs format, lint, typecheck, test, build with `--skip-*` flags and `--json` output
 - **`gpm doctor`**: System health checks with `--pre-release` validation (7 checks)
 - **`gpm install-hooks`/`gpm uninstall-hooks`**: Hook management commands
 - **`gpm status`**: Shows current git/workflow status including hooks
 
 **Features:**
+
 - ✅ Multi-language support (Python, Node.js, Go, Rust) with auto-detection
 - ✅ JSON output on most commands (`--json` flag)
 - ✅ Non-interactive execution (verify/doctor are non-interactive)
@@ -47,6 +50,7 @@ This document proposes enhancements to the CI Prevention Plan specifically for A
 - ✅ Custom task ordering via `.gpm.yml` verification config
 
 **Exit Codes:**
+
 - ✅ Standard: 0 (success), 1 (failure), 2 (validation), 3 (auth), 4 (rate limit)
 
 ### ⚠️ Remaining Gaps for AI Agents
@@ -88,51 +92,60 @@ Based on thinkdeep analysis, focus on **enhancing existing commands** rather tha
 ### ✅ Phase A: Essential Enhancements (7-10 hours)
 
 **1. Enhanced Error Format Across All Commands** (3-4 hours)
-   - **What**: Add `autoFixCommand`, `fixable`, `suggestions[]` to error objects
-   - **Where**: verify, security, doctor, checks commands
-   - **Why**: AI agents can automatically apply fixes
-   - **Backwards compatible**: New fields are additive
+
+- **What**: Add `autoFixCommand`, `fixable`, `suggestions[]` to error objects
+- **Where**: verify, security, doctor, checks commands
+- **Why**: AI agents can automatically apply fixes
+- **Backwards compatible**: New fields are additive
 
 **2. Hook Status Command** (2-3 hours)
-   - **What**: Add `gpm hooks status` with `--json` output
-   - **Why**: AI agents can query hook configuration
-   - **Output**: Installed hooks, config, enabled state
+
+- **What**: Add `gpm hooks status` with `--json` output
+- **Why**: AI agents can query hook configuration
+- **Output**: Installed hooks, config, enabled state
 
 **3. Granular Hook Configuration** (2-3 hours)
-   - **What**: Expand `.gpm.yml` hooks section
-   - **Add**: `preCommit.autoFix`, `prePush.runValidation`, `disableInCI`
-   - **Why**: Team-wide consistency, AI agents can read config
+
+- **What**: Expand `.gpm.yml` hooks section
+- **Add**: `preCommit.autoFix`, `prePush.runValidation`, `disableInCI`
+- **Why**: Team-wide consistency, AI agents can read config
 
 **4. Command Alias** (0 hours - documentation only)
-   - **What**: `gpm validate` → alias to `gpm verify`
-   - **Why**: Familiarity for users expecting "validate"
-   - **How**: Add `.alias('validate')` in commander config
+
+- **What**: `gpm validate` → alias to `gpm verify`
+- **Why**: Familiarity for users expecting "validate"
+- **How**: Add `.alias('validate')` in commander config
 
 ### ❌ Phase B: SKIP These (Already Exist or YAGNI)
 
 **5. ~~New `gpm validate` Command~~** → **USE** `gpm verify` instead
-   - Reason: Duplicate functionality, verify already does this
+
+- Reason: Duplicate functionality, verify already does this
 
 **6. ~~Hook Auto-Disable in Automation~~** → **ALREADY EXISTS** (v1.4.0)
-   - Reason: CI detection already works
+
+- Reason: CI detection already works
 
 **7. ~~Bitwise Exit Codes~~** → **SKIP** (use JSON parsing)
-   - Reason: Complex for humans, AI agents can parse JSON
+
+- Reason: Complex for humans, AI agents can parse JSON
 
 **8. ~~Validation as a Service (HTTP API)~~** → **DEFER** (YAGNI)
-   - Reason: CLI + JSON sufficient for 95% of use cases
+
+- Reason: CLI + JSON sufficient for 95% of use cases
 
 **9. ~~`gpm doctor --pre-commit`~~** → **USE** `gpm verify --skip-test --skip-build`
-   - Reason: Existing skip flags achieve same goal
+
+- Reason: Existing skip flags achieve same goal
 
 ### 📊 Effort Comparison
 
-| Original Plan | Revised Plan | Savings |
-|--------------|--------------|---------|
-| Phase A: 6-8 hours | Enhanced errors: 3-4 hours | ~50% |
-| Phase B: 6-8 hours | Hook status: 2-3 hours | ~60% |
-| Phase C: 12-16 hours | Hook config: 2-3 hours | ~80% |
-| **Total: 24-32 hours** | **Total: 7-10 hours** | **~70% reduction** |
+| Original Plan          | Revised Plan               | Savings            |
+| ---------------------- | -------------------------- | ------------------ |
+| Phase A: 6-8 hours     | Enhanced errors: 3-4 hours | ~50%               |
+| Phase B: 6-8 hours     | Hook status: 2-3 hours     | ~60%               |
+| Phase C: 12-16 hours   | Hook config: 2-3 hours     | ~80%               |
+| **Total: 24-32 hours** | **Total: 7-10 hours**      | **~70% reduction** |
 
 ---
 
@@ -145,6 +158,7 @@ Based on thinkdeep analysis, focus on **enhancing existing commands** rather tha
 **Purpose**: Single command that runs all pre-push validation checks with JSON output
 
 **Usage**:
+
 ```bash
 # Full validation (lint + build + test)
 gpm validate
@@ -164,6 +178,7 @@ gpm validate --non-interactive
 ```
 
 **JSON Output Schema**:
+
 ```json
 {
   "success": false,
@@ -219,6 +234,7 @@ gpm validate --non-interactive
 ```
 
 **Exit Codes** (bitwise flags for AI agents):
+
 - `0` - All checks passed
 - `1` - Lint failed
 - `2` - Build failed
@@ -228,6 +244,7 @@ gpm validate --non-interactive
 **Example**: If lint and test both fail, exit code = `1 | 4 = 5`
 
 **Benefits for AI Agents**:
+
 - ✅ Single command to check everything
 - ✅ Machine-readable output
 - ✅ Structured errors with fix suggestions
@@ -245,6 +262,7 @@ gpm validate --non-interactive
 **Implementation**:
 
 Update `.git/hooks/pre-commit` to detect automation:
+
 ```bash
 #!/bin/sh
 
@@ -259,12 +277,14 @@ npx lint-staged
 ```
 
 **Environment Variables**:
+
 - `CI` - GitHub Actions, GitLab CI, etc.
 - `GPM_NO_HOOKS=1` - Explicit bypass for any context
 - `CLAUDE_CODE=1` - Claude Code detection
 - `AIDER=1` - Aider detection
 
 **Usage by AI Agents**:
+
 ```bash
 # AI agent commits code (hooks auto-disabled)
 export GPM_NO_HOOKS=1
@@ -275,6 +295,7 @@ git commit --no-verify -m "feat: add feature"
 ```
 
 **Benefits**:
+
 - ✅ AI agents don't get blocked by interactive prompts
 - ✅ Still enforced for human developers
 - ✅ Respects standard `--no-verify` flag
@@ -288,6 +309,7 @@ git commit --no-verify -m "feat: add feature"
 **Purpose**: Configure pre-commit/pre-push hooks declaratively for automation
 
 **Configuration**:
+
 ```yaml
 # .gpm.yml
 hooks:
@@ -305,13 +327,13 @@ hooks:
   # Pre-push hooks
   prePush:
     enabled: true
-    runValidation: true  # Runs 'gpm validate'
+    runValidation: true # Runs 'gpm validate'
     runTests: false
-    timeout: 300000  # 5 minutes
+    timeout: 300000 # 5 minutes
 
   # Automation detection
   disableInCI: true
-  disableForAI: true  # Auto-disable for CLAUDE_CODE, AIDER, etc.
+  disableForAI: true # Auto-disable for CLAUDE_CODE, AIDER, etc.
 
   # Custom commands
   customCommands:
@@ -319,6 +341,7 @@ hooks:
 ```
 
 **Benefits**:
+
 - ✅ Version-controlled hook configuration
 - ✅ Team-wide consistency
 - ✅ AI agents can read config to understand requirements
@@ -333,6 +356,7 @@ hooks:
 **Purpose**: Structured error messages that AI agents can parse and act on
 
 **Current** (human-friendly):
+
 ```
 ✖ ESLint error:
   src/commands/setup.ts:153:7
@@ -340,6 +364,7 @@ hooks:
 ```
 
 **Enhanced** (AI-friendly JSON):
+
 ```json
 {
   "type": "eslint_error",
@@ -373,6 +398,7 @@ hooks:
 ```
 
 **Benefits for AI Agents**:
+
 - ✅ Exact file location for edits
 - ✅ Automated fix commands
 - ✅ Links to documentation
@@ -411,6 +437,7 @@ gpm hooks uninstall
 ```
 
 **JSON Output for `gpm hooks status --json`**:
+
 ```json
 {
   "installed": true,
@@ -437,6 +464,7 @@ gpm hooks uninstall
 ```
 
 **Benefits**:
+
 - ✅ No manual script running
 - ✅ Consistent installation process
 - ✅ AI agents can check hook status
@@ -451,6 +479,7 @@ gpm hooks uninstall
 **Purpose**: Expose validation checks as a programmatic API for advanced AI integration
 
 **Usage**:
+
 ```bash
 # Start validation server (for AI agents)
 gpm validate serve --port 3000
@@ -467,6 +496,7 @@ curl -X POST http://localhost:3000/fix/format
 ```
 
 **Response Format**:
+
 ```json
 {
   "endpoint": "/validate/lint",
@@ -480,6 +510,7 @@ curl -X POST http://localhost:3000/fix/format
 ```
 
 **Benefits**:
+
 - ✅ Advanced AI agents can query validation status
 - ✅ No need to shell out to CLI
 - ✅ Real-time validation feedback
@@ -495,6 +526,7 @@ curl -X POST http://localhost:3000/fix/format
 **Purpose**: Lightweight validation before commit (like `gpm doctor` but for code)
 
 **Command**:
+
 ```bash
 # Quick pre-commit validation
 gpm doctor --pre-commit
@@ -504,6 +536,7 @@ gpm doctor --pre-commit --json
 ```
 
 **Checks**:
+
 - ✅ No ESLint errors in staged files
 - ✅ No TypeScript compilation errors
 - ✅ No `console.log` statements (optional)
@@ -512,6 +545,7 @@ gpm doctor --pre-commit --json
 - ✅ Commit message follows conventional commits (optional)
 
 **JSON Output**:
+
 ```json
 {
   "status": "ready",
@@ -545,11 +579,13 @@ gpm doctor --pre-commit --json
 ```
 
 **Exit Codes**:
+
 - `0` - Ready to commit
 - `1` - Errors found (not ready)
 - `2` - Warnings only (ready with caution)
 
 **Benefits**:
+
 - ✅ Fast pre-flight check (1-2 seconds)
 - ✅ Catches common mistakes
 - ✅ AI agents can validate before commit
@@ -688,6 +724,7 @@ def validate_changes():
 ## Success Metrics (Revised)
 
 **Actual Implementation:**
+
 - ✅ AI agents can run full validation → Use `gpm verify --json` (already works)
 - ✅ 100% of validation checks have JSON output → Already ~90%, enhance with error format
 - ✅ Zero interactive prompts in automation → Already true (verify/doctor non-interactive)
@@ -696,6 +733,7 @@ def validate_changes():
 - ✅ Hooks auto-disable in CI/AI contexts → Already works (v1.4.0 CI detection)
 
 **Additional Metrics:**
+
 - ✅ Hook status queryable via JSON → **NEED**: `gpm hooks status --json` (Phase A)
 - ✅ Granular hook configuration → **NEED**: Expand `.gpm.yml` hooks section (Phase A)
 - ✅ Command discoverability → **ADD**: `validate` alias to `verify` (0 hours)
@@ -748,6 +786,7 @@ All enhancements maintain backwards compatibility:
 After comprehensive analysis with zen thinkdeep (gemini-3-pro-preview), we discovered that **gpm v1.9.0 already has most proposed features**:
 
 ✅ **What Already Works:**
+
 - `gpm verify` does everything proposed for `gpm validate`
 - Hook system has CI auto-detection (v1.4.0)
 - JSON output available on most commands
@@ -755,6 +794,7 @@ After comprehensive analysis with zen thinkdeep (gemini-3-pro-preview), we disco
 - Non-interactive execution for AI agents
 
 ⚠️ **Real Gaps to Address:**
+
 1. Error format lacks `autoFixCommand` field (3-4 hours)
 2. No `gpm hooks status --json` command (2-3 hours)
 3. Limited hook configuration in `.gpm.yml` (2-3 hours)
@@ -763,12 +803,14 @@ After comprehensive analysis with zen thinkdeep (gemini-3-pro-preview), we disco
 **Revised Strategy:**
 
 Instead of creating new commands, **enhance existing ones**:
+
 - Use `gpm verify` (don't create `gpm validate`)
 - Add error format enhancements across commands
 - Expand hook management with status command
 - Document existing capabilities better
 
 **Impact:**
+
 - **Original plan**: 24-32 hours (7 new features)
 - **Revised plan**: 7-10 hours (3 enhancements + 1 alias)
 - **Savings**: ~70% effort reduction while meeting all AI agent needs

@@ -61,16 +61,21 @@ export class SetupOrchestrator {
 
     logger.section("🚀 gpm Setup Wizard");
     logger.blank();
-    logger.info("This wizard will help you set up gpm for optimal performance.");
-    logger.info("We'll check your system, configure authentication, and suggest improvements.");
+    logger.info(
+      "This wizard will help you set up gpm for optimal performance.",
+    );
+    logger.info(
+      "We'll check your system, configure authentication, and suggest improvements.",
+    );
     logger.blank();
 
     // Step 1: System detection
     logger.info("📊 Analyzing your system...");
-    const response = await this.detector.generateDoctorResponse("0.0.0-development");
+    const response =
+      await this.detector.generateDoctorResponse("0.0.0-development");
 
     // Step 2: Check GitHub token
-    const tokenCheck = response.checks.find(c => c.id === "github.token");
+    const tokenCheck = response.checks.find((c) => c.id === "github.token");
     if (tokenCheck?.status !== "ok") {
       steps.push({
         name: "GitHub Token Setup",
@@ -89,15 +94,21 @@ export class SetupOrchestrator {
         try {
           await this.setupGitHubToken();
           steps[steps.length - 1].status = "completed";
-          steps[steps.length - 1].message = "GitHub token configured successfully";
+          steps[steps.length - 1].message =
+            "GitHub token configured successfully";
         } catch (error: any) {
           steps[steps.length - 1].status = "failed";
-          steps[steps.length - 1].message = `Failed to setup token: ${error.message}`;
-          recommendations.push("Set up GitHub token manually: gpm setup github-token");
+          steps[steps.length - 1].message =
+            `Failed to setup token: ${error.message}`;
+          recommendations.push(
+            "Set up GitHub token manually: gpm setup github-token",
+          );
         }
       } else {
         steps[steps.length - 1].status = "skipped";
-        recommendations.push("Set up GitHub token later: gpm setup github-token");
+        recommendations.push(
+          "Set up GitHub token later: gpm setup github-token",
+        );
       }
     } else {
       steps.push({
@@ -109,8 +120,10 @@ export class SetupOrchestrator {
 
     // Step 3: Check required tools
     const requiredMissing = response.checks.filter(
-      c => c.id.startsWith("tool.") && c.status === "missing" &&
-      (c.id === "tool.git" || c.id === "tool.node")
+      (c) =>
+        c.id.startsWith("tool.") &&
+        c.status === "missing" &&
+        (c.id === "tool.git" || c.id === "tool.node"),
     );
 
     if (requiredMissing.length > 0) {
@@ -121,14 +134,19 @@ export class SetupOrchestrator {
           status: "failed",
           message: `Required tool ${toolName} is missing`,
         });
-        recommendations.push(`Install ${toolName}: ${tool.recommendedAction || "see documentation"}`);
+        recommendations.push(
+          `Install ${toolName}: ${tool.recommendedAction || "see documentation"}`,
+        );
       }
     }
 
     // Step 4: Check optional tools
     const optionalMissing = response.checks.filter(
-      c => c.id.startsWith("tool.") && c.status === "missing" &&
-      c.id !== "tool.git" && c.id !== "tool.node"
+      (c) =>
+        c.id.startsWith("tool.") &&
+        c.status === "missing" &&
+        c.id !== "tool.git" &&
+        c.id !== "tool.node",
     );
 
     if (optionalMissing.length > 0) {
@@ -157,12 +175,14 @@ export class SetupOrchestrator {
 
     // Step 5: Check package.json scripts
     const missingScripts = response.checks.filter(
-      c => c.id.startsWith("script.") && c.status === "missing"
+      (c) => c.id.startsWith("script.") && c.status === "missing",
     );
 
     if (missingScripts.length > 0) {
       logger.blank();
-      logger.info(`📝 Found ${missingScripts.length} recommended npm scripts missing`);
+      logger.info(
+        `📝 Found ${missingScripts.length} recommended npm scripts missing`,
+      );
 
       for (const script of missingScripts) {
         const scriptName = script.id.replace("script.", "");
@@ -175,7 +195,9 @@ export class SetupOrchestrator {
         if (script.recommendedAction) {
           const parts = script.recommendedAction.split(":");
           if (parts.length === 3 && parts[0] === "add-script") {
-            recommendations.push(`Add to package.json scripts: "${parts[1]}": "${parts[2]}"`);
+            recommendations.push(
+              `Add to package.json scripts: "${parts[1]}": "${parts[2]}"`,
+            );
           }
         }
       }
@@ -219,11 +241,15 @@ export class SetupOrchestrator {
     }
 
     // Determine overall status
-    const failedSteps = steps.filter(s => s.status === "failed");
-    const completedSteps = steps.filter(s => s.status === "completed");
+    const failedSteps = steps.filter((s) => s.status === "failed");
+    const completedSteps = steps.filter((s) => s.status === "completed");
 
-    const overallStatus = failedSteps.length > 0 ? "failed" :
-                          completedSteps.length === steps.length ? "success" : "partial";
+    const overallStatus =
+      failedSteps.length > 0
+        ? "failed"
+        : completedSteps.length === steps.length
+          ? "success"
+          : "partial";
 
     // Final report
     logger.blank();
@@ -232,9 +258,14 @@ export class SetupOrchestrator {
     logger.blank();
 
     for (const step of steps) {
-      const icon = step.status === "completed" ? "✅" :
-                   step.status === "failed" ? "❌" :
-                   step.status === "skipped" ? "⏭️" : "⏳";
+      const icon =
+        step.status === "completed"
+          ? "✅"
+          : step.status === "failed"
+            ? "❌"
+            : step.status === "skipped"
+              ? "⏭️"
+              : "⏳";
       logger.log(`${icon} ${step.name}: ${step.message || step.status}`);
     }
 
@@ -250,9 +281,13 @@ export class SetupOrchestrator {
     if (overallStatus === "success") {
       logger.success("✅ Setup complete! You're ready to use gpm.");
     } else if (overallStatus === "partial") {
-      logger.warn("⚠️  Setup partially complete. Some optional features may be limited.");
+      logger.warn(
+        "⚠️  Setup partially complete. Some optional features may be limited.",
+      );
     } else {
-      logger.error("❌ Setup incomplete. Please address the failed steps above.");
+      logger.error(
+        "❌ Setup incomplete. Please address the failed steps above.",
+      );
     }
 
     return {
@@ -272,7 +307,8 @@ export class SetupOrchestrator {
     const recommendations: string[] = [];
 
     // Get system status
-    const response = await this.detector.generateDoctorResponse("0.0.0-development");
+    const response =
+      await this.detector.generateDoctorResponse("0.0.0-development");
 
     // Process each check
     for (const check of response.checks) {
@@ -295,9 +331,13 @@ export class SetupOrchestrator {
       }
     }
 
-    const failedSteps = steps.filter(s => s.status === "failed");
-    const overallStatus = failedSteps.length > 0 ? "failed" :
-                          response.status === "ok" ? "success" : "partial";
+    const failedSteps = steps.filter((s) => s.status === "failed");
+    const overallStatus =
+      failedSteps.length > 0
+        ? "failed"
+        : response.status === "ok"
+          ? "success"
+          : "partial";
 
     return {
       timestamp,
@@ -351,7 +391,7 @@ export class SetupOrchestrator {
     logger.success("✅ Token validated!");
 
     // Choose storage method
-    const methodChoices = methods.map(m => ({
+    const methodChoices = methods.map((m) => ({
       title: `${m.description} (${m.security} security)`,
       value: m.method,
     }));
@@ -405,11 +445,14 @@ export class SetupOrchestrator {
     logger.blank();
 
     // Group by package manager
-    const grouped = installCommands.reduce((acc, cmd) => {
-      if (!acc[cmd.manager!]) acc[cmd.manager!] = [];
-      acc[cmd.manager!].push(cmd);
-      return acc;
-    }, {} as Record<string, ToolInstallInfo[]>);
+    const grouped = installCommands.reduce(
+      (acc, cmd) => {
+        if (!acc[cmd.manager!]) acc[cmd.manager!] = [];
+        acc[cmd.manager!].push(cmd);
+        return acc;
+      },
+      {} as Record<string, ToolInstallInfo[]>,
+    );
 
     for (const [manager, commands] of Object.entries(grouped)) {
       logger.info(`${manager}:`);

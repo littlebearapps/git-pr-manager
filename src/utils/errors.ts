@@ -57,7 +57,14 @@ export class GitError extends WorkflowError {
       worktree: process.cwd(), // Current working directory (worktree path)
     };
 
-    super("GIT_ERROR", message, enhancedDetails, suggestions, fixable, autoFixCommand);
+    super(
+      "GIT_ERROR",
+      message,
+      enhancedDetails,
+      suggestions,
+      fixable,
+      autoFixCommand,
+    );
     this.name = "GitError";
   }
 }
