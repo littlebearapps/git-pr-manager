@@ -39,3 +39,5 @@ hooks:
 verification:
   detectionEnabled: true
   preferMakefile: true
+  skipTasks:
+    - format
