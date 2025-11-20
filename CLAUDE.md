@@ -1,15 +1,15 @@
 # Git PR Manager - Claude Code Context
 
-**Last Updated**: 2025-11-19 (Alternative D)
-**Version**: Managed by semantic-release (see Alternative D below)
-**Status**: Production - Release Validation Strategy Complete ✅
-**Current Focus**: Alternative D – Release Validation & Pre-Release Checks ✅
+**Last Updated**: 2025-11-20 (v1.9.0 Setup & Onboarding)
+**Version**: Managed by semantic-release
+**Status**: Feature Development - Setup & Onboarding Enhancement 🚧
+**Current Focus**: v1.9.0 – Setup & Onboarding (Phases 1-4 Complete, Tests in Progress)
 
 ---
 
 ## Project Overview
 
-Production-ready git workflow automation for GitHub with Claude Code integration. Streamlines feature development with intelligent CI polling, comprehensive error reporting, automated PR workflows, git hooks integration, git worktree management, and **multi-language support for Python, Node.js, Go, and Rust**.
+Production-ready git workflow automation for GitHub with Claude Code integration. Streamlines feature development with intelligent CI polling, comprehensive error reporting, automated PR workflows, git hooks integration, git worktree management, **multi-language support for Python, Node.js, Go, and Rust**, and **comprehensive setup & onboarding** (v1.9.0).
 
 **Optional Security Enhancements**
 
@@ -38,6 +38,64 @@ Production-ready git workflow automation for GitHub with Claude Code integration
 **Result**: 88% reduction in time-to-first-example, +40-60% AI code generation accuracy (ReadMe.LLM research).
 
 **If changes needed**: Propose specific edits and explain impact on human/AI discoverability first.
+
+---
+
+### Release 1.9.0 - Setup & Onboarding Enhancement 🚧 (2025-11-20)
+
+**Status**: Feature Development - Phases 1-4 Complete, Testing in Progress
+**Branch**: `feature/v1.9.0-setup-onboarding`
+**Goal**: Address "setup gap" where users encounter errors due to missing tools
+
+**Phase 1: Enhanced Detection** ✅
+
+- ✅ Created `ToolDetector` service for comprehensive tool detection (13+ tools)
+- ✅ Added JSON output support to `gpm doctor` command
+- ✅ Fixed global options merging for proper flag passing
+- ✅ Detects project language (Node.js, Python, Go, Rust)
+- ✅ Identifies package manager from lock files
+- ✅ Validates GitHub token presence and location
+
+**Phase 2: GitHub Token Setup** ✅
+
+- ✅ Created `KeychainIntegration` service with multiple storage backends
+- ✅ Added `gpm setup github-token` command for token configuration
+- ✅ Supports macOS Keychain, keychain helper, direnv, .env, shell profiles
+- ✅ Validates tokens with GitHub API
+- ✅ Security rankings (high/medium/low) for storage methods
+
+**Phase 3: Core Setup Command** ✅
+
+- ✅ Created `SetupOrchestrator` service for interactive setup wizard
+- ✅ Added main `gpm setup` command with automated mode
+- ✅ Generates actionable recommendations
+- ✅ Supports JSON output for automation
+- ✅ Creates initial `.gpm.yml` configuration
+
+**Phase 4: Integration & Polish** ✅
+
+- ✅ Integrated setup suggestions into `gpm verify` command
+- ✅ Added `offerSetupHelp` function that triggers on verification failure
+- ✅ Detects missing tools and offers to run setup wizard
+- ✅ Provides specific tool installation suggestions
+- ✅ Respects JSON mode (no prompts in automation)
+
+**Testing Status** 🚧
+
+- ✅ ToolDetector service: 19/27 tests passing (70% coverage)
+- ⏳ KeychainIntegration service: Tests pending
+- ⏳ SetupOrchestrator service: Tests pending
+- ⏳ Setup command: Tests pending
+
+**Commits**:
+- `59b8ef9` - feat: implement setup & onboarding enhancement (v1.9.0 Phases 1-4)
+- `c23cac6` - test: add comprehensive tests for ToolDetector service
+
+**Next Steps**:
+1. Complete test suite for remaining services
+2. Update README with new setup commands
+3. Create pull request for review
+4. Release as v1.9.0 after approval
 
 ---
 
