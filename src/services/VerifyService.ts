@@ -1,4 +1,4 @@
-import { exec } from "child_process";
+import { exec, execSync } from "child_process";
 import * as fs from "fs/promises";
 import * as path from "path";
 
@@ -80,7 +80,6 @@ export class VerifyService {
     // 1. Check for built-in gpm verify command
     // This works when gpm is installed or we're in the built dist/
     try {
-      const { execSync } = require("child_process");
       execSync("command -v gpm", { stdio: "ignore" });
       // Use --json flag to avoid spinner conflicts when running as subprocess
       return "gpm verify --json";

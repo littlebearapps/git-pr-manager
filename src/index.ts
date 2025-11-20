@@ -23,11 +23,11 @@ import { setupCommand } from "./commands/setup";
 import { logger, VerbosityLevel } from "./utils/logger";
 import { maybeNotifyUpdate } from "./utils/update-check";
 import { getVersion } from "./utils/version";
+import pkg from "../package.json";
 
 console.error("DEBUG: Imports completed");
 
 // Fire-and-forget update check (non-blocking)
-const pkg = require("../package.json");
 console.error("DEBUG: About to run update check");
 maybeNotifyUpdate({ pkg, argv: process.argv }).catch(() => {
   // Silently fail - update check is non-critical

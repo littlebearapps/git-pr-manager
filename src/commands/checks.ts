@@ -2,6 +2,7 @@ import { EnhancedCIPoller } from "../services/EnhancedCIPoller";
 import { OutputFormatter } from "../utils/OutputFormatter";
 import { logger } from "../utils/logger";
 import { spinner } from "../utils/spinner";
+import { execSync } from "child_process";
 
 interface ChecksOptions {
   details?: boolean;
@@ -37,7 +38,6 @@ export async function checksCommand(
     spinner.start(`Fetching CI check status for PR #${prNumber}...`);
 
     // Create a temporary GitHubService to get owner/repo
-    const { execSync } = require("child_process");
     const remoteUrl = execSync("git config --get remote.origin.url", {
       encoding: "utf-8",
     }).trim();

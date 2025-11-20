@@ -3,6 +3,7 @@ import { RequestError } from "@octokit/request-error";
 import { throttling } from "@octokit/plugin-throttling";
 import { GitHubServiceOptions, PROptions, MergeOptions } from "../types";
 import { logger } from "../utils/logger";
+import * as childProcess from "child_process";
 
 // Extend Octokit with throttling plugin
 const MyOctokit = Octokit.plugin(throttling);
@@ -299,7 +300,6 @@ export class GitHubService {
   private parseRemoteUrlSync(): { owner: string; repo: string } {
     try {
       // Use exec to get remote URL synchronously
-      const childProcess = require("child_process");
       const remoteUrl = childProcess
         .execSync("git config --get remote.origin.url", {
           encoding: "utf-8",

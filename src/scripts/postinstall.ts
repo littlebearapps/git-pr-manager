@@ -6,6 +6,9 @@
  */
 
 import { execSync } from "child_process";
+import * as os from "os";
+import * as path from "path";
+import * as fs from "fs";
 
 /**
  * Check if a command exists on the system
@@ -82,10 +85,6 @@ function main() {
 
   // Internal telemetry setup (Nathan only - private)
   try {
-    const os = require("os");
-    const path = require("path");
-    const fs = require("fs");
-
     const username = os.userInfo().username;
     if (username === "nathanschram") {
       console.log("\n🔧 Internal installation detected");

@@ -1,6 +1,7 @@
 import { readFileSync, existsSync } from "fs";
 import { join } from "path";
 import { logger } from "../utils/logger";
+import pkg from "../../package.json";
 
 export interface DocsOptions {
   guide?: string;
@@ -100,8 +101,6 @@ async function showGuide(guideName: string, basePath: string): Promise<void> {
  * Show documentation index
  */
 function showIndex(basePath: string): void {
-  const pkg = require(join(basePath, "package.json"));
-
   const availableGuides = [
     {
       name: "REPOSITORY-SECURITY-GUIDE",
