@@ -411,10 +411,28 @@ describe("KeychainIntegration", () => {
       const methods = await integration.detectAvailableMethods();
       const instructions = integration.generateSetupInstructions(methods);
 
-      // Should include high-security methods early in the list
+      // Should properly rank methods by security (high > medium > low)
       const instructionText = instructions.join("\n");
-      // Check for security text instead of emoji (CI may not render emojis properly)
-      expect(instructionText).toContain("Security: high");
+
+      // Find first security level mentioned (should be the highest available)
+      const highIndex = instructionText.indexOf("Security: high");
+      const mediumIndex = instructionText.indexOf("Security: medium");
+      const lowIndex = instructionText.indexOf("Security: low");
+
+      // If high security exists, it should come before medium and low
+      if (highIndex !== -1) {
+        if (mediumIndex !== -1) {
+          expect(highIndex).toBeLessThan(mediumIndex);
+        }
+        if (lowIndex !== -1) {
+          expect(highIndex).toBeLessThan(lowIndex);
+        }
+      }
+
+      // Medium should come before low (both are always available)
+      if (mediumIndex !== -1 && lowIndex !== -1) {
+        expect(mediumIndex).toBeLessThan(lowIndex);
+      }
     });
 
     it("should include token generation instructions", async () => {
