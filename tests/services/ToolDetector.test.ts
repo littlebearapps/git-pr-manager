@@ -27,8 +27,19 @@ describe("ToolDetector", () => {
   describe("detectInstalledTools", () => {
     it("should detect installed required tools", async () => {
       mockExecSync
-        .mockReturnValueOnce(Buffer.from("git version 2.51.0"))
-        .mockReturnValueOnce(Buffer.from("v20.10.0"));
+        .mockReturnValueOnce("git version 2.51.0" as any)   // git
+        .mockReturnValueOnce("v20.10.0" as any)              // node
+        .mockReturnValueOnce("11.6.0" as any)                // npm
+        .mockImplementationOnce(() => { throw new Error("not found"); })  // yarn
+        .mockImplementationOnce(() => { throw new Error("not found"); })  // pnpm
+        .mockImplementationOnce(() => { throw new Error("not found"); })  // bun
+        .mockImplementationOnce(() => { throw new Error("not found"); })  // gh
+        .mockImplementationOnce(() => { throw new Error("not found"); })  // detect-secrets
+        .mockImplementationOnce(() => { throw new Error("not found"); })  // pip-audit
+        .mockImplementationOnce(() => { throw new Error("not found"); })  // eslint
+        .mockImplementationOnce(() => { throw new Error("not found"); })  // prettier
+        .mockImplementationOnce(() => { throw new Error("not found"); })  // typescript
+        .mockImplementationOnce(() => { throw new Error("not found"); }); // jest
 
       const tools = await detector.detectInstalledTools();
 
@@ -47,20 +58,26 @@ describe("ToolDetector", () => {
     it("should detect missing optional tools", async () => {
       // Required tools present
       mockExecSync
-        .mockReturnValueOnce(Buffer.from("git version 2.51.0"))
-        .mockReturnValueOnce(Buffer.from("v20.10.0"));
-
-      // Optional tool (gh) missing
-      mockExecSync.mockImplementationOnce(() => {
-        throw new Error("Command not found");
-      });
+        .mockReturnValueOnce("git version 2.51.0" as any)   // git
+        .mockReturnValueOnce("v20.10.0" as any)              // node
+        .mockReturnValueOnce("11.6.0" as any)                // npm
+        .mockImplementationOnce(() => { throw new Error("not found"); })  // yarn
+        .mockImplementationOnce(() => { throw new Error("not found"); })  // pnpm
+        .mockImplementationOnce(() => { throw new Error("not found"); })  // bun
+        .mockImplementationOnce(() => { throw new Error("Command not found"); })  // gh - missing
+        .mockImplementationOnce(() => { throw new Error("not found"); })  // detect-secrets
+        .mockImplementationOnce(() => { throw new Error("not found"); })  // pip-audit
+        .mockImplementationOnce(() => { throw new Error("not found"); })  // eslint
+        .mockImplementationOnce(() => { throw new Error("not found"); })  // prettier
+        .mockImplementationOnce(() => { throw new Error("not found"); })  // typescript
+        .mockImplementationOnce(() => { throw new Error("not found"); }); // jest
 
       const tools = await detector.detectInstalledTools();
 
       const ghTool = tools.find((t) => t.name === "gh");
       expect(ghTool).toBeDefined();
       expect(ghTool?.status).toBe("missing");
-      expect(ghTool?.recommendedAction).toContain("brew install gh");
+      expect(ghTool?.recommendedAction).toContain("https://cli.github.com/");
     });
 
     it("should handle tool detection errors gracefully", async () => {
@@ -78,7 +95,7 @@ describe("ToolDetector", () => {
 
   describe("checkToolVersion", () => {
     it("should extract version from git output", async () => {
-      mockExecSync.mockReturnValue(Buffer.from("git version 2.51.0"));
+      mockExecSync.mockReturnValue("git version 2.51.0" as any);
 
       const version = await detector.checkToolVersion("git");
 
@@ -87,7 +104,7 @@ describe("ToolDetector", () => {
     });
 
     it("should extract version from node output", async () => {
-      mockExecSync.mockReturnValue(Buffer.from("v20.10.0"));
+      mockExecSync.mockReturnValue("v20.10.0" as any);
 
       const version = await detector.checkToolVersion("node");
 
@@ -108,7 +125,7 @@ describe("ToolDetector", () => {
 
     it("should handle version detection with npm packages", async () => {
       // Mock eslint version check
-      mockExecSync.mockReturnValue(Buffer.from("v8.57.0"));
+      mockExecSync.mockReturnValue("v8.57.0" as any);
 
       const version = await detector.checkToolVersion("eslint");
 
@@ -174,14 +191,14 @@ describe("ToolDetector", () => {
       expect(pkgMgr).toBeNull();
     });
 
-    it("should prioritize pnpm over npm", async () => {
-      // Both lock files present
+    it("should prioritize bun over other package managers", async () => {
+      // All lock files present
       fs.existsSync.mockReturnValue(true);
 
       const pkgMgr = await detector.detectPackageManager();
 
-      // pnpm should be detected first (checked before npm)
-      expect(pkgMgr?.type).toBe("pnpm");
+      // bun should be detected first (checked before pnpm, yarn, npm)
+      expect(pkgMgr?.type).toBe("bun");
     });
   });
 
@@ -337,10 +354,21 @@ describe("ToolDetector", () => {
 
   describe("generateDoctorResponse", () => {
     it("should generate comprehensive doctor response", async () => {
-      // Mock tools present
+      // Mock all tools being checked
       mockExecSync
-        .mockReturnValueOnce(Buffer.from("git version 2.51.0"))
-        .mockReturnValueOnce(Buffer.from("v20.10.0"));
+        .mockReturnValueOnce("git version 2.51.0" as any)   // git
+        .mockReturnValueOnce("v20.10.0" as any)              // node
+        .mockReturnValueOnce("11.6.0" as any)                // npm
+        .mockImplementationOnce(() => { throw new Error("not found"); })  // yarn
+        .mockImplementationOnce(() => { throw new Error("not found"); })  // pnpm
+        .mockImplementationOnce(() => { throw new Error("not found"); })  // bun
+        .mockImplementationOnce(() => { throw new Error("not found"); })  // gh
+        .mockImplementationOnce(() => { throw new Error("not found"); })  // detect-secrets
+        .mockImplementationOnce(() => { throw new Error("not found"); })  // pip-audit
+        .mockImplementationOnce(() => { throw new Error("not found"); })  // eslint
+        .mockImplementationOnce(() => { throw new Error("not found"); })  // prettier
+        .mockImplementationOnce(() => { throw new Error("not found"); })  // typescript
+        .mockImplementationOnce(() => { throw new Error("not found"); }); // jest
 
       // Mock package.json
       fs.existsSync.mockReturnValue(true);
@@ -382,15 +410,21 @@ describe("ToolDetector", () => {
     });
 
     it("should return warnings status when optional tools missing", async () => {
-      // Required tools present
+      // Required tools present, optional tools missing
       mockExecSync
-        .mockReturnValueOnce(Buffer.from("git version 2.51.0"))
-        .mockReturnValueOnce(Buffer.from("v20.10.0"));
-
-      // Optional tools missing
-      mockExecSync.mockImplementation(() => {
-        throw new Error("Not found");
-      });
+        .mockReturnValueOnce("git version 2.51.0" as any)   // git
+        .mockReturnValueOnce("v20.10.0" as any)              // node
+        .mockReturnValueOnce("11.6.0" as any)                // npm
+        .mockImplementationOnce(() => { throw new Error("not found"); })  // yarn
+        .mockImplementationOnce(() => { throw new Error("not found"); })  // pnpm
+        .mockImplementationOnce(() => { throw new Error("not found"); })  // bun
+        .mockImplementationOnce(() => { throw new Error("not found"); })  // gh
+        .mockImplementationOnce(() => { throw new Error("not found"); })  // detect-secrets
+        .mockImplementationOnce(() => { throw new Error("not found"); })  // pip-audit
+        .mockImplementationOnce(() => { throw new Error("not found"); })  // eslint
+        .mockImplementationOnce(() => { throw new Error("not found"); })  // prettier
+        .mockImplementationOnce(() => { throw new Error("not found"); })  // typescript
+        .mockImplementationOnce(() => { throw new Error("not found"); }); // jest
 
       fs.existsSync.mockReturnValue(false);
 
