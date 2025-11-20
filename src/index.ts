@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+console.error("DEBUG: Script started, args:", process.argv);
+
 import { Command } from "commander";
 import { checksCommand } from "./commands/checks";
 import { initCommand } from "./commands/init";
@@ -16,24 +18,31 @@ import { doctorCommand } from "./commands/doctor";
 import { installHooksCommand } from "./commands/install-hooks";
 import { uninstallHooksCommand } from "./commands/uninstall-hooks";
 import { worktreeListCommand, worktreePruneCommand } from "./commands/worktree";
+import { setupCommand } from "./commands/setup";
 import { logger, VerbosityLevel } from "./utils/logger";
 import { maybeNotifyUpdate } from "./utils/update-check";
 import { getVersion } from "./utils/version";
 
+console.error("DEBUG: Imports completed");
+
 // Fire-and-forget update check (non-blocking)
 const pkg = require("../package.json");
+console.error("DEBUG: About to run update check");
 maybeNotifyUpdate({ pkg, argv: process.argv }).catch(() => {
   // Silently fail - update check is non-critical
 });
+console.error("DEBUG: Update check initiated");
 
 // Internal telemetry (optional - Nathan only, private)
 let telemetry: any = null;
+console.error("DEBUG: Starting telemetry setup");
 (async () => {
   try {
     const os = await import("os");
     const username = os.userInfo().username;
+    console.error("DEBUG: Username check:", username);
 
-    if (username === "nathanschram") {
+    if (username === "nathanschram_DISABLED_FOR_DEBUG") {
       const { initTelemetry, captureBreadcrumb, captureError } =
         // @ts-expect-error - Optional internal telemetry module (no types needed)
         await import("../telemetry/src/telemetry.js");
@@ -49,9 +58,12 @@ let telemetry: any = null;
   }
 })().catch(() => {
   // Telemetry initialization failed - gracefully degrade
+  console.error("DEBUG: Telemetry catch block");
 });
 
+console.error("DEBUG: Creating command program");
 const program = new Command();
+console.error("DEBUG: Command program created");
 
 program
   .name("gpm")
@@ -197,7 +209,12 @@ program
   .command("doctor")
   .description("Check system requirements and optional dependencies")
   .option("--pre-release", "Run pre-release validation checks")
-  .action(doctorCommand);
+  .option("--json", "Output results in JSON format")
+  .action((options) => {
+    // Merge global options with command options
+    const mergedOptions = { ...program.opts(), ...options };
+    return doctorCommand(mergedOptions);
+  });
 
 program
   .command("install-hooks")
@@ -210,6 +227,19 @@ program
   .command("uninstall-hooks")
   .description("Remove gpm git hooks")
   .action(uninstallHooksCommand);
+
+// Setup command group
+program
+  .command("setup [subcommand]")
+  .description("Guided setup and configuration")
+  .option("--method <method>", "Storage method (non-interactive)")
+  .option("--token <token>", "GitHub token (non-interactive)")
+  .option("--skip-validation", "Skip token validation")
+  .option("--json", "Output JSON format")
+  .action((subcommand, options) => {
+    const mergedOptions = { ...program.opts(), ...options };
+    return setupCommand(subcommand, mergedOptions);
+  });
 
 // Worktree command group
 const worktree = program
@@ -250,4 +280,6 @@ process.on("unhandledRejection", (reason) => {
 });
 
 // Parse arguments and execute
+console.error("DEBUG: About to parse");
 program.parse();
+console.error("DEBUG: Parse complete");

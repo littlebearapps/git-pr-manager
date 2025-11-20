@@ -9,6 +9,8 @@ import { execSync } from "child_process";
 import { existsSync, readFileSync, readdirSync } from "fs";
 import { join } from "path";
 import { logger } from "../utils/logger";
+import { ToolDetector } from "../services/ToolDetector";
+import pkg from "../../package.json";
 
 interface Tool {
   name: string;
@@ -47,6 +49,7 @@ interface PreReleaseCheck {
 
 interface DoctorOptions {
   preRelease?: boolean;
+  json?: boolean;
 }
 
 const TOOLS: Tool[] = [
@@ -373,6 +376,27 @@ const PRE_RELEASE_CHECKS: PreReleaseCheck[] = [
 export async function doctorCommand(
   options: DoctorOptions = {},
 ): Promise<void> {
+  console.error("DEBUG: doctorCommand called with options:", options);
+  // JSON mode with new ToolDetector
+  if (options.json && !options.preRelease) {
+    try {
+      console.error("DEBUG: Creating detector...");
+      const detector = new ToolDetector();
+      console.error("DEBUG: Generating response...");
+      const response = await detector.generateDoctorResponse(pkg.version);
+      console.error("DEBUG: Outputting JSON...");
+      console.log(JSON.stringify(response, null, 2));
+
+      // Exit with error code if there are errors
+      if (response.status === "errors") {
+        process.exit(1);
+      }
+    } catch (error) {
+      console.error("Error in doctor JSON mode:", error);
+      process.exit(1);
+    }
+    return;
+  }
   // Pre-release validation mode
   if (options.preRelease) {
     logger.section("Pre-Release Validation");

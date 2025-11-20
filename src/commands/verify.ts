@@ -5,6 +5,7 @@ import { spinner } from "../utils/spinner";
 import { LanguageDetectionService } from "../services/LanguageDetectionService";
 import { CommandResolver } from "../services/CommandResolver";
 import { ConfigService } from "../services/ConfigService";
+import { ToolDetector } from "../services/ToolDetector";
 import chalk from "chalk";
 import prompts from "prompts";
 
@@ -144,6 +145,14 @@ export async function verifyCommand(
               detectedPkgManager.packageManager,
               jsonMode,
             );
+            // Phase 4: Offer setup help on failure (non-JSON mode only)
+            if (!jsonMode) {
+              await offerSetupHelp(
+                failedSteps,
+                detectedLanguage.primary,
+                detectedPkgManager.packageManager,
+              );
+            }
             process.exit(1);
           }
         }
@@ -188,6 +197,14 @@ export async function verifyCommand(
               detectedPkgManager.packageManager,
               jsonMode,
             );
+            // Phase 4: Offer setup help on failure (non-JSON mode only)
+            if (!jsonMode) {
+              await offerSetupHelp(
+                failedSteps,
+                detectedLanguage.primary,
+                detectedPkgManager.packageManager,
+              );
+            }
             process.exit(1);
           }
         }
@@ -206,6 +223,15 @@ export async function verifyCommand(
       detectedPkgManager.packageManager,
       jsonMode,
     );
+
+    // Phase 4: If verification failed and not in JSON mode, offer setup help
+    if (!success && !jsonMode) {
+      await offerSetupHelp(
+        failedSteps,
+        detectedLanguage.primary,
+        detectedPkgManager.packageManager,
+      );
+    }
 
     if (!success) {
       process.exit(1);
@@ -680,6 +706,68 @@ function outputResults(
       logger.blank();
       logger.log("Failed steps:");
       failedSteps.forEach((step) => logger.log(`  • ${step}`));
+    }
+  }
+}
+
+/**
+ * Offer setup help when verification fails
+ * Phase 4: Integration with setup command
+ */
+async function offerSetupHelp(
+  failedSteps: string[],
+  language: string,
+  packageManager?: string,
+): Promise<void> {
+  // Check if any failed steps could benefit from setup
+  const missingToolSteps = failedSteps.filter((step) =>
+    ["lint", "typecheck", "test", "format", "build"].includes(step),
+  );
+
+  if (missingToolSteps.length === 0) {
+    return;
+  }
+
+  // Use ToolDetector to check for missing tools
+  const detector = new ToolDetector();
+  const toolStatuses = await detector.detectInstalledTools();
+  const missingTools = toolStatuses.filter((t) => t.status === "missing");
+
+  if (missingTools.length > 0) {
+    logger.blank();
+    logger.warn("💡 Missing tools detected:");
+    missingTools.forEach((tool) => {
+      logger.log(`  • ${tool.name}: ${tool.recommendedAction || "Not found"}`);
+    });
+
+    logger.blank();
+    logger.info("Need help setting up your environment?");
+
+    const { runSetup } = await prompts({
+      type: "confirm",
+      name: "runSetup",
+      message: "Would you like to run the setup wizard?",
+      initial: true,
+    });
+
+    if (runSetup) {
+      logger.blank();
+      logger.info("Starting setup wizard...");
+
+      // Import and run setup command
+      const { setupCommand } = await import("./setup");
+      await setupCommand();
+    } else {
+      logger.blank();
+      logger.info("You can run the setup wizard later with: gpm setup");
+
+      // Offer specific suggestions for failed steps
+      missingToolSteps.forEach((step) => {
+        const suggestion = getToolInstallSuggestion(step, language, packageManager);
+        if (suggestion) {
+          logger.log(`  • For ${step}: ${suggestion}`);
+        }
+      });
     }
   }
 }
