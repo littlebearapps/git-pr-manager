@@ -14,7 +14,9 @@ module.exports = {
     },
   },
   moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
-  transformIgnorePatterns: ["node_modules/(?!(package-json|ky)/)"],
+  transformIgnorePatterns: [
+    "node_modules/(?!(package-json|ky|@octokit/request-error)/)",
+  ],
   verbose: true,
   clearMocks: true,
   resetMocks: true,
