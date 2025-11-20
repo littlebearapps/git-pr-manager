@@ -1,7 +1,6 @@
 import { jest, describe, it, expect, beforeEach } from "@jest/globals";
 import { ToolDetector } from "../../src/services/ToolDetector";
 import { execSync } from "child_process";
-import * as fs from "fs";
 
 // Mock child_process
 jest.mock("child_process");
@@ -13,6 +12,10 @@ jest.mock("fs", () => ({
   readFileSync: jest.fn(),
 }));
 
+// Import after mock is set up and type cast to mocked version
+import * as fs from "fs";
+const mockFs = fs as jest.Mocked<typeof fs>;
+
 describe("ToolDetector", () => {
   let detector: ToolDetector;
 
@@ -21,7 +24,7 @@ describe("ToolDetector", () => {
     detector = new ToolDetector();
 
     // Default: no lock files exist
-    fs.existsSync.mockReturnValue(false);
+    mockFs.existsSync.mockReturnValue(false);
   });
 
   describe("detectInstalledTools", () => {
@@ -176,7 +179,7 @@ describe("ToolDetector", () => {
 
   describe("detectPackageManager", () => {
     it("should detect npm from package-lock.json", async () => {
-      fs.existsSync.mockImplementation((path: string) => {
+      mockFs.existsSync.mockImplementation((path: any) => {
         return path.toString().includes("package-lock.json");
       });
 
@@ -188,7 +191,7 @@ describe("ToolDetector", () => {
     });
 
     it("should detect yarn from yarn.lock", async () => {
-      fs.existsSync.mockImplementation((path: string) => {
+      mockFs.existsSync.mockImplementation((path: any) => {
         return path.toString().includes("yarn.lock");
       });
 
@@ -200,7 +203,7 @@ describe("ToolDetector", () => {
     });
 
     it("should detect pnpm from pnpm-lock.yaml", async () => {
-      fs.existsSync.mockImplementation((path: string) => {
+      mockFs.existsSync.mockImplementation((path: any) => {
         return path.toString().includes("pnpm-lock.yaml");
       });
 
@@ -212,7 +215,7 @@ describe("ToolDetector", () => {
     });
 
     it("should detect bun from bun.lockb", async () => {
-      fs.existsSync.mockImplementation((path: string) => {
+      mockFs.existsSync.mockImplementation((path: any) => {
         return path.toString().includes("bun.lockb");
       });
 
@@ -224,7 +227,7 @@ describe("ToolDetector", () => {
     });
 
     it("should return null when no lock file found", async () => {
-      fs.existsSync.mockReturnValue(false);
+      mockFs.existsSync.mockReturnValue(false);
 
       const pkgMgr = await detector.detectPackageManager();
 
@@ -233,7 +236,7 @@ describe("ToolDetector", () => {
 
     it("should prioritize bun over other package managers", async () => {
       // All lock files present
-      fs.existsSync.mockReturnValue(true);
+      mockFs.existsSync.mockReturnValue(true);
 
       const pkgMgr = await detector.detectPackageManager();
 
@@ -244,7 +247,7 @@ describe("ToolDetector", () => {
 
   describe("detectLanguage", () => {
     it("should detect Node.js from package.json", async () => {
-      fs.existsSync.mockImplementation((path: string) => {
+      mockFs.existsSync.mockImplementation((path: any) => {
         return path.toString().includes("package.json");
       });
 
@@ -255,7 +258,7 @@ describe("ToolDetector", () => {
     });
 
     it("should detect Python from requirements.txt", async () => {
-      fs.existsSync.mockImplementation((path: string) => {
+      mockFs.existsSync.mockImplementation((path: any) => {
         return path.toString().includes("requirements.txt");
       });
 
@@ -266,7 +269,7 @@ describe("ToolDetector", () => {
     });
 
     it("should detect Go from go.mod", async () => {
-      fs.existsSync.mockImplementation((path: string) => {
+      mockFs.existsSync.mockImplementation((path: any) => {
         return path.toString().includes("go.mod");
       });
 
@@ -277,7 +280,7 @@ describe("ToolDetector", () => {
     });
 
     it("should detect Rust from Cargo.toml", async () => {
-      fs.existsSync.mockImplementation((path: string) => {
+      mockFs.existsSync.mockImplementation((path: any) => {
         return path.toString().includes("Cargo.toml");
       });
 
@@ -288,7 +291,7 @@ describe("ToolDetector", () => {
     });
 
     it("should default to nodejs when no language markers found", async () => {
-      fs.existsSync.mockReturnValue(false);
+      mockFs.existsSync.mockReturnValue(false);
 
       const language = await detector.detectLanguage();
 
@@ -300,8 +303,8 @@ describe("ToolDetector", () => {
 
   describe("checkPackageScripts", () => {
     it("should detect npm scripts from package.json", async () => {
-      fs.existsSync.mockReturnValue(true);
-      fs.readFileSync.mockReturnValue(
+      mockFs.existsSync.mockReturnValue(true);
+      mockFs.readFileSync.mockReturnValue(
         JSON.stringify({
           scripts: {
             test: "jest",
@@ -323,8 +326,8 @@ describe("ToolDetector", () => {
     });
 
     it("should detect missing scripts", async () => {
-      fs.existsSync.mockReturnValue(true);
-      fs.readFileSync.mockReturnValue(
+      mockFs.existsSync.mockReturnValue(true);
+      mockFs.readFileSync.mockReturnValue(
         JSON.stringify({
           scripts: {
             test: "jest",
@@ -340,7 +343,7 @@ describe("ToolDetector", () => {
     });
 
     it("should return missing status when package.json not found", async () => {
-      fs.existsSync.mockReturnValue(false);
+      mockFs.existsSync.mockReturnValue(false);
 
       const scripts = await detector.checkPackageScripts();
 
@@ -431,8 +434,8 @@ describe("ToolDetector", () => {
         }); // jest
 
       // Mock package.json
-      fs.existsSync.mockReturnValue(true);
-      fs.readFileSync.mockReturnValue(
+      mockFs.existsSync.mockReturnValue(true);
+      mockFs.readFileSync.mockReturnValue(
         JSON.stringify({
           scripts: {
             test: "jest",
@@ -459,7 +462,7 @@ describe("ToolDetector", () => {
       mockExecSync.mockImplementation(() => {
         throw new Error("Not found");
       });
-      fs.existsSync.mockReturnValue(false);
+      mockFs.existsSync.mockReturnValue(false);
 
       const response = await detector.generateDoctorResponse("1.9.0");
 
@@ -506,7 +509,7 @@ describe("ToolDetector", () => {
           throw new Error("not found");
         }); // jest
 
-      fs.existsSync.mockReturnValue(false);
+      mockFs.existsSync.mockReturnValue(false);
 
       const response = await detector.generateDoctorResponse("1.9.0");
 
