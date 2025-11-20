@@ -79,7 +79,9 @@ describe("KeychainIntegration", () => {
 
     it("should detect keychain helper when script exists", async () => {
       mockExistsSync.mockImplementation((path: any) => {
-        return path.toString().includes("bin/kc.sh");
+        // Handle both Unix (/) and Windows (\) path separators
+        const pathStr = path.toString();
+        return pathStr.includes("bin/kc.sh") || pathStr.includes("bin\\kc.sh");
       });
 
       const methods = await integration.detectAvailableMethods();
@@ -242,7 +244,9 @@ describe("KeychainIntegration", () => {
         value: "linux",
       });
       mockExistsSync.mockImplementation((path: any) => {
-        return path.toString().includes("bin/kc.sh");
+        // Handle both Unix (/) and Windows (\) path separators
+        const pathStr = path.toString();
+        return pathStr.includes("bin/kc.sh") || pathStr.includes("bin\\kc.sh");
       });
       mockExecSync.mockReturnValueOnce("ghp_helper_token" as any);
 
