@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **AI Agent Enhancements** (Phase 5) - Improved CLI discoverability and structured error reporting for automation
+  - Command alias: `gpm validate` as alternative to `gpm verify` for better discoverability
+  - Hook status command: `gpm hooks status` with JSON output for querying hook installation and configuration
+  - Granular hook configuration: `disableInCI`, `preCommit.autoFix`, `prePush.runValidation` options in `.gpm.yml`
+  - Enhanced error format: `fixable` boolean, `autoFixCommand` string, and `suggestions[]` array in error responses
+  - Intelligent auto-fix detection: Distinguishes fixable errors (format/lint) from non-fixable (test/build/typecheck)
+  - Backwards compatible: All new fields/parameters are optional, existing workflows unaffected
+
 - **ExecutionTracker Utility** (Sprint 1) - Comprehensive execution metadata tracking for `gpm ship` workflow
   - Per-phase timing (verification, security, push, create-pr, wait-ci, merge, cleanup)
   - Skip/failure reason tracking with structured metadata

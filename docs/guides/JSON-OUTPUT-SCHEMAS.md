@@ -1,7 +1,7 @@
 # JSON Output Schemas Reference
 
-**Version**: 1.7.0
-**Last Updated**: 2025-11-18
+**Version**: 1.9.0
+**Last Updated**: 2025-11-20
 
 ---
 
@@ -1120,6 +1120,143 @@ if (response.success && response.data) {
   console.log(`${response.data.passed}/${response.data.total} checks passed`);
 }
 ```
+
+---
+
+### 13. `gpm doctor --json`
+
+**Command**: System health check - verify required tools and GitHub token
+
+**Success Response**:
+
+```json
+{
+  "status": "ok",
+  "checks": [
+    {
+      "id": "token.github",
+      "status": "ok",
+      "details": "GitHub token found (GITHUB_TOKEN)",
+      "version": null,
+      "recommendedAction": null
+    },
+    {
+      "id": "tool.git",
+      "status": "ok",
+      "details": "git version 2.51.0",
+      "version": "2.51.0",
+      "recommendedAction": null
+    },
+    {
+      "id": "tool.node",
+      "status": "ok",
+      "details": "v20.10.0",
+      "version": "20.10.0",
+      "recommendedAction": null
+    },
+    {
+      "id": "tool.gh",
+      "status": "missing",
+      "details": "Not found (optional)",
+      "version": null,
+      "recommendedAction": "Install: brew install gh"
+    }
+  ],
+  "metadata": {
+    "timestamp": "2025-11-20T10:30:00.000Z",
+    "gpm_version": "1.9.0",
+    "platform": "darwin"
+  }
+}
+```
+
+**Fields**:
+- `status` (string): Overall status - "ok", "warnings", "errors"
+- `checks` (array): List of all checks performed
+  - `id` (string): Check identifier (e.g., "token.github", "tool.git")
+  - `status` (string): Check status - "ok", "missing", "incompatible"
+  - `details` (string|null): Human-readable details
+  - `version` (string|null): Detected version if applicable
+  - `recommendedAction` (string|null): Suggested action to resolve issues
+- `metadata` (object): Metadata about the check
+  - `timestamp` (string): ISO 8601 timestamp
+  - `gpm_version` (string): GPM version
+  - `platform` (string): Operating system platform
+
+**Exit Codes**:
+- `0`: All required tools present (may have warnings for optional tools)
+- `1`: Missing required tools or errors
+
+**Use Cases**:
+- Verify environment before running workflows
+- CI/CD environment validation
+- Troubleshooting setup issues
+
+---
+
+### 14. `gpm setup --json`
+
+**Command**: Interactive setup wizard for GitHub token configuration
+
+**Success Response** (token configured):
+
+```json
+{
+  "success": true,
+  "method": "direnv-keychain",
+  "location": "/Users/user/project/.envrc",
+  "message": "Token stored successfully using direnv + keychain",
+  "instructions": [
+    "Token stored in macOS Keychain: github-token-gpm",
+    "Added to .envrc: source ~/bin/kc.sh && export GITHUB_TOKEN=$(kc_get github-token-gpm)",
+    "Run: direnv allow"
+  ]
+}
+```
+
+**Success Response** (already configured):
+
+```json
+{
+  "success": true,
+  "configured": true,
+  "message": "Token already configured"
+}
+```
+
+**Error Response**:
+
+```json
+{
+  "success": false,
+  "error": "Token validation failed: Invalid token format"
+}
+```
+
+**Fields**:
+- `success` (boolean): Whether setup completed successfully
+- `method` (string, optional): Storage method used (direnv-keychain, shell-profile, env-file, env-export)
+- `location` (string, optional): File path where token configuration was stored
+- `message` (string): Human-readable status message
+- `instructions` (array, optional): Step-by-step instructions for completing setup
+- `configured` (boolean, optional): True if token was already configured
+- `error` (string, optional): Error message if setup failed
+
+**Storage Methods**:
+- `direnv-keychain`: direnv + macOS Keychain (highest security)
+- `keychain-helper`: Keychain helper script
+- `shell-profile`: Shell profile (~/.zshrc, ~/.bashrc)
+- `env-file`: .env file
+- `env-export`: Current session only
+
+**Exit Codes**:
+- `0`: Setup completed successfully
+- `1`: Setup failed (validation error, storage error, etc.)
+
+**Use Cases**:
+- Automated CI/CD setup scripts
+- First-time user onboarding
+- Token reconfiguration
 
 ---
 

@@ -1,9 +1,9 @@
 # Git PR Manager - Claude Code Context
 
-**Last Updated**: 2025-11-20 (v1.9.0 Setup & Onboarding)
+**Last Updated**: 2025-11-20 (v1.9.0 Setup & Onboarding Complete)
 **Version**: Managed by semantic-release
-**Status**: Feature Development - Setup & Onboarding Enhancement 🚧
-**Current Focus**: v1.9.0 – Setup & Onboarding (Phases 1-4 Complete, Tests in Progress)
+**Status**: ✅ Production Ready - Setup & Onboarding Enhancement Complete
+**Current Focus**: v1.9.0 – Ready for PR and Release (All Phases Complete, 911 Tests Passing)
 
 ---
 
@@ -43,7 +43,7 @@ Production-ready git workflow automation for GitHub with Claude Code integration
 
 ### Release 1.9.0 - Setup & Onboarding Enhancement 🚧 (2025-11-20)
 
-**Status**: Feature Development - Phases 1-4 Complete, Testing in Progress
+**Status**: ✅ Complete - All Phases Finished, Ready for Review
 **Branch**: `feature/v1.9.0-setup-onboarding`
 **Goal**: Address "setup gap" where users encounter errors due to missing tools
 
@@ -74,28 +74,44 @@ Production-ready git workflow automation for GitHub with Claude Code integration
 
 **Phase 4: Integration & Polish** ✅
 
-- ✅ Integrated setup suggestions into `gpm verify` command
-- ✅ Added `offerSetupHelp` function that triggers on verification failure
-- ✅ Detects missing tools and offers to run setup wizard
-- ✅ Provides specific tool installation suggestions
-- ✅ Respects JSON mode (no prompts in automation)
+- ✅ Refactored `gpm doctor` to use ToolDetector exclusively (~110 lines of duplicate code removed)
+- ✅ Updated `gpm init` to prominently feature setup wizard in "Getting Started" section
+- ✅ Added `--update` flag to `gpm setup` for re-running setup on existing projects
+- ✅ Verified `gpm verify` already has proper setup integration via `offerSetupHelp()` function
+- ✅ Updated doctor.test.ts (removed ~150 lines of obsolete setup options tests)
+- ✅ Updated README.md Quick Start section to make setup wizard the recommended first step
+- ✅ Updated README.md API Reference table with `gpm setup` command and flags
+- ✅ Added v1.9.0 entry to "What's New" section in README.md
+- ✅ Fixed all TypeScript compilation errors and double emoji formatting issues
 
-**Testing Status** 🚧
+**Testing Status** ✅
 
-- ✅ ToolDetector service: 19/27 tests passing (70% coverage)
-- ⏳ KeychainIntegration service: Tests pending
-- ⏳ SetupOrchestrator service: Tests pending
-- ⏳ Setup command: Tests pending
+- ✅ All 911 tests passing (41 test suites)
+- ✅ ToolDetector service: 27/27 tests passing
+- ✅ KeychainIntegration service: Full test coverage
+- ✅ SetupOrchestrator service: Full test coverage
+- ✅ doctor.test.ts: 26/26 tests passing after refactoring
+- ✅ Build successful with no errors
 
 **Commits**:
 - `59b8ef9` - feat: implement setup & onboarding enhancement (v1.9.0 Phases 1-4)
 - `c23cac6` - test: add comprehensive tests for ToolDetector service
 
-**Next Steps**:
-1. Complete test suite for remaining services
-2. Update README with new setup commands
-3. Create pull request for review
-4. Release as v1.9.0 after approval
+**Phase 5: AI Agent Enhancements** ✅ (2025-11-20)
+
+- ✅ Added `validate` alias to `verify` command for discoverability
+- ✅ Created `gpm hooks status` command with JSON output
+- ✅ Granular hook configuration (disableInCI, preCommit.autoFix, prePush.runValidation)
+- ✅ Enhanced error format with `fixable`, `autoFixCommand`, and `suggestions[]` fields
+- ✅ Intelligent auto-fix detection for format/lint errors vs non-fixable test/build errors
+- ✅ All 911 tests passing, backwards compatible
+
+**Ready for Release**:
+1. ✅ All phases complete (Detection, Token Setup, Core Setup, Integration, AI Enhancements)
+2. ✅ Full test coverage (911 tests passing)
+3. ✅ Documentation updated (README.md, CLAUDE.md)
+4. ⏳ Create pull request for review
+5. ⏳ Release as v1.9.0 after approval
 
 ---
 

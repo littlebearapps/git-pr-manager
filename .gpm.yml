@@ -24,9 +24,18 @@ autoFix:
   autoMerge: false
   createPR: true
 hooks:
-  prePush:
+  disableInCI: true
+  preCommit:
     enabled: false
     reminder: true
+    autoFix: true
+  prePush:
+    enabled: true
+    reminder: true
+    runValidation: false
   postCommit:
     enabled: false
     reminder: true
+verification:
+  detectionEnabled: true
+  preferMakefile: true

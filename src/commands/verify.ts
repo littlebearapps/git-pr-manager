@@ -28,6 +28,10 @@ interface VerifyStepResult {
   duration: number;
   output?: string;
   error?: string;
+  // Enhanced error format for AI agents (Phase A.1)
+  fixable?: boolean; // Can this error be auto-fixed?
+  autoFixCommand?: string; // Command to auto-fix the error
+  suggestions?: string[]; // Additional suggestions for fixing
   skipped?: boolean;
   reason?: string;
 }
@@ -476,6 +480,109 @@ function getToolInstallSuggestion(
 }
 
 /**
+ * Get auto-fix information for a failed verification step
+ * Returns fixable status, auto-fix command, and suggestions for AI agents
+ */
+function getAutoFixInfo(
+  stepName: string,
+  originalCommand: string,
+): { fixable: boolean; autoFixCommand?: string; suggestions?: string[] } {
+  const lowerStepName = stepName.toLowerCase();
+  const lowerCommand = originalCommand.toLowerCase();
+
+  // Format check failures - usually auto-fixable
+  if (lowerStepName.includes("format")) {
+    if (lowerCommand.includes("prettier")) {
+      return {
+        fixable: true,
+        autoFixCommand: originalCommand.replace(/--check|--list-different|-l/g, "--write"),
+        suggestions: ["Run prettier with --write flag to auto-format"],
+      };
+    } else if (lowerCommand.includes("black")) {
+      return {
+        fixable: true,
+        autoFixCommand: originalCommand.replace(/--check|--diff/g, "").trim(),
+        suggestions: ["Run black without --check flag to auto-format"],
+      };
+    } else if (lowerCommand.includes("gofmt")) {
+      return {
+        fixable: true,
+        autoFixCommand: originalCommand.replace(/-l/g, "-w"),
+        suggestions: ["Run gofmt with -w flag to auto-format"],
+      };
+    } else if (lowerCommand.includes("cargo fmt")) {
+      return {
+        fixable: true,
+        autoFixCommand: originalCommand.replace(/--check/g, "").trim(),
+        suggestions: ["Run cargo fmt without --check flag to auto-format"],
+      };
+    }
+  }
+
+  // Lint errors - may be auto-fixable
+  if (lowerStepName.includes("lint")) {
+    if (lowerCommand.includes("eslint") || lowerCommand.includes("npm run lint")) {
+      return {
+        fixable: true,
+        autoFixCommand: `${originalCommand} --fix`,
+        suggestions: [
+          "Run linter with --fix flag",
+          "Review and commit the auto-fixed changes",
+        ],
+      };
+    } else if (lowerCommand.includes("ruff")) {
+      return {
+        fixable: true,
+        autoFixCommand: originalCommand.replace(/check/g, "check --fix"),
+        suggestions: ["Run ruff with --fix flag to auto-fix linting issues"],
+      };
+    }
+  }
+
+  // Type errors - not auto-fixable
+  if (lowerStepName.includes("typecheck") || lowerStepName.includes("type")) {
+    return {
+      fixable: false,
+      suggestions: [
+        "Review type errors in the output above",
+        "Fix type annotations manually",
+        "Run 'tsc --noEmit' for detailed type checking",
+      ],
+    };
+  }
+
+  // Test failures - not auto-fixable
+  if (lowerStepName.includes("test")) {
+    return {
+      fixable: false,
+      suggestions: [
+        "Review test failures in the output above",
+        "Fix the failing tests manually",
+        "Run tests in watch mode for faster feedback",
+      ],
+    };
+  }
+
+  // Build failures - not auto-fixable
+  if (lowerStepName.includes("build")) {
+    return {
+      fixable: false,
+      suggestions: [
+        "Review build errors in the output above",
+        "Ensure all dependencies are installed",
+        "Check for TypeScript/compilation errors",
+      ],
+    };
+  }
+
+  // Default: not fixable
+  return {
+    fixable: false,
+    suggestions: ["Review the error output above for details"],
+  };
+}
+
+/**
  * Run a single verification step
  */
 async function runStep(
@@ -526,12 +633,18 @@ async function runStep(
       }
     }
 
+    // Enhanced error format: Determine if fixable and provide auto-fix command
+    const autoFixInfo = getAutoFixInfo(name, command);
+
     return {
       step: name,
       passed: false,
       duration,
       error: error.message,
       output: (error.stdout || "") + (error.stderr || ""),
+      fixable: autoFixInfo.fixable,
+      autoFixCommand: autoFixInfo.autoFixCommand,
+      suggestions: autoFixInfo.suggestions,
     };
   }
 }

@@ -17,6 +17,7 @@ import { docsCommand } from "./commands/docs";
 import { doctorCommand } from "./commands/doctor";
 import { installHooksCommand } from "./commands/install-hooks";
 import { uninstallHooksCommand } from "./commands/uninstall-hooks";
+import { hooksStatusCommand } from "./commands/hooks-status";
 import { worktreeListCommand, worktreePruneCommand } from "./commands/worktree";
 import { setupCommand } from "./commands/setup";
 import { logger, VerbosityLevel } from "./utils/logger";
@@ -168,6 +169,7 @@ program
 
 program
   .command("verify")
+  .alias("validate")
   .description("Run pre-commit verification (lint, typecheck, test, build)")
   .option("--skip-lint", "Skip ESLint check")
   .option("--skip-typecheck", "Skip TypeScript type check")
@@ -235,6 +237,7 @@ program
   .option("--method <method>", "Storage method (non-interactive)")
   .option("--token <token>", "GitHub token (non-interactive)")
   .option("--skip-validation", "Skip token validation")
+  .option("--update", "Re-run setup for existing projects")
   .option("--json", "Output JSON format")
   .action((subcommand, options) => {
     const mergedOptions = { ...program.opts(), ...options };
@@ -258,6 +261,20 @@ worktree
   .option("--dry-run", "Show what would be pruned")
   .option("--json", "Output as JSON")
   .action(worktreePruneCommand);
+
+// Hooks command group
+const hooks = program
+  .command("hooks")
+  .description("Manage git hooks");
+
+hooks
+  .command("status")
+  .description("Show git hooks status and configuration")
+  .option("--json", "Output as JSON")
+  .action((options) => {
+    const mergedOptions = { ...program.opts(), ...options };
+    return hooksStatusCommand(mergedOptions);
+  });
 
 // Global error handler
 process.on("uncaughtException", (error) => {

@@ -65,6 +65,8 @@ describe("Error Classes", () => {
         message: "Test message",
         details: { detail: "value" },
         suggestions: ["Fix 1", "Fix 2"],
+        fixable: false,
+        autoFixCommand: undefined,
         name: "WorkflowError",
       });
     });

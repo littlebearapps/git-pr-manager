@@ -10,7 +10,7 @@
  */
 
 /**
- * Base workflow error class
+ * Base workflow error class with enhanced error format for AI agents
  */
 export class WorkflowError extends Error {
   constructor(
@@ -18,6 +18,8 @@ export class WorkflowError extends Error {
     message: string,
     public details?: any,
     public suggestions: string[] = [],
+    public fixable: boolean = false,
+    public autoFixCommand?: string,
   ) {
     super(message);
     this.name = "WorkflowError";
@@ -30,6 +32,8 @@ export class WorkflowError extends Error {
       message: this.message,
       details: this.details,
       suggestions: this.suggestions,
+      fixable: this.fixable,
+      autoFixCommand: this.autoFixCommand,
       name: this.name,
     };
   }
@@ -40,14 +44,20 @@ export class WorkflowError extends Error {
  * Automatically includes worktree context in error details
  */
 export class GitError extends WorkflowError {
-  constructor(message: string, details?: any, suggestions: string[] = []) {
+  constructor(
+    message: string,
+    details?: any,
+    suggestions: string[] = [],
+    fixable: boolean = false,
+    autoFixCommand?: string,
+  ) {
     // Add worktree context if available
     const enhancedDetails = {
       ...details,
       worktree: process.cwd(), // Current working directory (worktree path)
     };
 
-    super("GIT_ERROR", message, enhancedDetails, suggestions);
+    super("GIT_ERROR", message, enhancedDetails, suggestions, fixable, autoFixCommand);
     this.name = "GitError";
   }
 }

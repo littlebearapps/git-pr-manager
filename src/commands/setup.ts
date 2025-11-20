@@ -15,6 +15,7 @@ interface SetupOptions {
   method?: string;
   token?: string;
   skipValidation?: boolean;
+  update?: boolean; // Phase 4.1: Re-run setup for existing projects
 }
 
 /**
@@ -149,7 +150,7 @@ export async function githubTokenSetup(options: SetupOptions = {}): Promise<void
       }
     } else {
       // JSON mode or automated mode
-      let token = options.token;
+      const token = options.token;
       let method = options.method as StorageMethod;
 
       if (!token) {
@@ -235,6 +236,14 @@ export async function setupCommand(subcommand?: string, options: SetupOptions = 
       const report = await orchestrator.runAutomatedSetup();
       console.log(JSON.stringify(report, null, 2));
     } else {
+      // Phase 4.1: --update flag for re-running setup
+      if (options.update) {
+        logger.info("🔄 Re-running setup wizard to update your configuration...");
+        logger.blank();
+        await orchestrator.runInteractiveSetup();
+        return;
+      }
+
       // Check if user wants to run the wizard or see subcommands
       const { choice } = await prompts({
         type: "select",
@@ -258,10 +267,12 @@ export async function setupCommand(subcommand?: string, options: SetupOptions = 
         logger.log("Available setup commands:");
         logger.log("");
         logger.log("  gpm setup              Run complete setup wizard");
+        logger.log("  gpm setup --update     Re-run setup to update configuration");
         logger.log("  gpm setup github-token Configure GitHub personal access token");
         logger.log("");
         logger.log("Options:");
         logger.log("  --json                 Output JSON format (automated mode)");
+        logger.log("  --update               Re-run setup for existing projects");
         logger.log("");
       } else {
         // User cancelled
