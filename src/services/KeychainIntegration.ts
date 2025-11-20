@@ -205,7 +205,7 @@ export class KeychainIntegration {
         valid: false,
         message: "Invalid token response",
       };
-    } catch (error) {
+    } catch (_error) {
       return {
         valid: false,
         message: "Token validation failed - check token and network connection",
