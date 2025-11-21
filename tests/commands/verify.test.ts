@@ -1152,5 +1152,75 @@ describe("verify command - multi-language integration", () => {
         ),
       );
     });
+
+    it("should handle optional build step when not found", async () => {
+      mockLanguageDetector.detectLanguage.mockResolvedValue({
+        primary: "nodejs",
+        additional: [],
+        confidence: 95,
+        sources: ["package.json"],
+      });
+
+      mockCommandResolver.resolve
+        .mockResolvedValueOnce({
+          command: "npm run format",
+          source: "package-manager",
+          language: "nodejs",
+          packageManager: "npm",
+        })
+        .mockResolvedValueOnce({
+          command: "npm run lint",
+          source: "package-manager",
+          language: "nodejs",
+          packageManager: "npm",
+        })
+        .mockResolvedValueOnce({
+          command: "npx tsc --noEmit",
+          source: "package-manager",
+          language: "nodejs",
+          packageManager: "npm",
+        })
+        .mockResolvedValueOnce({
+          command: "npm test",
+          source: "package-manager",
+          language: "nodejs",
+          packageManager: "npm",
+        })
+        .mockResolvedValueOnce({
+          command: "",
+          source: "not-found",
+          language: "nodejs",
+          packageManager: "npm",
+          optional: true,
+        });
+
+      await verifyCommand({ skipInstall: true });
+
+      expect(logger.info).toHaveBeenCalledWith(expect.stringContaining("Build: skipped"));
+    });
+
+    it("should handle command execution errors gracefully", async () => {
+      mockLanguageDetector.detectLanguage.mockResolvedValue({
+        primary: "nodejs",
+        additional: [],
+        confidence: 95,
+        sources: ["package.json"],
+      });
+
+      mockCommandResolver.resolve.mockResolvedValueOnce({
+        command: "npm run lint",
+        source: "package-manager",
+        language: "nodejs",
+        packageManager: "npm",
+      });
+
+      (mockedExec as any).mockImplementation((_cmd: string, callback: (error: Error | null, result?: { stderr?: string; stdout?: string }) => void) => {
+        callback(new Error("Command failed"), { stderr: "Lint errors found" });
+      });
+
+      await verifyCommand({ skipInstall: true, skipFormat: true, skipTest: true, skipTypecheck: true, skipBuild: true });
+
+      expect(logger.error).toHaveBeenCalledWith(expect.stringContaining("Verification failed"));
+    });
   });
 });

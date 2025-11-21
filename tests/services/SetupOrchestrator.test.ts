@@ -659,4 +659,168 @@ describe("SetupOrchestrator", () => {
       expect(new Date(report.timestamp)).toBeInstanceOf(Date);
     });
   });
+
+  describe("tool installation suggestions", () => {
+    it("should skip suggestions when no tools are missing", async () => {
+      mockDetectorInstance.generateDoctorResponse.mockResolvedValue({
+        status: "ok",
+        checks: [{ id: "tool.git", status: "ok", details: "Git found" }],
+        metadata: {
+          timestamp: new Date().toISOString(),
+          gpm_version: "0.0.0-development",
+          platform: "darwin",
+        },
+      });
+
+      mockFs.existsSync.mockReturnValue(true);
+      mockPrompts
+        .mockResolvedValueOnce({ setupToken: false })
+        .mockResolvedValueOnce({ installOptional: false });
+
+      const report = await orchestrator.runInteractiveSetup();
+
+      expect(report.steps).toBeDefined();
+    });
+
+    it("should handle missing tools without install commands", async () => {
+      mockDetectorInstance.generateDoctorResponse.mockResolvedValue({
+        status: "warnings",
+        checks: [
+          {
+            id: "tool.custom",
+            status: "missing",
+            details: "Custom tool not found",
+            recommendedAction: "Please install manually",
+          },
+        ],
+        metadata: {
+          timestamp: new Date().toISOString(),
+          gpm_version: "0.0.0-development",
+          platform: "darwin",
+        },
+      });
+
+      mockFs.existsSync.mockReturnValue(true);
+      mockPrompts
+        .mockResolvedValueOnce({ setupToken: false })
+        .mockResolvedValueOnce({ installOptional: false });
+
+      const report = await orchestrator.runInteractiveSetup();
+
+      expect(report.steps).toBeDefined();
+    });
+
+    it("should parse npm install commands", async () => {
+      mockDetectorInstance.generateDoctorResponse.mockResolvedValue({
+        status: "warnings",
+        checks: [
+          {
+            id: "tool.eslint",
+            status: "missing",
+            details: "ESLint not found",
+            recommendedAction: "install:npm install -g eslint",
+          },
+        ],
+        metadata: {
+          timestamp: new Date().toISOString(),
+          gpm_version: "0.0.0-development",
+          platform: "darwin",
+        },
+      });
+
+      mockFs.existsSync.mockReturnValue(true);
+      mockPrompts
+        .mockResolvedValueOnce({ installOptional: false })
+        .mockResolvedValueOnce({ runInstall: false });
+
+      const report = await orchestrator.runInteractiveSetup();
+
+      expect(report.steps).toBeDefined();
+      expect(mockPrompts).toHaveBeenCalled();
+    });
+
+    it("should parse pip install commands", async () => {
+      mockDetectorInstance.generateDoctorResponse.mockResolvedValue({
+        status: "warnings",
+        checks: [
+          {
+            id: "tool.detect-secrets",
+            status: "missing",
+            details: "detect-secrets not found",
+            recommendedAction: "install:pip install detect-secrets",
+          },
+        ],
+        metadata: {
+          timestamp: new Date().toISOString(),
+          gpm_version: "0.0.0-development",
+          platform: "darwin",
+        },
+      });
+
+      mockFs.existsSync.mockReturnValue(true);
+      mockPrompts
+        .mockResolvedValueOnce({ installOptional: false })
+        .mockResolvedValueOnce({ runInstall: false });
+
+      await orchestrator.runInteractiveSetup();
+
+      expect(mockPrompts).toHaveBeenCalled();
+    });
+
+    it("should parse brew install commands", async () => {
+      mockDetectorInstance.generateDoctorResponse.mockResolvedValue({
+        status: "warnings",
+        checks: [
+          {
+            id: "tool.gh",
+            status: "missing",
+            details: "GitHub CLI not found",
+            recommendedAction: "install:brew install gh",
+          },
+        ],
+        metadata: {
+          timestamp: new Date().toISOString(),
+          gpm_version: "0.0.0-development",
+          platform: "darwin",
+        },
+      });
+
+      mockFs.existsSync.mockReturnValue(true);
+      mockPrompts
+        .mockResolvedValueOnce({ installOptional: false })
+        .mockResolvedValueOnce({ runInstall: false });
+
+      await orchestrator.runInteractiveSetup();
+
+      expect(mockPrompts).toHaveBeenCalled();
+    });
+
+    it("should parse apt install commands", async () => {
+      mockDetectorInstance.generateDoctorResponse.mockResolvedValue({
+        status: "warnings",
+        checks: [
+          {
+            id: "tool.git",
+            status: "missing",
+            details: "Git not found",
+            recommendedAction: "install:apt install git",
+          },
+        ],
+        metadata: {
+          timestamp: new Date().toISOString(),
+          gpm_version: "0.0.0-development",
+          platform: "linux",
+        },
+      });
+
+      mockFs.existsSync.mockReturnValue(true);
+      mockPrompts
+        .mockResolvedValueOnce({ installOptional: false })
+        .mockResolvedValueOnce({ runInstall: false });
+
+      await orchestrator.runInteractiveSetup();
+
+      expect(mockPrompts).toHaveBeenCalled();
+    });
+  });
 });

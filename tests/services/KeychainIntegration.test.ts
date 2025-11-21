@@ -476,5 +476,50 @@ describe("KeychainIntegration", () => {
 
       expect(result.valid).toBe(false);
     });
+
+    it("should handle unknown storage method", async () => {
+      const result = await integration.storeToken(
+        "ghp_test123",
+        "unknown-method" as any,
+      );
+
+      expect(result.success).toBe(false);
+      expect(result.message).toBe("Unknown storage method");
+    });
+
+    it("should handle invalid token prefix in validation", async () => {
+      const result = await integration.validateToken("invalid_prefix123");
+
+      expect(result.valid).toBe(false);
+      expect(result.message).toBeDefined();
+    });
+
+    it("should handle token validation with null response", async () => {
+      mockExecSync.mockReturnValue(Buffer.from("null"));
+
+      const result = await integration.validateToken("ghp_test123");
+
+      expect(result.valid).toBe(false);
+    });
+
+    it("should handle exec error during token storage with keychain", async () => {
+      mockExecSync.mockImplementation(() => {
+        throw new Error("Keychain error");
+      });
+
+      const result = await integration.storeToken("ghp_test123", StorageMethod.KEYCHAIN_MACOS);
+
+      expect(result.success).toBe(false);
+    });
+
+    it("should handle file write error for env storage", async () => {
+      (writeFileSync as jest.Mock).mockImplementation(() => {
+        throw new Error("Write permission denied");
+      });
+
+      const result = await integration.storeToken("ghp_test123", StorageMethod.ENV_FILE);
+
+      expect(result.success).toBe(false);
+    });
   });
 });

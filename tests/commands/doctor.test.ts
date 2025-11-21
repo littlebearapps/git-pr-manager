@@ -1125,4 +1125,41 @@ describe("doctor command", () => {
       });
     });
   });
+
+  describe("Edge cases", () => {
+    describe("Incompatible tool versions", () => {
+      it("should display warning for incompatible tool version", async () => {
+        // Mock node with incompatible version (too old)
+        mockedExecSync.mockImplementation(((cmd: string) => {
+          if (cmd.includes("command -v git")) return Buffer.from("");
+          if (cmd.includes("git --version"))
+            return Buffer.from("git version 2.51.0");
+          if (cmd.includes("command -v node")) return Buffer.from("");
+          if (cmd.includes("node --version"))
+            return Buffer.from("v14.0.0"); // Below minimum required
+
+          throw new Error("Command not found");
+        }) as any);
+
+        await doctorCommand();
+
+        // Should show warning about incompatible version
+        expect(logger.warn).toHaveBeenCalled();
+      });
+    });
+
+    describe("Error handling", () => {
+      it("should handle unexpected errors during tool detection gracefully", async () => {
+        // Mock execSync to throw unexpected error
+        mockedExecSync.mockImplementation(() => {
+          throw new Error("Unexpected tool detection error");
+        });
+
+        await doctorCommand();
+
+        // Should log error
+        expect(logger.error).toHaveBeenCalled();
+      });
+    });
+  });
 });

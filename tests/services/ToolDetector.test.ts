@@ -516,4 +516,135 @@ describe("ToolDetector", () => {
       expect(response.status).toBe("warnings");
     });
   });
+
+  describe("validateConfiguration", () => {
+    it("should return not found for unknown tool", async () => {
+      const result = await detector.validateConfiguration("unknown-tool");
+
+      expect(result.found).toBe(false);
+      expect(result.valid).toBe(false);
+    });
+
+    it("should find eslint config file", async () => {
+      mockFs.existsSync
+        .mockReturnValueOnce(false) // .eslintrc.json
+        .mockReturnValueOnce(true); // .eslintrc.js
+
+      mockFs.readFileSync.mockReturnValue("module.exports = {}");
+
+      const result = await detector.validateConfiguration("eslint");
+
+      expect(result.found).toBe(true);
+      expect(result.path).toBe(".eslintrc.js");
+    });
+
+    it("should validate JSON config files", async () => {
+      mockFs.existsSync.mockReturnValue(true);
+      mockFs.readFileSync.mockReturnValue('{"rules": {}}');
+
+      const result = await detector.validateConfiguration("eslint");
+
+      expect(result.found).toBe(true);
+      expect(result.valid).toBe(true);
+    });
+
+    it("should detect invalid JSON in config", async () => {
+      mockFs.existsSync
+        .mockReturnValueOnce(false) // .prettierrc
+        .mockReturnValueOnce(true); // .prettierrc.json
+      mockFs.readFileSync.mockReturnValue("{invalid json}");
+
+      const result = await detector.validateConfiguration("prettier");
+
+      expect(result.found).toBe(true);
+      expect(result.valid).toBe(false);
+      expect(result.issues?.[0]).toContain("Invalid JSON syntax");
+    });
+
+    it("should validate tsconfig.json structure", async () => {
+      mockFs.existsSync.mockReturnValue(true);
+      mockFs.readFileSync.mockReturnValue('{"compilerOptions": {}}');
+
+      const result = await detector.validateConfiguration("typescript");
+
+      expect(result.found).toBe(true);
+      expect(result.valid).toBe(true);
+    });
+
+    it("should detect missing compilerOptions in tsconfig", async () => {
+      mockFs.existsSync.mockReturnValue(true);
+      mockFs.readFileSync.mockReturnValue('{"include": []}');
+
+      const result = await detector.validateConfiguration("typescript");
+
+      expect(result.found).toBe(true);
+      expect(result.valid).toBe(false);
+      expect(result.issues).toContain("Missing compilerOptions");
+    });
+
+    it("should handle file read errors", async () => {
+      mockFs.existsSync.mockReturnValue(true);
+      mockFs.readFileSync.mockImplementation(() => {
+        throw new Error("Permission denied");
+      });
+
+      const result = await detector.validateConfiguration("jest");
+
+      expect(result.found).toBe(true);
+      expect(result.valid).toBe(false);
+      expect(result.issues?.[0]).toContain("Permission denied");
+    });
+
+    it("should return not found when no config file exists", async () => {
+      mockFs.existsSync.mockReturnValue(false);
+
+      const result = await detector.validateConfiguration("jest");
+
+      expect(result.found).toBe(false);
+      expect(result.valid).toBe(false);
+    });
+
+    it("should handle eslint .js config files", async () => {
+      mockFs.existsSync
+        .mockReturnValueOnce(false) // .eslintrc.json
+        .mockReturnValueOnce(true); // .eslintrc.js
+      mockFs.readFileSync.mockReturnValue("module.exports = { rules: {} }");
+
+      const result = await detector.validateConfiguration("eslint");
+
+      expect(result.found).toBe(true);
+      expect(result.valid).toBe(true);
+    });
+
+    it("should detect invalid eslint config format", async () => {
+      mockFs.existsSync.mockReturnValue(true);
+      mockFs.readFileSync.mockReturnValue('"not an object"');
+
+      const result = await detector.validateConfiguration("eslint");
+
+      expect(result.found).toBe(true);
+      expect(result.valid).toBe(false);
+      expect(result.issues).toContain("Invalid configuration format");
+    });
+
+    it("should validate git config", async () => {
+      mockFs.existsSync.mockReturnValue(true);
+      mockFs.readFileSync.mockReturnValue("*.log\nnode_modules/");
+
+      const result = await detector.validateConfiguration("git");
+
+      expect(result.found).toBe(true);
+      expect(result.path).toBe(".gitignore");
+    });
+
+    it("should validate npm config", async () => {
+      mockFs.existsSync.mockReturnValue(true);
+      mockFs.readFileSync.mockReturnValue('{"name": "test"}');
+
+      const result = await detector.validateConfiguration("npm");
+
+      expect(result.found).toBe(true);
+      expect(result.path).toBe("package.json");
+    });
+  });
 });

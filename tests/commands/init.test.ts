@@ -1,5 +1,6 @@
 // Mock dependencies first
 jest.mock("../../src/services/ConfigService");
+jest.mock("prompts");
 jest.mock("../../src/utils/logger", () => ({
   logger: {
     success: jest.fn(),
@@ -25,10 +26,12 @@ jest.mock("../../src/utils/spinner", () => ({
 import { initCommand } from "../../src/commands/init";
 import { ConfigService } from "../../src/services/ConfigService";
 import { logger } from "../../src/utils/logger";
+import prompts from "prompts";
 
 const mockedConfigService = ConfigService as jest.MockedClass<
   typeof ConfigService
 >;
+const mockPrompts = prompts as jest.MockedFunction<typeof prompts>;
 
 describe("init command", () => {
   let mockConfigInstance: jest.Mocked<ConfigService>;
@@ -245,6 +248,63 @@ describe("init command", () => {
 
       await initCommand({});
 
+      expect(mockConfigInstance.init).toHaveBeenCalledWith("basic");
+    });
+  });
+
+  describe("interactive mode", () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockConfigInstance.exists.mockResolvedValue(false);
+      mockConfigInstance.init.mockResolvedValue(undefined);
+      mockConfigInstance.getConfig.mockResolvedValue({} as any);
+      mockConfigInstance.getTemplateConfig.mockReturnValue({
+        github: { defaultBranch: "main" },
+      } as any);
+    });
+
+    it("should handle interactive mode with preview", async () => {
+      (mockPrompts as any)
+        .mockResolvedValueOnce({ preset: "standard", preview: true })
+        .mockResolvedValueOnce({ proceed: true });
+
+      await initCommand({ interactive: true });
+
+      expect(mockPrompts).toHaveBeenCalledTimes(2);
+      expect(mockConfigInstance.init).toHaveBeenCalledWith("standard");
+    });
+
+    it("should handle interactive mode without preview", async () => {
+      (mockPrompts as any).mockResolvedValueOnce({
+        preset: "basic",
+        preview: false,
+      });
+
+      await initCommand({ interactive: true });
+
+      expect(mockPrompts).toHaveBeenCalledTimes(1);
+      expect(mockConfigInstance.init).toHaveBeenCalledWith("basic");
+    });
+
+    it("should handle user cancelling after preview", async () => {
+      const mockExit = jest
+        .spyOn(process, "exit")
+        .mockImplementation((() => {}) as any);
+
+      (mockPrompts as any)
+        .mockResolvedValueOnce({ preset: "strict", preview: true })
+        .mockResolvedValueOnce({ proceed: false });
+
+      await initCommand({ interactive: true });
+
+      expect(mockExit).toHaveBeenCalledWith(0);
+      mockExit.mockRestore();
+    });
+
+    it("should not enter interactive mode when template is specified", async () => {
+      await initCommand({ interactive: true, template: "basic" });
+
+      expect(mockPrompts).not.toHaveBeenCalled();
       expect(mockConfigInstance.init).toHaveBeenCalledWith("basic");
     });
   });
