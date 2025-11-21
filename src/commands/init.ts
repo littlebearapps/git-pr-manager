@@ -150,6 +150,13 @@ export async function initCommand(options: InitOptions): Promise<void> {
     logger.log(JSON.stringify(config, null, 2));
 
     logger.success("Workflow configuration initialized successfully!");
+    logger.section("🚀 Getting Started");
+    logger.info("First time using gpm? Run the setup wizard:");
+    logger.info("  gpm setup             # Interactive setup wizard");
+    logger.info("                        # • Verify tools & dependencies");
+    logger.info("                        # • Configure GitHub token");
+    logger.info("                        # • Check your environment");
+    logger.blank();
     logger.section("Next Steps");
     logger.info("1. Review configuration: cat .gpm.yml");
     logger.info(

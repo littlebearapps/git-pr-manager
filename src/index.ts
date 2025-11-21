@@ -15,13 +15,15 @@ import { docsCommand } from "./commands/docs";
 import { doctorCommand } from "./commands/doctor";
 import { installHooksCommand } from "./commands/install-hooks";
 import { uninstallHooksCommand } from "./commands/uninstall-hooks";
+import { hooksStatusCommand } from "./commands/hooks-status";
 import { worktreeListCommand, worktreePruneCommand } from "./commands/worktree";
+import { setupCommand } from "./commands/setup";
 import { logger, VerbosityLevel } from "./utils/logger";
 import { maybeNotifyUpdate } from "./utils/update-check";
 import { getVersion } from "./utils/version";
+import pkg from "../package.json";
 
 // Fire-and-forget update check (non-blocking)
-const pkg = require("../package.json");
 maybeNotifyUpdate({ pkg, argv: process.argv }).catch(() => {
   // Silently fail - update check is non-critical
 });
@@ -33,7 +35,7 @@ let telemetry: any = null;
     const os = await import("os");
     const username = os.userInfo().username;
 
-    if (username === "nathanschram") {
+    if (username === "nathanschram_DISABLED_FOR_DEBUG") {
       const { initTelemetry, captureBreadcrumb, captureError } =
         // @ts-expect-error - Optional internal telemetry module (no types needed)
         await import("../telemetry/src/telemetry.js");
@@ -156,6 +158,7 @@ program
 
 program
   .command("verify")
+  .alias("validate")
   .description("Run pre-commit verification (lint, typecheck, test, build)")
   .option("--skip-lint", "Skip ESLint check")
   .option("--skip-typecheck", "Skip TypeScript type check")
@@ -197,7 +200,12 @@ program
   .command("doctor")
   .description("Check system requirements and optional dependencies")
   .option("--pre-release", "Run pre-release validation checks")
-  .action(doctorCommand);
+  .option("--json", "Output results in JSON format")
+  .action((options) => {
+    // Merge global options with command options
+    const mergedOptions = { ...program.opts(), ...options };
+    return doctorCommand(mergedOptions);
+  });
 
 program
   .command("install-hooks")
@@ -210,6 +218,20 @@ program
   .command("uninstall-hooks")
   .description("Remove gpm git hooks")
   .action(uninstallHooksCommand);
+
+// Setup command group
+program
+  .command("setup [subcommand]")
+  .description("Guided setup and configuration")
+  .option("--method <method>", "Storage method (non-interactive)")
+  .option("--token <token>", "GitHub token (non-interactive)")
+  .option("--skip-validation", "Skip token validation")
+  .option("--update", "Re-run setup for existing projects")
+  .option("--json", "Output JSON format")
+  .action((subcommand, options) => {
+    const mergedOptions = { ...program.opts(), ...options };
+    return setupCommand(subcommand, mergedOptions);
+  });
 
 // Worktree command group
 const worktree = program
@@ -228,6 +250,18 @@ worktree
   .option("--dry-run", "Show what would be pruned")
   .option("--json", "Output as JSON")
   .action(worktreePruneCommand);
+
+// Hooks command group
+const hooks = program.command("hooks").description("Manage git hooks");
+
+hooks
+  .command("status")
+  .description("Show git hooks status and configuration")
+  .option("--json", "Output as JSON")
+  .action((options) => {
+    const mergedOptions = { ...program.opts(), ...options };
+    return hooksStatusCommand(mergedOptions);
+  });
 
 // Global error handler
 process.on("uncaughtException", (error) => {
@@ -250,4 +284,6 @@ process.on("unhandledRejection", (reason) => {
 });
 
 // Parse arguments and execute
+console.error("DEBUG: About to parse");
 program.parse();
+console.error("DEBUG: Parse complete");

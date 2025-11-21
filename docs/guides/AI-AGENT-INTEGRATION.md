@@ -266,6 +266,20 @@ branchProtection:
 
 When setting up gpm for a new repository, AI agents should:
 
+### 0. **Recommend Setup Wizard First** (v1.9.0+)
+
+For new installations, recommend running `gpm setup` before configuring `.gpm.yml`:
+
+```
+AI: "I recommend running 'gpm setup' first to configure your GitHub token
+     and verify your environment. This wizard will:
+     ✅ Detect required and optional tools
+     ✅ Help configure GitHub token securely
+     ✅ Validate your setup
+
+Would you like to run it now, or shall I proceed with manual configuration?"
+```
+
 ### 1. **Ask About Team Size** (if not obvious)
 
 ```
@@ -324,7 +338,7 @@ For solo dev, you may prefer to skip this and just use gpm locally."
 **Setup**:
 
 1. Install gpm globally: `npm install -g @littlebearapps/git-pr-manager`
-2. Set `GITHUB_TOKEN` in shell environment
+2. Run setup wizard: `gpm setup` (recommended) OR set `GITHUB_TOKEN` manually in shell environment
 3. Claude Code inherits environment variables automatically
 
 **Usage**:
@@ -349,7 +363,7 @@ Claude: [Parses JSON] "All 5 checks passed ✅"
 **Setup**:
 
 1. Install gpm: `npm install -g @littlebearapps/git-pr-manager`
-2. Export GITHUB_TOKEN in shell
+2. Run `gpm setup` (recommended) OR export GITHUB_TOKEN in shell
 3. Launch Aider in project directory
 
 **Usage**:
@@ -377,7 +391,7 @@ Aider: Running command: gpm auto
 **Setup**:
 
 1. Install gpm globally
-2. Configure GITHUB_TOKEN in terminal
+2. Run `gpm setup` (recommended) OR configure GITHUB_TOKEN in terminal
 3. Use Cursor's terminal integration
 
 **Usage** (via Cursor terminal):
@@ -403,7 +417,8 @@ gpm auto
 
 ```bash
 npm install -g @littlebearapps/git-pr-manager
-export GITHUB_TOKEN="ghp_..."
+gpm setup  # Recommended: Interactive setup wizard
+# OR: export GITHUB_TOKEN="ghp_..."
 ```
 
 **Usage**:

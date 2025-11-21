@@ -1,6 +1,7 @@
 import chalk from "chalk";
 import { checkForUpdate, clearUpdateCache } from "../utils/update-check";
 import { logger } from "../utils/logger";
+import pkg from "../../package.json";
 
 interface CheckUpdateOptions {
   json?: boolean;
@@ -37,8 +38,6 @@ interface CheckUpdateOptions {
 export async function checkUpdateCommand(
   options: CheckUpdateOptions,
 ): Promise<void> {
-  const pkg = require("../../package.json");
-
   try {
     // Clear cache if requested
     if (options.clearCache) {

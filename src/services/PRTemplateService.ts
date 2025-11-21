@@ -1,6 +1,7 @@
 import * as fs from "fs/promises";
 import * as path from "path";
 import { ConfigService } from "./ConfigService";
+import * as yaml from "yaml";
 
 export interface TemplateContext {
   title: string;
@@ -188,7 +189,6 @@ export class PRTemplateService {
     );
 
     if (frontmatterMatch) {
-      const yaml = require("yaml");
       const metadata = yaml.parse(frontmatterMatch[1]);
       const content = frontmatterMatch[2];
 

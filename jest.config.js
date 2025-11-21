@@ -14,7 +14,13 @@ module.exports = {
     },
   },
   moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
-  transformIgnorePatterns: ["node_modules/(?!(package-json|ky)/)"],
+  transformIgnorePatterns: [
+    "node_modules/(?!(package-json|ky|@octokit)/)",
+  ],
+  transform: {
+    "^.+\\.ts$": "ts-jest",
+    "^.+\\.js$": "ts-jest",
+  },
   verbose: true,
   clearMocks: true,
   resetMocks: true,

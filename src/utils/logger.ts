@@ -1,5 +1,6 @@
 import chalk from "chalk";
 import simpleGit from "simple-git";
+import pkg from "../../package.json";
 
 /**
  * Verbosity levels for logger
@@ -289,7 +290,6 @@ export class Logger {
    */
   private getVersion(): string {
     try {
-      const pkg = require("../../package.json");
       return pkg.version;
     } catch {
       return "unknown";

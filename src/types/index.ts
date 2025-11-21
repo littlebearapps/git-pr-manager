@@ -141,9 +141,16 @@ export interface WorkflowConfig {
 
   // Phase 2: Git Hooks settings
   hooks?: {
+    disableInCI?: boolean; // Auto-disable hooks in CI environments (default: true)
+    preCommit?: {
+      enabled?: boolean; // Pre-commit hook installed (default: false)
+      reminder?: boolean; // Show reminder message (default: true)
+      autoFix?: boolean; // Automatically fix linting/formatting issues (default: true)
+    };
     prePush?: {
       enabled?: boolean; // Pre-push hook installed (default: false)
       reminder?: boolean; // Show reminder message (default: true)
+      runValidation?: boolean; // Run gpm verify before push (default: false)
     };
     postCommit?: {
       enabled?: boolean; // Post-commit hook installed (default: false)

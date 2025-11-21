@@ -26,7 +26,7 @@ export async function getGitHooksDir(
 
     // Return the hooks directory path
     return path.resolve(cwd, gitCommonDir, "hooks");
-  } catch (error) {
+  } catch {
     // Fallback: Check if .git exists
     const gitPath = path.join(cwd, ".git");
 

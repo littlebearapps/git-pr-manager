@@ -5,6 +5,10 @@ jest.mock("child_process", () => ({
   execSync: jest.fn(),
 }));
 
+// Import after mock is set up and type cast to mocked version
+import * as childProcess from "child_process";
+const mockChildProcess = childProcess as jest.Mocked<typeof childProcess>;
+
 // Mock logger to avoid console output during tests
 jest.mock("../../src/utils/logger", () => ({
   logger: {
@@ -65,11 +69,11 @@ import {
   MergeBlockedError,
   MergeConflictError,
 } from "../../src/services/GitHubService";
+import { logger } from "../../src/utils/logger";
 
 describe("GitHubService", () => {
   let mockOctokit: any;
   let service: GitHubService;
-  const childProcess = require("child_process");
 
   beforeEach(() => {
     // Reset all mocks
@@ -92,7 +96,7 @@ describe("GitHubService", () => {
     });
 
     it("should parse owner and repo from git remote if not provided", () => {
-      childProcess.execSync.mockReturnValue(
+      mockChildProcess.execSync.mockReturnValue(
         "git@github.com:littlebearapps/notebridge.git\n",
       );
 
@@ -105,7 +109,7 @@ describe("GitHubService", () => {
     });
 
     it("should throw error if git remote parsing fails", () => {
-      childProcess.execSync.mockImplementation(() => {
+      mockChildProcess.execSync.mockImplementation(() => {
         throw new Error("Not a git repository");
       });
 
@@ -595,7 +599,6 @@ describe("GitHubService", () => {
     });
 
     it("should warn when rate limit is low", async () => {
-      const { logger } = require("../../src/utils/logger");
       const mockRateLimit = {
         data: {
           rate: {
@@ -620,7 +623,6 @@ describe("GitHubService", () => {
     });
 
     it("should not warn when rate limit is sufficient", async () => {
-      const { logger } = require("../../src/utils/logger");
       const mockRateLimit = {
         data: {
           rate: {
@@ -643,14 +645,14 @@ describe("GitHubService", () => {
   describe("URL Parsing", () => {
     beforeEach(() => {
       // Mock execSync to return a valid URL so constructor succeeds
-      childProcess.execSync.mockReturnValue(
+      mockChildProcess.execSync.mockReturnValue(
         "git@github.com:testowner/testrepo.git\n",
       );
       service = new GitHubService({ token: "test-token" });
     });
 
     it("should parse SSH git URL", () => {
-      childProcess.execSync.mockReturnValue(
+      mockChildProcess.execSync.mockReturnValue(
         "git@github.com:littlebearapps/notebridge.git\n",
       );
 
@@ -661,7 +663,7 @@ describe("GitHubService", () => {
     });
 
     it("should parse SSH git URL without .git extension", () => {
-      childProcess.execSync.mockReturnValue("git@github.com:owner/repo\n");
+      mockChildProcess.execSync.mockReturnValue("git@github.com:owner/repo\n");
 
       const newService = new GitHubService({ token: "test-token" });
 
@@ -670,7 +672,7 @@ describe("GitHubService", () => {
     });
 
     it("should parse HTTPS git URL", () => {
-      childProcess.execSync.mockReturnValue(
+      mockChildProcess.execSync.mockReturnValue(
         "https://github.com/littlebearapps/notebridge.git\n",
       );
 
@@ -681,7 +683,7 @@ describe("GitHubService", () => {
     });
 
     it("should parse HTTPS git URL without .git extension", () => {
-      childProcess.execSync.mockReturnValue("https://github.com/owner/repo\n");
+      mockChildProcess.execSync.mockReturnValue("https://github.com/owner/repo\n");
 
       const newService = new GitHubService({ token: "test-token" });
 
@@ -690,7 +692,7 @@ describe("GitHubService", () => {
     });
 
     it("should throw error for invalid git URL format", () => {
-      childProcess.execSync.mockReturnValue("invalid-url\n");
+      mockChildProcess.execSync.mockReturnValue("invalid-url\n");
 
       expect(() => {
         new GitHubService({ token: "test-token" });
@@ -698,7 +700,7 @@ describe("GitHubService", () => {
     });
 
     it("should throw error for non-GitHub URL", () => {
-      childProcess.execSync.mockReturnValue(
+      mockChildProcess.execSync.mockReturnValue(
         "https://gitlab.com/owner/repo.git\n",
       );
 

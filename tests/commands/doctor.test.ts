@@ -87,8 +87,9 @@ describe("doctor command", () => {
 
       await doctorCommand();
 
-      expect(logger.success).toHaveBeenCalledWith("GitHub token: GITHUB_TOKEN");
-      expect(logger.warn).not.toHaveBeenCalledWith("GitHub token: Not found");
+      expect(logger.success).toHaveBeenCalledWith(
+        expect.stringContaining("token: GitHub token found (GITHUB_TOKEN)"),
+      );
     });
 
     it("should detect GH_TOKEN when set", async () => {
@@ -97,218 +98,44 @@ describe("doctor command", () => {
 
       await doctorCommand();
 
-      expect(logger.success).toHaveBeenCalledWith("GitHub token: GH_TOKEN");
-      expect(logger.warn).not.toHaveBeenCalledWith("GitHub token: Not found");
+      expect(logger.success).toHaveBeenCalledWith(
+        expect.stringContaining("token: GitHub token found (GH_TOKEN)"),
+      );
     });
 
-    it("should warn when no token is set", async () => {
+    it("should suggest setup when no token is set", async () => {
       delete process.env.GITHUB_TOKEN;
       delete process.env.GH_TOKEN;
 
       await doctorCommand();
 
-      expect(logger.warn).toHaveBeenCalledWith("GitHub token: Not found");
-      expect(logger.success).not.toHaveBeenCalledWith(
-        expect.stringContaining("GitHub token:"),
+      expect(logger.info).toHaveBeenCalledWith(
+        expect.stringContaining("gpm setup"),
       );
     });
   });
 
-  describe("Setup options with direnv + keychain", () => {
-    beforeEach(() => {
-      delete process.env.GITHUB_TOKEN;
-      delete process.env.GH_TOKEN;
-
-      // direnv exists
-      mockedExecSync.mockImplementation(((cmd: string) => {
-        if (cmd.includes("command -v direnv")) return Buffer.from("");
-        if (cmd.includes("command -v git")) return Buffer.from("");
-        if (cmd.includes("command -v node")) return Buffer.from("");
-        if (cmd.includes("git --version"))
-          return Buffer.from("git version 2.51.0");
-        if (cmd.includes("node --version")) return Buffer.from("v20.10.0");
-        throw new Error("Command not found");
-      }) as any);
-
-      // Keychain helper exists
-      mockedExistsSync.mockImplementation((checkPath: any) => {
-        const pathStr = checkPath.toString();
-        // Check for keychain helper with platform-agnostic path separators
-        if (pathStr.includes("bin") && pathStr.includes("kc.sh")) return true;
-        return false;
-      });
-    });
-
-    it("should recommend direnv + keychain when both available", async () => {
-      await doctorCommand();
-
-      expect(logger.success).toHaveBeenCalledWith(
-        expect.stringContaining("Recommended: direnv + keychain"),
-      );
-      expect(logger.success).toHaveBeenCalledWith(
-        expect.stringContaining("high security"),
-      );
-    });
-
-    it("should show keychain integration steps", async () => {
-      await doctorCommand();
-
-      expect(logger.log).toHaveBeenCalledWith(
-        expect.stringContaining("source ~/bin/kc.sh"),
-      );
-      expect(logger.log).toHaveBeenCalledWith(
-        expect.stringContaining("kc_get GITHUB_PAT"),
-      );
-    });
-
-    it("should show alternative options", async () => {
-      await doctorCommand();
-
-      expect(logger.log).toHaveBeenCalledWith(
-        expect.stringContaining("Alternative 1:"),
-      );
-      expect(logger.log).toHaveBeenCalledWith(
-        expect.stringContaining("shell profile"),
-      );
-    });
-
-    it("should show token generation link", async () => {
-      await doctorCommand();
-
-      expect(logger.log).toHaveBeenCalledWith(
-        "Generate token at: https://github.com/settings/tokens",
-      );
-      expect(logger.log).toHaveBeenCalledWith(
-        "Required scopes: repo (full control of private repositories)",
-      );
-    });
-  });
-
-  describe("Setup options without keychain", () => {
-    beforeEach(() => {
-      delete process.env.GITHUB_TOKEN;
-      delete process.env.GH_TOKEN;
-
-      // direnv exists but no keychain
-      mockedExecSync.mockImplementation(((cmd: string) => {
-        if (cmd.includes("command -v direnv")) return Buffer.from("");
-        if (cmd.includes("command -v git")) return Buffer.from("");
-        if (cmd.includes("command -v node")) return Buffer.from("");
-        if (cmd.includes("git --version"))
-          return Buffer.from("git version 2.51.0");
-        if (cmd.includes("node --version")) return Buffer.from("v20.10.0");
-        throw new Error("Command not found");
-      }) as any);
-
-      // No keychain helper
-      mockedExistsSync.mockImplementation(() => false);
-    });
-
-    it("should recommend direnv with .envrc when keychain not available", async () => {
-      await doctorCommand();
-
-      expect(logger.success).toHaveBeenCalledWith(
-        expect.stringContaining("Recommended: direnv with .envrc"),
-      );
-      expect(logger.success).toHaveBeenCalledWith(
-        expect.stringContaining("medium security"),
-      );
-    });
-
-    it("should warn about .gitignore for .envrc", async () => {
-      await doctorCommand();
-
-      expect(logger.log).toHaveBeenCalledWith(
-        expect.stringContaining(".gitignore"),
-      );
-    });
-  });
-
-  describe("Setup options without direnv or keychain", () => {
-    beforeEach(() => {
-      delete process.env.GITHUB_TOKEN;
-      delete process.env.GH_TOKEN;
-
-      // No direnv, no keychain
-      mockedExecSync.mockImplementation(((cmd: string) => {
-        if (cmd.includes("command -v git")) return Buffer.from("");
-        if (cmd.includes("command -v node")) return Buffer.from("");
-        if (cmd.includes("git --version"))
-          return Buffer.from("git version 2.51.0");
-        if (cmd.includes("node --version")) return Buffer.from("v20.10.0");
-        throw new Error("Command not found");
-      }) as any);
-
-      mockedExistsSync.mockImplementation(() => false);
-    });
-
-    it("should recommend shell profile when no advanced tools available", async () => {
-      await doctorCommand();
-
-      expect(logger.log).toHaveBeenCalledWith(
-        expect.stringContaining("Alternative 1: shell profile"),
-      );
-    });
-
-    it("should show all alternative methods", async () => {
-      await doctorCommand();
-
-      // Should show shell profile, .env, and current session
-      expect(logger.log).toHaveBeenCalledWith(
-        expect.stringContaining("shell profile"),
-      );
-      expect(logger.log).toHaveBeenCalledWith(
-        expect.stringContaining(".env file"),
-      );
-      expect(logger.log).toHaveBeenCalledWith(
-        expect.stringContaining("current session"),
-      );
-    });
-  });
-
-  describe("Required and optional tools", () => {
-    it("should check required tools (git, node)", async () => {
+  describe("Tool detection integration", () => {
+    it("should use ToolDetector for system health check", async () => {
       process.env.GITHUB_TOKEN = "test_token";
 
       await doctorCommand();
 
-      expect(logger.success).toHaveBeenCalledWith(
-        expect.stringContaining("git"),
-      );
-      expect(logger.success).toHaveBeenCalledWith(
-        expect.stringContaining("node"),
-      );
+      // Verify doctor command runs and uses ToolDetector
+      // ToolDetector handles all tool detection and output formatting
+      expect(logger.section).toHaveBeenCalledWith("System Health Check");
+      expect(logger.divider).toHaveBeenCalled();
     });
 
-    it("should check optional tools (gh, detect-secrets, pip-audit, npm)", async () => {
+    it("should display Next Steps section", async () => {
       process.env.GITHUB_TOKEN = "test_token";
 
       await doctorCommand();
 
-      // gh and npm exist
-      expect(logger.success).toHaveBeenCalledWith(
-        expect.stringContaining("gh"),
-      );
-      expect(logger.success).toHaveBeenCalledWith(
-        expect.stringContaining("npm"),
-      );
-
-      // detect-secrets and pip-audit don't exist
-      expect(logger.warn).toHaveBeenCalledWith(
-        expect.stringContaining("detect-secrets"),
-      );
-      expect(logger.warn).toHaveBeenCalledWith(
-        expect.stringContaining("pip-audit"),
-      );
-    });
-
-    it("should show summary when optional tools missing", async () => {
-      process.env.GITHUB_TOKEN = "test_token";
-
-      await doctorCommand();
-
-      expect(logger.warn).toHaveBeenCalledWith(
-        "ℹ️  Some optional tools are missing",
+      // Verify Next Steps section with setup suggestion
+      expect(logger.log).toHaveBeenCalledWith("Next Steps:");
+      expect(logger.info).toHaveBeenCalledWith(
+        expect.stringContaining("gpm setup"),
       );
     });
   });
@@ -1295,6 +1122,43 @@ describe("doctor command", () => {
         );
 
         exitSpy.mockRestore();
+      });
+    });
+  });
+
+  describe("Edge cases", () => {
+    describe("Incompatible tool versions", () => {
+      it("should display warning for incompatible tool version", async () => {
+        // Mock node with incompatible version (too old)
+        mockedExecSync.mockImplementation(((cmd: string) => {
+          if (cmd.includes("command -v git")) return Buffer.from("");
+          if (cmd.includes("git --version"))
+            return Buffer.from("git version 2.51.0");
+          if (cmd.includes("command -v node")) return Buffer.from("");
+          if (cmd.includes("node --version"))
+            return Buffer.from("v14.0.0"); // Below minimum required
+
+          throw new Error("Command not found");
+        }) as any);
+
+        await doctorCommand();
+
+        // Should show warning about incompatible version
+        expect(logger.warn).toHaveBeenCalled();
+      });
+    });
+
+    describe("Error handling", () => {
+      it("should handle unexpected errors during tool detection gracefully", async () => {
+        // Mock execSync to throw unexpected error
+        mockedExecSync.mockImplementation(() => {
+          throw new Error("Unexpected tool detection error");
+        });
+
+        await doctorCommand();
+
+        // Should log error
+        expect(logger.error).toHaveBeenCalled();
       });
     });
   });

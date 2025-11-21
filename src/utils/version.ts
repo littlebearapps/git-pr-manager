@@ -1,4 +1,5 @@
 import { execSync } from "child_process";
+import pkg from "../../package.json";
 
 /**
  * Smart version detection for CLI
@@ -8,7 +9,6 @@ import { execSync } from "child_process";
  * Fallback: Returns placeholder (e.g., "0.0.0-development")
  */
 export function getVersion(): string {
-  const pkg = require("../../package.json");
 
   // Published package - npm injects real version during publish
   if (pkg.version !== "0.0.0-development") {

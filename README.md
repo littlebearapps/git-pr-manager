@@ -62,24 +62,26 @@ gpm auto  # Full automated PR workflow: verify → security scan → PR → CI �
 
 Quick reference for all commands with JSON output schemas:
 
-| Command               | Purpose                 | Key Flags                                                   | JSON Output Schema                                 |
-| --------------------- | ----------------------- | ----------------------------------------------------------- | -------------------------------------------------- |
-| `gpm auto`            | Full automated workflow | `--draft`, `--no-merge`, `--skip-security`, `--skip-verify` | `{prNumber, url, ciStatus, merged}`                |
-| `gpm ship`            | Manual PR workflow      | `--no-wait`, `--draft`, `--title`, `--template`             | `{prNumber, url, ciStatus}`                        |
-| `gpm feature <name>`  | Create feature branch   | `--from <branch>`                                           | `{branch, created}`                                |
-| `gpm checks <pr>`     | CI status for PR        | `--details`, `--files`                                      | `{total, passed, failed, pending, overallStatus}`  |
-| `gpm status`          | Git/workflow status     | -                                                           | `{branch, clean, ahead, behind, hooks}`            |
-| `gpm security`        | Security scanning       | -                                                           | `{passed, secretsFound, vulnerabilities}`          |
-| `gpm init`            | Initialize config       | `--template <preset>`, `--interactive`                      | `{created, template, config}`                      |
-| `gpm protect`         | Branch protection       | `--show`, `--preset <type>`, `--branch`                     | `{enabled, requirements}`                          |
-| `gpm doctor`          | System health check     | `--pre-release`                                             | `{token, tools, checks}`                           |
-| `gpm install-hooks`   | Install git hooks       | `--post-commit`, `--force`                                  | `{installed, hooks}`                               |
-| `gpm uninstall-hooks` | Remove git hooks        | -                                                           | `{removed}`                                        |
-| `gpm worktree list`   | List worktrees          | -                                                           | `{worktrees: [{path, branch, commit}]}`            |
-| `gpm worktree prune`  | Clean stale data        | `--dry-run`                                                 | `{pruned, count}`                                  |
-| `gpm verify`          | Pre-commit checks       | `--skip-format`, `--skip-lint`, `--skip-test`               | `{passed, tasks: [{name, status}]}`                |
-| `gpm check-update`    | Check for updates       | `--channel <next\|latest>`, `--clear-cache`                 | `{updateAvailable, currentVersion, latestVersion}` |
-| `gpm docs`            | View documentation      | `--guide=<name>`                                            | `{guide, found, content}`                          |
+| Command                    | Purpose                 | Key Flags                                                   | JSON Output Schema                                 |
+| -------------------------- | ----------------------- | ----------------------------------------------------------- | -------------------------------------------------- |
+| `gpm auto`                 | Full automated workflow | `--draft`, `--no-merge`, `--skip-security`, `--skip-verify` | `{prNumber, url, ciStatus, merged}`                |
+| `gpm ship`                 | Manual PR workflow      | `--no-wait`, `--draft`, `--title`, `--template`             | `{prNumber, url, ciStatus}`                        |
+| `gpm feature <name>`       | Create feature branch   | `--from <branch>`                                           | `{branch, created}`                                |
+| `gpm checks <pr>`          | CI status for PR        | `--details`, `--files`                                      | `{total, passed, failed, pending, overallStatus}`  |
+| `gpm status`               | Git/workflow status     | -                                                           | `{branch, clean, ahead, behind, hooks}`            |
+| `gpm security`             | Security scanning       | -                                                           | `{passed, secretsFound, vulnerabilities}`          |
+| `gpm init`                 | Initialize config       | `--template <preset>`, `--interactive`                      | `{created, template, config}`                      |
+| `gpm protect`              | Branch protection       | `--show`, `--preset <type>`, `--branch`                     | `{enabled, requirements}`                          |
+| `gpm setup`                | Setup wizard            | `--update`, `--method`, `--token`, `--skip-validation`      | `{success, method, location, configured}`          |
+| `gpm doctor`               | System health check     | `--pre-release`, `--json`                                   | `{token, tools, checks}`                           |
+| `gpm install-hooks`        | Install git hooks       | `--post-commit`, `--force`                                  | `{installed, hooks}`                               |
+| `gpm uninstall-hooks`      | Remove git hooks        | -                                                           | `{removed}`                                        |
+| `gpm worktree list`        | List worktrees          | -                                                           | `{worktrees: [{path, branch, commit}]}`            |
+| `gpm worktree prune`       | Clean stale data        | `--dry-run`                                                 | `{pruned, count}`                                  |
+| `gpm verify` \| `validate` | Pre-commit checks       | `--skip-format`, `--skip-lint`, `--skip-test`               | `{passed, tasks: [{name, status, fixable}]}`       |
+| `gpm hooks status`         | Git hooks status        | -                                                           | `{installed, hooks, config}`                       |
+| `gpm check-update`         | Check for updates       | `--channel <next\|latest>`, `--clear-cache`                 | `{updateAvailable, currentVersion, latestVersion}` |
+| `gpm docs`                 | View documentation      | `--guide=<name>`                                            | `{guide, found, content}`                          |
 
 **Note**: Add `--json` flag to any command for machine-readable output. All commands support `--quiet`, `--silent`, and `--verbose` flags for output control.
 
@@ -264,6 +266,23 @@ done
 
 ## ✨ What's New
 
+### Setup Wizard & Onboarding Enhancement (v1.9.0) - Nov 2025
+
+- ✅ **Interactive setup wizard**: `gpm setup` guides new users through complete environment configuration
+  - Detects and verifies required tools (git, node) and optional dependencies (gh CLI, detect-secrets, pip-audit)
+  - Configures GitHub token with multiple secure storage methods (direnv + keychain, shell profile, .env)
+  - Provides ranked setup suggestions based on your system's available tools
+  - Validates token permissions and connectivity before storing
+- ✅ **Unified tool detection**: ToolDetector service consolidates all environment and dependency checking
+  - Structured Check interface with id, status, details, version, and recommended actions
+  - Used consistently across doctor, setup, and verify commands
+  - Eliminates ~110 lines of duplicate detection logic
+- ✅ **Enhanced user onboarding**: Setup wizard now prominently featured in `gpm init` output
+- ✅ **Re-run capability**: `gpm setup --update` allows updating configuration on existing projects
+- ✅ **Improved doctor command**: `gpm doctor` now uses ToolDetector and suggests `gpm setup` for missing tools
+- ✅ **AI agent enhancements**: Enhanced error format with auto-fix detection, hook status command, and command aliases for improved discoverability
+- 📚 See Phase 4 implementation in git history for complete technical details
+
 ### Release Validation Strategy (Alternative D) - Nov 2025
 
 - ✅ **Zero-drift version management**: package.json uses `0.0.0-development` placeholder; semantic-release determines actual versions
@@ -302,9 +321,33 @@ npm install -g @littlebearapps/git-pr-manager
 
 ### Setup
 
-#### 1. GitHub Token (Required for PR operations)
+#### 1. Run Setup Wizard (Recommended)
 
-Create a GitHub Personal Access Token with `repo` scope:
+The easiest way to get started is with the interactive setup wizard:
+
+```bash
+gpm setup
+```
+
+This wizard will:
+
+- ✅ Detect and verify required tools (git, node)
+- ✅ Check optional dependencies (gh CLI, detect-secrets, pip-audit)
+- ✅ Guide you through GitHub token configuration
+- ✅ Help you choose secure storage method (direnv + keychain, .envrc, shell profile)
+- ✅ Provide copy-paste commands for immediate setup
+
+**Advanced options**:
+
+```bash
+gpm setup github-token          # Configure GitHub token only
+gpm setup --update              # Re-run setup for existing projects
+gpm doctor                      # Check system requirements anytime
+```
+
+#### 2. Manual GitHub Token Setup (Alternative)
+
+If you prefer manual setup, create a GitHub Personal Access Token:
 
 1. Go to https://github.com/settings/tokens/new
 2. Give it a name (e.g., "gpm")
@@ -322,7 +365,7 @@ export GITHUB_TOKEN="ghp_your_token_here"
 echo 'export GITHUB_TOKEN="ghp_your_token_here"' >> ~/.zshrc
 source ~/.zshrc
 
-# Option 3: Project-specific .env file
+# Option 3: Project-specific .env file (requires direnv)
 echo 'GITHUB_TOKEN=ghp_your_token_here' >> .env
 # Add .env to .gitignore if not already there
 
@@ -332,7 +375,7 @@ echo $GITHUB_TOKEN  # Should show your token
 
 **Note**: Commands that require GitHub token: `ship`, `auto`, `checks`, `feature` (when pushing). Local commands like `status`, `security`, `init` work without a token.
 
-#### 2. Initialize Configuration
+#### 3. Initialize Configuration
 
 ```bash
 # Interactive setup wizard (recommended for first time)
